@@ -35,7 +35,6 @@ def generate_pods(participants, round):
 
 
 def get_participants_total_scores(mm_yy):
-    print()
     participants_data = Participants.objects.filter(deleted=False)
     serialized = ParticipantsSerializer(
         participants_data, many=True, context={"mm_yy": mm_yy}
