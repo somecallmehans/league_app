@@ -2,7 +2,6 @@
 *.pyc
 __pycache__/
 db.sqlite3
-/env/
 *.env
 
 # Node.js-specific files
@@ -33,5 +32,3 @@ lerna-debug.log*
 # Frontend-specific files
 /tabernacle/node_modules/
 /tabernacle/dist/
-
-/backend-specific files (if any)
