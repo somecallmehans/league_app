@@ -82,6 +82,7 @@ WSGI_APPLICATION = "tome.wsgi.application"
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+    "https://commander-league-web-app-frontend.onrender.com",
 ]
 
 CORS_ALLOW_METHODS = ["GET", "OPTIONS", "POST"]
