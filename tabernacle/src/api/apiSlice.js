@@ -7,7 +7,7 @@ import postRoutes from "./postRoutes";
 import authRoutes from "./authRoutes";
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: "http://127.0.0.1:8000/",
+  baseUrl: process.env.API_URL,
   prepareHeaders: (headers) => {
     const token = getTokenRaw();
     if (token) {
