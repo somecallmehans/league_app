@@ -7,7 +7,7 @@ import postRoutes from "./postRoutes";
 import authRoutes from "./authRoutes";
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: process.env.API_URL,
+  baseUrl: import.meta.env.VITE_API_URL,
   prepareHeaders: (headers) => {
     const token = getTokenRaw();
     if (token) {

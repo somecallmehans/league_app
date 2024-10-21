@@ -32,3 +32,4 @@ lerna-debug.log*
 # Frontend-specific files
 /tabernacle/node_modules/
 /tabernacle/dist/
+/tabernacle/.env/
