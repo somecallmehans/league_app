@@ -32,7 +32,16 @@ def get_achievements_with_restrictions(request):
     )
     serializer = AchievementsSerializer(achievements, many=True).data
     map = make_achievement_map(serializer)
-    return Response({"map": map, "data": serializer}, status=status.HTTP_200_OK)
+    parents = set(
+        [
+            achievement["parent"]["id"]
+            for achievement in serializer
+            if achievement["parent"] is not None
+        ]
+    )
+    return Response(
+        {"map": map, "data": serializer, "parents": parents}, status=status.HTTP_200_OK
+    )
 
 
 @api_view(["GET"])

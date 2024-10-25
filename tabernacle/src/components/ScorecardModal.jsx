@@ -26,6 +26,7 @@ const ScorecardFormFields = ({
 }) => {
   const [postRoundScores] = usePostRoundScoresMutation();
   const { data: colorsData, isLoading: colorsLoading } = useGetAllColorsQuery();
+  const { data: achievementData, isLoading } = useGetAchievementsQuery();
 
   const {
     control,
@@ -33,11 +34,14 @@ const ScorecardFormFields = ({
     register,
     formState: { errors },
   } = useForm();
-  const { data, isLoading } = useGetAchievementsQuery();
 
   if (isLoading || colorsLoading) {
     return null;
   }
+
+  const filteredAchievementData = achievementData.data.filter(
+    (achievement) => !achievementData.parents.includes(achievement.id)
+  );
 
   const handleFormSubmit = async (formData) => {
     // each of these is a list of participants except for:
@@ -238,7 +242,7 @@ const ScorecardFormFields = ({
       <Selector
         control={control}
         name="winnerDeckbuildingAchievements"
-        options={data.data}
+        options={filteredAchievementData}
         placeholder="Other Deck Building Achievements"
         isMulti
       />
