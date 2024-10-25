@@ -50,6 +50,7 @@ export const CheckBoxInput = forwardRef(
   ({ name, checked, onChange, classes, label }, ref) => {
     return (
       <Field className={`${classes}`}>
+        {label && <Label className="text-xs">{label}</Label>}
         <Checkbox
           name={name}
           checked={checked}
@@ -70,7 +71,6 @@ export const CheckBoxInput = forwardRef(
             />
           </svg>
         </Checkbox>
-        {label && <Label className="text-xs">{label}</Label>}
       </Field>
     );
   }

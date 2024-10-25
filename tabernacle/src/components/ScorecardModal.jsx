@@ -15,6 +15,7 @@ import {
   usePostRoundScoresMutation,
   useGetAllColorsQuery,
 } from "../api/apiSlice";
+import { ColorCheckboxes, colorIdFinder } from "./ColorInputs";
 
 const ScorecardFormFields = ({
   focusedPod,
@@ -53,9 +54,11 @@ const ScorecardFormFields = ({
       zeroOrLessLife,
       loseTheGameEffect,
       winnersCommander,
-      colorId,
       winnerDeckbuildingAchievements = [],
+      colors,
     } = formData;
+
+    const colorId = colorIdFinder(colors, colorsData);
 
     const boolMap = [
       { condition: lastInTurnOrder, achievementId: 27 },
@@ -106,7 +109,7 @@ const ScorecardFormFields = ({
       pod: focusedPod.podId,
       winnerInfo: {
         winner_id: winnerId,
-        color_id: colorId["id"],
+        color_id: colorId,
         commander_name: winnersCommander,
       },
       participants: participantList,
@@ -157,23 +160,13 @@ const ScorecardFormFields = ({
         register={{ ...register("winner", { required: true }) }}
         classes="mb-2"
       />
-      <div className="flex gap-1 mb-2">
-        <TextInput
-          classes="basis-2/3 border data-[hover]:shadow data-[focus]:bg-blue-100"
-          name="winnersCommander"
-          placeholder="Winner's Commander"
-          control={control}
-          register={{ ...register("colorId", { required: true }) }}
-        />
-        <Selector
-          name="colorId"
-          control={control}
-          options={colorsData}
-          placeholder="Color ID"
-          classes="basis-1/3"
-          register={{ ...register("colorId", { required: true }) }}
-        />
-      </div>
+      <TextInput
+        classes="basis-2/3 border py-2 mb-2 data-[hover]:shadow data-[focus]:bg-blue-100"
+        name="winnersCommander"
+        placeholder="Winner's Commander"
+        control={control}
+      />
+      <ColorCheckboxes control={control} />
       <div className="mb-2 flex gap-2">
         Were they last in turn order:{" "}
         <Controller
