@@ -32,6 +32,8 @@ export const Selector = ({
           getOptionLabel={(option) => option.name}
           getOptionValue={(option) => option.id}
           menuPortalTarget={document.body}
+          menuPosition="fixed"
+          menuPlacement="auto"
           styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
           placeholder={placeholder}
           defaultValue={defaultValue}
