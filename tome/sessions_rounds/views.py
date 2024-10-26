@@ -136,15 +136,26 @@ def get_pods(_, round):
         pods_id__in=[x.id for x in all_pods]
     )
 
-    serialized_data = PodsParticipantsSerializer(pods_participants, many=True).data
+    serialized_data = PodsParticipantsSerializer(
+        pods_participants, many=True, context={"round_id": round}
+    ).data
 
     pod_map = {}
     for pod in serialized_data:
         pod_id = pod["pods"]["id"]
         submitted = pod["pods"]["submitted"]
+
         if pod_map.get(pod_id, None) is None:
-            pod_map[pod_id] = {"id": pod_id, "submitted": submitted, "pods": []}
-        pod_map[pod_id]["pods"].append(pod)
+            pod_map[pod_id] = {"id": pod_id, "submitted": submitted, "participants": []}
+
+        participant_data = {
+            "participant_id": pod["participant_id"],
+            "name": pod["name"],
+            "total_points": pod["total_points"],
+            "round_points": pod["round_points"],
+        }
+
+        pod_map[pod_id]["participants"].append(participant_data)
 
     return Response(pod_map, status=status.HTTP_200_OK)
 

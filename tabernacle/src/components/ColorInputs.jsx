@@ -9,19 +9,21 @@ export const ColorCheckboxes = ({ control }) => {
   return (
     <div className="flex justify-between mb-2">
       {colors.map((color) => (
-        <Controller
-          name={`colors.${color}`}
-          control={control}
-          defaultValue={false}
-          render={({ field }) => (
-            <CheckBoxInput
-              {...field}
-              classes="flex flex-col items-center"
-              label={color}
-              checked={field.value}
-            />
-          )}
-        />
+        <React.Fragment key={color}>
+          <Controller
+            name={`colors.${color}`}
+            control={control}
+            defaultValue={false}
+            render={({ field }) => (
+              <CheckBoxInput
+                {...field}
+                classes="flex flex-col items-center"
+                label={color}
+                checked={field.value}
+              />
+            )}
+          />
+        </React.Fragment>
       ))}
     </div>
   );
