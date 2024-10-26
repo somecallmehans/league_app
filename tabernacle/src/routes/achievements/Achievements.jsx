@@ -4,6 +4,7 @@ import { useGetAchievementsQuery } from "../../api/apiSlice";
 
 import LoadingSpinner from "../../components/LoadingSpinner";
 import PageTitle from "../../components/PageTitle";
+import { SimpleSelect } from "../crud/CrudComponents";
 
 const Achievement = ({ name, children, restrictions }) => {
   const [toggle, setToggle] = useState();
@@ -36,6 +37,7 @@ const Achievement = ({ name, children, restrictions }) => {
 };
 
 export default function AchievementsPage() {
+  const [filteredValues, setFilteredValues] = useState([]);
   const { data, isLoading } = useGetAchievementsQuery();
 
   if (isLoading) {
@@ -47,19 +49,36 @@ export default function AchievementsPage() {
   return (
     <div className="p-4">
       <PageTitle title="Achievements" />
-      {achievementKeys.map((x) => (
-        <div key={x} className="p-2">
-          <div className="font-bold text-2xl">{x} Points</div>
-          {data.map[x]?.map(({ id, name, children, restrictions }) => (
-            <Achievement
-              key={id}
-              name={name}
-              children={children}
-              restrictions={restrictions}
-            />
-          ))}
-        </div>
-      ))}
+      <SimpleSelect
+        placeholder="Filter By Point Value"
+        options={achievementKeys.map((v) => ({ label: v, value: v }))}
+        onChange={(val) => {
+          const valuesOnly = val.map(({ value }) => value);
+          setFilteredValues([...valuesOnly]);
+        }}
+        isMulti
+      />
+      {achievementKeys
+        .filter((x) => {
+          if (filteredValues.length === 0) {
+            return true;
+          } else {
+            return filteredValues.includes(x);
+          }
+        })
+        .map((x) => (
+          <div key={x} className="p-2">
+            <div className="font-bold text-2xl">{x} Points</div>
+            {data.map[x]?.map(({ id, name, children, restrictions }) => (
+              <Achievement
+                key={id}
+                name={name}
+                children={children}
+                restrictions={restrictions}
+              />
+            ))}
+          </div>
+        ))}
     </div>
   );
 }

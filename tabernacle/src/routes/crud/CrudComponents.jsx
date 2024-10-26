@@ -48,6 +48,7 @@ export function SimpleSelect({
   defaultValue,
   classes,
   onChange,
+  isMulti,
 }) {
   return (
     <Select
@@ -56,6 +57,7 @@ export function SimpleSelect({
       defaultValue={defaultValue?.value}
       className={`${classes}`}
       onChange={onChange}
+      isMulti
     />
   );
 }
