@@ -16,20 +16,73 @@ import LoadingSpinner from "../../components/LoadingSpinner";
 import CreatableSelect from "react-select/creatable";
 import ScorecardModal from "../../components/ScorecardModal";
 
-function HistoricRound({ roundId }) {
-  const { data: pods, isLoading: podsLoading } = useGetPodsQuery(roundId);
-
-  if (podsLoading) {
-    return <LoadingSpinner />;
+function Pods({
+  pods,
+  podKeys,
+  isOpen,
+  focusedPod,
+  openModal,
+  closeModal,
+  roundParticipantList,
+  sessionId,
+  roundId,
+}) {
+  if (!pods) {
+    return null;
   }
-  const podsKeyList = Object.keys(pods);
   return (
-    <div>
-      {podsKeyList?.map((key) => {
-        const pod = pods[key];
-        console.log(pod);
-        return <div>boop</div>;
+    <div className="grid grid-cols-2 gap-6">
+      {podKeys.map((pod_id, index) => {
+        const { participants, submitted, id } = pods[pod_id];
+        return (
+          <div key={pod_id}>
+            <div className="flex items-end justify-center content-center text-3xl mb-2">
+              <div className="mr-4">Pod {index + 1}</div>
+              {submitted ? (
+                <i className="fa-regular fa-circle-check text-slate-600" />
+              ) : (
+                <i
+                  className="fa-regular fa-circle-exclamation text-sky-600 hover:text-sky-500"
+                  onClick={() => openModal(participants, id)}
+                />
+              )}
+            </div>
+            <div className="border border-blue-300 grid grid-cols-2 overflow-y-auto">
+              {participants.map(
+                (
+                  { participant_id, name, total_points, round_points },
+                  index
+                ) => (
+                  <div
+                    key={participant_id}
+                    className={`p-8 border border-blue-300 grid grid-cols-1 overflow-y-auto text-center ${
+                      participants.length === 3 && index === 2
+                        ? "col-span-2"
+                        : ""
+                    }`}
+                  >
+                    <span className="text-xl">{name}</span>
+                    <span className="text-xs">
+                      {round_points} Points This Round
+                    </span>
+                    <span className="text-xs">
+                      {total_points} Points This Month
+                    </span>
+                  </div>
+                )
+              )}
+            </div>
+          </div>
+        );
       })}
+      <ScorecardModal
+        isOpen={isOpen}
+        closeModal={closeModal}
+        focusedPod={focusedPod}
+        roundParticipantList={roundParticipantList}
+        sessionId={sessionId}
+        roundId={roundId}
+      />
     </div>
   );
 }
@@ -136,15 +189,11 @@ function RoundLobby({ roundId, sessionId, previousRoundParticipants }) {
   );
 }
 
-// If a round is open but there are no pods, go to the lobby
-// If a round is open but we have pods, go to the FocusedView
-// If a round is closed, show the FocusedView but disable everything
-
 function FocusedRound({ completed, pods, sessionId, roundId }) {
   const [isOpen, setIsOpen] = useState(false);
   const [focusedPod, setFocusedPod] = useState({});
-  const roundParticipantList = Object.values(pods).flatMap(({ pods }) =>
-    Object.values(pods).flatMap((item) => item.participants)
+  const roundParticipantList = Object.values(pods).flatMap(({ participants }) =>
+    Object.values(participants)
   );
 
   function closeModal() {
@@ -152,64 +201,26 @@ function FocusedRound({ completed, pods, sessionId, roundId }) {
     setIsOpen(false);
   }
 
-  function openModal(pods, id) {
+  function openModal(p, id) {
     setFocusedPod({
-      participants: pods.map((p) => p.participants),
+      participants: p,
       podId: id,
     });
     setIsOpen(true);
   }
 
-  if (completed) {
-    return <HistoricRound roundId={roundId} />;
-  }
-
   return (
-    <div className="grid grid-cols-2 gap-6">
-      {Object.keys(pods).map((pod_id, index) => {
-        const { pods: playerPods, submitted, id } = pods[pod_id];
-        return (
-          <div key={pod_id}>
-            <div className="flex items-end justify-center content-center text-3xl mb-2">
-              <div className="mr-4">Pod {index + 1}</div>
-              {submitted ? (
-                <i className="fa-regular fa-circle-check text-slate-600" />
-              ) : (
-                <i
-                  className="fa-regular fa-circle-exclamation text-sky-600 hover:text-sky-500"
-                  onClick={() => openModal(playerPods, id)}
-                />
-              )}
-            </div>
-            <div className="border border-blue-300 grid grid-cols-2 overflow-y-auto">
-              {playerPods.map(
-                ({ id, participants: { name, total_points } }, index) => (
-                  <div
-                    key={id}
-                    className={`p-8 border border-blue-300 grid grid-cols-1 overflow-y-auto text-center ${
-                      playerPods.length === 3 && index === 2 ? "col-span-2" : ""
-                    }`}
-                  >
-                    <span className="text-xl">{name}</span>
-                    <span className="text-sm">
-                      {total_points} Points This Month
-                    </span>
-                  </div>
-                )
-              )}
-            </div>
-          </div>
-        );
-      })}
-      <ScorecardModal
-        isOpen={isOpen}
-        closeModal={closeModal}
-        focusedPod={focusedPod}
-        roundParticipantList={roundParticipantList}
-        sessionId={sessionId}
-        roundId={roundId}
-      />
-    </div>
+    <Pods
+      podKeys={Object.keys(pods)}
+      pods={pods}
+      isOpen={isOpen}
+      focusedPod={focusedPod}
+      openModal={openModal}
+      closeModal={closeModal}
+      roundParticipantList={roundParticipantList}
+      sessionId={sessionId}
+      roundId={roundId}
+    />
   );
 }
 
@@ -249,9 +260,13 @@ export default function RoundPage() {
         <StandardButton title="Back" />
       </Link>
 
-      {Object.keys(data).length > 0 && (
+      {Object?.keys(data)?.length > 0 && (
         <Link to={"/league-session"}>
-          <StandardButton title="Close" action={() => handleCloseRound()} />
+          <StandardButton
+            title="Close"
+            action={() => handleCloseRound()}
+            disabled={completed}
+          />
         </Link>
       )}
 

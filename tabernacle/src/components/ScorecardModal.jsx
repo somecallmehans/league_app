@@ -42,6 +42,8 @@ const ScorecardFormFields = ({
   const filteredAchievementData = achievementData.data.filter(
     (achievement) => !achievementData.parents.includes(achievement.id)
   );
+  const podIds =
+    focusedPod?.participants?.map(({ participant_id }) => participant_id) || [];
 
   const handleFormSubmit = async (formData) => {
     // each of these is a list of participants except for:
@@ -140,7 +142,9 @@ const ScorecardFormFields = ({
       <Selector
         name="loanedDeck"
         control={control}
-        options={roundParticipantList}
+        options={roundParticipantList.filter(
+          ({ participant_id }) => !podIds.includes(participant_id)
+        )}
         placeholder="Did anyone lend a deck to the winner?"
         classes="mb-2"
         isMulti
@@ -164,6 +168,7 @@ const ScorecardFormFields = ({
         register={{ ...register("winner", { required: true }) }}
         classes="mb-2"
       />
+      {/* When redis gets rolling this should be a selector from that data */}
       <TextInput
         classes="basis-2/3 border py-2 mb-2 data-[hover]:shadow data-[focus]:bg-blue-100"
         name="winnersCommander"

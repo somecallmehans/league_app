@@ -44,7 +44,6 @@ const Round = ({
   previousRoundId,
   created_at,
   completed,
-  sessionClosed,
   otherRoundStatus,
 }) => {
   let previousRoundParticipants = [];
@@ -54,8 +53,8 @@ const Round = ({
 
     previousRoundParticipants =
       !isLoading &&
-      Object.values(data).flatMap(({ pods }) =>
-        Object.values(pods).flatMap((item) => item.participants)
+      Object.values(data).flatMap(({ participants }) =>
+        Object.values(participants)
       );
   }
 
