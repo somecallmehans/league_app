@@ -53,7 +53,7 @@ const ScorecardFormFields = ({
       snack = [],
       loanedDeck = [],
       knockOuts = [],
-      winner: { id: winnerId },
+      winner: { participant_id: winnerId },
       lastInTurnOrder,
       commanderDamage,
       winTheGameEffect,
@@ -165,7 +165,7 @@ const ScorecardFormFields = ({
         placeholder="Winner"
         control={control}
         options={focusedPod.participants}
-        register={{ ...register("winner", { required: true }) }}
+        // register={{ ...register("winner", { required: true }) }}
         classes="mb-2"
       />
       {/* When redis gets rolling this should be a selector from that data */}

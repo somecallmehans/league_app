@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Route, Routes, Link } from "react-router-dom";
 
 import RoundPage from "./RoundPage";
@@ -11,6 +11,7 @@ import {
 } from "../../api/apiSlice";
 import { formatDateString, formatMonthYear } from "../../helpers/dateHelpers";
 import PageTitle from "../../components/PageTitle";
+import Modal from "../../components/Modal";
 
 // Fix this later
 // const disableRoundButtons = (
@@ -145,11 +146,13 @@ function LeagueSession() {
 }
 
 function LeagueManagementPage() {
+  const [isOpen, setIsOpen] = useState(false);
   const [postCreateSession] = usePostCreateSessionMutation();
 
   const handleCreateSession = async () => {
     try {
       await postCreateSession().unwrap();
+      setIsOpen(false);
     } catch (err) {
       console.error("Failed to create new league session: ", err);
     }
@@ -159,12 +162,17 @@ function LeagueManagementPage() {
     <div className="p-4">
       <PageTitle title="League Season Management" />
       <div className="mb-4">
-        <StandardButton
-          title="Start New"
-          action={() => handleCreateSession()}
-        />
+        <StandardButton title="Start New" action={() => setIsOpen(!isOpen)} />
       </div>
       <LeagueSession />
+      <Modal
+        isOpen={isOpen}
+        closeModal={() => setIsOpen(false)}
+        action={() => handleCreateSession()}
+        title="Begin new session?"
+        actionTitle="Begin"
+        closeTitle="Cancel"
+      />
     </div>
   );
 }
