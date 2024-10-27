@@ -98,7 +98,10 @@ class RoundInformationService:
     def get_session_achievement_data(self):
         """Get achievement data for the current session."""
         achievement_data = ParticipantAchievements.objects.filter(
-            session_id=self.session.id, achievement_id=PARTICIPATION_ACHIEVEMENT_ID
+            # This is a VERY bad way to grab the participation achievement
+            # should probably figure out a slug or something to do this.
+            session_id=self.session.id,
+            achievement_id=PARTICIPATION_ACHIEVEMENT_ID,
         )
         earned_participation_achievements = ParticipantsAchievementsSerializer(
             achievement_data, many=True
@@ -108,19 +111,17 @@ class RoundInformationService:
         }
 
     def create_participation_achievements(self):
-        """If someone hasn't gotten the participation achievement
-        for the current session, they get one."""
+        """If someone hasn't gotten the participation achievement, they get one."""
         new_achievements = []
         for ep in self.existing_participants:
-            if ep["id"] not in self.earned_participation_set:
-                new_achievements.append(
-                    ParticipantAchievements(
-                        participant=self.participant_lookup[ep["id"]],
-                        round=self.round,
-                        session=self.session,
-                        achievement=self.participation_achievement,
-                    )
+            new_achievements.append(
+                ParticipantAchievements(
+                    participant=self.participant_lookup[ep["id"]],
+                    round=self.round,
+                    session=self.session,
+                    achievement=self.participation_achievement,
                 )
+            )
         if len(new_achievements):
             ParticipantAchievements.objects.bulk_create(new_achievements)
 
