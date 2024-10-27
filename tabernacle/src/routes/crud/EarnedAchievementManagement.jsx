@@ -108,7 +108,6 @@ const EarnedRow = ({
   allAchievements,
   postUpsertEarned,
   sessionId,
-  selectMonth,
 }) => {
   const [toggle, showToggle] = useState();
   const [toggleCreate, setToggleCreate] = useState();
@@ -127,15 +126,11 @@ const EarnedRow = ({
     <React.Fragment>
       <div className="flex justify-between mb-2 px-4 text-lg border-b border-slate-400">
         <div className="flex gap-12 basis-3/4 justify-between">
-          <div>{name}</div>
+          {name}
           <div className="flex gap-4">
-            <div>
-              <span className="font-bold">{totalAchievementValue} </span>Points
-              For Session
-            </div>
-            <div>
-              <span className="font-bold">{totalPoints}</span> Points Total
-            </div>
+            <span className="font-bold">{totalAchievementValue} </span>Points
+            For Session
+            <span className="font-bold">{totalPoints}</span> Points For Month
           </div>
         </div>
         <div>
@@ -179,9 +174,19 @@ const EarnedRow = ({
   );
 };
 
+const helpfulMessage = (month, sessions) => {
+  if (!month) {
+    return "Please choose a session month and date to begin";
+  }
+  if (sessions === 0) {
+    return "This session does not have any information associated";
+  }
+  return "";
+};
+
 export default function Page() {
-  const [selectMonth, setSelectMonth] = useState(undefined);
-  const [selectSession, setSelectSession] = useState(undefined);
+  const [selectMonth, setSelectMonth] = useState();
+  const [selectSession, setSelectSession] = useState();
 
   const { data: earnedData, isLoading: earnedLoading } =
     useGetAchievementsForSessionQuery(selectSession, {
@@ -229,7 +234,7 @@ export default function Page() {
             setSelectMonth(obj.value);
             setSelectSession(undefined);
           }}
-          defaultValue={{ label: selectMonth, value: selectMonth }}
+          value={{ label: selectMonth, value: selectMonth }}
         />
         <SimpleSelect
           key={`${selectSession}-key`}
@@ -239,7 +244,7 @@ export default function Page() {
             setSelectSession(obj.value);
           }}
           classes="basis-1/4"
-          defaultValue={{
+          value={{
             label: selectSession && sessionMap[selectSession]?.label,
             value: selectSession && sessionMap[selectSession]?.value,
           }}
@@ -247,14 +252,10 @@ export default function Page() {
       </div>
       <HelpfulWrapper
         hasData={!!earnedData?.length}
-        message={
-          !selectMonth && !selectSession
-            ? "Please choose a session month and date to begin"
-            : "This session doesn't have any information associated with it, please pick another one."
-        }
+        message={helpfulMessage(selectMonth, sessionDates?.length)}
       >
         {earnedData?.map(({ id, name, total_points, achievements }) => (
-          <div key={id} className="px-16">
+          <div key={id} className="px-8">
             <EarnedRow
               participantId={id}
               sessionId={selectSession}

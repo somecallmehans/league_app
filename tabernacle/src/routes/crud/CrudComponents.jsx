@@ -45,7 +45,7 @@ export function EditButtons({
 export function SimpleSelect({
   options,
   placeholder,
-  defaultValue,
+  value,
   classes,
   onChange,
   isMulti,
@@ -54,10 +54,10 @@ export function SimpleSelect({
     <Select
       options={options}
       placeholder={placeholder}
-      defaultValue={defaultValue?.value}
+      value={value}
       className={`${classes}`}
       onChange={onChange}
-      isMulti
+      isMulti={isMulti}
     />
   );
 }

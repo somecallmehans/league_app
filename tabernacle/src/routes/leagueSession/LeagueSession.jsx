@@ -132,9 +132,10 @@ function LeagueSession() {
                 sessionClosed={closed}
                 otherRoundStatus={roundOne.completed}
               />
-              <div className="justify-self-end">
+              {/* Readd this back in at some point */}
+              {/* <div className="justify-self-end">
                 <i className="fa-solid fa-trash-can mr-4" />
-              </div>
+              </div> */}
             </div>
           );
         })}

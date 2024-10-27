@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 
 import { useGetAchievementsQuery } from "../../api/apiSlice";
 
@@ -44,6 +44,15 @@ export default function AchievementsPage() {
     return <LoadingSpinner />;
   }
 
+  const filterAchievements = (key) =>
+    !filteredValues.length
+      ? true
+      : filteredValues.length && filteredValues.includes(key);
+
+  const handleFilterChange = (val) => {
+    setFilteredValues(val.map(({ value }) => value));
+  };
+
   const achievementKeys = Object.keys(data?.map) || [];
 
   return (
@@ -52,33 +61,22 @@ export default function AchievementsPage() {
       <SimpleSelect
         placeholder="Filter By Point Value"
         options={achievementKeys.map((v) => ({ label: v, value: v }))}
-        onChange={(val) => {
-          const valuesOnly = val.map(({ value }) => value);
-          setFilteredValues([...valuesOnly]);
-        }}
+        onChange={handleFilterChange}
         isMulti
       />
-      {achievementKeys
-        .filter((x) => {
-          if (filteredValues.length === 0) {
-            return true;
-          } else {
-            return filteredValues.includes(x);
-          }
-        })
-        .map((x) => (
-          <div key={x} className="p-2">
-            <div className="font-bold text-2xl">{x} Points</div>
-            {data.map[x]?.map(({ id, name, children, restrictions }) => (
-              <Achievement
-                key={id}
-                name={name}
-                children={children}
-                restrictions={restrictions}
-              />
-            ))}
-          </div>
-        ))}
+      {achievementKeys.filter(filterAchievements).map((x) => (
+        <div key={x} className="p-2">
+          <div className="font-bold text-2xl">{x} Points</div>
+          {data.map[x]?.map(({ id, name, children, restrictions }) => (
+            <Achievement
+              key={id}
+              name={name}
+              children={children}
+              restrictions={restrictions}
+            />
+          ))}
+        </div>
+      ))}
     </div>
   );
 }
