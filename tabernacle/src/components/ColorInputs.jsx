@@ -3,28 +3,42 @@ import { Controller } from "react-hook-form";
 
 import { CheckBoxInput } from "./FormInputs";
 
-const colors = ["White", "Blue", "Black", "Red", "Green", "Colorless"];
+const colorKeys = ["White", "Blue", "Black", "Red", "Green", "Colorless"];
 
-export const ColorCheckboxes = ({ control }) => {
+const disableColorBoxes = (colors, currColor) => {
+  if (!colors) return false;
+  if (!!colors["Colorless"] && currColor !== "Colorless") return true;
+
+  return false;
+};
+
+export const ColorCheckboxes = ({ control, watch }) => {
+  const { colors } = watch();
+  console.log(colors);
   return (
     <div className="flex justify-between mb-2">
-      {colors.map((color) => (
-        <React.Fragment key={color}>
-          <Controller
-            name={`colors.${color}`}
-            control={control}
-            defaultValue={false}
-            render={({ field }) => (
-              <CheckBoxInput
-                {...field}
-                classes="flex flex-col items-center"
-                label={color}
-                checked={field.value}
-              />
-            )}
-          />
-        </React.Fragment>
-      ))}
+      {colorKeys.map((color) => {
+        const disabled = disableColorBoxes(colors, color);
+        return (
+          <React.Fragment key={color}>
+            <Controller
+              name={`colors.${color}`}
+              control={control}
+              defaultValue={false}
+              render={({ field }) => (
+                <CheckBoxInput
+                  {...field}
+                  classes="flex flex-col items-center"
+                  checkboxClasses={disabled ? "bg-gray-200" : ""}
+                  label={color}
+                  checked={field.value}
+                  disabled={disabled}
+                />
+              )}
+            />
+          </React.Fragment>
+        );
+      })}
     </div>
   );
 };

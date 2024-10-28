@@ -31,6 +31,7 @@ const ScorecardFormFields = ({
     control,
     handleSubmit,
     formState: { errors },
+    watch,
   } = useForm();
 
   if (isLoading || colorsLoading) {
@@ -178,7 +179,7 @@ const ScorecardFormFields = ({
         placeholder="Winner's Commander"
         control={control}
       />
-      <ColorCheckboxes control={control} />
+      <ColorCheckboxes control={control} watch={watch} />
       <div className="mb-2 flex gap-2">
         Were they last in turn order:{" "}
         <Controller

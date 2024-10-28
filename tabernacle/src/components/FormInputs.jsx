@@ -55,7 +55,10 @@ export const Selector = ({
 };
 
 export const CheckBoxInput = forwardRef(
-  ({ name, checked, onChange, classes, label }, ref) => {
+  (
+    { name, checked, onChange, classes, checkboxClasses, label, disabled },
+    ref
+  ) => {
     return (
       <Field className={`${classes}`}>
         {label && <Label className="text-xs">{label}</Label>}
@@ -64,7 +67,8 @@ export const CheckBoxInput = forwardRef(
           checked={checked}
           onChange={onChange}
           ref={ref}
-          className="block size-6 rounded border border-slate-400 bg-white data-[checked]:bg-blue-500"
+          className={`block size-6 rounded border border-slate-400 bg-white data-[checked]:bg-blue-500 ${checkboxClasses}`}
+          disabled={disabled}
         >
           <svg
             className="stroke-white opacity-0 group-data-[checked]:opacity-100"
