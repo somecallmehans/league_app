@@ -19,7 +19,6 @@ import { ColorCheckboxes, colorIdFinder } from "./ColorInputs";
 
 const ScorecardFormFields = ({
   focusedPod,
-  roundParticipantList,
   sessionId,
   roundId,
   closeModal,
@@ -31,7 +30,6 @@ const ScorecardFormFields = ({
   const {
     control,
     handleSubmit,
-    register,
     formState: { errors },
   } = useForm();
 
@@ -42,8 +40,6 @@ const ScorecardFormFields = ({
   const filteredAchievementData = achievementData.data.filter(
     (achievement) => !achievementData.parents.includes(achievement.id)
   );
-  const podIds =
-    focusedPod?.participants?.map(({ participant_id }) => participant_id) || [];
 
   const handleFormSubmit = async (formData) => {
     // each of these is a list of participants except for:
@@ -80,13 +76,15 @@ const ScorecardFormFields = ({
 
     const addAchievements = (participants, achievementId) => {
       participants.forEach((p) => {
-        if (!participantAchievementMap[p.id]) {
-          participantAchievementMap[p.id] = {
-            id: p.id,
+        if (!participantAchievementMap[p.participant_id]) {
+          participantAchievementMap[p.participant_id] = {
+            id: p.participant_id,
             achievements: [achievementId],
           };
         } else {
-          participantAchievementMap[p.id]["achievements"].push(achievementId);
+          participantAchievementMap[p.participant_id]["achievements"].push(
+            achievementId
+          );
         }
       });
     };
@@ -137,16 +135,18 @@ const ScorecardFormFields = ({
         options={focusedPod.participants}
         placeholder="Did Anyone Bring a Snack"
         classes="mb-2"
+        getOptionLabel={(option) => option.name}
+        getOptionValue={(option) => option.participant_id}
         isMulti
       />
       <Selector
         name="loanedDeck"
         control={control}
-        options={roundParticipantList.filter(
-          ({ participant_id }) => !podIds.includes(participant_id)
-        )}
-        placeholder="Did anyone lend a deck to the winner?"
+        options={focusedPod.participants}
+        placeholder="Did anyone lend a deck?"
         classes="mb-2"
+        getOptionLabel={(option) => option.name}
+        getOptionValue={(option) => option.participant_id}
         isMulti
       />
       <Selector
@@ -155,6 +155,8 @@ const ScorecardFormFields = ({
         options={focusedPod.participants}
         placeholder="Did anyone who did not win knock out other players?"
         classes="mb-2"
+        getOptionLabel={(option) => option.name}
+        getOptionValue={(option) => option.participant_id}
         isMulti
       />
       {errors?.winner && errors?.winner?.type === "required" && (
@@ -165,7 +167,8 @@ const ScorecardFormFields = ({
         placeholder="Winner"
         control={control}
         options={focusedPod.participants}
-        // register={{ ...register("winner", { required: true }) }}
+        getOptionLabel={(option) => option.name}
+        getOptionValue={(option) => option.participant_id}
         classes="mb-2"
       />
       {/* When redis gets rolling this should be a selector from that data */}
@@ -249,6 +252,8 @@ const ScorecardFormFields = ({
         name="winnerDeckbuildingAchievements"
         options={filteredAchievementData}
         placeholder="Other Deck Building Achievements"
+        getOptionLabel={(option) => option.name}
+        getOptionValue={(option) => option.id}
         isMulti
       />
       <div className="mt-2">
@@ -262,7 +267,6 @@ export default function ScorecardModal({
   isOpen,
   closeModal,
   focusedPod,
-  roundParticipantList,
   sessionId,
   roundId,
 }) {
@@ -304,7 +308,6 @@ export default function ScorecardModal({
                 </DialogTitle>
                 <ScorecardFormFields
                   focusedPod={focusedPod}
-                  roundParticipantList={roundParticipantList}
                   roundId={roundId}
                   sessionId={sessionId}
                   closeModal={closeModal}

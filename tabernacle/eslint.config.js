@@ -20,6 +20,7 @@ export default [
       ...pluginReact.configs.flat.recommended.rules,
       // Disable the rule in react plugin directly here
       "react/prop-types": "off",
+      "react/display-name": "off",
     },
   },
 ];

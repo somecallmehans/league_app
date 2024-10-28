@@ -15,6 +15,9 @@ export const Selector = ({
   defaultValue,
   onChange,
   disabled = false,
+  getOptionLabel,
+  getOptionValue,
+  mapToApiFormat = (option) => option,
 }) => {
   return (
     <Controller
@@ -29,8 +32,8 @@ export const Selector = ({
           options={options}
           className={`basic-multi-select ${classes}`}
           classNamePrefix="select"
-          getOptionLabel={(option) => option.name}
-          getOptionValue={(option) => option.id}
+          getOptionLabel={getOptionLabel}
+          getOptionValue={getOptionValue}
           menuPortalTarget={document.body}
           menuPosition="fixed"
           menuPlacement="auto"
@@ -38,8 +41,11 @@ export const Selector = ({
           placeholder={placeholder}
           defaultValue={defaultValue}
           onChange={(selectedOption) => {
-            field.onChange(selectedOption);
-            if (onChange) onChange(selectedOption); // Calls the custom onChange if provided
+            const mappedValue = Array.isArray(selectedOption)
+              ? selectedOption.map(mapToApiFormat)
+              : mapToApiFormat(selectedOption); // Apply dynamic API mapping
+            field.onChange(mappedValue); // Pass mapped value to form
+            if (onChange) onChange(mappedValue); // Invoke custom onChange if provided
           }}
           isDisabled={disabled}
         />

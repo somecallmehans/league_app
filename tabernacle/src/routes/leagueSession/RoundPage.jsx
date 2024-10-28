@@ -23,7 +23,6 @@ function Pods({
   focusedPod,
   openModal,
   closeModal,
-  roundParticipantList,
   sessionId,
   roundId,
 }) {
@@ -79,7 +78,6 @@ function Pods({
         isOpen={isOpen}
         closeModal={closeModal}
         focusedPod={focusedPod}
-        roundParticipantList={roundParticipantList}
         sessionId={sessionId}
         roundId={roundId}
       />
@@ -88,30 +86,44 @@ function Pods({
 }
 
 function RoundLobby({ roundId, sessionId, previousRoundParticipants }) {
-  const [selectedParticipants, setSelectedParticipants] = useState(
-    previousRoundParticipants || []
-  );
   const [postBeginRound] = usePostBeginRoundMutation();
-  const { data, isLoading } = useGetParticipantsQuery();
-  const { handleSubmit, control } = useForm();
+  const { data: participantsData, isLoading } = useGetParticipantsQuery();
+  const { handleSubmit, control, setValue, watch } = useForm({
+    defaultValues: {
+      participants:
+        previousRoundParticipants?.map((p) => ({
+          value: p.participant_id,
+          label: p.name,
+        })) || [],
+    },
+  });
+  const selectedParticipants = watch("participants");
+
+  console.log(selectedParticipants);
 
   if (isLoading) {
     return <LoadingSpinner />;
   }
 
-  const filteredData = data.filter(
-    (largeItem) =>
-      !selectedParticipants.some(
-        (smallItem) => smallItem.name === largeItem.name
-      )
-  );
+  const filteredData = participantsData
+    .filter(
+      (largeItem) =>
+        !selectedParticipants.some(
+          (smallItem) => smallItem.label === largeItem.name
+        )
+    )
+    .map(({ id, name }) => ({ value: id, label: name }));
 
   const onSubmit = async () => {
     try {
+      const normalizedParticipants = selectedParticipants.map((p) => ({
+        name: p?.label,
+        id: p?.value,
+      }));
       await postBeginRound({
         round: roundId,
         session: sessionId,
-        participants: selectedParticipants,
+        participants: normalizedParticipants,
       }).unwrap();
     } catch (err) {
       console.error("Failed to begin round: ", err);
@@ -119,16 +131,27 @@ function RoundLobby({ roundId, sessionId, previousRoundParticipants }) {
   };
 
   const addParticipant = (participant) => {
-    if (
-      participant &&
-      !selectedParticipants.some((p) => p.name === participant?.name)
-    )
-      setSelectedParticipants([...selectedParticipants, participant]);
+    if (participant) {
+      const updatedParticipants = [
+        ...selectedParticipants,
+        {
+          label: participant.label,
+          value: participant.value,
+        },
+      ];
+      setValue("participants", updatedParticipants);
+    }
   };
 
   const removeParticipant = (index) => {
-    setSelectedParticipants(selectedParticipants.filter((_, i) => i !== index));
+    const updatedParticipants = [
+      ...selectedParticipants.slice(0, index),
+      ...selectedParticipants.slice(index + 1),
+    ];
+    setValue("participants", updatedParticipants);
   };
+
+  console.log(selectedParticipants);
 
   return (
     <div>
@@ -145,20 +168,12 @@ function RoundLobby({ roundId, sessionId, previousRoundParticipants }) {
               {...field}
               isClearable
               options={filteredData}
-              getOptionLabel={(option) => option.name}
-              getOptionValue={(option) => ({
-                id: option.id,
-                name: option.name,
-              })}
-              getNewOptionData={(option) => ({
-                name: option,
-                id: undefined,
-              })}
               onChange={(selectedOption) => addParticipant(selectedOption)}
               onCreateOption={(inputValue) =>
-                addParticipant({ name: inputValue, id: undefined })
+                addParticipant({ value: undefined, label: inputValue })
               }
-              isValidNewOption={(option) => option}
+              isValidNewOption={(inputValue) => !!inputValue}
+              formatCreateLabel={(option) => `Create ${option}`}
             />
           )}
         />
@@ -174,7 +189,7 @@ function RoundLobby({ roundId, sessionId, previousRoundParticipants }) {
         <div className="mt-2 w-1/2 mx-auto">
           {selectedParticipants.map((participant, index) => (
             <div key={index} className="grid grid-cols-2 gap-4 items-center">
-              <span className="text-xl">{participant.name}</span>
+              <span className="text-xl">{participant.label}</span>
               <div className="justify-self-end">
                 <i
                   className="fa-solid fa-trash-can mr-4"
@@ -189,12 +204,9 @@ function RoundLobby({ roundId, sessionId, previousRoundParticipants }) {
   );
 }
 
-function FocusedRound({ completed, pods, sessionId, roundId }) {
+function FocusedRound({ pods, sessionId, roundId }) {
   const [isOpen, setIsOpen] = useState(false);
   const [focusedPod, setFocusedPod] = useState({});
-  const roundParticipantList = Object.values(pods).flatMap(({ participants }) =>
-    Object.values(participants)
-  );
 
   function closeModal() {
     setFocusedPod({});
@@ -217,7 +229,6 @@ function FocusedRound({ completed, pods, sessionId, roundId }) {
       focusedPod={focusedPod}
       openModal={openModal}
       closeModal={closeModal}
-      roundParticipantList={roundParticipantList}
       sessionId={sessionId}
       roundId={roundId}
     />
