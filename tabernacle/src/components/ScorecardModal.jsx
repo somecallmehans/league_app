@@ -17,6 +17,20 @@ import {
 } from "../api/apiSlice";
 import { ColorCheckboxes, colorIdFinder } from "./ColorInputs";
 
+const countColors = (colorObj) => {
+  let slug_value = 0;
+  if (!colorObj.Colorless) {
+    slug_value = Object.keys(colorObj).reduce((count, color) => {
+      if (color !== "Colorless" && colorObj[color]) {
+        count++;
+      }
+      return count;
+    }, 0);
+  }
+
+  return `win-${slug_value}-colors`;
+};
+
 const ScorecardFormFields = ({
   focusedPod,
   sessionId,
@@ -62,44 +76,45 @@ const ScorecardFormFields = ({
     } = formData;
 
     const colorId = colorIdFinder(colors, colorsData);
+    
+    const winSlug = countColors(colors);
 
     const boolMap = [
-      { condition: lastInTurnOrder, achievementId: 27 },
-      { condition: commanderDamage, achievementId: 46 },
-      { condition: winTheGameEffect, achievementId: 47 },
-      { condition: zeroOrLessLife, achievementId: 41 },
-      { condition: loseTheGameEffect, achievementId: 40 },
+      { condition: lastInTurnOrder, slug: "last-in-order" },
+      { condition: commanderDamage, slug: "commander-damage" },
+      { condition: winTheGameEffect, slug: "win-the-game-effect" },
+      { condition: zeroOrLessLife, slug: "zero-or-less-life" },
+      { condition: loseTheGameEffect, slug: "lose-the-game-effect" },
     ];
 
     const participantAchievementMap = {
-      [winnerId]: { id: winnerId, achievements: [44] },
+      [winnerId]: { id: winnerId, slugs: [winSlug], achievements: [] },
     };
 
-    const addAchievements = (participants, achievementId) => {
+    const addAchievements = (participants, slug) => {
       participants.forEach((p) => {
         if (!participantAchievementMap[p.participant_id]) {
           participantAchievementMap[p.participant_id] = {
             id: p.participant_id,
-            achievements: [achievementId],
+            slugs: [slug],
+            achievements: [],
           };
         } else {
-          participantAchievementMap[p.participant_id]["achievements"].push(
-            achievementId
-          );
+          participantAchievementMap[p.participant_id]["slugs"].push(slug);
         }
       });
     };
 
-    addAchievements(snack, 25);
-    addAchievements(loanedDeck, 26);
-    addAchievements(knockOuts, 36);
+    addAchievements(snack, "bring-snack");
+    addAchievements(loanedDeck, "lend-deck");
+    addAchievements(knockOuts, "knock-out");
 
     winnerDeckbuildingAchievements.forEach(({ id }) =>
       participantAchievementMap[winnerId]["achievements"].push(id)
     );
 
     boolMap.forEach(({ condition, achievementId }) => {
-      if (condition) {
+      if (condition && achievementId) {
         participantAchievementMap[winnerId]["achievements"].push(achievementId);
       }
     });

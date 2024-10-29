@@ -188,8 +188,8 @@ function RoundLobby({ roundId, sessionId, previousRoundParticipants }) {
       {selectedParticipants.length > 0 && (
         <div className="mt-2 w-1/2 mx-auto">
           {selectedParticipants.map((participant, index) => (
-            <div key={index} className="grid grid-cols-2 gap-4 items-center">
-              <span className="text-xl">{participant.label}</span>
+            <div key={index} className="grid grid-cols-4 gap-4 items-center">
+              <span className="text-xl col-span-3">{participant.label}</span>
               <div className="justify-self-end">
                 <i
                   className="fa-solid fa-trash-can mr-4"

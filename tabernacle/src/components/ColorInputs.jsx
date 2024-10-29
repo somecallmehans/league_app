@@ -7,7 +7,13 @@ const colorKeys = ["White", "Blue", "Black", "Red", "Green", "Colorless"];
 
 const disableColorBoxes = (colors, currColor) => {
   if (!colors) return false;
-  if (!!colors["Colorless"] && currColor !== "Colorless") return true;
+  if (colors["Colorless"] && currColor !== "Colorless") return true;
+  if (
+    currColor === "Colorless" &&
+    Object.values(colors).some((val, i) => val && colorKeys[i] !== "Colorless")
+  ) {
+    return true;
+  }
 
   return false;
 };
