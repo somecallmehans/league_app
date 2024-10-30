@@ -16,13 +16,7 @@ class AchievementsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Achievements
-        fields = [
-            "id",
-            "name",
-            "point_value",
-            "parent",
-            "restrictions",
-        ]
+        fields = ["id", "name", "point_value", "parent", "restrictions", "slug"]
 
     def get_parent(self, obj):
         if obj.parent is not None:

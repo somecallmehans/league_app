@@ -20,7 +20,6 @@ const disableColorBoxes = (colors, currColor) => {
 
 export const ColorCheckboxes = ({ control, watch }) => {
   const { colors } = watch();
-  console.log(colors);
   return (
     <div className="flex justify-between mb-2">
       {colorKeys.map((color) => {

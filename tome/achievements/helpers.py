@@ -49,7 +49,6 @@ class AchievementCleaverService:
         self.build_lookups()
 
         for item in self.participants:
-
             for slug in item["slugs"]:
                 ParticipantAchievements.objects.create(
                     participant=self.participants_lookup[item["id"]],

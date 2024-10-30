@@ -85,10 +85,11 @@ const EditAchievement = ({
         onChange={openEdit ? undefined : handleOnChangeEdit}
         disabled={!editing}
         register={{ ...register("participantAchievement") }}
+        getOptionLabel={(option) => option?.name}
+        getOptionValue={(option) => option?.id}
       />
       <DisplayCol title="Round Earned" value={round?.round_number} />
       <DisplayCol title="Points" value={displayPoints} />
-
       <EditButtons
         formName={formName}
         editing={editing}
@@ -163,7 +164,7 @@ const EarnedRow = ({
         achievements.map((achievement) => (
           <EditAchievement
             {...achievement}
-            key={achievement?.id}
+            key={achievement?.earned_id}
             allAchievements={allAchievements}
             postUpsertEarned={postUpsertEarned}
             formName="editAchievement"
@@ -188,17 +189,20 @@ export default function Page() {
   const [selectMonth, setSelectMonth] = useState();
   const [selectSession, setSelectSession] = useState();
 
-  const { data: earnedData, isLoading: earnedLoading } =
-    useGetAchievementsForSessionQuery(selectSession, {
-      skip: !selectSession,
-    });
   const { data: allAchievements, isLoading: achievementsLoading } =
     useGetAchievementsQuery();
   const { data: allSessions, isLoading: sessionsLoading } =
     useGetAllSessionsQuery();
 
   const { data: currentOpenSession, isLoading: currentSessionLoading } =
-    useGetSessionByDateQuery(selectMonth, { skip: !selectMonth });
+    useGetSessionByDateQuery(selectMonth, {
+      skip: !selectSession || !selectMonth,
+    });
+
+  const { data: earnedData, isLoading: earnedLoading } =
+    useGetAchievementsForSessionQuery(selectSession, {
+      skip: !selectSession,
+    });
 
   const [postUpsertEarned] = usePostUpsertEarnedMutation();
 
@@ -254,6 +258,7 @@ export default function Page() {
         hasData={!!earnedData?.length}
         message={helpfulMessage(selectMonth, sessionDates?.length)}
       >
+        {console.log(earnedData)}
         {earnedData?.map(({ id, name, total_points, achievements }) => (
           <div key={id} className="px-8">
             <EarnedRow

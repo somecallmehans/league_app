@@ -99,8 +99,6 @@ function RoundLobby({ roundId, sessionId, previousRoundParticipants }) {
   });
   const selectedParticipants = watch("participants");
 
-  console.log(selectedParticipants);
-
   if (isLoading) {
     return <LoadingSpinner />;
   }
@@ -150,8 +148,6 @@ function RoundLobby({ roundId, sessionId, previousRoundParticipants }) {
     ];
     setValue("participants", updatedParticipants);
   };
-
-  console.log(selectedParticipants);
 
   return (
     <div>
@@ -264,6 +260,10 @@ export default function RoundPage() {
     }
   };
 
+  const allPodsSubmitted = Object.values(data).some(
+    ({ submitted }) => submitted
+  );
+
   return (
     <div className="bg-white p-4 mb-4 h-full">
       <PageTitle title={`Round ${roundNumber} for ${date}`} />
@@ -276,7 +276,7 @@ export default function RoundPage() {
           <StandardButton
             title="Close"
             action={() => handleCloseRound()}
-            disabled={completed}
+            disabled={!allPodsSubmitted}
           />
         </Link>
       )}

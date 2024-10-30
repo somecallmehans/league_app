@@ -17,7 +17,7 @@ import {
 } from "../api/apiSlice";
 import { ColorCheckboxes, colorIdFinder } from "./ColorInputs";
 
-const countColors = (colorObj) => {
+const getWinSlug = (colorObj) => {
   let slug_value = 0;
   if (!colorObj.Colorless) {
     slug_value = Object.keys(colorObj).reduce((count, color) => {
@@ -75,9 +75,17 @@ const ScorecardFormFields = ({
       colors,
     } = formData;
 
+    let winSlug = "";
+
+    // Precon wins are always worth +2 points no matter what, so if we have that
+    // we can just give them the 3 win colors for now
+    if (winnerDeckbuildingAchievements.find(({ slug }) => slug === "precon")) {
+      winSlug = "win-3-colors";
+    } else {
+      winSlug = getWinSlug(colors);
+    }
+
     const colorId = colorIdFinder(colors, colorsData);
-    
-    const winSlug = countColors(colors);
 
     const boolMap = [
       { condition: lastInTurnOrder, slug: "last-in-order" },
@@ -113,9 +121,9 @@ const ScorecardFormFields = ({
       participantAchievementMap[winnerId]["achievements"].push(id)
     );
 
-    boolMap.forEach(({ condition, achievementId }) => {
-      if (condition && achievementId) {
-        participantAchievementMap[winnerId]["achievements"].push(achievementId);
+    boolMap.forEach(({ condition, slug }) => {
+      if (condition && slug) {
+        participantAchievementMap[winnerId]["slugs"].push(slug);
       }
     });
 
