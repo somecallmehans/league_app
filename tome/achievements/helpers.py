@@ -97,7 +97,7 @@ def make_achievement_map(achievements):
 
 def all_participant_achievements_for_month(session_id):
     data = ParticipantAchievements.objects.filter(
-        session=session_id, deleted=False
+        session=session_id, participant__deleted=False, deleted=False
     ).select_related("participant", "achievement", "round")
 
     achievements_by_participant = defaultdict(list)
