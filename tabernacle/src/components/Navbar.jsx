@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { NavLink } from "react-router-dom";
 import LoginPopover from "./LoginPopover";
 
@@ -7,10 +7,10 @@ const navLinks = [
   { id: 2, name: "FAQ", to: "/faq", admin: false },
   { id: 3, name: "Leaderboard", to: "/leaderboard", admin: false },
   { id: 4, name: "Achievements", to: "/achievements", admin: false },
-  { id: 5, name: "League", to: "/management", admin: true },
+  { id: 5, name: "Admin", to: "/management", admin: true },
   {
     id: 6,
-    name: "Season",
+    name: "League",
     to: "/league-session",
     admin: true,
   },
