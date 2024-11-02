@@ -258,7 +258,6 @@ export default function Page() {
         hasData={!!earnedData?.length}
         message={helpfulMessage(selectMonth, sessionDates?.length)}
       >
-        {console.log(earnedData)}
         {earnedData?.map(({ id, name, total_points, achievements }) => (
           <div key={id} className="px-8">
             <EarnedRow

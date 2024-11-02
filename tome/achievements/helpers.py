@@ -96,6 +96,7 @@ def make_achievement_map(achievements):
 
 
 def all_participant_achievements_for_month(session_id):
+    session = Sessions.objects.get(id=session_id)
     data = ParticipantAchievements.objects.filter(
         session=session_id, participant__deleted=False, deleted=False
     ).select_related("participant", "achievement", "round")
@@ -108,7 +109,9 @@ def all_participant_achievements_for_month(session_id):
 
     result = []
     for participant, achievements in achievements_by_participant.items():
-        participant_data = ParticipantsSerializer(participant).data
+        participant_data = ParticipantsSerializer(
+            participant, context={"mm_yy": session.month_year}
+        ).data
         achievements_data = [
             {
                 **AchievementsSerializer(achievement["achievement"]).data,
