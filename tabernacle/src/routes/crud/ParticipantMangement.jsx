@@ -4,6 +4,7 @@ import {
   useGetParticipantsQuery,
   usePostUpsertParticipantMutation,
 } from "../../api/apiSlice";
+import { Input } from "@headlessui/react";
 import { EditButtons } from "./CrudComponents.jsx";
 import { TextInput } from "../../components/FormInputs.jsx";
 import LoadingSpinner from "../../components/LoadingSpinner";
@@ -67,6 +68,7 @@ const ParticipantRow = ({
 
 export default function Page() {
   const [showCreate, setShowCreate] = useState();
+  const [searchTerm, setSearchTerm] = useState();
   const { data: participants, isLoading: participantsLoading } =
     useGetParticipantsQuery();
 
@@ -76,12 +78,23 @@ export default function Page() {
     return <LoadingSpinner />;
   }
 
+  const filteredParticipants = !searchTerm
+    ? participants
+    : participants.filter((x) =>
+        x.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+
   return (
     <div className="p-4">
       <div className="mb-2">
         <StandardButton
           title={showCreate ? "Cancel Create" : "Create New"}
           action={() => setShowCreate(!showCreate)}
+        />
+        <Input
+          placeholder="Filter participants by name"
+          className="py-1.5 w-1/2 px-1 rounded bg-zinc-100 border border-slate-400"
+          onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
       {showCreate && (
@@ -95,15 +108,17 @@ export default function Page() {
           />
         </div>
       )}
-      {participants.map(({ id, name }) => (
-        <div key={id} className="px-64">
-          <ParticipantRow
-            id={id}
-            name={name}
-            postUpsertParticipant={postUpsertParticipant}
-          />
-        </div>
-      ))}
+      {filteredParticipants.length
+        ? filteredParticipants.map(({ id, name }) => (
+            <div key={id} className="px-64">
+              <ParticipantRow
+                id={id}
+                name={name}
+                postUpsertParticipant={postUpsertParticipant}
+              />
+            </div>
+          ))
+        : "None Found"}
     </div>
   );
 }
