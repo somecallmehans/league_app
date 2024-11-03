@@ -4,11 +4,12 @@ import {
   useGetParticipantsQuery,
   usePostUpsertParticipantMutation,
 } from "../../api/apiSlice";
-import { Input } from "@headlessui/react";
+// import { Input } from "@headlessui/react";
 import { EditButtons } from "./CrudComponents.jsx";
 import { TextInput } from "../../components/FormInputs.jsx";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import StandardButton from "../../components/Button";
+import { useSearch } from "../../hooks";
 
 const formName = "participantForm";
 
@@ -68,21 +69,15 @@ const ParticipantRow = ({
 
 export default function Page() {
   const [showCreate, setShowCreate] = useState();
-  const [searchTerm, setSearchTerm] = useState();
   const { data: participants, isLoading: participantsLoading } =
     useGetParticipantsQuery();
 
+  const [filteredData, Component, FilterList] = useSearch(participants || []);
   const [postUpsertParticipant] = usePostUpsertParticipantMutation();
 
   if (participantsLoading) {
     return <LoadingSpinner />;
   }
-
-  const filteredParticipants = !searchTerm
-    ? participants
-    : participants.filter((x) =>
-        x.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
 
   return (
     <div className="p-4">
@@ -91,11 +86,7 @@ export default function Page() {
           title={showCreate ? "Cancel Create" : "Create New"}
           action={() => setShowCreate(!showCreate)}
         />
-        <Input
-          placeholder="Filter participants by name"
-          className="py-1.5 w-1/2 px-1 rounded bg-zinc-100 border border-slate-400"
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+        {Component()}
       </div>
       {showCreate && (
         <div className="px-64">
@@ -108,17 +99,13 @@ export default function Page() {
           />
         </div>
       )}
-      {filteredParticipants.length
-        ? filteredParticipants.map(({ id, name }) => (
-            <div key={id} className="px-64">
-              <ParticipantRow
-                id={id}
-                name={name}
-                postUpsertParticipant={postUpsertParticipant}
-              />
-            </div>
-          ))
-        : "None Found"}
+      <FilterList
+        data={filteredData}
+        listKey="id"
+        classes="px-32"
+        Component={ParticipantRow}
+        componentProps={{ postUpsertParticipant }}
+      />
     </div>
   );
 }
