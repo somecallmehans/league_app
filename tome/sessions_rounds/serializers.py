@@ -29,7 +29,7 @@ class PodsParticipantsSerializer(serializers.ModelSerializer):
     pods = PodsSerializer(read_only=True)
     participant_id = serializers.IntegerField(source="participants.id")
     name = serializers.CharField(source="participants.name")
-    total_points = serializers.IntegerField(source="participants.total_points")
+    total_points = serializers.SerializerMethodField()
     round_points = serializers.SerializerMethodField()
 
     class Meta:
@@ -41,3 +41,7 @@ class PodsParticipantsSerializer(serializers.ModelSerializer):
         if round_id:
             return obj.participants.get_round_points(round_id=round_id)
         return 0
+
+    def get_total_points(self, obj):
+        mm_yy = self.context.get("mm_yy", None)
+        return obj.participants.get_total_points(mm_yy=mm_yy)

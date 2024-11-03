@@ -131,13 +131,16 @@ def begin_round(request):
 @api_view(["GET"])
 def get_pods(_, round):
     """Get the pods that were made for a given round."""
+    roundObj = Rounds.objects.get(id=round)
     all_pods = Pods.objects.filter(rounds_id=round)
     pods_participants = PodsParticipants.objects.filter(
         pods_id__in=[x.id for x in all_pods]
     )
 
     serialized_data = PodsParticipantsSerializer(
-        pods_participants, many=True, context={"round_id": round}
+        pods_participants,
+        many=True,
+        context={"round_id": round, "mm_yy": roundObj.session.month_year},
     ).data
 
     pod_map = {}
