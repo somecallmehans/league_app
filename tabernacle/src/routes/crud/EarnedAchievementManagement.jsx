@@ -23,19 +23,19 @@ const DisplayCol = ({ title, value }) => (
 const EditAchievement = ({
   id = "",
   participantId,
-  roundId,
+  earnedRound = undefined,
   name = "",
   point_value,
   allAchievements,
   earned_id = "",
   postUpsertEarned,
-  round,
   openEdit,
   formName,
   sessionId,
   parent,
   parentMap,
   setToggleCreate,
+  sessionRounds,
 }) => {
   const [editing, setEditing] = useState(openEdit);
   const { control, register, handleSubmit } = useForm();
@@ -43,8 +43,10 @@ const EditAchievement = ({
   const displayPoints = parentMap[parent?.id]?.point_value || point_value;
 
   const handleCreate = async (formData) => {
+    console.log(formData);
     const {
       participantAchievement: { id: achievementId },
+      round: { id: roundId },
     } = formData;
     await postUpsertEarned({
       round: roundId,
@@ -88,7 +90,21 @@ const EditAchievement = ({
         getOptionLabel={(option) => option?.name}
         getOptionValue={(option) => option?.id}
       />
-      <DisplayCol title="Round Earned" value={round?.round_number} />
+      <Selector
+        name="round"
+        placeholder="Rd"
+        control={control}
+        defaultValue={{
+          round_number: earnedRound?.round_number,
+          id: earnedRound?.id,
+        }}
+        options={sessionRounds}
+        onChange={openEdit ? undefined : handleOnChangeEdit}
+        disabled={!editing}
+        register={{ ...register("round") }}
+        getOptionLabel={(option) => option?.round_number}
+        getOptionValue={(option) => option?.id}
+      />
       <DisplayCol title="Points" value={displayPoints} />
       <EditButtons
         formName={formName}
@@ -102,13 +118,13 @@ const EditAchievement = ({
 
 const EarnedRow = ({
   participantId,
-  roundId,
   name,
   totalPoints,
   achievements,
   allAchievements,
   postUpsertEarned,
   sessionId,
+  sessionRounds,
 }) => {
   const [toggle, showToggle] = useState();
   const [toggleCreate, setToggleCreate] = useState();
@@ -123,15 +139,17 @@ const EarnedRow = ({
     0
   );
 
+  console.log(achievements);
+
   return (
     <React.Fragment>
       <div className="flex justify-between mb-2 px-4 text-lg border-b border-slate-400">
         <div className="flex gap-12 basis-3/4 justify-between">
           {name}
           <div className="flex gap-4">
-            <span className="font-bold">{totalAchievementValue} </span>Points
-            For Session
-            <span className="font-bold">{totalPoints}</span> Points For Month
+            <span className="font-bold">{totalAchievementValue} </span>
+            Points/Session
+            <span className="font-bold">{totalPoints}</span> Points/Month
           </div>
         </div>
         <div>
@@ -149,7 +167,6 @@ const EarnedRow = ({
       </div>
       {toggleCreate && (
         <EditAchievement
-          roundId={roundId}
           allAchievements={allAchievements}
           postUpsertEarned={postUpsertEarned}
           openEdit
@@ -158,6 +175,7 @@ const EarnedRow = ({
           sessionId={sessionId}
           parentMap={parentMap}
           setToggleCreate={setToggleCreate}
+          sessionRounds={sessionRounds}
         />
       )}
       {toggle &&
@@ -169,6 +187,8 @@ const EarnedRow = ({
             postUpsertEarned={postUpsertEarned}
             formName="editAchievement"
             parentMap={parentMap}
+            earnedRound={achievement?.round}
+            sessionRounds={sessionRounds}
           />
         ))}
     </React.Fragment>
@@ -263,7 +283,7 @@ export default function Page() {
             <EarnedRow
               participantId={id}
               sessionId={selectSession}
-              roundId={currentOpenSession?.rounds[0]?.id}
+              sessionRounds={currentOpenSession?.rounds}
               name={name}
               totalPoints={total_points}
               achievements={achievements}
