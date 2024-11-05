@@ -64,6 +64,7 @@ const ScorecardFormFields = ({
       snack = [],
       loanedDeck = [],
       knockOuts = [],
+      shareToDiscord = [],
       winner: { participant_id: winnerId },
       lastInTurnOrder,
       commanderDamage,
@@ -116,6 +117,7 @@ const ScorecardFormFields = ({
     addAchievements(snack, "bring-snack");
     addAchievements(loanedDeck, "lend-deck");
     addAchievements(knockOuts, "knock-out");
+    addAchievements(shareToDiscord, "submit-to-discord");
 
     winnerDeckbuildingAchievements.forEach(({ id }) =>
       participantAchievementMap[winnerId]["achievements"].push(id)
@@ -178,6 +180,16 @@ const ScorecardFormFields = ({
         control={control}
         options={focusedPod.participants}
         placeholder="Did anyone who did not win knock out other players?"
+        classes="mb-2"
+        getOptionLabel={(option) => option.name}
+        getOptionValue={(option) => option.participant_id}
+        isMulti
+      />
+      <Selector
+        name="shareToDiscord"
+        control={control}
+        options={focusedPod.participants}
+        placeholder="Did anyone use a decklist for the first time that has been shared on discord?"
         classes="mb-2"
         getOptionLabel={(option) => option.name}
         getOptionValue={(option) => option.participant_id}

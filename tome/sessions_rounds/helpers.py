@@ -110,6 +110,7 @@ class RoundInformationService:
             ea["participant"] for ea in earned_participation_achievements.data
         }
 
+    # this needs to move to close round
     def create_participation_achievements(self):
         """If someone hasn't gotten the participation achievement, they get one."""
         new_achievements = []
