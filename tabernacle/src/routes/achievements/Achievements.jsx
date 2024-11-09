@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 
 import { useGetAchievementsQuery } from "../../api/apiSlice";
 
@@ -71,6 +71,7 @@ export default function AchievementsPage() {
             <Achievement
               key={id}
               name={name}
+              // eslint-disable-next-line react/no-children-prop
               children={children}
               restrictions={restrictions}
             />

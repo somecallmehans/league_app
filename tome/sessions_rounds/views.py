@@ -50,7 +50,13 @@ def all_sessions(request):
 def get_unique_session_months(request):
     """Get a list of unique month-years for sessions."""
     months = Sessions.objects.values("month_year").distinct()
-    return Response([m["month_year"] for m in months], status=status.HTTP_200_OK)
+
+    sorted_months = sorted(
+        [m["month_year"] for m in months],
+        key=lambda x: (int(x.split("-")[1]), int(x.split("-")[0])),
+    )
+
+    return Response(sorted_months, status=status.HTTP_200_OK)
 
 
 @api_view(["GET", "POST"])
