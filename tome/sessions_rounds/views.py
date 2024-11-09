@@ -70,6 +70,7 @@ def sessions_and_rounds(request, mm_yy):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     try:
+        # This will need to be addressed, this does not accurately grab what the "current" session is
         current_session = Sessions.objects.get(month_year=mm_yy, closed=False)
         serializer = SessionSerializer(current_session)
     except Sessions.DoesNotExist:

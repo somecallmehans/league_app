@@ -27,6 +27,7 @@ from achievements.helpers import (
 
 @api_view(["GET"])
 def get_achievements_with_restrictions(request):
+    """Get achievements with their restrictions and put them in a map, raw list, and parents only."""
     achievements = Achievements.objects.filter(deleted=False).prefetch_related(
         "restrictions"
     )
@@ -92,6 +93,7 @@ def get_colors(request):
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def upsert_achievements(request):
+    """Create or update an achievement. Name is required."""
     body = json.loads(request.body.decode("utf-8"))
     id = body.get("id", None)
     deleted = body.get("deleted", None)

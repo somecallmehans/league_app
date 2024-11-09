@@ -43,7 +43,6 @@ const EditAchievement = ({
   const displayPoints = parentMap[parent?.id]?.point_value || point_value;
 
   const handleCreate = async (formData) => {
-    console.log(formData);
     const {
       participantAchievement: { id: achievementId },
       round: { id: roundId },
@@ -138,8 +137,6 @@ const EarnedRow = ({
       acc + (curr?.point_value || parentMap[curr?.parent?.id]?.point_value),
     0
   );
-
-  console.log(achievements);
 
   return (
     <React.Fragment>
