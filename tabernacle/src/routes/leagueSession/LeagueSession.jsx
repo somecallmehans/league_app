@@ -13,31 +13,6 @@ import { formatDateString, formatMonthYear } from "../../helpers/dateHelpers";
 import PageTitle from "../../components/PageTitle";
 import Modal from "../../components/Modal";
 
-// Fix this later
-// const disableRoundButtons = (
-//   roundNumber,
-//   sessionClosed,
-//   completed,
-//   otherRoundStatus
-// ) => {
-//   // if a session is closed then no buttons should be disabled
-//   if (sessionClosed) {
-//     return false;
-//   }
-
-//   // if round 1 is finished disable that button
-//   if (roundNumber === 1 && completed) {
-//     return true;
-//   }
-
-//   // if round 2 is not finished and the other round is also not finished disable round 2
-//   if (roundNumber === 2 && !completed && !otherRoundStatus) {
-//     return true;
-//   }
-
-//   return false;
-// };
-
 const Round = ({
   id,
   sessionId,
@@ -45,7 +20,8 @@ const Round = ({
   previousRoundId,
   created_at,
   completed,
-  otherRoundStatus,
+  otherRoundCompleted,
+  sessionClosed,
 }) => {
   let previousRoundParticipants = [];
 
@@ -60,16 +36,15 @@ const Round = ({
   }
 
   function roundText() {
-    if (completed) {
+    if (sessionClosed && completed && otherRoundCompleted) {
       return "View ";
+    } else {
+      return "Continue ";
     }
-    if (roundNumber === 2 && !completed && !otherRoundStatus) {
-      return "Begin ";
-    }
-    return "Continue ";
   }
+
   return (
-    <div className="justify-self-end">
+    <div className={`justify-self-end ${!completed ? "animate-pulse" : ""}`}>
       <Link
         to={`${id}`}
         state={{
@@ -109,7 +84,7 @@ function LeagueSession() {
           );
           return (
             <div
-              className="border border-transparent border-b-slate-300 grid grid-cols-4 gap-4 mb-4 py-2 items-center"
+              className=" border border-transparent border-b-slate-300 grid grid-cols-4 gap-4 mb-4 py-2 items-center"
               key={id}
             >
               {formatDateString(created_at)}
@@ -121,7 +96,7 @@ function LeagueSession() {
                 completed={roundOne.completed}
                 created_at={formatDateString(created_at)}
                 sessionClosed={closed}
-                otherRoundStatus={roundTwo.completed}
+                otherRoundCompleted={roundTwo.completed}
               />
               <Round
                 sessionId={id}
@@ -131,7 +106,7 @@ function LeagueSession() {
                 completed={roundTwo.completed}
                 created_at={formatDateString(created_at)}
                 sessionClosed={closed}
-                otherRoundStatus={roundOne.completed}
+                otherRoundCompleted={roundOne.completed}
               />
               {/* Readd this back in at some point */}
               {/* <div className="justify-self-end">

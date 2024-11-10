@@ -18,14 +18,14 @@ const navLinks = [
 
 export default function Navbar({ loggedIn, setLoggedIn }) {
   return (
-    <nav className="container flex p-5 bg-slate-200 max-w-full">
+    <nav className="container flex p-5 bg-slate-800 max-w-full">
       <div className="flex items-center text-base">
         {navLinks
           .filter((link) => !link.admin || (link.admin && loggedIn))
           .map(({ id, name, to }) => (
             <NavLink
               key={id}
-              className="mr-5 text-2xl hover:text-sky-500"
+              className="mr-5 text-slate-50 text-2xl hover:text-sky-200 hover:underline "
               to={to}
             >
               {name}
