@@ -85,6 +85,19 @@ function Pods({
   );
 }
 
+const CheckedInRow = ({ participant, checkNumber, removeParticipant, idx }) => (
+  <div className="w-2/4 mx-auto">
+    <span className="text-xl">
+      {checkNumber}{" "}
+      <i
+        className="fa-solid fa-trash-can mx-2"
+        onClick={() => removeParticipant(idx)}
+      />{" "}
+      {participant.label}
+    </span>
+  </div>
+);
+
 function RoundLobby({ roundId, sessionId, previousRoundParticipants }) {
   const [postBeginRound] = usePostBeginRoundMutation();
   const { data: participantsData, isLoading } = useGetParticipantsQuery();
@@ -182,17 +195,15 @@ function RoundLobby({ roundId, sessionId, previousRoundParticipants }) {
         </span>
       </div>
       {selectedParticipants.length > 0 && (
-        <div className="mt-2 w-1/2 mx-auto">
+        <div className="mt-2 w-full mx-auto">
           {selectedParticipants.map((participant, index) => (
-            <div key={index} className="grid grid-cols-4 gap-4 items-center">
-              <span className="text-xl col-span-3">{participant.label}</span>
-              <div className="justify-self-end">
-                <i
-                  className="fa-solid fa-trash-can mr-4"
-                  onClick={() => removeParticipant(index)}
-                />
-              </div>
-            </div>
+            <CheckedInRow
+              key={participant?.id}
+              participant={participant}
+              checkNumber={index + 1}
+              removeParticipant={removeParticipant}
+              idx={index}
+            />
           ))}
         </div>
       )}

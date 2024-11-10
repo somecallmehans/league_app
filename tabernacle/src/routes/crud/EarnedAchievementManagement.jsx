@@ -16,7 +16,7 @@ import { formatDateString } from "../../helpers/dateHelpers";
 const DisplayCol = ({ title, value }) => (
   <div className="flex flex-col items-center">
     <span className="text-xs">{title}</span>
-    <span>{value || "--"}</span>
+    <span>{value || 0}</span>
   </div>
 );
 
@@ -104,7 +104,7 @@ const EditAchievement = ({
         getOptionLabel={(option) => option?.round_number}
         getOptionValue={(option) => option?.id}
       />
-      <DisplayCol title="Points" value={displayPoints} />
+      <DisplayCol title="Points" value={displayPoints || 0} />
       <EditButtons
         formName={formName}
         editing={editing}
@@ -132,11 +132,19 @@ const EarnedRow = ({
     .filter(({ parent }) => !parent)
     .reduce((acc, curr) => ({ ...acc, [curr.id]: curr }));
 
-  const totalAchievementValue = achievements?.reduce(
-    (acc, curr) =>
-      acc + (curr?.point_value || parentMap[curr?.parent?.id]?.point_value),
-    0
-  );
+  const totalAchievementValue = achievements?.reduce((acc, curr) => {
+    if (curr?.point_value || curr?.point_value === 0) {
+      return acc + curr?.point_value;
+    }
+    if (
+      parentMap[curr?.parent?.id]?.point_value ||
+      parentMap[curr?.parent?.id]?.point_value === 0
+    ) {
+      return acc + parentMap[curr?.parent?.id]?.point_value;
+    }
+
+    return acc;
+  }, 0);
 
   return (
     <React.Fragment>
