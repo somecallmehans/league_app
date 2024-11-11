@@ -143,7 +143,7 @@ def post_achievements_for_participants(request):
     pod_id = body.get("pod", None)
     winner_info = body.get("winnerInfo", None)
 
-    if not round_id or not session_id or not pod_id or not winner_info:
+    if not round_id or not session_id or not pod_id:
         return Response(
             {"message": "Missing round and/or session information"},
             status=status.HTTP_400_BAD_REQUEST,

@@ -16,12 +16,16 @@ class AchievementCleaverService:
         self.round = Rounds.objects.get(id=round)
         self.achievements_lookup = {}
         self.participants_lookup = {}
-        self.winner_info = {
-            "commander": winner_info["commander_name"],
-            "color": Colors.objects.get(id=winner_info["color_id"]),
-            "winner": Participants.objects.get(id=winner_info["winner_id"]),
-            "pod": Pods.objects.get(id=pod_id),
-        }
+        self.winner_info = (
+            {
+                "commander": winner_info["commander_name"],
+                "color": Colors.objects.get(id=winner_info["color_id"]),
+                "winner": Participants.objects.get(id=winner_info["winner_id"]),
+                "pod": Pods.objects.get(id=pod_id),
+            }
+            if winner_info is not None
+            else None
+        )
         self.achievement_slug_lookup = {}
 
     def create_achievements_lookup(self):
@@ -63,12 +67,14 @@ class AchievementCleaverService:
                     session=self.session,
                     round=self.round,
                 )
-        WinningCommanders.objects.create(
-            name=self.winner_info["commander"],
-            colors=self.winner_info["color"],
-            participants=self.winner_info["winner"],
-            pods=self.winner_info["pod"],
-        )
+
+        if self.winner_info:
+            WinningCommanders.objects.create(
+                name=self.winner_info["commander"],
+                colors=self.winner_info["color"],
+                participants=self.winner_info["winner"],
+                pods=self.winner_info["pod"],
+            )
 
 
 def make_achievement_map(achievements):

@@ -67,7 +67,9 @@ export const CheckBoxInput = forwardRef(
           checked={checked}
           onChange={onChange}
           ref={ref}
-          className={`block size-6 rounded border border-slate-400 bg-white data-[checked]:bg-blue-500 ${checkboxClasses}`}
+          className={`block size-6 rounded border border-slate-400 bg-white data-[checked]:bg-blue-500 ${checkboxClasses} ${
+            disabled ? "bg-gray-400" : ""
+          }`}
           disabled={disabled}
         >
           <svg

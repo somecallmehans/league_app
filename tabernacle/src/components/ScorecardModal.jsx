@@ -48,6 +48,8 @@ const ScorecardFormFields = ({
     watch,
   } = useForm();
 
+  const { endInDraw } = watch();
+
   if (isLoading || colorsLoading) {
     return null;
   }
@@ -65,7 +67,7 @@ const ScorecardFormFields = ({
       loanedDeck = [],
       knockOuts = [],
       shareToDiscord = [],
-      winner: { participant_id: winnerId },
+      winner,
       lastInTurnOrder,
       commanderDamage,
       winTheGameEffect,
@@ -74,10 +76,12 @@ const ScorecardFormFields = ({
       winnersCommander,
       winnerDeckbuildingAchievements = [],
       colors,
+      endInDraw,
     } = formData;
 
-    let winSlug = "";
+    const colorId = colorIdFinder(colors, colorsData);
 
+    let winSlug = "";
     // Precon wins are always worth +2 points no matter what, so if we have that
     // we can just give them the 3 win colors for now
     if (winnerDeckbuildingAchievements.find(({ slug }) => slug === "precon")) {
@@ -86,9 +90,7 @@ const ScorecardFormFields = ({
       winSlug = getWinSlug(colors);
     }
 
-    const colorId = colorIdFinder(colors, colorsData);
-
-    const boolMap = [
+    const boolConditions = [
       { condition: lastInTurnOrder, slug: "last-in-order" },
       { condition: commanderDamage, slug: "commander-damage" },
       { condition: winTheGameEffect, slug: "win-the-game-effect" },
@@ -96,21 +98,32 @@ const ScorecardFormFields = ({
       { condition: loseTheGameEffect, slug: "lose-the-game-effect" },
     ];
 
-    const participantAchievementMap = {
-      [winnerId]: { id: winnerId, slugs: [winSlug], achievements: [] },
-    };
-
-    const addAchievements = (participants, slug) => {
-      participants.forEach((p) => {
-        if (!participantAchievementMap[p.participant_id]) {
-          participantAchievementMap[p.participant_id] = {
-            id: p.participant_id,
-            slugs: [slug],
+    const participantAchievementMap = endInDraw
+      ? focusedPod.participants.reduce((acc, { participant_id }) => {
+          acc[participant_id] = {
+            id: participant_id,
+            slugs: ["end-draw"],
             achievements: [],
           };
-        } else {
-          participantAchievementMap[p.participant_id]["slugs"].push(slug);
-        }
+          return acc;
+        }, {})
+      : {
+          [winner?.participant_id]: {
+            id: winner?.participant_id,
+            slugs: [winSlug],
+            achievements: [],
+          },
+        };
+
+    const addAchievements = (participants, slug) => {
+      participants.forEach(({ participant_id }) => {
+        const entry = participantAchievementMap[participant_id] || {
+          id: participant_id,
+          slugs: [],
+          achievements: [],
+        };
+        entry.slugs.push(slug);
+        participantAchievementMap[participant_id] = entry;
       });
     };
 
@@ -120,12 +133,12 @@ const ScorecardFormFields = ({
     addAchievements(shareToDiscord, "submit-to-discord");
 
     winnerDeckbuildingAchievements.forEach(({ id }) =>
-      participantAchievementMap[winnerId]["achievements"].push(id)
+      participantAchievementMap[winner?.participant_id]["achievements"].push(id)
     );
 
-    boolMap.forEach(({ condition, slug }) => {
+    boolConditions.forEach(({ condition, slug }) => {
       if (condition && slug) {
-        participantAchievementMap[winnerId]["slugs"].push(slug);
+        participantAchievementMap[winner?.participant_id]["slugs"].push(slug);
       }
     });
 
@@ -133,15 +146,19 @@ const ScorecardFormFields = ({
       (x) => participantAchievementMap[x]
     );
 
+    const winnerInfo = endInDraw
+      ? null
+      : {
+          winner_id: winner?.participant_id,
+          color_id: colorId,
+          commander_name: winnersCommander,
+        };
+
     const formattedData = {
       round: roundId,
       session: sessionId,
       pod: focusedPod.podId,
-      winnerInfo: {
-        winner_id: winnerId,
-        color_id: colorId,
-        commander_name: winnersCommander,
-      },
+      winnerInfo: winnerInfo,
       participants: participantList,
     };
 
@@ -195,7 +212,18 @@ const ScorecardFormFields = ({
         getOptionValue={(option) => option.participant_id}
         isMulti
       />
-      {errors?.winner && errors?.winner?.type === "required" && (
+      <div className="mb-2 flex gap-2">
+        Did the game end in a draw?
+        <Controller
+          name="endInDraw"
+          control={control}
+          defaultValue={false}
+          render={({ field }) => (
+            <CheckBoxInput {...field} checked={field.value} />
+          )}
+        />
+      </div>
+      {errors?.winner && errors?.winner?.type === "required" && !endInDraw && (
         <span className="text-xs italic text-rose-400">Required</span>
       )}
       <Selector
@@ -206,6 +234,7 @@ const ScorecardFormFields = ({
         getOptionLabel={(option) => option.name}
         getOptionValue={(option) => option.participant_id}
         classes="mb-2"
+        disabled={endInDraw}
       />
       {/* When redis gets rolling this should be a selector from that data */}
       <TextInput
@@ -213,7 +242,9 @@ const ScorecardFormFields = ({
         name="winnersCommander"
         placeholder="Winner's Commander"
         control={control}
+        disabled={endInDraw}
       />
+
       <ColorCheckboxes control={control} watch={watch} />
       <div className="mb-2 flex gap-2">
         Were they last in turn order:{" "}
@@ -222,7 +253,11 @@ const ScorecardFormFields = ({
           control={control}
           defaultValue={false}
           render={({ field }) => (
-            <CheckBoxInput {...field} checked={field.value} />
+            <CheckBoxInput
+              {...field}
+              checked={field.value}
+              disabled={endInDraw}
+            />
           )}
         />
       </div>
@@ -239,6 +274,7 @@ const ScorecardFormFields = ({
                 classes="flex items-center gap-2"
                 label="Commander Damage"
                 checked={field.value}
+                disabled={endInDraw}
               />
             )}
           />
@@ -252,6 +288,7 @@ const ScorecardFormFields = ({
                 classes="flex items-center gap-2"
                 label="Win The Game Effect"
                 checked={field.value}
+                disabled={endInDraw}
               />
             )}
           />
@@ -265,6 +302,7 @@ const ScorecardFormFields = ({
                 label="Having Zero Or Less Life"
                 classes="flex items-center gap-2"
                 checked={field.value}
+                disabled={endInDraw}
               />
             )}
           />
@@ -278,6 +316,7 @@ const ScorecardFormFields = ({
                 classes="flex items-center gap-2"
                 label="Lose The Game Effect"
                 checked={field.value}
+                disabled={endInDraw}
               />
             )}
           />
@@ -291,6 +330,7 @@ const ScorecardFormFields = ({
         getOptionLabel={(option) => option.name}
         getOptionValue={(option) => option.id}
         isMulti
+        disabled={endInDraw}
       />
       <div className="mt-2">
         <StandardButton title="Submit" type="submit" />

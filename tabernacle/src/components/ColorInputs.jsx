@@ -19,11 +19,11 @@ const disableColorBoxes = (colors, currColor) => {
 };
 
 export const ColorCheckboxes = ({ control, watch }) => {
-  const { colors } = watch();
+  const { colors, endInDraw } = watch();
   return (
     <div className="flex justify-between mb-2">
       {colorKeys.map((color) => {
-        const disabled = disableColorBoxes(colors, color);
+        const disabled = disableColorBoxes(colors, color) || endInDraw;
         return (
           <React.Fragment key={color}>
             <Controller
@@ -34,7 +34,7 @@ export const ColorCheckboxes = ({ control, watch }) => {
                 <CheckBoxInput
                   {...field}
                   classes="flex flex-col items-center"
-                  checkboxClasses={disabled ? "bg-gray-200" : ""}
+                  checkboxClasses={disabled ? "bg-gray-400" : ""}
                   label={color}
                   checked={field.value}
                   disabled={disabled}
