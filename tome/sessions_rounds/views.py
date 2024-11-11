@@ -76,15 +76,16 @@ def sessions_and_rounds(request, mm_yy):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     try:
-        # This will need to be addressed, this does not accurately grab what the "current" session is
-        current_session = Sessions.objects.get(month_year=mm_yy, closed=False)
-        serializer = SessionSerializer(current_session)
+        current_session = Sessions.objects.filter(
+            month_year=mm_yy, deleted=False
+        ).latest("created_at")
+        serializer = SessionSerializer(current_session).data
     except Sessions.DoesNotExist:
         return Response(
             {"message": "Open session for current month not found."},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(serializer, status=status.HTTP_200_OK)
 
 
 @api_view(["GET"])

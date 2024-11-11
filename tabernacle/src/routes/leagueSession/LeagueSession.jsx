@@ -20,8 +20,6 @@ const Round = ({
   previousRoundId,
   created_at,
   completed,
-  otherRoundCompleted,
-  sessionClosed,
 }) => {
   let previousRoundParticipants = [];
 
@@ -33,14 +31,6 @@ const Round = ({
       Object.values(data).flatMap(({ participants }) =>
         Object.values(participants)
       );
-  }
-
-  function roundText() {
-    if (sessionClosed && completed && otherRoundCompleted) {
-      return "View ";
-    } else {
-      return "Continue ";
-    }
   }
 
   return (
@@ -56,7 +46,7 @@ const Round = ({
           previousRoundParticipants: previousRoundParticipants,
         }}
       >
-        <StandardButton title={`${roundText()}Round ${roundNumber}`} />
+        <StandardButton title={`View Round ${roundNumber}`} />
       </Link>
     </div>
   );
@@ -75,7 +65,7 @@ function LeagueSession() {
         <div className="text-2xl mb-2 underline">
           {formatMonthYear(month_year)} Season
         </div>
-        {sessions.map(({ id, created_at, rounds, closed }) => {
+        {sessions.map(({ id, created_at, rounds }) => {
           const roundOne = rounds.find(
             ({ round_number }) => round_number === 1
           );
@@ -95,8 +85,6 @@ function LeagueSession() {
                 roundNumber={roundOne.round_number}
                 completed={roundOne.completed}
                 created_at={formatDateString(created_at)}
-                sessionClosed={closed}
-                otherRoundCompleted={roundTwo.completed}
               />
               <Round
                 sessionId={id}
@@ -105,8 +93,6 @@ function LeagueSession() {
                 roundNumber={roundTwo.round_number}
                 completed={roundTwo.completed}
                 created_at={formatDateString(created_at)}
-                sessionClosed={closed}
-                otherRoundCompleted={roundOne.completed}
               />
               {/* Readd this back in at some point */}
               {/* <div className="justify-self-end">

@@ -271,7 +271,7 @@ export default function RoundPage() {
     }
   };
 
-  const allPodsSubmitted = Object.values(data).some(
+  const allPodsSubmitted = Object.values(data).every(
     ({ submitted }) => submitted
   );
 
@@ -287,7 +287,7 @@ export default function RoundPage() {
           <StandardButton
             title="Close"
             action={() => handleCloseRound()}
-            disabled={!allPodsSubmitted}
+            disabled={allPodsSubmitted && completed}
           />
         </Link>
       )}
