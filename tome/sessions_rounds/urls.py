@@ -7,9 +7,11 @@ from .views import (
     all_sessions,
     get_pods,
     get_unique_session_months,
+    update_pods,
 )
 
 urlpatterns = [
+    path("update_pods/", update_pods, name="update_pods"),
     path(
         "sessions_by_date/<str:mm_yy>/",
         sessions_and_rounds_by_date,

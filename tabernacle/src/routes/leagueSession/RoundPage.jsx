@@ -8,6 +8,7 @@ import {
   useGetPodsQuery,
   usePostBeginRoundMutation,
   usePostCloseRoundMutation,
+  usePostUpdatePodsMutation,
 } from "../../api/apiSlice";
 
 import PageTitle from "../../components/PageTitle";
@@ -198,7 +199,7 @@ function RoundLobby({ roundId, sessionId, previousRoundParticipants }) {
         <div className="mt-2 w-full mx-auto">
           {selectedParticipants.map((participant, index) => (
             <CheckedInRow
-              key={participant?.id}
+              key={participant?.value}
               participant={participant}
               checkNumber={index + 1}
               removeParticipant={removeParticipant}
@@ -244,6 +245,8 @@ function FocusedRound({ pods, sessionId, roundId }) {
 
 export default function RoundPage() {
   const [postCloseRound] = usePostCloseRoundMutation();
+  const [postUpdatePods] = usePostUpdatePodsMutation();
+
   const location = useLocation();
   const {
     roundNumber,
@@ -260,6 +263,8 @@ export default function RoundPage() {
     return <LoadingSpinner />;
   }
 
+  // DISABLE THE REROLL IF A SCORE HAS BEEN SUBMITTED
+
   const handleCloseRound = async () => {
     try {
       await postCloseRound({
@@ -271,7 +276,20 @@ export default function RoundPage() {
     }
   };
 
+  const handleRerollPods = async () => {
+    try {
+      await postUpdatePods({
+        round: roundId,
+      }).unwrap();
+    } catch (error) {
+      console.log("Failed to reroll pods: ", error);
+    }
+  };
+
   const allPodsSubmitted = Object.values(data).every(
+    ({ submitted }) => submitted
+  );
+  const anyPodsSubmitted = Object.values(data).some(
     ({ submitted }) => submitted
   );
 
@@ -290,6 +308,14 @@ export default function RoundPage() {
             disabled={allPodsSubmitted && completed}
           />
         </Link>
+      )}
+
+      {roundNumber === 1 && (
+        <StandardButton
+          title="Re-Roll"
+          action={() => handleRerollPods()}
+          disabled={anyPodsSubmitted}
+        />
       )}
 
       <div className="mt-4">

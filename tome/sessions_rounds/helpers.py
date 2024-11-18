@@ -139,6 +139,4 @@ class RoundInformationService:
 
         self.create_participation_achievements()
 
-        # self.get_participants_serialized()
-
         return self.participant_data

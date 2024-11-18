@@ -136,6 +136,42 @@ def begin_round(request):
     return Response(serialized_data, status=status.HTTP_201_CREATED)
 
 
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def update_pods(request):
+    """
+    Endpoint for updating pods. Options include rerolling existing pods, or
+    adding new participants.
+    """
+    body = json.loads(request.body.decode("utf-8"))
+    round = body.get("round", None)
+    participants = body.get("participants", None)
+
+    pods = Pods.objects.filter(rounds_id=round)
+    pods_participants = list(
+        PodsParticipants.objects.filter(pods_id__in=[p.id for p in pods])
+    )
+
+    if participants is None:
+        new_pods = []
+        random.shuffle(pods_participants)
+
+        while len(pods_participants) > 0:
+            for pod in pods:
+                if len(pods_participants) > 0 and pods_participants[0].participants_id:
+                    pods_participant = pods_participants[0]
+                    pods_participant.pods_id = pod.id
+                    new_pods.append(pods_participant)
+                pods_participants = pods_participants[1:]
+        updated = PodsParticipants.objects.bulk_update(new_pods, ["pods_id"])
+
+    else:
+        ...
+
+    return Response(updated, status=status.HTTP_201_CREATED)
+
+
 @api_view(["GET"])
 def get_pods(_, round):
     """Get the pods that were made for a given round."""

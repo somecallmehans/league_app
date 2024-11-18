@@ -78,6 +78,7 @@ export const {
   usePostUpsertParticipantMutation,
   usePostUpsertAchievementsMutation,
   usePostUpsertEarnedMutation,
+  usePostUpdatePodsMutation,
 
   // AUTH
   useLoginMutation,

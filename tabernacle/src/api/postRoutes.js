@@ -53,4 +53,12 @@ export default (builder) => ({
     }),
     invalidatesTags: ["Earned"],
   }),
+  postUpdatePods: builder.mutation({
+    query: (body) => ({
+      url: "update_pods/",
+      method: "POST",
+      body,
+    }),
+    invalidatesTags: ["Pods"],
+  }),
 });
