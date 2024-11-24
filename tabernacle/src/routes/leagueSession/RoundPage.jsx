@@ -101,7 +101,13 @@ const CheckedInRow = ({ participant, checkNumber, removeParticipant, idx }) => (
 function RoundLobby({ roundId, sessionId, previousRoundParticipants }) {
   const [postBeginRound] = usePostBeginRoundMutation();
   const { data: participantsData, isLoading } = useGetParticipantsQuery();
-  const { handleSubmit, control, setValue, watch } = useForm({
+  const {
+    handleSubmit,
+    control,
+    setValue,
+    watch,
+    formState: { isSubmitting },
+  } = useForm({
     defaultValues: {
       participants:
         previousRoundParticipants?.map((p) => ({
@@ -186,7 +192,7 @@ function RoundLobby({ roundId, sessionId, previousRoundParticipants }) {
             />
           )}
         />
-        <StandardButton type="submit" title="Submit" />
+        <StandardButton disabled={isSubmitting} type="submit" title="Submit" />
       </form>
       <div className="mt-4 text-2xl flex justify-center">
         <span>

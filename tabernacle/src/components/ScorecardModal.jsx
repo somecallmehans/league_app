@@ -44,7 +44,7 @@ const ScorecardFormFields = ({
   const {
     control,
     handleSubmit,
-    formState: { errors },
+    formState: { isSubmitting, errors },
     watch,
   } = useForm();
 
@@ -342,7 +342,7 @@ const ScorecardFormFields = ({
         disabled={endInDraw}
       />
       <div className="mt-2">
-        <StandardButton title="Submit" type="submit" />
+        <StandardButton disabled={isSubmitting} title="Submit" type="submit" />
       </div>
     </form>
   );
