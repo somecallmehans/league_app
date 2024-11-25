@@ -3,7 +3,7 @@ from users.serializers import ParticipantsSerializer, ParticipantsAchievementsSe
 from achievements.models import Achievements
 from sessions_rounds.models import Pods, PodsParticipants
 
-PARTICIPATION_ACHIEVEMENT_ID = 24
+PARTICIPATION_ACHIEVEMENT = "participation"
 
 
 def generate_pods(participants, round):
@@ -50,7 +50,7 @@ class RoundInformationService:
         self.session = session
         self.round = round
         self.participation_achievement = Achievements.objects.get(
-            id=PARTICIPATION_ACHIEVEMENT_ID
+            slug=PARTICIPATION_ACHIEVEMENT
         )
         self.all_participants = []
         self.participant_data = []
@@ -95,22 +95,6 @@ class RoundInformationService:
         """Create a lookup of the participants information."""
         self.participant_lookup = {p.id: p for p in self.participant_data}
 
-    def get_session_achievement_data(self):
-        """Get achievement data for the current session."""
-        achievement_data = ParticipantAchievements.objects.filter(
-            # This is a VERY bad way to grab the participation achievement
-            # should probably figure out a slug or something to do this.
-            session_id=self.session.id,
-            achievement_id=PARTICIPATION_ACHIEVEMENT_ID,
-        )
-        earned_participation_achievements = ParticipantsAchievementsSerializer(
-            achievement_data, many=True
-        )
-        self.earned_participation_set = {
-            ea["participant"] for ea in earned_participation_achievements.data
-        }
-
-    # this needs to move to close round
     def create_participation_achievements(self):
         """If someone hasn't gotten the participation achievement, they get one."""
         new_achievements = []
@@ -135,10 +119,7 @@ class RoundInformationService:
         self.get_participants()
 
         self.create_participants_lookup()
-        self.get_session_achievement_data()
 
         self.create_participation_achievements()
-
-        # self.get_participants_serialized()
 
         return self.participant_data
