@@ -1,5 +1,5 @@
 from users.models import Participants, ParticipantAchievements
-from users.serializers import ParticipantsSerializer, ParticipantsAchievementsSerializer
+from users.serializers import ParticipantsSerializer
 from achievements.models import Achievements
 from sessions_rounds.models import Pods, PodsParticipants
 
