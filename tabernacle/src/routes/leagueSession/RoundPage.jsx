@@ -16,6 +16,7 @@ import StandardButton from "../../components/Button";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import CreatableSelect from "react-select/creatable";
 import ScorecardModal from "../../components/ScorecardModal";
+import PointsModal from "./PointsModal";
 
 function Pods({
   pods,
@@ -27,9 +28,22 @@ function Pods({
   sessionId,
   roundId,
 }) {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selected, setSelected] = useState();
+
   if (!pods) {
     return null;
   }
+
+  const handleOnClick = (participant, achievements, round_points) => {
+    setSelected({ participant, achievements, round_points });
+    setModalOpen(!modalOpen);
+  };
+
+  const handleClose = () => {
+    setModalOpen(false);
+  };
+
   return (
     <div className="grid grid-cols-2 gap-6">
       {podKeys.map((pod_id, index) => {
@@ -50,7 +64,13 @@ function Pods({
             <div className="border border-blue-300 grid grid-cols-2 overflow-y-auto">
               {participants.map(
                 (
-                  { participant_id, name, total_points, round_points },
+                  {
+                    participant_id,
+                    name,
+                    total_points,
+                    round_points,
+                    achievements,
+                  },
                   index
                 ) => (
                   <div
@@ -61,7 +81,16 @@ function Pods({
                         : ""
                     }`}
                   >
-                    <span className="text-xl">{name}</span>
+                    <span className="text-xl">
+                      <a
+                        className="hover:text-sky-500"
+                        onClick={() =>
+                          handleOnClick(name, achievements, round_points)
+                        }
+                      >
+                        {name}
+                      </a>
+                    </span>
                     <span className="text-xs">
                       {round_points} Points This Round
                     </span>
@@ -81,6 +110,11 @@ function Pods({
         focusedPod={focusedPod}
         sessionId={sessionId}
         roundId={roundId}
+      />
+      <PointsModal
+        isOpen={modalOpen}
+        closeModal={() => handleClose()}
+        selected={selected}
       />
     </div>
   );
@@ -102,7 +136,13 @@ const CheckedInRow = ({ participant, checkNumber, removeParticipant, idx }) => (
 function RoundLobby({ roundId, sessionId, previousRoundParticipants }) {
   const [postBeginRound] = usePostBeginRoundMutation();
   const { data: participantsData, isLoading } = useGetParticipantsQuery();
-  const { handleSubmit, control, setValue, watch } = useForm({
+  const {
+    handleSubmit,
+    control,
+    setValue,
+    watch,
+    formState: { isSubmitting },
+  } = useForm({
     defaultValues: {
       participants:
         previousRoundParticipants?.map((p) => ({
@@ -187,7 +227,7 @@ function RoundLobby({ roundId, sessionId, previousRoundParticipants }) {
             />
           )}
         />
-        <StandardButton type="submit" title="Submit" />
+        <StandardButton disabled={isSubmitting} type="submit" title="Submit" />
       </form>
       <div className="mt-4 text-2xl flex justify-center">
         <span>

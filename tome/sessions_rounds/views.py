@@ -14,8 +14,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .models import Sessions, Rounds, Pods, PodsParticipants
+from users.models import ParticipantAchievements
+from achievements.models import Achievements
 
 from .serializers import SessionSerializer, PodsParticipantsSerializer
+from achievements.serializers import AchievementsSerializer
 from .helpers import (
     generate_pods,
     get_participants_total_scores,
@@ -49,7 +52,7 @@ def all_sessions(request):
 @api_view(["GET"])
 def get_unique_session_months(request):
     """Get a list of unique month-years for sessions."""
-    months = Sessions.objects.values("month_year").distinct()
+    months = Sessions.objects.filter(deleted=False).values("month_year").distinct()
 
     sorted_months = sorted(
         [m["month_year"] for m in months],
@@ -187,6 +190,18 @@ def get_pods(_, round):
         context={"round_id": round, "mm_yy": roundObj.session.month_year},
     ).data
 
+    achievements_earned_in_round = ParticipantAchievements.objects.filter(
+        round_id=round
+    )
+
+    achievement_map = {}
+
+    for record in achievements_earned_in_round:
+        if achievement_map.get(record.participant_id, None) is None:
+            achievement_map[record.participant_id] = [record.achievement_id]
+        else:
+            achievement_map[record.participant_id].append(record.achievement_id)
+
     pod_map = {}
     for pod in serialized_data:
         pod_id = pod["pods"]["id"]
@@ -195,11 +210,16 @@ def get_pods(_, round):
         if pod_map.get(pod_id, None) is None:
             pod_map[pod_id] = {"id": pod_id, "submitted": submitted, "participants": []}
 
+        earned = Achievements.objects.filter(
+            id__in=achievement_map[pod["participant_id"]]
+        )
+
         participant_data = {
             "participant_id": pod["participant_id"],
             "name": pod["name"],
             "total_points": pod["total_points"],
             "round_points": pod["round_points"],
+            "achievements": AchievementsSerializer(earned, many=True).data,
         }
 
         pod_map[pod_id]["participants"].append(participant_data)
