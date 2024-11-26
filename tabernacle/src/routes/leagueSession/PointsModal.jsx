@@ -8,6 +8,9 @@ import {
   TransitionChild,
 } from "@headlessui/react";
 
+const getRoundPoints = (point_value, parent) =>
+  parent ? parent?.point_value : point_value;
+
 export default function PointsModal({ isOpen, closeModal, selected }) {
   if (!selected) return null;
   const { participant, achievements, round_points } = selected;
@@ -46,7 +49,7 @@ export default function PointsModal({ isOpen, closeModal, selected }) {
                   <span>{round_points} Round Points</span>
                 </DialogTitle>
 
-                {achievements.map(({ name, point_value }, index) => (
+                {achievements.map(({ name, parent, point_value }, index) => (
                   <div
                     key={index}
                     className={`grid grid-cols-4 gap-4 items-center ${
@@ -59,7 +62,7 @@ export default function PointsModal({ isOpen, closeModal, selected }) {
                       {name}
                     </div>
                     <div className="col-span-1 text-right text-gray-600 font-bold">
-                      {point_value} points
+                      {getRoundPoints(point_value, parent)} points
                     </div>
                   </div>
                 ))}
