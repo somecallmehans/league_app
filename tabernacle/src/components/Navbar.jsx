@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import LoginPopover from "./LoginPopover";
 
@@ -17,23 +17,56 @@ const navLinks = [
 ];
 
 export default function Navbar({ loggedIn, setLoggedIn }) {
+  const [menuOpen, setMenuOpen] = useState(false);
   return (
-    <nav className="container flex p-5 bg-slate-800 max-w-full">
-      <div className="flex items-center text-base">
-        {navLinks
-          .filter((link) => !link.admin || (link.admin && loggedIn))
-          .map(({ id, name, to }) => (
-            <NavLink
-              key={id}
-              className="mr-5 text-slate-50 text-2xl hover:text-sky-200 hover:underline "
-              to={to}
-            >
-              {name}
-            </NavLink>
-          ))}
+    <nav className="text-slate-50 bg-slate-800">
+      <div className="container mx-auto flex items-center justify-between p-4">
+        <button
+          className="sm:hidden focus:outline-none"
+          onClick={() => setMenuOpen((prev) => !prev)}
+        >
+          <span className="material-icons text-slate-50">
+            <i className="fa-solid fa-bars" />
+          </span>
+        </button>
+
+        <div className="hidden sm:flex space-x-4">
+          {navLinks
+            .filter((link) => !link.admin || (link.admin && loggedIn))
+            .map(({ id, name, to }) => (
+              <NavLink
+                key={id}
+                className="text-slate-50 text-2xl hover:text-sky-200 hover:underline "
+                to={to}
+              >
+                {name}
+              </NavLink>
+            ))}
+        </div>
+
+        <div className="flex-grow ml-4" />
+        <LoginPopover loggedIn={loggedIn} setLoggedIn={setLoggedIn} />
       </div>
-      <div className="flex-grow" />
-      <LoginPopover loggedIn={loggedIn} setLoggedIn={setLoggedIn} />
+      {menuOpen && (
+        <div className="sm:hidden bg-slate-700">
+          {navLinks
+            .filter((link) => !link.admin || (link.admin && loggedIn))
+            .map(({ id, name, to }) => (
+              <NavLink
+                key={id}
+                className="block px-4 py-2 text-lg hover:bg-slate-600 hover:text-sky-200"
+                to={to}
+                onClick={() => setMenuOpen(false)} // Close menu on link click
+              >
+                {name}
+              </NavLink>
+            ))}
+
+          {/* <div className="px-4 py-2">
+            <LoginPopover loggedIn={loggedIn} setLoggedIn={setLoggedIn} />
+          </div> */}
+        </div>
+      )}
     </nav>
   );
 }

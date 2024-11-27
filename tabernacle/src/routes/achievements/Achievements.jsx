@@ -33,7 +33,7 @@ const Achievement = ({ name, children, restrictions }) => {
         ))}
       {children?.length > 0 &&
         children?.map(({ id, name }) => (
-          <div key={id} className="italic text-gray-500">
+          <div key={id} className="ml-4 italic text-gray-500">
             {name}
           </div>
         ))}
@@ -61,7 +61,7 @@ export default function AchievementsPage() {
   const achievementKeys = Object.keys(data?.map) || [];
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <PageTitle title="Achievements" />
       <div className="mb-6">
         <SimpleSelect
@@ -73,7 +73,7 @@ export default function AchievementsPage() {
       </div>
       {achievementKeys.filter(filterAchievements).map((x) => (
         <div key={x} className="p-2">
-          <div className="font-bold text-2xl text-gray-800 border-b border-gray-400 pb-2 mb-4">
+          <div className="font-bold text-xl md:text-2xl text-gray-800 border-b border-gray-400 pb-2 mb-4">
             {x} Points
           </div>
           {data.map[x]?.map(({ id, name, children, restrictions }) => (

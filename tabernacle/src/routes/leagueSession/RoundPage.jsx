@@ -60,7 +60,7 @@ function Pods({
                 />
               )}
             </div>
-            <div className="border border-blue-300 grid grid-cols-2 overflow-y-auto">
+            <div className="shadow-lg border border-blue-300 grid grid-cols-2 overflow-y-auto">
               {participants.map(
                 (
                   {
@@ -316,7 +316,7 @@ export default function RoundPage() {
   );
 
   return (
-    <div className="bg-white p-4 mb-4 h-full">
+    <div className="bg-white p-4 mb-4 h-screen">
       <PageTitle title={`Round ${roundNumber} for ${date}`} />
       <Link to={"/league-session"}>
         <StandardButton title="Back" />

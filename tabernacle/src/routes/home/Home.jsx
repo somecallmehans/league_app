@@ -67,17 +67,17 @@ const ScheduleSection = () => (
 
 const DescriptionSection = () => (
   <section className="bg-white bg-opacity-10 backdrop-blur-md rounded-lg p-6 mb-8 shadow-lg">
-    <h2 className="text-2xl font-bold text-blue-600 mb-4">
+    <h2 className="text-xl sm:text-2xl font-bold text-blue-600 mb-4">
       What is Commander League?
     </h2>
-    <p className="leading-relaxed">
+    <p className="leading-relaxed text-sm sm:text-base">
       During each month’s league, players earn points by winning official games
       with decks that meet criteria for “achievements.” The more restrictive the
       criteria, the more points an achievement is worth. Essentially, Commander
       League is a month-long tournament of deck building challenges roughly
       weighted by difficulty.
     </p>
-    <p className="leading-relaxed mt-4">
+    <p className="leading-relaxed mt-4 text-sm sm:text-base">
       Commander League offers a fun and challenging experience for intermediate
       and advanced players. Beginners are welcome too and will have fun! But
       note:{" "}
@@ -91,7 +91,7 @@ const DescriptionSection = () => (
 
 const HomeHeader = () => (
   <header className="text-center mb-4">
-    <h1 className="text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-b from-blue-600 to-blue-200 py-2">
+    <h1 className="text-3xl sm:text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-b from-blue-600 to-blue-200 py-2">
       Greetings Elder Dragons
     </h1>
     <p className="text-xl font-bold mt-4">Welcome to Commander League!</p>
@@ -104,7 +104,7 @@ const HomeHeader = () => (
 
 export default function Home() {
   return (
-    <div className="min-h-screen text-black p-8">
+    <div className="min-h-screen text-black px-4 sm:px-8 py-4">
       <div className="max-w-4xl mx-auto">
         <HomeHeader />
         <DescriptionSection />
