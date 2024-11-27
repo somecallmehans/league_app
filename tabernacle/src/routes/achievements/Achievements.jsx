@@ -10,25 +10,30 @@ const Achievement = ({ name, children, restrictions }) => {
   const [toggle, setToggle] = useState();
 
   return (
-    <div>
-      <div className="text-lg">
-        - {name}{" "}
-        {restrictions.length > 0 && (
-          <i
-            className={`fa-solid fa-caret-${toggle ? "down" : "right"}`}
-            onClick={() => setToggle(!toggle)}
-          />
-        )}
+    <div className="p-2">
+      <div className="flex items-center text-lg">
+        <i className="fa-solid fa-circle text-[6px] mr-2" />
+        <div
+          onClick={() => setToggle(!toggle)}
+          className={`text-lg font-semibold ${
+            restrictions.length > 0 ? "hover:text-sky-500" : ""
+          } inline-block align-middle`}
+        >
+          {name}
+        </div>
       </div>
       {toggle &&
         restrictions?.map(({ id, name }) => (
-          <div key={id} className="ml-3 text-sm italic">
+          <div
+            key={id}
+            className="text-sm italic text-gray-600 flex items-center"
+          >
             <i className="fa-solid fa-minus mr-2" /> {name}
           </div>
         ))}
       {children?.length > 0 &&
         children?.map(({ id, name }) => (
-          <div key={id} className="ml-3 italic">
+          <div key={id} className="italic text-gray-500">
             {name}
           </div>
         ))}
@@ -56,17 +61,21 @@ export default function AchievementsPage() {
   const achievementKeys = Object.keys(data?.map) || [];
 
   return (
-    <div className="p-4">
+    <div className="p-8">
       <PageTitle title="Achievements" />
-      <SimpleSelect
-        placeholder="Filter By Point Value"
-        options={achievementKeys.map((v) => ({ label: v, value: v }))}
-        onChange={handleFilterChange}
-        isMulti
-      />
+      <div className="mb-6">
+        <SimpleSelect
+          placeholder="Filter By Point Value"
+          options={achievementKeys.map((v) => ({ label: v, value: v }))}
+          onChange={handleFilterChange}
+          isMulti
+        />
+      </div>
       {achievementKeys.filter(filterAchievements).map((x) => (
         <div key={x} className="p-2">
-          <div className="font-bold text-2xl">{x} Points</div>
+          <div className="font-bold text-2xl text-gray-800 border-b border-gray-400 pb-2 mb-4">
+            {x} Points
+          </div>
           {data.map[x]?.map(({ id, name, children, restrictions }) => (
             <Achievement
               key={id}
