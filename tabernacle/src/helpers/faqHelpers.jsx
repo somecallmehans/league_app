@@ -1,20 +1,22 @@
+import React from "react";
+
 export const faqInfo = [
   {
     id: 1,
     title: "League Schedule",
     Component: () => (
       <div className="py-2">
-        <p>
+        <p className="mb-2">
           Each league begins on the first Sunday of the month, repeats weekly,
           and concludes on the month’s final Sunday.
         </p>
-        <p>
+        <p className="mb-2">
           Each week, round one begins at 12:30pm, and round two at 2:30pm. Pod
           assignments for round one are random. In round two, pod assignments
           are ranked by league standings: players with the most points are
           grouped together, as are players with the fewest points.
         </p>
-        <p>
+        <p className="mb-2">
           Each round, after 90 minutes, “sudden death” ensues. As the next turn
           begins, all players’ life totals become 1. For the rest of the game,
           players can’t gain life, damage can’t be prevented, and extra turns
@@ -29,13 +31,13 @@ export const faqInfo = [
     title: "Proxy Policy",
     Component: () => (
       <div className="py-2">
-        <p>
+        <p className="mb-2">
           Players are allowed to use any number of proxies during league games.
           Two of these proxies may be of comparable quality to “basic land with
           sharpie writing.” The rest must be visually distinct from one another
           such that players can easily distinguish them from a across the table.
         </p>
-        <p>
+        <p className="mb-2">
           <a href="https://mtgprint.net/">MTG Print</a> is a useful resource for
           formatting proxy prints and Mimic’s Market offers color printing at a
           reasonable price! League participants also periodically order
@@ -49,7 +51,7 @@ export const faqInfo = [
     title: "Booster Packs",
     Component: () => (
       <div className="py-2">
-        <p>
+        <p className="mb-2">
           Players must purchase one booster pack from Mimic’s Market for each
           league game that they participate in. These packs begin in each
           player’s command zone and may be given to other players throughout the
@@ -57,7 +59,7 @@ export const faqInfo = [
           cannot be given away again. At the end of the game, booster packs
           remaining in command zones must be given away.
         </p>
-        <p>
+        <p className="mb-2">
           These packs may be used politically. For example, a player selected to
           separate “Fact or Fiction” piles might put a booster pack in one pile,
           and all five cards in the other. Or, at the beginning of combat, a
@@ -76,13 +78,13 @@ export const faqInfo = [
     title: "Winning the League",
     Component: () => (
       <div className="py-2">
-        <p>
+        <p className="mb-2">
           While someone will finish with more points than others, the real
           winner is the player who has the most fun along the way. In that
           spirit, prizes for winning are much less valuable than the booster
           packs most players will earn over the course of league games.
         </p>
-        <p>
+        <p className="mb-2">
           At the end of each season, Mimic’s Market will provide eight prize
           piles. The league champion will choose one pile to keep. The runner up
           chooses second, third place chooses third, and so on. If a player is
@@ -96,7 +98,7 @@ export const faqInfo = [
     title: "Updating the League",
     Component: () => (
       <div className="py-2">
-        <p>
+        <p className="mb-2">
           Currently, Commander League’s rules are the product of benevolent
           dictatorship. While lively discussion about the league continues on
           <a href="https://discord.com/channels/1123750208937938964/1203058271620038756">
@@ -107,7 +109,7 @@ export const faqInfo = [
           feedback and govern by consensus, but a more democratic model might be
           preferable someday.
         </p>
-        <p>
+        <p className="mb-2">
           Until then, any changes to league rules will occur between monthly
           seasons. If you have ideas for new achievements or would like to see a
           rule changed, bring it up at league or on Discord!

@@ -1,31 +1,50 @@
 import React, { useState } from "react";
 import PageTitle from "../../components/PageTitle";
-
 import { faqInfo } from "../../helpers/faqHelpers";
 
 const FaqRow = ({ title, Component }) => {
-  const [toggle, setToggle] = useState();
+  const [toggle, setToggle] = useState(false);
+
   return (
-    <React.Fragment>
-      <div className="text-2xl font-bold border-0 border-t border-slate-400">
-        {title}{" "}
+    <div className="border-b border-slate-200 py-4">
+      <div
+        onClick={() => setToggle(!toggle)}
+        className="flex justify-between items-center cursor-pointer group"
+      >
+        <h3 className="text-lg font-medium text-slate-800 group-hover:text-blue-500 transition duration-200">
+          {title}
+        </h3>
         <i
-          onClick={() => setToggle(!toggle)}
-          className={`fa fa-caret-${toggle ? "down" : "right"}`}
+          className={`fa fa-chevron-${
+            toggle ? "down" : "right"
+          } mr-2 text-slate-500 group-hover:text-blue-400 transition duration-200`}
         />
       </div>
-      {toggle && Component()}
-    </React.Fragment>
+      {toggle && (
+        <div className="mt-3 text-slate-600 leading-relaxed">
+          <Component />
+        </div>
+      )}
+    </div>
   );
 };
 
 export default function FAQ() {
   return (
-    <div className="p-8">
-      <PageTitle title="Frequently Asked Questions" />
-      {faqInfo.map((faq) => (
-        <FaqRow key={faq.id} {...faq} />
-      ))}
+    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50">
+      <div className="max-w-4xl mx-auto px-6 py-12">
+        <div className="text-center mb-8">
+          <PageTitle title="Frequently Asked Questions" />
+          <p className="text-slate-600 mt-2">
+            Here are some common questions and answers to help you get started.
+          </p>
+        </div>
+        <div className="bg-white shadow-md rounded-lg overflow-hidden p-4">
+          {faqInfo.map((faq) => (
+            <FaqRow key={faq.id} {...faq} />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
