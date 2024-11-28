@@ -11,8 +11,7 @@ const Achievement = ({ name, children, restrictions }) => {
 
   return (
     <div className="p-2">
-      <div className="flex items-center text-lg">
-        <i className="fa-solid fa-circle text-[6px] mr-2" />
+      <div className="text-lg">
         <div
           onClick={() => setToggle(!toggle)}
           className={`text-lg font-semibold ${
