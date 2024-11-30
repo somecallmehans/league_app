@@ -30,4 +30,5 @@ urlpatterns = [
     path("", include("users.urls")),
     path("", include("achievements.urls")),
     path("", include("sessions_rounds.urls")),
+    path("", include("metrics.urls")),
 ]
