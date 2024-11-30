@@ -31,4 +31,7 @@ export default (builder) => ({
   getUniqueMonths: builder.query({
     query: () => "unique_months/",
   }),
+  getMetrics: builder.query({
+    query: () => "metrics/",
+  }),
 });

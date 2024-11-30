@@ -10,6 +10,7 @@ import LeaderBoard from "./routes/leaderboard/Leaderboard";
 import AchievementsPage from "./routes/achievements/Achievements";
 import LeagueRouter from "./routes/leagueSession/LeagueSession";
 import ManagementContainer from "./routes/crud/ManagementContainer";
+import Metrics from "./routes/metrics/MetricsContainer";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -25,6 +26,7 @@ function App() {
         <Route path="/faq" element={<FAQ />} />
         <Route path="/leaderboard" element={<LeaderBoard />} />
         <Route path="/achievements" element={<AchievementsPage />} />
+        <Route path="/metrics" element={<Metrics />} />
         <Route
           path="/management"
           element={

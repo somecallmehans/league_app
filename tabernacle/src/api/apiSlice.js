@@ -69,6 +69,7 @@ export const {
   useGetSessionByDateQuery,
   useGetAchievementsForMonthQuery,
   useGetUniqueMonthsQuery,
+  useGetMetricsQuery,
 
   // POSTS
   usePostCreateSessionMutation,

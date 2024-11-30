@@ -7,6 +7,12 @@ const navLinks = [
   { id: 2, name: "FAQ", to: "/faq", admin: false },
   { id: 3, name: "Leaderboard", to: "/leaderboard", admin: false },
   { id: 4, name: "Achievements", to: "/achievements", admin: false },
+  {
+    id: 7,
+    name: "Metrics",
+    to: "/metrics",
+    admin: true,
+  },
   { id: 5, name: "Admin", to: "/management", admin: true },
   {
     id: 6,
@@ -56,15 +62,11 @@ export default function Navbar({ loggedIn, setLoggedIn }) {
                 key={id}
                 className="block px-4 py-2 text-lg hover:bg-slate-600 hover:text-sky-200"
                 to={to}
-                onClick={() => setMenuOpen(false)} // Close menu on link click
+                onClick={() => setMenuOpen(false)}
               >
                 {name}
               </NavLink>
             ))}
-
-          {/* <div className="px-4 py-2">
-            <LoginPopover loggedIn={loggedIn} setLoggedIn={setLoggedIn} />
-          </div> */}
         </div>
       )}
     </nav>
