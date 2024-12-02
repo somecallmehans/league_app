@@ -49,7 +49,7 @@ const MetricBlockWithCycle = ({ data, subtitleKey }) => {
             className="hover:text-sky-500 fa-solid fa-chevron-left text-xl md:text-2xl mr-4 md:mr-4 cursor-pointer"
           />
         )}
-        <span className="text-4xl">{data[idx].name}</span>
+        <span className="text-4xl">{data[idx]?.name}</span>
         {showIncrementers && (
           <i
             onClick={() => incUp()}
