@@ -6,20 +6,14 @@ import {
   LinearScale,
   BarElement,
   Title,
-  Tooltip,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title);
 
 const options = {
   responsive: true,
-  plugins: {
-    title: {
-      display: true,
-      text: "All Time Color Wins",
-    },
-  },
+  barPercentage: 0.5,
 };
 
 // this should probably be in the db
@@ -55,7 +49,7 @@ const labelColors = {
   "red-green-white-blue": "rgb(255, 127, 80, 0.8)",
   "white-blue-black-green": "rgb(0, 206, 209, 0.8)",
   "white-blue-black-red": "rgb(221, 160, 221, 0.8)",
-  "white-blue-black-red-green": "rgb(128, 0, 128, 0.8)",
+  "white-blue-black-red-green": "rgb(255, 215, 0, 0.8)",
 };
 
 export default function ColorBarChart({ colorPie }) {
