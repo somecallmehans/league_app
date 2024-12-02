@@ -48,11 +48,17 @@ class MetricsCalculator:
             print(f"Error building big winner: {e}")
 
     def build_most_earned(self):
-        earned = ParticipantAchievements.objects.filter(
-            achievement__slug__isnull=True, deleted=False
-        )
+        try:
+            earned = ParticipantAchievements.objects.filter(
+                achievement__slug__isnull=True, deleted=False
+            )
 
-        all_earned = ParticipantsAchievementsFullModelSerializer(earned, many=True).data
+            all_earned = ParticipantsAchievementsFullModelSerializer(
+                earned, many=True
+            ).data
+
+        except Exception as e:
+            print(f"Error getting earned achievements: {e}")
         achievement_map = {}
 
         try:

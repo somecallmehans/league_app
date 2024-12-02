@@ -38,7 +38,11 @@ const MetricBlockWithCycle = ({ data, subtitleKey }) => {
 
   return (
     <React.Fragment>
-      <div className="font-extrabold text-center flex flex-grow w-full justify-between">
+      <div
+        className={`font-extrabold text-center flex flex-grow w-full justify-${
+          showIncrementers ? "between" : "center"
+        }`}
+      >
         {showIncrementers && (
           <i
             onClick={() => incDown()}
