@@ -60,7 +60,7 @@ export default function Leaderboard() {
   }
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
+    <div className="p-8 mx-auto">
       <PageTitle title="Leaderboard" />
       <div className="mb-6">
         <SimpleSelect

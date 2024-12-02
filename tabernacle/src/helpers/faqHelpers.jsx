@@ -101,7 +101,11 @@ export const faqInfo = [
         <p className="mb-2">
           Currently, Commander League’s rules are the product of benevolent
           dictatorship. While lively discussion about the league continues on
-          <a href="https://discord.com/channels/1123750208937938964/1203058271620038756">
+          <a
+            className="text-sky-500 hover:text-sky-300"
+            href="https://discord.com/channels/1123750208937938964/1203058271620038756"
+          >
+            {" "}
             Mimic’s Market’s Discord server
           </a>
           , ultimately, just one person finalizes each season’s rules, without
@@ -113,6 +117,71 @@ export const faqInfo = [
           Until then, any changes to league rules will occur between monthly
           seasons. If you have ideas for new achievements or would like to see a
           rule changed, bring it up at league or on Discord!
+        </p>
+      </div>
+    ),
+  },
+  {
+    id: 6,
+    title: "League Location + Discord",
+    Component: () => (
+      <div className="py-2">
+        <p className="mb-2">
+          You can find us at our home,{" "}
+          <a
+            className="text-sky-500 hover:text-sky-300"
+            href="https://mimicsmarket.com/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Mimic’s Market
+          </a>
+          , located at 4707 Liberty Ave, Pittsburgh, PA 15224; visit their site
+          to learn about all of their events and more!
+        </p>
+        <p className="mb-2">
+          Also visit our online home,{" "}
+          <a
+            className="text-sky-500 hover:text-sky-300"
+            href="https://discord.gg/zmfQbzmU7u"
+            target="_blank"
+            rel="noreferrer"
+          >
+            the Mimic’s Market Discord Server!
+          </a>
+        </p>
+      </div>
+    ),
+  },
+  {
+    id: 7,
+    title: "Shared Decklists",
+    Component: () => (
+      <div className="py-2">
+        <p className="mb-2">
+          If you&apos;d like opportunity to win more points during league, be
+          sure to submit your decklist to{" "}
+          <a
+            className="text-sky-500 hover:text-sky-300"
+            href="https://docs.google.com/document/d/1OoR3nKuWdfuEOzegfyM4QuPZFXtYOi-fsrKGOGlplpM/edit?tab=t.0"
+            target="_blank"
+            rel="noreferrer"
+          >
+            our shared league decklist page.
+          </a>
+        </p>
+        <p className="mb-2">
+          Please note: you <b>MUST</b> share your decklist in the
+          mtg-commander-league channel on the official{" "}
+          <a
+            className="text-sky-500 hover:text-sky-300"
+            href="https://discord.gg/zmfQbzmU7u"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Mimic&apos;s Market Discord Server
+          </a>{" "}
+          to be elligible for this achievement.
         </p>
       </div>
     ),
