@@ -86,7 +86,7 @@ export default function Metrics() {
 
   return (
     <div className="p-4 md:p-8 mx-auto">
-      <PageTitle title="League Metrics" />
+      <PageTitle title="Metrics" />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <MetricWrapper
           title="Most Earned Points"
