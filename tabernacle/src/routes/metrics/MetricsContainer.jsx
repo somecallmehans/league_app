@@ -78,8 +78,6 @@ export default function Metrics() {
     return null;
   }
 
-  console.log(data);
-
   return (
     <div className="grid grid-cols-2 gap-4 p-4">
       <MetricWrapper
@@ -105,10 +103,10 @@ export default function Metrics() {
       <MetricWrapper title="Days Since Last Draw">
         <MetricBlock data={data?.last_draw} mainKey="days" />
       </MetricWrapper>
-      
+
       <MetricWrapper
         title="All Time Color Wins"
-        classes="col-span-2 max-h-[32rem]"
+        classes="col-span-2 max-h-[36rem] p-8"
       >
         <ColorBarChart colorPie={data?.color_pie} />
       </MetricWrapper>

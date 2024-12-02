@@ -53,7 +53,9 @@ const labelColors = {
 };
 
 export default function ColorBarChart({ colorPie }) {
-  const labels = Object.keys(colorPie);
+  const labels = Object.keys(colorPie).sort(
+    (a, b) => colorPie[b] - colorPie[a]
+  );
   const newData = {
     labels,
     datasets: [
