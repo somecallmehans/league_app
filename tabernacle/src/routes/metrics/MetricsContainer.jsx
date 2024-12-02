@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 
 import { useGetMetricsQuery } from "../../api/apiSlice";
+import LoadingSpinner from "../../components/LoadingSpinner";
+
 import PageTitle from "../../components/PageTitle";
 import ColorBarChart from "./ColorBarChart";
 
@@ -79,7 +81,7 @@ export default function Metrics() {
   const { data, isLoading } = useGetMetricsQuery();
 
   if (isLoading) {
-    return null;
+    return <LoadingSpinner />;
   }
 
   return (
