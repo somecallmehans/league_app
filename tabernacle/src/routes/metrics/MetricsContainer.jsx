@@ -1,8 +1,66 @@
-import React from "react";
+import React, { useState } from "react";
 
 import { useGetMetricsQuery } from "../../api/apiSlice";
 
 import ColorBarChart from "./ColorBarChart";
+
+const MetricBlock = ({ data, mainKey, subtitleKey }) => (
+  <React.Fragment>
+    <div className="text-4xl font-extrabold font-extrabold text-center flex flex-grow items-center justify-center">
+      {data?.[mainKey]}
+    </div>
+    {subtitleKey && (
+      <div className="text-xl font-extrabold font-extrabold text-center flex flex-grow items-center justify-center">
+        {data?.[subtitleKey]} Points
+      </div>
+    )}
+  </React.Fragment>
+);
+
+const MetricBlockWithCycle = ({ data, subtitleKey }) => {
+  const [idx, setIdx] = useState(0);
+  const showIncrementers = data.length > 1;
+
+  const incUp = () => {
+    if (idx === data.length - 1) {
+      setIdx(0);
+    } else {
+      setIdx(idx + 1);
+    }
+  };
+  const incDown = () => {
+    if (idx === 0) {
+      setIdx(data.length - 1);
+    } else {
+      setIdx(idx - 1);
+    }
+  };
+
+  return (
+    <React.Fragment>
+      <div className="font-extrabold font-extrabold text-center flex flex-grow w-full justify-between">
+        {showIncrementers && (
+          <i
+            onClick={() => incDown()}
+            className="fa-solid fa-chevron-left text-2xl mr-4"
+          />
+        )}
+        <span className="text-4xl">{data[idx].name}</span>
+        {showIncrementers && (
+          <i
+            onClick={() => incUp()}
+            className="fa-solid fa-chevron-right text-2xl ml-4"
+          />
+        )}
+      </div>
+      {subtitleKey && (
+        <div className="text-xl font-extrabold font-extrabold text-center flex flex-grow items-center justify-center">
+          {data[0][subtitleKey]} Wins
+        </div>
+      )}
+    </React.Fragment>
+  );
+};
 
 const MetricWrapper = ({ title, classes, children }) => (
   <div
@@ -24,18 +82,34 @@ export default function Metrics() {
 
   return (
     <div className="grid grid-cols-2 gap-4 p-4">
-      <MetricWrapper>Box 1</MetricWrapper>
+      <MetricWrapper
+        title="Most Earned Points"
+        mainKey="name"
+        subtitleKey="total_points"
+      >
+        <MetricBlock
+          data={data?.big_earner}
+          mainKey="participant__name"
+          subtitleKey="total_points"
+        />
+      </MetricWrapper>
+
       <MetricWrapper title="Most Match Wins">
-        <div className="text-4xl font-extrabold">
-          {data?.big_winners.map((x) => x)}
-        </div>
+        <MetricBlockWithCycle data={data?.big_winners} subtitleKey="wins" />
       </MetricWrapper>
+
       <MetricWrapper title="Most Earned Achievement">
-        <div className="text-2xl font-extrabold text-center flex flex-grow items-center justify-center">
-          {data?.most_earned.map((x) => x.name)}
-        </div>
+        <MetricBlockWithCycle data={data?.most_earned} />
       </MetricWrapper>
-      <MetricWrapper title="All Time Color Wins" classes="col-span-2">
+
+      <MetricWrapper title="Days Since Last Draw">
+        <MetricBlock data={data?.last_draw} mainKey="days" />
+      </MetricWrapper>
+      
+      <MetricWrapper
+        title="All Time Color Wins"
+        classes="col-span-2 max-h-[32rem]"
+      >
         <ColorBarChart colorPie={data?.color_pie} />
       </MetricWrapper>
     </div>
