@@ -19,10 +19,10 @@ const MetricBlock = ({ data, mainKey, subtitleKey }) => (
 
 const MetricBlockWithCycle = ({ data, subtitleKey }) => {
   const [idx, setIdx] = useState(0);
-  const showIncrementers = data.length > 1;
+  const showIncrementers = data?.length > 1;
 
   const incUp = () => {
-    if (idx === data.length - 1) {
+    if (idx === data?.length - 1) {
       setIdx(0);
     } else {
       setIdx(idx + 1);
@@ -30,7 +30,7 @@ const MetricBlockWithCycle = ({ data, subtitleKey }) => {
   };
   const incDown = () => {
     if (idx === 0) {
-      setIdx(data.length - 1);
+      setIdx(data?.length - 1);
     } else {
       setIdx(idx - 1);
     }
