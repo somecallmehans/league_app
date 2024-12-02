@@ -20,10 +20,10 @@ class MetricsCalculator:
 
     def build_color_pie(self):
         for winner in self.all_winners:
-            slug = winner["colors"]["slug"]
-            if self.color_pie.get(slug, None) is None:
-                self.color_pie[slug] = 0
-            self.color_pie[slug] += 1
+            symbol = winner["colors"]["symbol"]
+            if self.color_pie.get(symbol, None) is None:
+                self.color_pie[symbol] = 0
+            self.color_pie[symbol] += 1
 
     def build_big_winner(self):
         winner_map = {}
@@ -94,7 +94,9 @@ class MetricsCalculator:
         self.since_last_draw = {"days": delta.days}
 
     def build_metrics(self):
-        winners = WinningCommanders.objects.filter(deleted=False)
+        winners = WinningCommanders.objects.filter(deleted=False).select_related(
+            "colors"
+        )
         self.all_winners = WinningCommandersSerializer(winners, many=True).data
 
         self.build_color_pie()

@@ -27,7 +27,7 @@ class AchievementsSerializer(serializers.ModelSerializer):
 class ColorsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Colors
-        fields = ["id", "slug", "name"]
+        fields = ["id", "slug", "name", "symbol"]
 
 
 class WinningCommandersSerializer(serializers.ModelSerializer):
