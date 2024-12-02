@@ -19,27 +19,33 @@ class MetricsCalculator:
         self.since_last_draw = {}
 
     def build_color_pie(self):
-        for winner in self.all_winners:
-            symbol = winner["colors"]["symbol"]
-            if self.color_pie.get(symbol, None) is None:
-                self.color_pie[symbol] = 0
-            self.color_pie[symbol] += 1
+        try:
+            for winner in self.all_winners:
+                symbol = winner["colors"]["symbol"]
+                if self.color_pie.get(symbol, None) is None:
+                    self.color_pie[symbol] = 0
+                self.color_pie[symbol] += 1
+        except (KeyError, TypeError) as e:
+            print(f"Error building color pie: {e}")
 
     def build_big_winner(self):
-        winner_map = {}
-        for winner in self.all_winners:
-            participant = winner["participants"]["name"]
-            if winner_map.get(participant, None) is None:
-                winner_map[participant] = 0
-            winner_map[participant] += 1
-        max_wins = max(winner_map.values())
-        big_winners = [
-            {"name": participant, "wins": wins}
-            for participant, wins in winner_map.items()
-            if wins == max_wins
-        ]
+        try:
+            winner_map = {}
+            for winner in self.all_winners:
+                participant = winner["participants"]["name"]
+                if winner_map.get(participant, None) is None:
+                    winner_map[participant] = 0
+                winner_map[participant] += 1
+            max_wins = max(winner_map.values())
+            big_winners = [
+                {"name": participant, "wins": wins}
+                for participant, wins in winner_map.items()
+                if wins == max_wins
+            ]
 
-        self.big_winners = big_winners
+            self.big_winners = big_winners
+        except Exception as e:
+            print(f"Error building big winner: {e}")
 
     def build_most_earned(self):
         earned = ParticipantAchievements.objects.filter(
@@ -49,49 +55,60 @@ class MetricsCalculator:
         all_earned = ParticipantsAchievementsFullModelSerializer(earned, many=True).data
         achievement_map = {}
 
-        for earned in all_earned:
-            achievement = earned["achievement"]
-            if achievement_map.get(achievement["id"], None) is None:
-                achievement_map[achievement["id"]] = {
-                    "name": achievement["name"],
-                    "count": 0,
-                }
-            achievement_map[achievement["id"]]["count"] += 1
+        try:
+            for earned in all_earned:
+                achievement = earned["achievement"]
+                if achievement_map.get(achievement["id"], None) is None:
+                    achievement_map[achievement["id"]] = {
+                        "name": achievement["name"],
+                        "count": 0,
+                    }
+                achievement_map[achievement["id"]]["count"] += 1
 
-        max_earned = max(am["count"] for am in achievement_map.values())
+            max_earned = max(am["count"] for am in achievement_map.values())
 
-        self.most_earned = [
-            ea for _, ea in achievement_map.items() if ea["count"] == max_earned
-        ]
+            self.most_earned = [
+                ea for _, ea in achievement_map.items() if ea["count"] == max_earned
+            ]
+        except Exception as e:
+            print(f"Error building most earned: {e}")
 
     def build_big_earner(self):
-        participants_with_points = (
-            ParticipantAchievements.objects.filter(deleted=False)
-            .annotate(
-                effective_points=Coalesce(
-                    F("achievement__point_value"), F("achievement__parent__point_value")
+        try:
+            participants_with_points = (
+                ParticipantAchievements.objects.filter(deleted=False)
+                .annotate(
+                    effective_points=Coalesce(
+                        F("achievement__point_value"),
+                        F("achievement__parent__point_value"),
+                    )
                 )
+                .values("participant_id", "participant__name")
+                .annotate(total_points=Sum("effective_points"))
+                .order_by("participant_id")
             )
-            .values("participant_id", "participant__name")
-            .annotate(total_points=Sum("effective_points"))
-            .order_by("participant_id")
-        )
-        self.big_earner = max(participants_with_points, key=lambda x: x["total_points"])
+            self.big_earner = max(
+                participants_with_points, key=lambda x: x["total_points"]
+            )
+        except Exception as e:
+            print(f"Error building biggest earner: {e}")
 
     def days_since_last_draw(self):
         today = datetime.today()
-        last_draw = (
-            ParticipantAchievements.objects.filter(
-                achievement__slug="end-draw", deleted=False
+        try:
+            last_draw = (
+                ParticipantAchievements.objects.filter(
+                    achievement__slug="end-draw", deleted=False
+                )
+                .select_related("achievement", "session")
+                .order_by("-session__created_at")
+                .values("session__created_at")
+                .first()
             )
-            .select_related("achievement", "session")
-            .order_by("-session__created_at")
-            .values("session__created_at")
-            .first()
-        )
-
-        delta = today - last_draw["session__created_at"]
-        self.since_last_draw = {"days": delta.days}
+            delta = today - last_draw["session__created_at"]
+            self.since_last_draw = {"days": delta.days}
+        except Exception as e:
+            print(f"Error building since last draw: {e}")
 
     def build_metrics(self):
         winners = WinningCommanders.objects.filter(deleted=False).select_related(
