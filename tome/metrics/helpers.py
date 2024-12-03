@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from django.db.models import Sum, F
+from django.db.models import Sum, F, Q
 from django.db.models.functions import Coalesce
 
 from achievements.models import WinningCommanders
@@ -79,6 +79,9 @@ class MetricsCalculator:
         try:
             for earned in self.all_earned:
                 achievement = earned["achievement"]
+                if achievement.get("slug", None) == "precon":
+                    continue
+
                 if achievement_map.get(achievement["id"], None) is None:
                     achievement_map[achievement["id"]] = {
                         "name": achievement["name"],
@@ -137,7 +140,8 @@ class MetricsCalculator:
                 "colors"
             )
             earned = ParticipantAchievements.objects.filter(
-                achievement__slug__isnull=True, deleted=False
+                Q(achievement__slug__isnull=True) | Q(achievement__slug="precon"),
+                deleted=False,
             )
             self.all_winners = WinningCommandersSerializer(winners, many=True).data
             self.all_earned = ParticipantsAchievementsFullModelSerializer(
