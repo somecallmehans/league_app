@@ -11,7 +11,6 @@ const navLinks = [
     id: 7,
     name: "Metrics",
     to: "/metrics",
-    admin: true,
   },
   { id: 5, name: "Admin", to: "/management", admin: true },
   {
