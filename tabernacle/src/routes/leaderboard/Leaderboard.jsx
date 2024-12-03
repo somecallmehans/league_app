@@ -3,6 +3,7 @@ import {
   useGetAchievementsForMonthQuery,
   useGetUniqueMonthsQuery,
 } from "../../api/apiSlice";
+import { monthMap } from "../../helpers/dateHelpers";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import PageTitle from "../../components/PageTitle";
 import { SimpleSelect } from "../crud/CrudComponents";
@@ -61,7 +62,13 @@ export default function Leaderboard() {
 
   return (
     <div className="p-8 mx-auto">
-      <PageTitle title="Leaderboard" />
+      <PageTitle
+        title={`${
+          selectedMonth
+            ? monthMap[selectedMonth.split("-")[0]]
+            : monthMap[month]
+        } '${selectedMonth ? selectedMonth.split("-")[1] : year} Leaderboard`}
+      />
       <div className="mb-6">
         <SimpleSelect
           placeholder="Select League Month"
