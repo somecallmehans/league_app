@@ -33,12 +33,7 @@ export default function FAQ() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-slate-50">
       <div className="max-w-4xl mx-auto px-6 py-12">
-        <div className="text-center mb-8">
-          <PageTitle title="Frequently Asked Questions" />
-          <p className="text-slate-600 mt-2">
-            Here are some common questions and answers to help you get started.
-          </p>
-        </div>
+        <PageTitle title="Frequently Asked Questions" />
         <div className="bg-white shadow-md rounded-lg overflow-hidden p-4">
           {faqInfo.map((faq) => (
             <FaqRow key={faq.id} {...faq} />
