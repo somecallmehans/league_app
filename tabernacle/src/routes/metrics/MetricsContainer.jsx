@@ -5,6 +5,38 @@ import LoadingSpinner from "../../components/LoadingSpinner";
 
 import PageTitle from "../../components/PageTitle";
 import ColorBarChart from "./ColorBarChart";
+import AchievementBarChart from "./AchievementBarChart";
+
+const colorMap = {
+  1: "rgba(31, 119, 180, 0.8)",
+  2: "rgba(255, 127, 14, 0.8)",
+  3: "rgba(44, 160, 44, 0.8)",
+  4: "rgba(148, 103, 189, 0.8)",
+  5: "rgba(140, 86, 75, 0.8)",
+  6: "rgba(255, 71, 76, 0.8)",
+  8: "rgba(188, 189, 34, 0.8)",
+  16: "rgba(23, 190, 207, 0.8)",
+};
+
+const AchievementBarTitle = () => (
+  <React.Fragment>
+    <div className="text-center">All Earned Achievements</div>
+    <div className="flex flex-wrap">
+      {Object.entries(colorMap).map(([pointValue, color]) => (
+        <div key={pointValue} className="w-1/8 md:w-16">
+          <div
+            className="text-xs p-0.5 md:text-sm rounded-md text-white flex justify-center align-center mx-2"
+            style={{
+              backgroundColor: color,
+            }}
+          >
+            <span>{pointValue}p</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </React.Fragment>
+);
 
 const MetricBlock = ({ data, mainKey, subtitleKey }) => (
   <React.Fragment>
@@ -19,7 +51,7 @@ const MetricBlock = ({ data, mainKey, subtitleKey }) => (
   </React.Fragment>
 );
 
-const MetricBlockWithCycle = ({ data, subtitleKey }) => {
+const MetricBlockWithCycle = ({ data, subtitle, subtitleKey }) => {
   const [idx, setIdx] = useState(0);
   const showIncrementers = data?.length > 1;
 
@@ -41,7 +73,7 @@ const MetricBlockWithCycle = ({ data, subtitleKey }) => {
   return (
     <React.Fragment>
       <div
-        className={`font-extrabold text-center flex flex-grow w-full justify-${
+        className={`font-extrabold text-center items-center flex flex-grow w-full justify-${
           showIncrementers ? "between" : "center"
         }`}
       >
@@ -61,7 +93,7 @@ const MetricBlockWithCycle = ({ data, subtitleKey }) => {
       </div>
       {subtitleKey && (
         <div className="text-slate-500 text-lg md:text-xlfont-extrabold font-extrabold text-center flex flex-grow items-center justify-center">
-          {data[0][subtitleKey]} Wins
+          {data[0][subtitleKey]} {subtitle}
         </div>
       )}
     </React.Fragment>
@@ -101,11 +133,19 @@ export default function Metrics() {
         </MetricWrapper>
 
         <MetricWrapper title="Most Match Wins">
-          <MetricBlockWithCycle data={data?.big_winners} subtitleKey="wins" />
+          <MetricBlockWithCycle
+            data={data?.big_winners}
+            subtitle="Wins"
+            subtitleKey="wins"
+          />
         </MetricWrapper>
 
-        <MetricWrapper title="Most Earned Achievement">
-          <MetricBlockWithCycle data={data?.most_earned} />
+        <MetricWrapper title="Most Earned Deckbuilding Achievement">
+          <MetricBlockWithCycle
+            data={data?.most_earned}
+            subtitle="Times"
+            subtitleKey="count"
+          />
         </MetricWrapper>
 
         <MetricWrapper title="Days Since Last Draw">
@@ -114,9 +154,18 @@ export default function Metrics() {
 
         <MetricWrapper
           title="All Time Color Wins"
-          classes="col-span-1 sm:col-span-2 max-h-[24rem] md:max-h-[36rem] py-8"
+          classes="col-span-1 sm:col-span-2 max-h-[24rem] md:max-h-[36rem] md:pb-12"
         >
           <ColorBarChart colorPie={data?.color_pie} />
+        </MetricWrapper>
+        <MetricWrapper
+          title={<AchievementBarTitle />}
+          classes="col-span-1 sm:col-span-2 max-h-[24rem] md:max-h-[36rem] md:pb-16"
+        >
+          <AchievementBarChart
+            data={data?.achievement_chart}
+            colorMap={colorMap}
+          />
         </MetricWrapper>
       </div>
     </div>

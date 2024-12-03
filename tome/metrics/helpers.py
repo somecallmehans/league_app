@@ -13,8 +13,10 @@ class MetricsCalculator:
     def __init__(self):
         self.all_winners = []
         self.color_pie = {}
+        self.achievement_chart = {}
         self.big_winners = []
         self.most_earned = []
+        self.all_earned = []
         self.big_earner = {}
         self.since_last_draw = {}
 
@@ -27,6 +29,31 @@ class MetricsCalculator:
                 self.color_pie[symbol] += 1
         except (KeyError, TypeError) as e:
             print(f"Error building color pie: {e}")
+
+    def build_achievement_chart(self):
+        try:
+            for earned in self.all_earned:
+                name = earned["achievement"]["name"]
+                id = earned["achievement"]["id"]
+                parent_name = (
+                    earned["achievement"]["parent"]["name"]
+                    if earned["achievement"]["parent"] is not None
+                    else None
+                )
+                point_value = (
+                    earned["achievement"]["parent"]["point_value"]
+                    if earned["achievement"]["parent"] is not None
+                    else earned["achievement"]["point_value"]
+                )
+                combo_name = name if not parent_name else f"{parent_name} {name}"
+                if self.achievement_chart.get(id, None) is None:
+                    self.achievement_chart[id] = {}
+                    self.achievement_chart[id]["point_value"] = point_value
+                    self.achievement_chart[id]["name"] = combo_name
+                    self.achievement_chart[id]["count"] = 0
+                self.achievement_chart[id]["count"] += 1
+        except (KeyError, TypeError) as e:
+            print(f"Error building achievement chart: {e}")
 
     def build_big_winner(self):
         try:
@@ -48,21 +75,9 @@ class MetricsCalculator:
             print(f"Error building big winner: {e}")
 
     def build_most_earned(self):
-        try:
-            earned = ParticipantAchievements.objects.filter(
-                achievement__slug__isnull=True, deleted=False
-            )
-
-            all_earned = ParticipantsAchievementsFullModelSerializer(
-                earned, many=True
-            ).data
-
-        except Exception as e:
-            print(f"Error getting earned achievements: {e}")
         achievement_map = {}
-
         try:
-            for earned in all_earned:
+            for earned in self.all_earned:
                 achievement = earned["achievement"]
                 if achievement_map.get(achievement["id"], None) is None:
                     achievement_map[achievement["id"]] = {
@@ -72,10 +87,10 @@ class MetricsCalculator:
                 achievement_map[achievement["id"]]["count"] += 1
 
             max_earned = max(am["count"] for am in achievement_map.values())
-
             self.most_earned = [
                 ea for _, ea in achievement_map.items() if ea["count"] == max_earned
             ]
+
         except Exception as e:
             print(f"Error building most earned: {e}")
 
@@ -117,16 +132,27 @@ class MetricsCalculator:
             print(f"Error building since last draw: {e}")
 
     def build_metrics(self):
-        winners = WinningCommanders.objects.filter(deleted=False).select_related(
-            "colors"
-        )
-        self.all_winners = WinningCommandersSerializer(winners, many=True).data
+        try:
+            winners = WinningCommanders.objects.filter(deleted=False).select_related(
+                "colors"
+            )
+            earned = ParticipantAchievements.objects.filter(
+                achievement__slug__isnull=True, deleted=False
+            )
+            self.all_winners = WinningCommandersSerializer(winners, many=True).data
+            self.all_earned = ParticipantsAchievementsFullModelSerializer(
+                earned, many=True
+            ).data
+
+        except Exception as e:
+            print(f"Error fetching data to build metrics: {e}")
 
         self.build_color_pie()
         self.build_big_winner()
         self.build_most_earned()
         self.build_big_earner()
         self.days_since_last_draw()
+        self.build_achievement_chart()
 
         return {
             "color_pie": self.color_pie,
@@ -134,4 +160,5 @@ class MetricsCalculator:
             "most_earned": self.most_earned,
             "big_earner": self.big_earner,
             "last_draw": self.since_last_draw,
+            "achievement_chart": self.achievement_chart,
         }
