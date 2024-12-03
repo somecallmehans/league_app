@@ -17,6 +17,8 @@ import {
 } from "../api/apiSlice";
 import { ColorCheckboxes, colorIdFinder } from "./ColorInputs";
 
+const slugRegex = /win-\d-colors/i;
+
 const getWinSlug = (colorObj) => {
   let slug_value = 0;
   if (!colorObj.Colorless) {
@@ -56,6 +58,7 @@ const ScorecardFormFields = ({
 
   const filteredAchievementData = achievementData.data
     .filter((achievement) => !achievementData.parents.includes(achievement.id))
+    .filter(({ slug }) => !slug?.match(slugRegex))
     .map((achievement) => {
       const achievementName = achievement?.parent
         ? `${achievement?.parent?.name} ${achievement?.name}`
@@ -93,7 +96,9 @@ const ScorecardFormFields = ({
     let winSlug = "";
     // Precon wins are always worth +2 points no matter what, so if we have that
     // we can just give them the 3 win colors for now
-    if (winnerDeckbuildingAchievements.find(({ slug }) => slug === "precon")) {
+    if (
+      winnerDeckbuildingAchievements.some(({ name }) => name.includes("precon"))
+    ) {
       winSlug = "win-3-colors";
     } else {
       winSlug = getWinSlug(colors);
