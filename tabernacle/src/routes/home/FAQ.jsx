@@ -31,14 +31,12 @@ const FaqRow = ({ title, Component }) => {
 
 export default function FAQ() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50">
-      <div className="max-w-4xl mx-auto px-6 py-12">
-        <PageTitle title="Frequently Asked Questions" />
-        <div className="bg-white shadow-md rounded-lg overflow-hidden p-4">
-          {faqInfo.map((faq) => (
-            <FaqRow key={faq.id} {...faq} />
-          ))}
-        </div>
+    <div className="p-4 md:p-8 min-h-screen bg-gradient-to-b from-white to-slate-50">
+      <PageTitle title="Frequently Asked Questions" />
+      <div className="bg-white shadow-md rounded-lg overflow-hidden p-4">
+        {faqInfo.map((faq) => (
+          <FaqRow key={faq.id} {...faq} />
+        ))}
       </div>
     </div>
   );
