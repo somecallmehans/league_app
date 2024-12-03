@@ -22,12 +22,23 @@ const Achievement = ({ name, children, restrictions }) => {
         </div>
       </div>
       {toggle &&
-        restrictions?.map(({ id, name }) => (
+        restrictions?.map(({ id, name, url }) => (
           <div
             key={id}
             className="text-sm italic text-gray-600 flex items-center"
           >
-            <i className="fa-solid fa-minus mr-2" /> {name}
+            <i className="fa-solid fa-minus mr-2" />{" "}
+            <a
+              className={`${url ? "hover:text-sky-500" : ""}`}
+              href={url}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {name}
+              {url && (
+                <i className="fa-solid fa-link hover:text-sky-500 ml-1" />
+              )}
+            </a>
           </div>
         ))}
       {children?.length > 0 &&

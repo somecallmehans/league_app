@@ -35,7 +35,7 @@ export const faqInfo = [
           Players are allowed to use any number of proxies during league games.
           Two of these proxies may be of comparable quality to “basic land with
           sharpie writing.” The rest must be visually distinct from one another
-          such that players can easily distinguish them from a across the table.
+          such that players can easily distinguish them from across the table.
         </p>
         <p className="mb-2">
           <a href="https://mtgprint.net/">MTG Print</a> is a useful resource for
