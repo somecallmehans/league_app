@@ -59,16 +59,10 @@ const ScorecardFormFields = ({
   const filteredAchievementData = achievementData.data
     .filter((achievement) => !achievementData.parents.includes(achievement.id))
     .filter(({ slug }) => !slug?.match(slugRegex))
-    .map((achievement) => {
-      const achievementName = achievement?.parent
-        ? `${achievement?.parent?.name} ${achievement?.name}`
-        : achievement?.name;
-
-      return {
-        id: achievement?.id,
-        name: achievementName,
-      };
-    });
+    .map((achievement) => ({
+      id: achievement?.id,
+      name: achievement?.full_name,
+    }));
 
   const handleFormSubmit = async (formData) => {
     // each of these is a list of participants except for:

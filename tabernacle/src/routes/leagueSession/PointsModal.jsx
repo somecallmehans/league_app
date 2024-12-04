@@ -46,28 +46,23 @@ export default function PointsModal({ isOpen, closeModal, selected }) {
                   <span>{round_points} Round Points</span>
                 </DialogTitle>
 
-                {achievements.map(({ name, point_value, parent }, index) => {
-                  const displayPoints = parent
-                    ? parent?.point_value
-                    : point_value;
-                  return (
-                    <div
-                      key={index}
-                      className={`grid grid-cols-4 gap-4 items-center ${
-                        index < achievements.length - 1
-                          ? "border-b border-gray-300 pb-2 mb-2"
-                          : ""
-                      }`}
-                    >
-                      <div className="col-span-3 text-left text-gray-800 font-medium">
-                        {name}
-                      </div>
-                      <div className="col-span-1 text-right text-gray-600 font-bold">
-                        {displayPoints} points
-                      </div>
+                {achievements.map(({ name, points }, index) => (
+                  <div
+                    key={index}
+                    className={`grid grid-cols-4 gap-4 items-center ${
+                      index < achievements.length - 1
+                        ? "border-b border-gray-300 pb-2 mb-2"
+                        : ""
+                    }`}
+                  >
+                    <div className="col-span-3 text-left text-gray-800 font-medium">
+                      {name}
                     </div>
-                  );
-                })}
+                    <div className="col-span-1 text-right text-gray-600 font-bold">
+                      {points} points
+                    </div>
+                  </div>
+                ))}
               </DialogPanel>
             </TransitionChild>
           </div>

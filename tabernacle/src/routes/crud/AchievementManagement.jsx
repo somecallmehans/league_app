@@ -20,7 +20,7 @@ const AchievementRow = ({
   placeholder = "",
   postUpsertAchievements,
   parent_id,
-  children = [],
+  achievementChildren = [],
   openEdit,
 }) => {
   const [editing, setEditing] = useState(openEdit);
@@ -110,8 +110,8 @@ const AchievementRow = ({
           openEdit
         />
       )}
-      {children.length > 0 &&
-        children.map(
+      {achievementChildren.length > 0 &&
+        achievementChildren.map(
           ({
             id: childId,
             name: childName,
@@ -163,16 +163,18 @@ export default function Page() {
       )}
       {Object.keys(achievements?.map).map((x) => {
         const achievementsData = achievements?.map[x];
-        return achievementsData.map(({ id, name, children, point_value }) => (
-          <AchievementRow
-            key={id}
-            id={id}
-            postUpsertAchievements={postUpsertAchievements}
-            name={name}
-            point_value={point_value}
-            children={children}
-          />
-        ));
+        return achievementsData.map(
+          ({ id, name, children: achievementChildren, point_value }) => (
+            <AchievementRow
+              key={id}
+              id={id}
+              postUpsertAchievements={postUpsertAchievements}
+              name={name}
+              point_value={point_value}
+              achievementChildren={achievementChildren}
+            />
+          )
+        );
       })}
     </div>
   );

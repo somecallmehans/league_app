@@ -25,22 +25,18 @@ const EditAchievement = ({
   participantId,
   earnedRound = undefined,
   name = "",
-  point_value,
   allAchievements,
   earned_id = "",
   postUpsertEarned,
   openEdit,
   formName,
   sessionId,
-  parent,
-  parentMap,
   setToggleCreate,
   sessionRounds,
+  points,
 }) => {
   const [editing, setEditing] = useState(openEdit);
   const { control, register, handleSubmit } = useForm();
-
-  const displayPoints = parentMap[parent?.id]?.point_value || point_value;
 
   const handleCreate = async (formData) => {
     const {
@@ -104,7 +100,7 @@ const EditAchievement = ({
         getOptionLabel={(option) => option?.round_number}
         getOptionValue={(option) => option?.id}
       />
-      <DisplayCol title="Points" value={displayPoints || 0} />
+      <DisplayCol title="Points" value={points || 0} />
       <EditButtons
         formName={formName}
         editing={editing}
@@ -128,23 +124,10 @@ const EarnedRow = ({
   const [toggle, showToggle] = useState();
   const [toggleCreate, setToggleCreate] = useState();
 
-  const parentMap = allAchievements.data
-    .filter(({ parent }) => !parent)
-    .reduce((acc, curr) => ({ ...acc, [curr.id]: curr }));
-
-  const totalAchievementValue = achievements?.reduce((acc, curr) => {
-    if (curr?.point_value || curr?.point_value === 0) {
-      return acc + curr?.point_value;
-    }
-    if (
-      parentMap[curr?.parent?.id]?.point_value ||
-      parentMap[curr?.parent?.id]?.point_value === 0
-    ) {
-      return acc + parentMap[curr?.parent?.id]?.point_value;
-    }
-
-    return acc;
-  }, 0);
+  const totalAchievementValue = achievements?.reduce(
+    (acc, curr) => acc + curr?.points,
+    0
+  );
 
   return (
     <React.Fragment>
@@ -178,7 +161,6 @@ const EarnedRow = ({
           formName="createAchievement"
           participantId={participantId}
           sessionId={sessionId}
-          parentMap={parentMap}
           setToggleCreate={setToggleCreate}
           sessionRounds={sessionRounds}
         />
@@ -191,7 +173,6 @@ const EarnedRow = ({
             allAchievements={allAchievements}
             postUpsertEarned={postUpsertEarned}
             formName="editAchievement"
-            parentMap={parentMap}
             earnedRound={achievement?.round}
             sessionRounds={sessionRounds}
           />
