@@ -25,6 +25,16 @@ class Achievements(models.Model):
     class Meta:
         db_table = "achievements"
 
+    @property
+    def points(self):
+        return self.parent.point_value if self.parent is not None else self.point_value
+
+    @property
+    def full_name(self):
+        return (
+            f"{self.parent.name} {self.name}" if self.parent is not None else self.name
+        )
+
 
 class AchievementsRestrictions(models.Model):
     achievements = models.ForeignKey(Achievements, on_delete=models.CASCADE)

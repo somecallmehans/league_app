@@ -33,23 +33,13 @@ class MetricsCalculator:
     def build_achievement_chart(self):
         try:
             for earned in self.all_earned:
-                name = earned["achievement"]["name"]
+                name = earned["achievement"]["full_name"]
                 id = earned["achievement"]["id"]
-                parent_name = (
-                    earned["achievement"]["parent"]["name"]
-                    if earned["achievement"]["parent"] is not None
-                    else None
-                )
-                point_value = (
-                    earned["achievement"]["parent"]["point_value"]
-                    if earned["achievement"]["parent"] is not None
-                    else earned["achievement"]["point_value"]
-                )
-                combo_name = name if not parent_name else f"{parent_name} {name}"
+                point_value = earned["achievement"]["points"]
                 if self.achievement_chart.get(id, None) is None:
                     self.achievement_chart[id] = {}
                     self.achievement_chart[id]["point_value"] = point_value
-                    self.achievement_chart[id]["name"] = combo_name
+                    self.achievement_chart[id]["name"] = name
                     self.achievement_chart[id]["count"] = 0
                 self.achievement_chart[id]["count"] += 1
         except (KeyError, TypeError) as e:

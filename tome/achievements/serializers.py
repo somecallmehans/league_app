@@ -13,10 +13,21 @@ class RestrictionSerializer(serializers.ModelSerializer):
 class AchievementsSerializer(serializers.ModelSerializer):
     restrictions = RestrictionSerializer(many=True, read_only=True)
     parent = serializers.SerializerMethodField()
+    points = serializers.IntegerField(read_only=True)
+    full_name = serializers.CharField(read_only=True)
 
     class Meta:
         model = Achievements
-        fields = ["id", "name", "point_value", "parent", "restrictions", "slug"]
+        fields = [
+            "id",
+            "name",
+            "point_value",
+            "parent",
+            "restrictions",
+            "slug",
+            "points",
+            "full_name",
+        ]
 
     def get_parent(self, obj):
         if obj.parent is not None:
