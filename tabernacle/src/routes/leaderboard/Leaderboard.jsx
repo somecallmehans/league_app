@@ -60,19 +60,27 @@ export default function Leaderboard() {
     return <LoadingSpinner />;
   }
 
+  const monthStr = (month) => {
+    const split = month.split("-");
+    return `${monthMap[split[0]]} '${split[1]}`;
+  };
+
   return (
-    <div className="p-8 mx-auto">
+    <div className="p-4 md:p-8 mx-auto">
       <PageTitle
-        title={`${
+        title={
           selectedMonth
-            ? monthMap[selectedMonth.split("-")[0]]
-            : monthMap[month]
-        } '${selectedMonth ? selectedMonth.split("-")[1] : year} Leaderboard`}
+            ? `${monthStr(selectedMonth)} Leaderboard`
+            : `${monthMap[month]} '${year} Leaderboard`
+        }
       />
       <div className="mb-6">
         <SimpleSelect
           placeholder="Select League Month"
-          options={months?.map((month) => ({ label: month, value: month }))}
+          options={months?.map((month) => ({
+            label: monthStr(month),
+            value: month,
+          }))}
           classes="md:w-1/2 mb-4"
           onChange={(obj) => {
             setSelectedMonth(obj.value);

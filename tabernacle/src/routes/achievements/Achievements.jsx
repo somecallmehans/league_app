@@ -6,7 +6,7 @@ import LoadingSpinner from "../../components/LoadingSpinner";
 import PageTitle from "../../components/PageTitle";
 import { SimpleSelect } from "../crud/CrudComponents";
 
-const Achievement = ({ name, children, restrictions }) => {
+const Achievement = ({ name, achievementChildren, restrictions }) => {
   const [toggle, setToggle] = useState();
 
   return (
@@ -41,8 +41,8 @@ const Achievement = ({ name, children, restrictions }) => {
             </a>
           </div>
         ))}
-      {children?.length > 0 &&
-        children?.map(({ id, name }) => (
+      {achievementChildren?.length > 0 &&
+        achievementChildren?.map(({ id, name }) => (
           <div key={id} className="ml-4 italic text-gray-500">
             {name}
           </div>
@@ -86,15 +86,16 @@ export default function AchievementsPage() {
           <div className="font-bold text-xl md:text-2xl text-gray-800 border-b border-gray-400 pb-2 mb-4">
             {x} Points
           </div>
-          {data.map[x]?.map(({ id, name, children, restrictions }) => (
-            <Achievement
-              key={id}
-              name={name}
-              // eslint-disable-next-line react/no-children-prop
-              children={children}
-              restrictions={restrictions}
-            />
-          ))}
+          {data.map[x]?.map(
+            ({ id, name, children: achievementChildren, restrictions }) => (
+              <Achievement
+                key={id}
+                name={name}
+                achievementChildren={achievementChildren}
+                restrictions={restrictions}
+              />
+            )
+          )}
         </div>
       ))}
     </div>
