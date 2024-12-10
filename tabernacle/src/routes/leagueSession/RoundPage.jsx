@@ -44,7 +44,7 @@ function Pods({
   };
 
   return (
-    <div className="grid grid-cols-2 gap-6">
+    <div className="grid grid-cols-2 gap-6 px-8 pb-8">
       {podKeys.map((pod_id, index) => {
         const { participants, submitted, id } = pods[pod_id];
         return (
@@ -316,7 +316,7 @@ export default function RoundPage() {
   );
 
   return (
-    <div className="bg-white p-4 mb-4 h-screen">
+    <div className="bg-white p-4 mb-4 h-full">
       <PageTitle title={`Round ${roundNumber} for ${date}`} />
       <Link to={"/league-session"}>
         <StandardButton title="Back" />
