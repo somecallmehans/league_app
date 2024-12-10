@@ -15,8 +15,8 @@ export const Selector = ({
   defaultValue,
   onChange,
   disabled = false,
-  getOptionLabel,
-  getOptionValue,
+  getOptionLabel = (option) => option.name,
+  getOptionValue = (option) => option.participant_id,
   mapToApiFormat = (option) => option,
 }) => {
   return (
@@ -43,9 +43,9 @@ export const Selector = ({
           onChange={(selectedOption) => {
             const mappedValue = Array.isArray(selectedOption)
               ? selectedOption.map(mapToApiFormat)
-              : mapToApiFormat(selectedOption); // Apply dynamic API mapping
-            field.onChange(mappedValue); // Pass mapped value to form
-            if (onChange) onChange(mappedValue); // Invoke custom onChange if provided
+              : mapToApiFormat(selectedOption);
+            field.onChange(mappedValue);
+            if (onChange) onChange(mappedValue);
           }}
           isDisabled={disabled}
         />

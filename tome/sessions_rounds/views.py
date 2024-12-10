@@ -177,13 +177,18 @@ def get_pods(_, round):
         earned = Achievements.objects.filter(
             id__in=achievement_map[pod["participant_id"]]
         )
+        earned_dict = {e.id: e for e in earned}
+
+        all_earned = [
+            earned_dict[e_id] for e_id in achievement_map[pod["participant_id"]]
+        ]
 
         participant_data = {
             "participant_id": pod["participant_id"],
             "name": pod["name"],
             "total_points": pod["total_points"],
             "round_points": pod["round_points"],
-            "achievements": AchievementsSerializer(earned, many=True).data,
+            "achievements": AchievementsSerializer(all_earned, many=True).data,
         }
 
         pod_map[pod_id]["participants"].append(participant_data)
