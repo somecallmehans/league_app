@@ -133,6 +133,7 @@ const CheckedInRow = ({ participant, checkNumber, removeParticipant, idx }) => (
 );
 
 function RoundLobby({ roundId, sessionId, previousRoundParticipants }) {
+  console.log(previousRoundParticipants);
   const [postBeginRound] = usePostBeginRoundMutation();
   const { data: participantsData, isLoading } = useGetParticipantsQuery();
   const {
@@ -144,10 +145,12 @@ function RoundLobby({ roundId, sessionId, previousRoundParticipants }) {
   } = useForm({
     defaultValues: {
       participants:
-        previousRoundParticipants?.map((p) => ({
-          value: p.participant_id,
-          label: p.name,
-        })) || [],
+        (previousRoundParticipants &&
+          previousRoundParticipants?.map((p) => ({
+            value: p.participant_id,
+            label: p.name,
+          }))) ||
+        [],
     },
   });
   const selectedParticipants = watch("participants");
