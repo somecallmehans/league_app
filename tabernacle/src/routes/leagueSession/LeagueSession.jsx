@@ -23,7 +23,7 @@ const Round = ({
 }) => {
   let previousRoundParticipants = [];
 
-  console.log(previousRoundId);
+  console.log("round_Id: ", previousRoundId);
 
   if (previousRoundId) {
     const { data, isLoading } = useGetPodsQuery(previousRoundId);
@@ -35,7 +35,7 @@ const Round = ({
       );
   }
 
-  console.log(previousRoundParticipants);
+  console.log("participants: ", previousRoundParticipants);
 
   return (
     <div className={`justify-self-end ${!completed ? "animate-pulse" : ""}`}>
