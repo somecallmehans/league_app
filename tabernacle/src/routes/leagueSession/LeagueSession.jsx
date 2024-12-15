@@ -26,6 +26,8 @@ const Round = ({
   if (previousRoundId) {
     const { data, isLoading } = useGetPodsQuery(previousRoundId);
 
+    console.log(data);
+
     previousRoundParticipants =
       !isLoading &&
       Object.values(data).flatMap(({ participants }) =>
