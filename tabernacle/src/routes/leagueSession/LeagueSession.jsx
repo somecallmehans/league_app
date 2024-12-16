@@ -23,19 +23,16 @@ const Round = ({
 }) => {
   let previousRoundParticipants = [];
 
-  console.log("round_Id: ", previousRoundId);
-
   if (previousRoundId) {
     const { data, isLoading } = useGetPodsQuery(previousRoundId);
 
     previousRoundParticipants =
       !isLoading &&
+      data &&
       Object.values(data).flatMap(({ participants }) =>
         Object.values(participants)
       );
   }
-
-  console.log("participants: ", previousRoundParticipants);
 
   return (
     <div className={`justify-self-end ${!completed ? "animate-pulse" : ""}`}>
