@@ -62,8 +62,8 @@ function LeagueSession() {
   return Object.keys(data).map((month_year) => {
     const sessions = data[month_year];
     return (
-      <div className="bg-white p-4 mb-4" key={month_year}>
-        <div className="text-2xl mb-2 underline">
+      <div className="bg-white p-4 mb-4 rounded shadow-sm" key={month_year}>
+        <div className="text-lg md:text-2xl mb-2 underline">
           {formatMonthYear(month_year)} Season
         </div>
         {sessions.map(({ id, created_at, rounds }) => {
@@ -75,10 +75,12 @@ function LeagueSession() {
           );
           return (
             <div
-              className=" border border-transparent border-b-slate-300 grid grid-cols-4 gap-4 mb-4 py-2 items-center"
+              className="border-b border-slate-300 grid grid-cols-3 gap-4 mb-4 py-4 items-center"
               key={id}
             >
-              {formatDateString(created_at)}
+              <div className="text-sm md:text-base">
+                {formatDateString(created_at)}
+              </div>
               {/* Sessions will always have 2 rounds, no more no less. */}
               <Round
                 sessionId={id}
@@ -121,7 +123,7 @@ function LeagueManagementPage() {
   };
 
   return (
-    <div className="p-4">
+    <div className="p-4 max-w-4xl mx-auto">
       <PageTitle title="League Season Management" />
       <div className="mb-4">
         <StandardButton title="Start New" action={() => setIsOpen(!isOpen)} />

@@ -44,12 +44,12 @@ function Pods({
   };
 
   return (
-    <div className="grid grid-cols-2 gap-6 px-8 pb-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-4 sm:px-6 pb-8">
       {podKeys.map((pod_id, index) => {
         const { participants, submitted, id } = pods[pod_id];
         return (
           <div key={pod_id}>
-            <div className="flex items-end justify-center content-center text-3xl mb-2">
+            <div className="flex items-end justify-center content-center text-xl md:text-3xl mb-2">
               <div className="mr-4">Pod {index + 1}</div>
               {submitted ? (
                 <i className="fa-regular fa-circle-check text-slate-600" />
@@ -60,7 +60,7 @@ function Pods({
                 />
               )}
             </div>
-            <div className="shadow-lg border border-blue-300 grid grid-cols-2 overflow-y-auto">
+            <div className="shadow-lg border border-blue-300 grid grid-cols-1 sm:grid-cols-2 overflow-y-auto">
               {participants.map(
                 (
                   {
@@ -74,13 +74,13 @@ function Pods({
                 ) => (
                   <div
                     key={participant_id}
-                    className={`p-8 border border-blue-300 grid grid-cols-1 overflow-y-auto text-center ${
+                    className={`p-4 sm:p-6 border border-blue-300 grid grid-cols-1 overflow-y-auto text-center ${
                       participants.length === 3 && index === 2
-                        ? "col-span-2"
+                        ? "sm:col-span-2"
                         : ""
                     }`}
                   >
-                    <span className="text-xl">
+                    <span className="text-xl md:text-xl">
                       <a
                         className="hover:text-sky-500"
                         onClick={() =>
@@ -90,10 +90,10 @@ function Pods({
                         {name}
                       </a>
                     </span>
-                    <span className="text-xs">
+                    <span className="text-xs md:text-xs">
                       {round_points} Points This Round
                     </span>
-                    <span className="text-xs">
+                    <span className="text-xs md:text-xs">
                       {total_points} Points This Month
                     </span>
                   </div>
@@ -120,11 +120,11 @@ function Pods({
 }
 
 const CheckedInRow = ({ participant, checkNumber, removeParticipant, idx }) => (
-  <div className="w-2/4 mx-auto">
-    <span className="text-xl">
+  <div className="w-full sm:w-2/4 mx-auto flex items-center justify-between p-2">
+    <span className="text-lg md:text-xl">
       {checkNumber}{" "}
       <i
-        className="fa-solid fa-trash-can mx-2"
+        className="fa-solid fa-trash-can mx-2 cursor-pointer text-red-500"
         onClick={() => removeParticipant(idx)}
       />{" "}
       {participant.label}
@@ -204,7 +204,7 @@ function RoundLobby({ roundId, sessionId, previousRoundParticipants }) {
   return (
     <div>
       <form
-        className="flex w-full justify-center"
+        className="flex w-full justify-center gap-2 md:gap-4"
         onSubmit={handleSubmit(onSubmit)}
       >
         <Controller
@@ -227,9 +227,9 @@ function RoundLobby({ roundId, sessionId, previousRoundParticipants }) {
         />
         <StandardButton disabled={isSubmitting} type="submit" title="Submit" />
       </form>
-      <div className="mt-4 text-2xl flex justify-center">
+      <div className="mt-4 text-xl flex justify-center">
         <span>
-          Checked In Players{" "}
+          Checked In Players:{" "}
           {selectedParticipants.length === 0 ? "" : selectedParticipants.length}
         </span>
       </div>
