@@ -37,10 +37,10 @@ export default function PointsModal({ isOpen, closeModal, selected }) {
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <DialogPanel className="w-9/12 min-w-[65vw] transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+              <DialogPanel className="md:w-9/12 min-w-[65vw] transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                 <DialogTitle
                   as="h3"
-                  className="mb-2 text-xl font-medium leading-6 text-gray-900 flex justify-between"
+                  className="mb-2 text-xl font-medium leading-6 text-gray-900 flex flex-wrap md:no-wrap justify-center md:justify-between"
                 >
                   <span>Points for {participant}</span>
                   <span>{round_points} Round Points</span>

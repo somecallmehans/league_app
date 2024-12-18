@@ -43,7 +43,7 @@ const ParticipantRow = ({
     <form
       onSubmit={handleSubmit(handleEdit)}
       name={formName}
-      className="flex justify-between mb-2 px-4 text-lg border-b border-slate-400"
+      className="flex justify-between mb-2 px-4 text-md md:text-lg border-b border-slate-400"
     >
       <TextInput
         name="participantName"
@@ -81,15 +81,15 @@ export default function Page() {
 
   return (
     <div className="p-4">
-      <div className="mb-2">
+      <div className="flex mb-2">
         <StandardButton
-          title={showCreate ? "Cancel Create" : "Create New"}
+          title={showCreate ? "Cancel" : "New"}
           action={() => setShowCreate(!showCreate)}
         />
         {Component()}
       </div>
       {showCreate && (
-        <div className="px-64">
+        <div className="md:px-64">
           <ParticipantRow
             name=""
             postUpsertParticipant={postUpsertParticipant}
@@ -102,7 +102,7 @@ export default function Page() {
       <FilterList
         data={filteredData}
         listKey="id"
-        classes="px-32"
+        classes="md:px-32"
         Component={ParticipantRow}
         componentProps={{ postUpsertParticipant }}
       />

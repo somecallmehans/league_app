@@ -5,7 +5,7 @@ import { Input } from "@headlessui/react";
 const SearchComponent = ({ setSearchTerm }) => (
   <Input
     placeholder="Filter participants by name"
-    className="py-1.5 w-1/2 px-1 rounded bg-zinc-100 border border-slate-400"
+    className="py-1.5 w-full md:w-1/2 px-1 rounded bg-zinc-100 border border-slate-400"
     onChange={(e) => setSearchTerm(e.target.value)}
   />
 );
