@@ -98,6 +98,7 @@ class ParticipantAchievements(models.Model):
     round = models.ForeignKey(Rounds, on_delete=models.CASCADE)
     session = models.ForeignKey(Sessions, on_delete=models.CASCADE)
     deleted = models.BooleanField(default=False)
+    earned_points = models.IntegerField()
 
     class Meta:
         db_table = "participant_achievements"

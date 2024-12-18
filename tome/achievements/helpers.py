@@ -59,6 +59,7 @@ class AchievementCleaverService:
                     achievement=self.achievement_slug_lookup[slug],
                     session=self.session,
                     round=self.round,
+                    earned_points=self.achievement_slug_lookup[slug].points,
                 )
             for achievement in item["achievements"]:
                 ParticipantAchievements.objects.create(
@@ -66,6 +67,7 @@ class AchievementCleaverService:
                     achievement=self.achievements_lookup[achievement],
                     session=self.session,
                     round=self.round,
+                    earned_points=self.achievements_lookup[achievement].points,
                 )
 
         if self.winner_info:
@@ -78,6 +80,7 @@ class AchievementCleaverService:
 
 
 def make_achievement_map(achievements):
+    """This function makes a map of all the existing achievements."""
     achievement_map = {}
     for achievement in achievements:
         if achievement["parent"] is None:
@@ -110,19 +113,26 @@ def all_participant_achievements_for_month(session_id):
     achievements_by_participant = defaultdict(list)
     for pa in data:
         achievements_by_participant[pa.participant].append(
-            {"achievement": pa.achievement, "round": pa.round, "earned_id": pa.id}
+            {
+                "achievement": pa.achievement,
+                "round": pa.round,
+                "earned_id": pa.id,
+                "earned_points": pa.earned_points,
+            }
         )
 
     result = []
+
     for participant, achievements in achievements_by_participant.items():
         participant_data = ParticipantsSerializer(
             participant, context={"mm_yy": session.month_year}
         ).data
         achievements_data = [
             {
-                **AchievementsSerializer(achievement["achievement"]).data,
+                "name": achievement["achievement"].full_name,
                 "round": RoundsSerializer(achievement["round"]).data,
                 "earned_id": achievement["earned_id"],
+                "earned_points": achievement["earned_points"],
             }
             for achievement in achievements
         ]

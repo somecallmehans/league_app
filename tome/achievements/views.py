@@ -174,11 +174,14 @@ def upsert_participant_achievements(request):
     session = body.get("session", None)
     deleted = body.get("deleted", False)
 
+    achievementObj = Achievements.objects.get(id=achievement)
+
     if earned_id:
         try:
             pa = ParticipantAchievements.objects.get(id=earned_id)
             if achievement:
                 pa.achievement_id = achievement
+                pa.earned_points = achievementObj.points
             if participant:
                 pa.participant_id = participant
             if round:
@@ -204,6 +207,7 @@ def upsert_participant_achievements(request):
         participant_id=participant,
         round_id=round,
         session_id=session,
+        earned_points=achievementObj.points,
     )
     return Response(
         ParticipantsAchievementsSerializer(new_entry).data,

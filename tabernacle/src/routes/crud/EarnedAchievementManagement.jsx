@@ -210,6 +210,8 @@ export default function Page() {
       skip: !selectSession,
     });
 
+  console.log(earnedData);
+
   const [postUpsertEarned] = usePostUpsertEarnedMutation();
 
   if (
