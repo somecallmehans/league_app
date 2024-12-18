@@ -114,7 +114,7 @@ def all_participant_achievements_for_month(session_id):
     for pa in data:
         achievements_by_participant[pa.participant].append(
             {
-                "achievement": pa.achievement,
+                "name": pa.achievement.full_name,
                 "round": pa.round,
                 "earned_id": pa.id,
                 "earned_points": pa.earned_points,
@@ -127,9 +127,12 @@ def all_participant_achievements_for_month(session_id):
         participant_data = ParticipantsSerializer(
             participant, context={"mm_yy": session.month_year}
         ).data
+
+        point_sum = sum([x["earned_points"] for x in achievements])
+
         achievements_data = [
             {
-                "name": achievement["achievement"].full_name,
+                "name": achievement["name"],
                 "round": RoundsSerializer(achievement["round"]).data,
                 "earned_id": achievement["earned_id"],
                 "earned_points": achievement["earned_points"],
@@ -137,6 +140,7 @@ def all_participant_achievements_for_month(session_id):
             for achievement in achievements
         ]
         participant_data["achievements"] = achievements_data
+        participant_data["session_points"] = point_sum
         result.append(participant_data)
 
     return result
