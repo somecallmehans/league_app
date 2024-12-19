@@ -41,55 +41,15 @@ class Participants(models.Model):
 
         if month_year:
             filters["session__month_year"] = month_year
-        elif round_id:
+
+        if round_id:
             filters["round"] = round_id
-        else:
-            return 0
 
         total_points = ParticipantAchievements.objects.filter(**filters).aggregate(
-            total_points=models.Sum(
-                models.Case(
-                    models.When(
-                        achievement__point_value__isnull=False,
-                        then="achievement__point_value",
-                    ),
-                    models.When(
-                        achievement__point_value__isnull=True,
-                        then="achievement__parent__point_value",
-                    ),
-                    default=0,
-                    output_field=models.IntegerField(),
-                )
-            )
+            total_points=models.Sum("earned_points")
         )["total_points"]
 
         return total_points if total_points is not None else 0
-
-    def get_round_ponts(self, round_id=None):
-        if round_id is None:
-            return None
-
-        points = ParticipantAchievements.objects.filter(
-            participant=self.participants.id, deleted=False, round=round_id
-        ).aggregate(
-            total_points=models.Sum(
-                models.Case(
-                    models.When(
-                        achievement__point_value__isnull=False,
-                        then="achievement__point_value",
-                    ),
-                    models.When(
-                        achievement__point_value__isnull=True,
-                        then="achievement__parent__point_value",
-                    ),
-                    default=0,
-                    output_field=models.IntegerField(),
-                )
-            )
-        )[
-            "total_points"
-        ]
-        return points if points is not None else 0
 
 
 class ParticipantAchievements(models.Model):
