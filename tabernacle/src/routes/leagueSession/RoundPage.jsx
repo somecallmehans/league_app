@@ -132,7 +132,7 @@ const CheckedInRow = ({ participant, checkNumber, removeParticipant, idx }) => (
   </div>
 );
 
-function RoundLobby({ roundId, sessionId, previousRoundParticipants }) {
+function RoundLobby({ roundId, sessionId, previousRoundParticipants = [] }) {
   const [postBeginRound] = usePostBeginRoundMutation();
   const { data: participantsData, isLoading } = useGetParticipantsQuery();
   const {
@@ -237,7 +237,7 @@ function RoundLobby({ roundId, sessionId, previousRoundParticipants }) {
         <div className="mt-2 w-full mx-auto">
           {selectedParticipants.map((participant, index) => (
             <CheckedInRow
-              key={participant?.id}
+              key={participant?.value}
               participant={participant}
               checkNumber={index + 1}
               removeParticipant={removeParticipant}
