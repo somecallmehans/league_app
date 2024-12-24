@@ -14,6 +14,7 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title);
 const options = {
   responsive: true,
   barPercentage: 0.5,
+  maintainAspectRatio: false,
 };
 
 // this should probably be in the db

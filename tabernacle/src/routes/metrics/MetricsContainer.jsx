@@ -21,11 +21,11 @@ const colorMap = {
 const AchievementBarTitle = () => (
   <React.Fragment>
     <div className="text-center">All Earned Achievements</div>
-    <div className="flex flex-wrap">
+    <div className="flex flex-wrap justify-center">
       {Object.entries(colorMap).map(([pointValue, color]) => (
         <div key={pointValue} className="w-1/8 md:w-16">
           <div
-            className="text-xs p-0.5 md:text-sm rounded-md text-white flex justify-center align-center mx-2"
+            className="text-xs p-0.5 md:text-sm rounded-md text-white flex justify-center align-center items-center mx-2"
             style={{
               backgroundColor: color,
             }}
@@ -102,7 +102,7 @@ const MetricBlockWithCycle = ({ data, subtitle, subtitleKey }) => {
 
 const MetricWrapper = ({ title, classes, children }) => (
   <div
-    className={`${classes} bg-gray-100 border border-gray-300 rounded-md h-full p-4 flex flex-col text-center justify-between rounded-lg shadow-lg`}
+    className={`${classes} bg-gray-100 border border-gray-300 rounded-md w-full h-full p-4 flex flex-col text-center justify-between rounded-lg shadow-lg`}
   >
     <div className="text-lg md:text-xl text-xl font-bold">{title}</div>
     {children}
@@ -160,7 +160,7 @@ export default function Metrics() {
         </MetricWrapper>
         <MetricWrapper
           title={<AchievementBarTitle />}
-          classes="col-span-1 sm:col-span-2 max-h-[24rem] md:max-h-[36rem] md:pb-16"
+          classes="col-span-1 sm:col-span-2 max-h-[24rem] md:max-h-[36rem] md:pb-12"
         >
           <AchievementBarChart
             data={data?.achievement_chart}
