@@ -46,7 +46,7 @@ export default function PointsModal({ isOpen, closeModal, selected }) {
                   <span>{round_points} Round Points</span>
                 </DialogTitle>
 
-                {achievements.map(({ name, points }, index) => (
+                {achievements.map(({ name, earned_points }, index) => (
                   <div
                     key={index}
                     className={`grid grid-cols-4 gap-4 items-center ${
@@ -59,7 +59,7 @@ export default function PointsModal({ isOpen, closeModal, selected }) {
                       {name}
                     </div>
                     <div className="col-span-1 text-right text-gray-600 font-bold">
-                      {points} points
+                      {earned_points} points
                     </div>
                   </div>
                 ))}

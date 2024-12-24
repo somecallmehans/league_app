@@ -105,6 +105,7 @@ class RoundInformationService:
                     round=self.round,
                     session=self.session,
                     achievement=self.participation_achievement,
+                    earned_points=self.participation_achievement.points,
                 )
             )
         if len(new_achievements):

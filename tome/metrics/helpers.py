@@ -91,14 +91,8 @@ class MetricsCalculator:
         try:
             participants_with_points = (
                 ParticipantAchievements.objects.filter(deleted=False)
-                .annotate(
-                    effective_points=Coalesce(
-                        F("achievement__point_value"),
-                        F("achievement__parent__point_value"),
-                    )
-                )
                 .values("participant_id", "participant__name")
-                .annotate(total_points=Sum("effective_points"))
+                .annotate(total_points=Sum("earned_points"))
                 .order_by("participant_id")
             )
             self.big_earner = max(

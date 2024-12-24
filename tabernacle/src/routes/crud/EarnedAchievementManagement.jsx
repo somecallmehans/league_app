@@ -23,7 +23,6 @@ const DisplayCol = ({ title, value }) => (
 const EditAchievement = ({
   id = "",
   participantId,
-  earnedRound = undefined,
   name = "",
   allAchievements,
   earned_id = "",
@@ -33,7 +32,8 @@ const EditAchievement = ({
   sessionId,
   setToggleCreate,
   sessionRounds,
-  points,
+  earned_points,
+  round,
 }) => {
   const [editing, setEditing] = useState(openEdit);
   const { control, register, handleSubmit } = useForm();
@@ -90,8 +90,8 @@ const EditAchievement = ({
         placeholder="Rd"
         control={control}
         defaultValue={{
-          round_number: earnedRound?.round_number,
-          id: earnedRound?.id,
+          round_number: round?.round_number,
+          id: round?.id,
         }}
         options={sessionRounds}
         onChange={openEdit ? undefined : handleOnChangeEdit}
@@ -100,7 +100,7 @@ const EditAchievement = ({
         getOptionLabel={(option) => option?.round_number}
         getOptionValue={(option) => option?.id}
       />
-      <DisplayCol title="Points" value={points || 0} />
+      <DisplayCol title="Points" value={earned_points || 0} />
       <EditButtons
         formName={formName}
         editing={editing}
@@ -120,14 +120,10 @@ const EarnedRow = ({
   postUpsertEarned,
   sessionId,
   sessionRounds,
+  session_points,
 }) => {
   const [toggle, showToggle] = useState();
   const [toggleCreate, setToggleCreate] = useState();
-
-  const totalAchievementValue = achievements?.reduce(
-    (acc, curr) => acc + curr?.points,
-    0
-  );
 
   return (
     <React.Fragment>
@@ -135,7 +131,7 @@ const EarnedRow = ({
         <div className="flex gap-12 basis-3/4 justify-between">
           {name}
           <div className="flex gap-4">
-            <span className="font-bold">{totalAchievementValue} </span>
+            <span className="font-bold">{session_points} </span>
             Points/Session
             <span className="font-bold">{totalPoints}</span> Points/Month
           </div>
@@ -173,7 +169,6 @@ const EarnedRow = ({
             allAchievements={allAchievements}
             postUpsertEarned={postUpsertEarned}
             formName="editAchievement"
-            earnedRound={achievement?.round}
             sessionRounds={sessionRounds}
           />
         ))}
@@ -264,21 +259,24 @@ export default function Page() {
         hasData={!!earnedData?.length}
         message={helpfulMessage(selectMonth, sessionDates?.length)}
       >
-        {earnedData?.map(({ id, name, total_points, achievements }) => (
-          <div key={id} className="px-8">
-            <EarnedRow
-              participantId={id}
-              sessionId={selectSession}
-              sessionRounds={currentOpenSession?.rounds}
-              name={name}
-              totalPoints={total_points}
-              achievements={achievements}
-              allAchievements={allAchievements}
-              postUpsertEarned={postUpsertEarned}
-              selectMonth={selectMonth}
-            />
-          </div>
-        ))}
+        {earnedData?.map(
+          ({ id, name, total_points, session_points, achievements }) => (
+            <div key={id} className="px-8">
+              <EarnedRow
+                participantId={id}
+                sessionId={selectSession}
+                sessionRounds={currentOpenSession?.rounds}
+                name={name}
+                totalPoints={total_points}
+                achievements={achievements}
+                allAchievements={allAchievements}
+                postUpsertEarned={postUpsertEarned}
+                selectMonth={selectMonth}
+                session_points={session_points}
+              />
+            </div>
+          )
+        )}
       </HelpfulWrapper>
     </div>
   );
