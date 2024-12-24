@@ -83,7 +83,7 @@ const MetricBlockWithCycle = ({ data, subtitle, subtitleKey }) => {
             className="hover:text-sky-500 fa-solid fa-chevron-left text-xl md:text-2xl mr-4 md:mr-4 cursor-pointer"
           />
         )}
-        <span className="text-4xl">{data[idx]?.name}</span>
+        <span className="text-2xl md:text-xl">{data[idx]?.name}</span>
         {showIncrementers && (
           <i
             onClick={() => incUp()}
@@ -102,7 +102,7 @@ const MetricBlockWithCycle = ({ data, subtitle, subtitleKey }) => {
 
 const MetricWrapper = ({ title, classes, children }) => (
   <div
-    className={`${classes} bg-gray-100 border border-gray-300 rounded-md h-full p-4 flex flex-col items-center justify-between rounded-lg shadow-lg`}
+    className={`${classes} bg-gray-100 border border-gray-300 rounded-md h-full p-4 flex flex-col text-center justify-between rounded-lg shadow-lg`}
   >
     <div className="text-lg md:text-xl text-xl font-bold">{title}</div>
     {children}
