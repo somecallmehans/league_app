@@ -250,7 +250,7 @@ function RoundLobby({ roundId, sessionId, previousRoundParticipants }) {
   );
 }
 
-function FocusedRound({ pods, sessionId, roundId }) {
+function FocusedRound({ pods = {}, sessionId, roundId }) {
   const [isOpen, setIsOpen] = useState(false);
   const [focusedPod, setFocusedPod] = useState({});
 
@@ -310,9 +310,8 @@ export default function RoundPage() {
     }
   };
 
-  const allPodsSubmitted = Object.values(data).every(
-    ({ submitted }) => submitted
-  );
+  const allPodsSubmitted =
+    data && Object.values(data)?.every(({ submitted }) => submitted);
 
   return (
     <div className="bg-white p-4 mb-4 h-full">
@@ -321,7 +320,7 @@ export default function RoundPage() {
         <StandardButton title="Back" />
       </Link>
 
-      {Object?.keys(data)?.length > 0 && (
+      {data && Object?.keys(data)?.length > 0 && (
         <Link to={"/league-session"}>
           <StandardButton
             title="Close"

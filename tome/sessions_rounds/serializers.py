@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from .models import Sessions, Rounds, Pods, PodsParticipants
-from users.serializers import ParticipantsSerializer
 
 
 class RoundsSerializer(serializers.ModelSerializer):

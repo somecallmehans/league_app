@@ -3,7 +3,6 @@ from collections import defaultdict
 from achievements.models import Achievements, WinningCommanders, Colors
 from users.models import Participants, ParticipantAchievements
 from users.serializers import ParticipantsSerializer
-from achievements.serializers import AchievementsSerializer
 from sessions_rounds.models import Sessions, Rounds, Pods
 from users.serializers import ParticipantsSerializer
 from sessions_rounds.serializers import RoundsSerializer
