@@ -169,7 +169,6 @@ const EarnedRow = ({
             allAchievements={allAchievements}
             postUpsertEarned={postUpsertEarned}
             formName="editAchievement"
-            // earnedRound={achievement?.round}
             sessionRounds={sessionRounds}
           />
         ))}
