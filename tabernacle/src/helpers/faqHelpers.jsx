@@ -186,4 +186,36 @@ export const faqInfo = [
       </div>
     ),
   },
+  {
+    id: 8,
+    title: "About This Site",
+    Component: () => (
+      <div className="py-2">
+        <p className="mb-2">
+          This site is built and maintained by{" "}
+          <a
+            className="text-sky-500 hover:text-sky-300"
+            href="https://christianwillanderson.com"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Christian (Christo) Anderson
+          </a>
+          .
+        </p>
+        <p>
+          Questions, comments, or feedback? Email him at{" "}
+          <a
+            className="text-sky-500 hover:text-sky-300"
+            target="_blank"
+            rel="noreferrer"
+            href="mailto:christianwillanderson@gmail.com"
+          >
+            christianwillanderson@gmail.com
+          </a>
+          .
+        </p>
+      </div>
+    ),
+  },
 ];
