@@ -49,7 +49,7 @@ export default function Leaderboard() {
   const month = d.getMonth() + 1;
   const year = d.getFullYear().toString().substr(-2);
   const [selectedMonth, setSelectedMonth] = useState(
-    month && year ? `${month}-${year}` : undefined
+    month && year ? `${month < 10 ? "0" : ""}${month}-${year}` : undefined
   );
 
   const { data: months, isLoading: monthsLoading } = useGetUniqueMonthsQuery();

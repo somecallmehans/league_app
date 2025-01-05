@@ -144,8 +144,8 @@ function RoundLobby({ roundId, sessionId, previousRoundParticipants = [] }) {
   } = useForm({
     defaultValues: {
       participants: previousRoundParticipants?.map((p) => ({
-        value: p.participant_id,
-        label: p.name,
+        value: p?.participant_id,
+        label: p?.name,
       })),
     },
   });

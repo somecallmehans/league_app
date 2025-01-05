@@ -186,8 +186,6 @@ const ScorecardFormFields = ({
         options={focusedPod.participants}
         placeholder="Did Anyone Bring a Snack"
         classes="mb-2"
-        // getOptionLabel={(option) => option.name}
-        // getOptionValue={(option) => option.participant_id}
         isMulti
       />
       <Selector
@@ -196,8 +194,6 @@ const ScorecardFormFields = ({
         options={focusedPod.participants}
         placeholder="Did anyone lend a deck?"
         classes="mb-2"
-        // getOptionLabel={(option) => option.name}
-        // getOptionValue={(option) => option.participant_id}
         isMulti
       />
       <Selector
@@ -206,8 +202,6 @@ const ScorecardFormFields = ({
         options={focusedPod.participants}
         placeholder="Did anyone who did not win knock out other players?"
         classes="mb-2"
-        // getOptionLabel={(option) => option.name}
-        // getOptionValue={(option) => option.participant_id}
         isMulti
       />
       <Selector
@@ -216,8 +210,6 @@ const ScorecardFormFields = ({
         options={focusedPod.participants}
         placeholder="Did anyone use a decklist for the first time that has been shared on discord?"
         classes="mb-2"
-        // getOptionLabel={(option) => option.name}
-        // getOptionValue={(option) => option.participant_id}
         isMulti
       />
       <div className="mb-2 flex gap-2">
