@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import { Link, useLocation } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
@@ -132,23 +132,43 @@ const CheckedInRow = ({ participant, checkNumber, removeParticipant, idx }) => (
   </div>
 );
 
-function RoundLobby({ roundId, sessionId, previousRoundParticipants = [] }) {
+function RoundLobby({ roundId, sessionId, previousRoundId }) {
   const [postBeginRound] = usePostBeginRoundMutation();
+  const { data: previousPodsData, isLoading: isLoadingPods } = useGetPodsQuery(
+    previousRoundId,
+    {
+      skip: !previousRoundId,
+    }
+  );
   const { data: participantsData, isLoading } = useGetParticipantsQuery();
   const {
     handleSubmit,
     control,
     setValue,
     watch,
+    reset,
     formState: { isSubmitting },
   } = useForm({
     defaultValues: {
-      participants: previousRoundParticipants?.map((p) => ({
-        value: p?.participant_id,
-        label: p?.name,
-      })),
+      participants: [],
     },
   });
+
+  useEffect(() => {
+    if (!isLoadingPods && previousPodsData) {
+      const previousRoundParticipants = Object.values(previousPodsData).flatMap(
+        ({ participants }) => Object.values(participants)
+      );
+
+      reset({
+        participants: previousRoundParticipants.map((p) => ({
+          value: p?.participant_id,
+          label: p?.name,
+        })),
+      });
+    }
+  }, [previousPodsData, isLoadingPods, reset]);
+
   const selectedParticipants = watch("participants");
 
   if (isLoading) {
@@ -284,14 +304,8 @@ function FocusedRound({ pods = {}, sessionId, roundId }) {
 export default function RoundPage() {
   const [postCloseRound] = usePostCloseRoundMutation();
   const location = useLocation();
-  const {
-    roundNumber,
-    date,
-    sessionId,
-    roundId,
-    completed,
-    previousRoundParticipants,
-  } = location.state;
+  const { roundNumber, date, sessionId, roundId, completed, previousRoundId } =
+    location.state;
 
   const { data, isLoading } = useGetPodsQuery(roundId);
 
@@ -335,7 +349,7 @@ export default function RoundPage() {
           <RoundLobby
             sessionId={sessionId}
             roundId={roundId}
-            previousRoundParticipants={previousRoundParticipants}
+            previousRoundId={previousRoundId}
           />
         ) : (
           <FocusedRound

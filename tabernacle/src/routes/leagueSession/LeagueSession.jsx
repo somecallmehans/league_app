@@ -7,7 +7,6 @@ import StandardButton from "../../components/Button";
 import {
   useGetAllSessionsQuery,
   usePostCreateSessionMutation,
-  useGetPodsQuery,
 } from "../../api/apiSlice";
 import { formatDateString, formatMonthYear } from "../../helpers/dateHelpers";
 import PageTitle from "../../components/PageTitle";
@@ -21,19 +20,6 @@ const Round = ({
   created_at,
   completed,
 }) => {
-  let previousRoundParticipants = [];
-
-  if (previousRoundId) {
-    const { data, isLoading } = useGetPodsQuery(previousRoundId);
-
-    previousRoundParticipants =
-      !isLoading &&
-      data &&
-      Object.values(data).flatMap(({ participants }) =>
-        Object.values(participants)
-      );
-  }
-
   return (
     <div className={`justify-self-end ${!completed ? "animate-pulse" : ""}`}>
       <Link
@@ -44,7 +30,7 @@ const Round = ({
           sessionId: sessionId,
           roundNumber: roundNumber,
           date: created_at,
-          previousRoundParticipants: previousRoundParticipants,
+          previousRoundId: previousRoundId,
         }}
       >
         <StandardButton title={`View Round ${roundNumber}`} />
