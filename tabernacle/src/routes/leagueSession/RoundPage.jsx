@@ -48,7 +48,7 @@ function Pods({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-4 sm:px-6 pb-8">
       {podKeys.map((pod_id, index) => {
-        const { participants, submitted, id } = pods[pod_id];
+        const { participants, submitted, id, winner_info } = pods[pod_id];
         return (
           <div key={pod_id}>
             <div className="flex items-end justify-center content-center text-xl md:text-3xl mb-2">
@@ -57,7 +57,7 @@ function Pods({
                 className={`fa-solid fa-${
                   submitted ? "pen-to-square" : "circle-exclamation"
                 } text-sky-600 hover:text-sky-500`}
-                onClick={() => openModal(participants, id)}
+                onClick={() => openModal(participants, id, winner_info)}
               />
             </div>
             <div className="shadow-lg border border-blue-300 grid grid-cols-1 sm:grid-cols-2 overflow-y-auto">
@@ -280,10 +280,11 @@ function FocusedRound({ pods = {}, sessionId, roundId }) {
     setIsOpen(false);
   }
 
-  function openModal(p, id) {
+  function openModal(p, id, w_info) {
     setFocusedPod({
       participants: p,
       podId: id,
+      winnerInfo: w_info,
     });
     setIsOpen(true);
   }

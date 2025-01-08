@@ -49,3 +49,13 @@ class WinningCommandersSerializer(serializers.ModelSerializer):
     class Meta:
         model = WinningCommanders
         fields = ["id", "name", "deleted", "colors", "pods", "participants"]
+
+    @staticmethod
+    def by_pods(pods):
+        winning_commanders = WinningCommanders.objects.filter(pods_id__in=pods)
+
+        winners_by_pod = {
+            winner.pods_id: WinningCommandersSerializer(winner).data
+            for winner in winning_commanders
+        }
+        return winners_by_pod

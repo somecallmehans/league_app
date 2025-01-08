@@ -15,10 +15,10 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .models import Sessions, Rounds, Pods, PodsParticipants
 from users.models import ParticipantAchievements
-from achievements.models import Achievements
+from achievements.models import Achievements, WinningCommanders
 
 from .serializers import SessionSerializer, PodsParticipantsSerializer
-from achievements.serializers import AchievementsSerializer
+from achievements.serializers import AchievementsSerializer, WinningCommandersSerializer
 from .helpers import (
     generate_pods,
     get_participants_total_scores,
@@ -144,6 +144,7 @@ def get_pods(_, round):
     """Get the pods that were made for a given round."""
     round_obj = Rounds.objects.get(id=round)
     all_pods = Pods.objects.filter(rounds_id=round)
+    winners_by_pod = WinningCommandersSerializer.by_pods(all_pods)
     pods_participants = PodsParticipants.objects.filter(
         pods_id__in=[x.id for x in all_pods]
     )
@@ -151,7 +152,7 @@ def get_pods(_, round):
     achievement_data = AchievementsSerializer(achievement_objs, many=True).data
     achievement_map = {x["id"]: x for x in achievement_data}
 
-    serialized_data = PodsParticipantsSerializer(
+    serialized_pods_participants = PodsParticipantsSerializer(
         pods_participants,
         many=True,
         context={"round_id": round, "mm_yy": round_obj.session.month_year},
@@ -182,12 +183,17 @@ def get_pods(_, round):
             )
 
     pod_map = {}
-    for pod in serialized_data:
+    for pod in serialized_pods_participants:
         pod_id = pod["pods"]["id"]
         submitted = pod["pods"]["submitted"]
 
         if pod_map.get(pod_id, None) is None:
-            pod_map[pod_id] = {"id": pod_id, "submitted": submitted, "participants": []}
+            pod_map[pod_id] = {
+                "id": pod_id,
+                "submitted": submitted,
+                "participants": [],
+                "winner_info": winners_by_pod.get(pod_id, None),
+            }
 
         earned = [
             achievement_map[x["achievement_id"]]
