@@ -38,6 +38,7 @@ const ScorecardFormFields = ({
   sessionId,
   roundId,
   closeModal,
+  initialValues,
 }) => {
   const [postRoundScores] = usePostRoundScoresMutation();
   const { data: colorsData, isLoading: colorsLoading } = useGetAllColorsQuery();
@@ -48,7 +49,7 @@ const ScorecardFormFields = ({
     handleSubmit,
     formState: { isSubmitting, errors },
     watch,
-  } = useForm();
+  } = useForm({ defaultValues: initialValues });
 
   const { endInDraw } = watch();
 
@@ -345,6 +346,7 @@ export default function ScorecardModal({
   focusedPod,
   sessionId,
   roundId,
+  initialValues,
 }) {
   if (!focusedPod) {
     return null;
@@ -387,6 +389,7 @@ export default function ScorecardModal({
                   roundId={roundId}
                   sessionId={sessionId}
                   closeModal={closeModal}
+                  initialValues={initialValues}
                 />
               </DialogPanel>
             </TransitionChild>

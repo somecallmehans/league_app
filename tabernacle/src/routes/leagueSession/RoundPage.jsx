@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 
+import { formatInitialValues } from "../../helpers/formHelpers";
+
 import {
   useGetParticipantsQuery,
   useGetPodsQuery,
@@ -51,14 +53,12 @@ function Pods({
           <div key={pod_id}>
             <div className="flex items-end justify-center content-center text-xl md:text-3xl mb-2">
               <div className="mr-4">Pod {index + 1}</div>
-              {submitted ? (
-                <i className="fa-regular fa-circle-check text-slate-600" />
-              ) : (
-                <i
-                  className="fa-regular fa-circle-exclamation text-sky-600 hover:text-sky-500"
-                  onClick={() => openModal(participants, id)}
-                />
-              )}
+              <i
+                className={`fa-solid fa-${
+                  submitted ? "pen-to-square" : "circle-exclamation"
+                } text-sky-600 hover:text-sky-500`}
+                onClick={() => openModal(participants, id)}
+              />
             </div>
             <div className="shadow-lg border border-blue-300 grid grid-cols-1 sm:grid-cols-2 overflow-y-auto">
               {participants.map(
@@ -109,6 +109,7 @@ function Pods({
         focusedPod={focusedPod}
         sessionId={sessionId}
         roundId={roundId}
+        initialValues={formatInitialValues(focusedPod)}
       />
       <PointsModal
         isOpen={modalOpen}
