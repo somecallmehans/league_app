@@ -149,6 +149,12 @@ def post_achievements_for_participants(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+    # maybe make a new service for updating?
+    # if round not closed, do the existing one
+    # if round closed, go into new one that:
+    # takes in the stuff, edits where it needs to
+    # and adds where else it needs to
+
     achievement_service = AchievementCleaverService(
         participants=participants,
         round=round_id,

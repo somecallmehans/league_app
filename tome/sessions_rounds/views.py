@@ -167,6 +167,7 @@ def get_pods(_, round):
         if achievement_map_by_participant.get(record.participant_id, None) is None:
             achievement_map_by_participant[record.participant_id] = [
                 {
+                    "earned_id": record.id,
                     "achievement_id": record.achievement_id,
                     "earned_points": record.earned_points,
                 }
@@ -174,6 +175,7 @@ def get_pods(_, round):
         else:
             achievement_map_by_participant[record.participant_id].append(
                 {
+                    "earned_id": record.id,
                     "achievement_id": record.achievement_id,
                     "earned_points": record.earned_points,
                 }
@@ -198,6 +200,7 @@ def get_pods(_, round):
             {
                 **earned_achievements_dict[x["achievement_id"]],
                 "earned_points": x["earned_points"],
+                "earned_id": x["earned_id"],
             }
             for x in achievement_map_by_participant[pod["participant_id"]]
         ]
