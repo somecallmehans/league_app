@@ -54,4 +54,4 @@ class ParticipantsAchievementsFullModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ParticipantAchievements
-        fields = ["id", "participant", "achievement"]
+        fields = ["id", "participant", "achievement", "earned_points"]

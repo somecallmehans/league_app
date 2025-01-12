@@ -34,4 +34,7 @@ export default (builder) => ({
   getMetrics: builder.query({
     query: () => "metrics/",
   }),
+  getPodsAchievements: builder.query({
+    query: ({ round, pod }) => `pods_achievements/${round}/${pod}/`,
+  }),
 });

@@ -70,6 +70,7 @@ export const {
   useGetAchievementsForMonthQuery,
   useGetUniqueMonthsQuery,
   useGetMetricsQuery,
+  useGetPodsAchievementsQuery,
 
   // POSTS
   usePostCreateSessionMutation,

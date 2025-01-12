@@ -3,8 +3,6 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 
-import { formatInitialValues } from "../../helpers/formHelpers";
-
 import {
   useGetParticipantsQuery,
   useGetPodsQuery,
@@ -274,8 +272,8 @@ function FocusedRound({ pods = {}, sessionId, roundId }) {
 
   function openModal(p, id, w_info) {
     setFocusedPod({
+      id,
       participants: p,
-      podId: id,
       winnerInfo: w_info,
     });
     setIsOpen(true);

@@ -14,8 +14,11 @@ import {
   useGetAchievementsQuery,
   usePostRoundScoresMutation,
   useGetAllColorsQuery,
+  useGetPodsAchievementsQuery,
 } from "../api/apiSlice";
+import { formatInitialValues } from "../helpers/formHelpers";
 import { ColorCheckboxes, colorIdFinder } from "./ColorInputs";
+import LoadingSpinner from "./LoadingSpinner";
 
 const slugRegex = /win-\d-colors/i;
 
@@ -166,7 +169,7 @@ const ScorecardFormFields = ({
     const formattedData = {
       round: roundId,
       session: sessionId,
-      pod: focusedPod.podId,
+      pod: focusedPod?.id,
       winnerInfo: winnerInfo,
       participants: participantList,
     };
@@ -346,10 +349,19 @@ export default function ScorecardModal({
   focusedPod,
   sessionId,
   roundId,
-  initialValues,
 }) {
+  const { data: podData, isLoading } = useGetPodsAchievementsQuery(
+    { round: roundId, pod: focusedPod?.id },
+    {
+      skip: !focusedPod?.id,
+    }
+  );
   if (!focusedPod) {
     return null;
+  }
+
+  if (isLoading) {
+    return <LoadingSpinner />;
   }
 
   return (
@@ -389,7 +401,7 @@ export default function ScorecardModal({
                   roundId={roundId}
                   sessionId={sessionId}
                   closeModal={closeModal}
-                  initialValues={initialValues}
+                  initialValues={formatInitialValues(podData)}
                 />
               </DialogPanel>
             </TransitionChild>

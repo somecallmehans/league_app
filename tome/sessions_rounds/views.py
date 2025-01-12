@@ -15,10 +15,11 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .models import Sessions, Rounds, Pods, PodsParticipants
 from users.models import ParticipantAchievements
-from achievements.models import Achievements, WinningCommanders
+from achievements.models import WinningCommanders
 
 from .serializers import SessionSerializer, PodsParticipantsSerializer
-from achievements.serializers import AchievementsSerializer, WinningCommandersSerializer
+from achievements.serializers import WinningCommandersSerializer
+from users.serializers import ParticipantsAchievementsFullModelSerializer
 from .helpers import (
     generate_pods,
     get_participants_total_scores,
@@ -178,6 +179,29 @@ def get_pods(_, round):
         pod_map[pod_id]["participants"].append(participant_data)
 
     return Response(pod_map, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+def get_pods_achievements(_, round, pod):
+    """Get all of the achievements earned for a pod + round."""
+    participant_achievements = ParticipantAchievements.objects.filter(
+        round_id=round,
+        deleted=False,
+        participant__in=PodsParticipants.objects.filter(
+            pods_id=pod, pods__deleted=False
+        ).values_list("participants", flat=True),
+    )
+    achievement_data = ParticipantsAchievementsFullModelSerializer(
+        participant_achievements, many=True
+    ).data
+    winner_data = WinningCommandersSerializer.by_pods([pod])
+    return Response(
+        {
+            "pod_achievements": achievement_data,
+            "winning_commander": winner_data.get(pod, None),
+        },
+        status=status.HTTP_200_OK,
+    )
 
 
 @api_view(["POST"])
