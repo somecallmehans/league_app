@@ -148,39 +148,12 @@ def get_pods(_, round):
     pods_participants = PodsParticipants.objects.filter(
         pods_id__in=[x.id for x in all_pods]
     )
-    achievement_objs = Achievements.objects.filter(deleted=False)
-    achievement_data = AchievementsSerializer(achievement_objs, many=True).data
-    achievement_map = {x["id"]: x for x in achievement_data}
 
     serialized_pods_participants = PodsParticipantsSerializer(
         pods_participants,
         many=True,
         context={"round_id": round, "mm_yy": round_obj.session.month_year},
     ).data
-
-    achievements_earned_in_round = ParticipantAchievements.objects.filter(
-        round_id=round
-    )
-
-    achievement_map_by_participant = {}
-
-    for record in achievements_earned_in_round:
-        if achievement_map_by_participant.get(record.participant_id, None) is None:
-            achievement_map_by_participant[record.participant_id] = [
-                {
-                    "earned_id": record.id,
-                    "achievement_id": record.achievement_id,
-                    "earned_points": record.earned_points,
-                }
-            ]
-        else:
-            achievement_map_by_participant[record.participant_id].append(
-                {
-                    "earned_id": record.id,
-                    "achievement_id": record.achievement_id,
-                    "earned_points": record.earned_points,
-                }
-            )
 
     pod_map = {}
     for pod in serialized_pods_participants:
@@ -195,28 +168,11 @@ def get_pods(_, round):
                 "winner_info": winners_by_pod.get(pod_id, None),
             }
 
-        earned = [
-            achievement_map[x["achievement_id"]]
-            for x in achievement_map_by_participant[pod["participant_id"]]
-        ]
-
-        earned_achievements_dict = {e["id"]: e for e in earned}
-
-        serialized_earned_with_points = [
-            {
-                **earned_achievements_dict[x["achievement_id"]],
-                "earned_points": x["earned_points"],
-                "earned_id": x["earned_id"],
-            }
-            for x in achievement_map_by_participant[pod["participant_id"]]
-        ]
-
         participant_data = {
             "participant_id": pod["participant_id"],
             "name": pod["name"],
             "total_points": pod["total_points"],
             "round_points": pod["round_points"],
-            "achievements": serialized_earned_with_points,
         }
 
         pod_map[pod_id]["participants"].append(participant_data)

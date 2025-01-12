@@ -10,7 +10,7 @@ import {
 
 export default function PointsModal({ isOpen, closeModal, selected }) {
   if (!selected) return null;
-  const { participant, achievements, round_points } = selected;
+  const { participant, round_points } = selected;
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -45,7 +45,9 @@ export default function PointsModal({ isOpen, closeModal, selected }) {
                   <span>Points for {participant}</span>
                   <span>{round_points} Round Points</span>
                 </DialogTitle>
-
+                <DialogTitle>TODO: NEW ENDPOINT TO SHOW THIS INFO</DialogTitle>
+                {/* 
+                TODO: This is getting separated from the get_pods endpoint
                 {achievements.map(({ name, earned_points }, index) => (
                   <div
                     key={index}
@@ -62,7 +64,7 @@ export default function PointsModal({ isOpen, closeModal, selected }) {
                       {earned_points} points
                     </div>
                   </div>
-                ))}
+                ))} */}
               </DialogPanel>
             </TransitionChild>
           </div>
