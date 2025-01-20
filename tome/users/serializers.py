@@ -52,6 +52,27 @@ class ParticipantsAchievementsFullModelSerializer(serializers.ModelSerializer):
             ParticipantsAchievementsFullModelSerializer, self
         ).to_representation(instance)
 
+    def to_dict(self, instances):
+        out = []
+        for ins in instances:
+            participant = ins.participant
+            achievement = ins.achievement
+
+            out.append(
+                {
+                    "id": ins.id,
+                    "achievement_id": achievement.id if achievement else None,
+                    "achievement_name": achievement.full_name if achievement else None,
+                    "participant_id": participant.id if participant else None,
+                    "participant_name": participant.name if participant else None,
+                    "points": achievement.points if achievement else None,
+                    "slug": achievement.slug if achievement else None,
+                    "earned_points": ins.earned_points,
+                    "deleted": ins.deleted,
+                }
+            )
+        return out
+
     class Meta:
         model = ParticipantAchievements
-        fields = ["id", "participant", "achievement", "earned_points"]
+        fields = ["id", "participant", "achievement", "earned_points", "deleted"]

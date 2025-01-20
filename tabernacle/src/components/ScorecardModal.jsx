@@ -16,7 +16,7 @@ import {
   useGetAllColorsQuery,
   useGetPodsAchievementsQuery,
 } from "../api/apiSlice";
-import { formatInitialValues } from "../helpers/formHelpers";
+import { formatInitialValues, formatUpdate } from "../helpers/formHelpers";
 import { ColorCheckboxes, colorIdFinder } from "./ColorInputs";
 import LoadingSpinner from "./LoadingSpinner";
 
@@ -42,6 +42,7 @@ const ScorecardFormFields = ({
   roundId,
   closeModal,
   initialValues,
+  podData,
 }) => {
   const [postRoundScores] = usePostRoundScoresMutation();
   const { data: colorsData, isLoading: colorsLoading } = useGetAllColorsQuery();
@@ -73,20 +74,20 @@ const ScorecardFormFields = ({
     // winner is a participant dict
     // winnerDeckbuildingAchievements is a list of achievements
     const {
-      snack = [],
-      loanedDeck = [],
-      knockOuts = [],
-      shareToDiscord = [],
+      "bring-snack": snack = [],
+      "lend-deck": loanedDeck = [],
+      "knock-out": knockOuts = [],
+      "submit-to-discord": shareToDiscord = [],
       winner,
-      lastInTurnOrder,
-      commanderDamage,
-      winTheGameEffect,
-      zeroOrLessLife,
-      loseTheGameEffect,
-      winnersCommander,
-      winnerDeckbuildingAchievements = [],
+      "last-in-order": lastInTurnOrder,
+      "commander-damage": commanderDamage,
+      "win-the-game-effect": winTheGameEffect,
+      "zero-or-less-life": zeroOrLessLife,
+      "lose-the-game-effect": loseTheGameEffect,
+      "winner-commander": winnersCommander,
+      "winner-achievements": winnerDeckbuildingAchievements = [],
       colors,
-      endInDraw,
+      "end-draw": endInDraw,
     } = formData;
 
     const colorId = colorIdFinder(colors, colorsData);
@@ -175,51 +176,74 @@ const ScorecardFormFields = ({
     };
 
     try {
-      await postRoundScores(formattedData).unwrap();
+      // await postRoundScores(formattedData).unwrap();
       closeModal();
     } catch (err) {
       console.error("Failed to post round scores: ", err);
     }
   };
 
+  const updateSubmit = (formData) => {
+    // WIP
+    // we take our formData and compare it against the podData
+    // for each of the slugs in the formData, we see if it exists in
+    // podData.
+    // const updates = formatUpdate(formData, podData);
+    // post updates
+  };
+
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="flex flex-col">
+    <form
+      onSubmit={handleSubmit(
+        focusedPod?.winnerInfo ? updateSubmit : handleFormSubmit
+      )}
+      className="flex flex-col"
+    >
+      {console.log(focusedPod.participants)}
       <Selector
-        name="snack"
+        name="bring-snack"
         control={control}
         options={focusedPod.participants}
         placeholder="Did Anyone Bring a Snack"
         classes="mb-2"
+        getOptionLabel={(option) => option.name}
+        getOptionValue={(option) => option.participant_id}
         isMulti
       />
       <Selector
-        name="loanedDeck"
+        name="lend-deck"
         control={control}
         options={focusedPod.participants}
         placeholder="Did anyone lend a deck?"
         classes="mb-2"
+        getOptionLabel={(option) => option.name}
+        getOptionValue={(option) => option.participant_id}
         isMulti
       />
       <Selector
-        name="knockOuts"
+        name="knock-out"
         control={control}
         options={focusedPod.participants}
         placeholder="Did anyone who did not win knock out other players?"
+        getOptionLabel={(option) => option.name}
+        getOptionValue={(option) => option.participant_id}
         classes="mb-2"
         isMulti
       />
       <Selector
-        name="shareToDiscord"
+        name="submit-to-discord"
         control={control}
         options={focusedPod.participants}
         placeholder="Did anyone use a decklist for the first time that has been shared on discord?"
+        getOptionLabel={(option) => option.name}
+        getOptionValue={(option) => option.participant_id}
         classes="mb-2"
         isMulti
       />
       <div className="mb-2 flex gap-2">
         Did the game end in a draw?
         <Controller
-          name="endInDraw"
+          name="end-draw"
           control={control}
           defaultValue={false}
           render={({ field }) => (
@@ -243,7 +267,7 @@ const ScorecardFormFields = ({
       {/* When redis gets rolling this should be a selector from that data */}
       <TextInput
         classes="basis-2/3 border py-2 mb-2 data-[hover]:shadow data-[focus]:bg-blue-100"
-        name="winnersCommander"
+        name="winner-commander"
         placeholder="Winner's Commander"
         control={control}
         disabled={endInDraw}
@@ -253,7 +277,7 @@ const ScorecardFormFields = ({
       <div className="mb-2 flex gap-2">
         Were they last in turn order:{" "}
         <Controller
-          name="lastInTurnOrder"
+          name="last-in-order"
           control={control}
           defaultValue={false}
           render={({ field }) => (
@@ -269,7 +293,7 @@ const ScorecardFormFields = ({
         <span>Did they win via:</span>
         <div className="grid grid-cols-2 gap-2">
           <Controller
-            name="commanderDamage"
+            name="commander-damage"
             control={control}
             defaultValue={false}
             render={({ field }) => (
@@ -283,7 +307,7 @@ const ScorecardFormFields = ({
             )}
           />
           <Controller
-            name="winTheGameEffect"
+            name="win-the-game-effect"
             control={control}
             defaultValue={false}
             render={({ field }) => (
@@ -297,7 +321,7 @@ const ScorecardFormFields = ({
             )}
           />
           <Controller
-            name="zeroOrLessLife"
+            name="zero-or-less-life"
             control={control}
             defaultValue={false}
             render={({ field }) => (
@@ -311,7 +335,7 @@ const ScorecardFormFields = ({
             )}
           />
           <Controller
-            name="loseTheGameEffect"
+            name="lose-the-game-effect"
             control={control}
             defaultValue={false}
             render={({ field }) => (
@@ -328,11 +352,13 @@ const ScorecardFormFields = ({
       </div>
       <Selector
         control={control}
-        name="winnerDeckbuildingAchievements"
+        name="winner-achievements"
         options={filteredAchievementData}
         placeholder="Other Deck Building Achievements"
         getOptionLabel={(option) => option.name}
-        getOptionValue={(option) => `${option.id}-${Math.random()}`}
+        getOptionValue={(option) =>
+          option?.achievement_id ? option.id : `${option.id}-${Math.random()}`
+        }
         isMulti
         disabled={endInDraw}
       />
@@ -402,6 +428,7 @@ export default function ScorecardModal({
                   sessionId={sessionId}
                   closeModal={closeModal}
                   initialValues={formatInitialValues(podData)}
+                  podData={podData}
                 />
               </DialogPanel>
             </TransitionChild>

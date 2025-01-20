@@ -16,7 +16,7 @@ export const Selector = ({
   onChange,
   disabled = false,
   getOptionLabel = (option) => option.name,
-  getOptionValue = (option) => option.participant_id,
+  getOptionValue = (option) => option.id,
   mapToApiFormat = (option) => option,
 }) => {
   return (

@@ -1,13 +1,10 @@
 function composeDeckbuildingAchievements(achievements, winnerId) {
   return achievements
-    .filter(
-      ({ participant: { id }, achievement: { slug } }) =>
-        id === winnerId && !slug
-    )
-    .map(({ id, achievement: { id: achievement_id, full_name } }) => ({
+    .filter(({ participant_id, slug }) => participant_id === winnerId && !slug)
+    .map(({ id, achievement_id, achievement_name }) => ({
       id,
       achievement_id,
-      name: full_name,
+      name: achievement_name,
     }));
 }
 
@@ -31,11 +28,12 @@ function capitalizeColorStrings(colors) {
 
 function mapParticipants(achievements, checkSlug) {
   return achievements
-    .filter(({ achievement: { slug } }) => slug === checkSlug)
-    .map(({ participant: { id, name }, id: earnedId }) => ({
-      id,
-      earnedId,
-      name,
+    .filter(({ slug }) => slug === checkSlug)
+    .map(({ participant_id, participant_name, id }) => ({
+      earned_id: id,
+      id: participant_id,
+      participant_id: participant_id,
+      name: participant_name,
     }));
 }
 
@@ -46,17 +44,14 @@ export function formatInitialValues(podData) {
 
   const winningColors = capitalizeColorStrings(
     podData?.winning_commander?.colors?.name
-  ).reduce((acc, curr) => ((acc[curr] = true), acc), {});
-
-  // const winnerAchievements = getWinnerAchievements(winner, [
-  //   { key: "lastInTurnOrder", slug: "last-in-order" },
-  //   { key: "commanderDamage", slug: "commander-damage" },
-  //   { key: "winTheGameEffect", slug: "win-the-game-effect" },
-  //   { key: "zeroOrLessLife", slug: "zero-or-less-life" },
-  //   { key: "loseTheGameEffect", slug: "lose-the-game-effect" },
-  // ]);
-
-  console.log(mapParticipants(podData?.pod_achievements, "commander-damage"));
+  ).reduce((acc, curr) => ((acc[curr] = true), acc), {
+    Black: false,
+    Blue: false,
+    White: false,
+    Green: false,
+    Red: false,
+    Colorless: false,
+  });
 
   const mappedAchievements = slugkeys.reduce((acc, key) => {
     const mapped = mapParticipants(podData?.pod_achievements, key);
@@ -65,27 +60,53 @@ export function formatInitialValues(podData) {
   }, {});
 
   return {
-    snack: mappedAchievements["bring-snack"],
-    loanedDeck: mappedAchievements["lend-deck"],
-    knockOuts: mappedAchievements["knock-out"],
-    shareToDiscord: mappedAchievements["submit-to-discord"],
+    "bring-snack": mappedAchievements["bring-snack"],
+    "lend-deck": mappedAchievements["lend-deck"],
+    "knock-out": mappedAchievements["knock-out"],
+    "submit-to-discord": mappedAchievements["submit-to-discord"],
     winner: [
       {
         name: podData?.winning_commander?.participants?.name,
-        id: podData?.winning_commander?.participants?.id,
+        participant_id: podData?.winning_commander?.participants?.id,
+        id: podData?.winning_commander?.id,
       },
     ],
-    endInDraw: !!mappedAchievements["end-draw"],
-    winnersCommander: podData?.winning_commander?.name,
+    "end-draw": !!mappedAchievements["end-draw"],
+    "winner-commander": podData?.winning_commander?.name,
     colors: winningColors,
-    lastInTurnOrder: !!mappedAchievements["last-in-order"],
-    commanderDamage: !!mappedAchievements["commander-damage"],
-    winTheGameEffect: !!mappedAchievements["win-the-game-effect"],
-    zeroOrLessLife: !!mappedAchievements["zero-or-less-life"],
-    loseTheGameEffect: !!mappedAchievements["lose-the-game-effect"],
-    winnerDeckbuildingAchievements: composeDeckbuildingAchievements(
+    "last-in-order": !!mappedAchievements["last-in-order"],
+    "commander-damage": !!mappedAchievements["commander-damage"],
+    "win-the-game-effect": !!mappedAchievements["win-the-game-effect"],
+    "zero-or-less-life": !!mappedAchievements["zero-or-less-life"],
+    "lose-the-game-effect": !!mappedAchievements["lose-the-game-effect"],
+    "winner-achievements": composeDeckbuildingAchievements(
       podData?.pod_achievements,
       podData?.winning_commander?.participants?.id
     ),
   };
+}
+
+const generalSlugs = [
+  "bring-snack",
+  "lend-deck",
+  "knock-out",
+  "submit-to-discord",
+];
+
+export function formatUpdate(newValues, existingValues) {
+  const out = { new: [], update: [] };
+  // our goal should be to either construct objs that the backend will roughly expect
+  // OR if we are soft deleting, send the earned_id + deleted
+
+  // form keys should be the slugs for each of the achievements that have them
+
+  // handle adds/updates for bring-snack, lend-deck, knock-out, submit-to-discord
+
+  // figure out if the winner + commander + colors is the same or different
+
+  // use the info above to then figure out adds/updates for the bool fields
+  // and the earned achievements
+
+  console.log(out);
+  return out;
 }

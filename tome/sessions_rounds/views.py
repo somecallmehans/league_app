@@ -191,9 +191,10 @@ def get_pods_achievements(_, round, pod):
             pods_id=pod, pods__deleted=False
         ).values_list("participants", flat=True),
     )
-    achievement_data = ParticipantsAchievementsFullModelSerializer(
-        participant_achievements, many=True
-    ).data
+    achievement_data = ParticipantsAchievementsFullModelSerializer().to_dict(
+        participant_achievements
+    )
+
     winner_data = WinningCommandersSerializer.by_pods([pod])
     return Response(
         {
