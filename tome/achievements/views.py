@@ -180,13 +180,12 @@ def upsert_participant_achievements(request):
     session = body.get("session", None)
     deleted = body.get("deleted", False)
 
-    breakpoint()
-
-    achievementObj = Achievements.objects.get(id=achievement)
+    if achievement:
+        achievementObj = Achievements.objects.get(id=achievement)
 
     if earned_id:
+        pa = ParticipantAchievements.objects.get(id=earned_id)
         try:
-            pa = ParticipantAchievements.objects.get(id=earned_id)
             if achievement:
                 pa.achievement_id = achievement
                 pa.earned_points = achievementObj.points
