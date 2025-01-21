@@ -93,12 +93,40 @@ const generalSlugs = [
   "submit-to-discord",
 ];
 
-export function formatUpdate(newValues, existingValues) {
+export function formatUpdate(newValues, existingValues, roundId) {
+  console.log(newValues, existingValues);
   const out = { new: [], update: [] };
   // our goal should be to either construct objs that the backend will roughly expect
   // OR if we are soft deleting, send the earned_id + deleted
 
   // form keys should be the slugs for each of the achievements that have them
+
+  generalSlugs.forEach((key) => {
+    // step 1. take newValues and see if they exist. If no, push out.new
+    // if yes, do nothing
+    const newVals = newValues[key];
+    const newValIds = newValues[key]
+      .filter((n) => n?.earned_id)
+      .map((n) => n?.earned_id);
+    const existingVals = existingValues.pod_achievements
+      .filter((v) => v.slug === key)
+      .map((v) => v.id);
+
+    newVals.forEach((v) => {
+      if (!v?.earned_id) {
+        out.new.push({
+          slug: key,
+          participant_id: v?.participant_id,
+          round_id: roundId,
+        });
+      }
+    });
+    existingVals.forEach((e) => {
+      if (!newValIds.includes(e)) {
+        out.update.push({ id: e, deleted: true });
+      }
+    });
+  });
 
   // handle adds/updates for bring-snack, lend-deck, knock-out, submit-to-discord
 

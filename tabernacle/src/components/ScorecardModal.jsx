@@ -188,7 +188,7 @@ const ScorecardFormFields = ({
     // we take our formData and compare it against the podData
     // for each of the slugs in the formData, we see if it exists in
     // podData.
-    // const updates = formatUpdate(formData, podData);
+    const updates = formatUpdate(formData, podData, roundId);
     // post updates
   };
 
@@ -199,7 +199,6 @@ const ScorecardFormFields = ({
       )}
       className="flex flex-col"
     >
-      {console.log(focusedPod.participants)}
       <Selector
         name="bring-snack"
         control={control}
