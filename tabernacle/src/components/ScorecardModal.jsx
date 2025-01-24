@@ -16,25 +16,15 @@ import {
   useGetAllColorsQuery,
   useGetPodsAchievementsQuery,
 } from "../api/apiSlice";
-import { formatInitialValues, formatUpdate } from "../helpers/formHelpers";
+import {
+  formatInitialValues,
+  formatUpdate,
+  getWinSlug,
+} from "../helpers/formHelpers";
 import { ColorCheckboxes, colorIdFinder } from "./ColorInputs";
 import LoadingSpinner from "./LoadingSpinner";
 
 const slugRegex = /win-\d-colors/i;
-
-const getWinSlug = (colorObj) => {
-  let slug_value = 0;
-  if (!colorObj.Colorless) {
-    slug_value = Object.keys(colorObj).reduce((count, color) => {
-      if (color !== "Colorless" && colorObj[color]) {
-        count++;
-      }
-      return count;
-    }, 0);
-  }
-
-  return `win-${slug_value}-colors`;
-};
 
 const ScorecardFormFields = ({
   focusedPod,
@@ -47,6 +37,7 @@ const ScorecardFormFields = ({
   const [postRoundScores] = usePostRoundScoresMutation();
   const { data: colorsData, isLoading: colorsLoading } = useGetAllColorsQuery();
   const { data: achievementData, isLoading } = useGetAchievementsQuery();
+  const focusedIds = focusedPod?.participants?.map((p) => p.id);
 
   const {
     control,
@@ -61,12 +52,18 @@ const ScorecardFormFields = ({
     return null;
   }
 
+  let counter = 0;
+
+  // achievements that get passed in as initial values won't have
+  // "new", so we set it here for future reference
   const filteredAchievementData = achievementData.data
     .filter((achievement) => !achievementData.parents.includes(achievement.id))
     .filter(({ slug }) => !slug?.match(slugRegex))
     .map((achievement) => ({
-      id: achievement?.id,
+      id: `${counter++}`,
+      achievement_id: achievement?.id,
       name: achievement?.full_name,
+      new: true,
     }));
 
   const handleFormSubmit = async (formData) => {
@@ -145,8 +142,10 @@ const ScorecardFormFields = ({
     addAchievements(knockOuts, "knock-out");
     addAchievements(shareToDiscord, "submit-to-discord");
 
-    winnerDeckbuildingAchievements.forEach(({ id }) =>
-      participantAchievementMap[winner?.participant_id]["achievements"].push(id)
+    winnerDeckbuildingAchievements.forEach(({ achievement_id }) =>
+      participantAchievementMap[winner?.participant_id]["achievements"].push(
+        achievement_id
+      )
     );
 
     boolConditions.forEach(({ condition, slug }) => {
@@ -176,7 +175,7 @@ const ScorecardFormFields = ({
     };
 
     try {
-      // await postRoundScores(formattedData).unwrap();
+      await postRoundScores(formattedData).unwrap();
       closeModal();
     } catch (err) {
       console.error("Failed to post round scores: ", err);
@@ -184,18 +183,24 @@ const ScorecardFormFields = ({
   };
 
   const updateSubmit = (formData) => {
-    // WIP
-    // we take our formData and compare it against the podData
-    // for each of the slugs in the formData, we see if it exists in
-    // podData.
-    const updates = formatUpdate(formData, podData, roundId);
+    // TODO: If you remove an achievement,
+    // and add a new one, the new one cant be removed
+    // unless you remove everything
+    const updates = formatUpdate(
+      formData,
+      podData,
+      roundId,
+      colorsData,
+      focusedIds
+    );
+    console.log(updates);
     // post updates
   };
 
   return (
     <form
       onSubmit={handleSubmit(
-        focusedPod?.winnerInfo ? updateSubmit : handleFormSubmit
+        focusedPod?.submitted ? updateSubmit : handleFormSubmit
       )}
       className="flex flex-col"
     >
@@ -258,8 +263,6 @@ const ScorecardFormFields = ({
         placeholder="Winner"
         control={control}
         options={focusedPod.participants}
-        // getOptionLabel={(option) => option.name}
-        // getOptionValue={(option) => option.participant_id}
         classes="mb-2"
         disabled={endInDraw}
       />
@@ -356,7 +359,7 @@ const ScorecardFormFields = ({
         placeholder="Other Deck Building Achievements"
         getOptionLabel={(option) => option.name}
         getOptionValue={(option) =>
-          option?.achievement_id ? option.id : `${option.id}-${Math.random()}`
+          option?.achievement_id ? option.id : option.id
         }
         isMulti
         disabled={endInDraw}

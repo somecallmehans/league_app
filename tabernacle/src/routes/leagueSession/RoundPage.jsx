@@ -55,7 +55,9 @@ function Pods({
                 className={`fa-solid fa-${
                   submitted ? "pen-to-square" : "circle-exclamation"
                 } text-sky-600 hover:text-sky-500`}
-                onClick={() => openModal(participants, id, winner_info)}
+                onClick={() =>
+                  openModal(participants, id, winner_info, submitted)
+                }
               />
             </div>
             <div className="shadow-lg border border-blue-300 grid grid-cols-1 sm:grid-cols-2 overflow-y-auto">
@@ -270,9 +272,10 @@ function FocusedRound({ pods = {}, sessionId, roundId }) {
     setIsOpen(false);
   }
 
-  function openModal(p, id, w_info) {
+  function openModal(p, id, w_info, submitted) {
     setFocusedPod({
       id,
+      submitted,
       participants: p,
       winnerInfo: w_info,
     });
