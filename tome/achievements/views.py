@@ -1,6 +1,7 @@
 import json
 
 from datetime import datetime
+from collections import defaultdict
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -20,8 +21,8 @@ from .serializers import AchievementsSerializer, ColorsSerializer
 
 from achievements.helpers import (
     AchievementCleaverService,
-    make_achievement_map,
     all_participant_achievements_for_month,
+    group_parents_by_point_value,
 )
 
 
@@ -32,16 +33,23 @@ def get_achievements_with_restrictions(request):
         "restrictions"
     )
     serializer = AchievementsSerializer(achievements, many=True).data
-    map = make_achievement_map(serializer)
-    parents = set(
-        [
-            achievement["parent"]["id"]
-            for achievement in serializer
-            if achievement["parent"] is not None
-        ]
-    )
+    parent_map = {
+        a["id"]: {**a, "children": []} for a in serializer if a["parent"] is None
+    }
+    for achievement in serializer:
+        if achievement["parent"] is not None:
+            parent_map[achievement["parent"]["id"]]["children"].append(achievement)
+
+    grouped = group_parents_by_point_value(parent_map)
+    parents = [
+        achievement["parent"]["id"]
+        for achievement in serializer
+        if achievement["parent"] is not None and achievement["deleted"] is False
+    ]
+
     return Response(
-        {"map": map, "data": serializer, "parents": parents}, status=status.HTTP_200_OK
+        {"map": grouped, "data": serializer, "parents": parents},
+        status=status.HTTP_200_OK,
     )
 
 
