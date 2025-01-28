@@ -2,6 +2,8 @@ import json
 
 from datetime import datetime
 
+from django.db import transaction
+from django.db.models import Q
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import (
@@ -17,6 +19,7 @@ from users.models import ParticipantAchievements
 from users.serializers import ParticipantsAchievementsSerializer
 from sessions_rounds.models import Pods, Sessions
 from .serializers import AchievementsSerializer, ColorsSerializer
+from achievements.models import Achievements, WinningCommanders
 
 from achievements.helpers import (
     AchievementCleaverService,
@@ -220,3 +223,96 @@ def upsert_participant_achievements(request):
         ParticipantsAchievementsSerializer(new_entry).data,
         status=status.HTTP_201_CREATED,
     )
+
+
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def upsert_participant_achievements_v2(request):
+    """V2 of the upserting achievements endpoint. Should ideally handle things
+    much more graceful than V1."""
+    body = json.loads(request.body.decode("utf-8"))
+
+    new = body.get("new", [])
+    update = body.get("update", [])
+    winner = body.get("winnerInfo", None)
+
+    updated_objects = []
+    created_objs = []
+
+    if len(update) > 0:
+        update_ids = [x["id"] for x in update]
+        update_objs = ParticipantAchievements.objects.filter(pk__in=update_ids)
+
+        slugs = [x["slug"] for x in update if "slug" in x]
+        slug_to_achievement = {
+            a.slug: a for a in Achievements.objects.filter(slug__in=slugs)
+        }
+
+        update_data = {item["id"]: item for item in update}
+
+        for obj in update_objs:
+            record = update_data.get(obj.id)
+            if record:
+                obj.deleted = record.get("deleted", False)
+                slug = record.get("slug")
+                if slug:
+                    achievement = slug_to_achievement.get(slug)
+                    if not achievement:
+                        return Response(
+                            {
+                                "error": f"Achievement with slug '{slug}' does not exist."
+                            },
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+                    obj.achievement = achievement
+                updated_objects.append(obj)
+
+    if len(new) > 0:
+        slugs = [x["slug"] for x in new if "slug" in x]
+        ids = [x["achievement_id"] for x in new if "achievement_id" in x]
+
+        all_achievements = Achievements.objects.filter(
+            Q(slug__in=slugs) | Q(id__in=ids)
+        )
+        achievement_dict = {a.slug or a.id: a for a in all_achievements}
+
+        for record in new:
+            if record.get("slug"):
+                achievement = achievement_dict.get(record["slug"])
+                r = ParticipantAchievements(
+                    id=None,
+                    participant_id=record["participant_id"],
+                    achievement_id=achievement.id,
+                    round_id=record["round_id"],
+                    earned_points=achievement.points,
+                )
+                created_objs.append(r)
+                continue
+            achievement = achievement_dict.get(record["achievement_id"])
+            r = ParticipantAchievements(
+                id=None,
+                participant_id=record["participant_id"],
+                achievement_id=record["achievement_id"],
+                round_id=record["round_id"],
+                earned_points=achievement.points,
+            )
+            created_objs.append(r)
+
+    if winner:
+        WinningCommanders(
+            id=winner.get("id", None),
+            name=winner["commander_name"],
+            colors_id=winner["color_id"],
+            participants_id=winner["participant_id"],
+            pods_id=winner["pod_id"],
+        ).save()
+    with transaction.atomic():
+        if len(updated_objects) > 0:
+            ParticipantAchievements.objects.bulk_update(
+                updated_objects, ["deleted", "achievement"]
+            )
+        if len(created_objs) > 0:
+            ParticipantAchievements.objects.bulk_create(created_objs)
+
+    return Response({"message": "success"}, status=status.HTTP_201_CREATED)

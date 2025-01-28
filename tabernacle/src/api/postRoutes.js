@@ -53,4 +53,15 @@ export default (builder) => ({
     }),
     invalidatesTags: ["Earned"],
   }),
+  postUpsertEarnedV2: builder.mutation({
+    query: (body) => ({
+      url: "upsert_earned_v2/",
+      method: "POST",
+      body: body,
+    }),
+    invalidatesTags: (result, error, body) => [
+      { type: "PodsAchievements", id: `${body.round_id}-${body.pod_id}` },
+      "Pods",
+    ],
+  }),
 });

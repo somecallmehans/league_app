@@ -7,9 +7,13 @@ from .views import (
     get_achievements_by_participant_session,
     upsert_participant_achievements,
     get_achievements_by_participant_month,
+    upsert_participant_achievements_v2,
 )
 
 urlpatterns = [
+    path(
+        "upsert_earned_v2/", upsert_participant_achievements_v2, name="upsert_earned_v2"
+    ),
     path("upsert_earned/", upsert_participant_achievements, name="upsert_earned"),
     path(
         "earned_for_session/<int:session_id>/",

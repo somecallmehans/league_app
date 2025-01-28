@@ -15,7 +15,6 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .models import Sessions, Rounds, Pods, PodsParticipants
 from users.models import ParticipantAchievements
-from achievements.models import WinningCommanders
 
 from .serializers import SessionSerializer, PodsParticipantsSerializer
 from achievements.serializers import WinningCommandersSerializer

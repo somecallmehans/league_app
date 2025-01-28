@@ -129,7 +129,8 @@ export function formatUpdate(
   existingValues,
   roundId,
   colorsData,
-  participantIds
+  participantIds,
+  podId
 ) {
   const existingAchievements = existingValues?.pod_achievements;
   const existingCommander = existingValues?.winning_commander;
@@ -196,6 +197,7 @@ export function formatUpdate(
       participant_id: null,
       color_id: null,
       commander_name: "END IN DRAW",
+      pod_id: podId,
     };
 
     return out;
@@ -228,11 +230,15 @@ export function formatUpdate(
       ? existingCommander?.name
       : newValues?.["winner-commander"];
 
+  // jk bc if the winner changes than we ALSO have to remove all of the previous
+  // winners achievements also
+
   out.winnerInfo = {
     id: existingCommander?.id,
     participant_id: winnerId,
     color_id: colorIdFinder(newValues?.colors, colorsData),
     commander_name: commanderName,
+    pod_id: podId,
   };
 
   // handle winner achievements that are bool centric
@@ -259,19 +265,19 @@ export function formatUpdate(
 
   // handle if the win has changed or not
   const newWinSlug = getWinSlug(newValues["colors"]);
-  const { id: winId, slug: existingWinSlug } = existingAchievements.find(
-    ({ slug }) => winSlugs.includes(slug)
+  const foundWin = existingAchievements.find(({ slug }) =>
+    winSlugs.includes(slug)
   );
   const preconWin =
     submittedAchievements?.findIndex(({ slug }) => slug === "precon") > 0;
 
-  if (existingWinSlug && newWinSlug !== existingWinSlug) {
+  if (foundWin?.existingWinSlug && newWinSlug !== foundWin?.existingWinSlug) {
     out.update.push({
-      id: winId,
+      id: foundWin?.id,
       slug: preconWin ? "win-3-colors" : newWinSlug,
     });
-  } else {
-    out.add.push({
+  } else if (newWinSlug && !foundWin?.existingWinSlug) {
+    out.new.push({
       participant_id: winnerId,
       slug: preconWin ? "win-3-colors" : newWinSlug,
       round_id: roundId,
