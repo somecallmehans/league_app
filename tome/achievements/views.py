@@ -1,7 +1,6 @@
 import json
 
 from datetime import datetime
-from collections import defaultdict
 
 from rest_framework import status
 from rest_framework.response import Response
