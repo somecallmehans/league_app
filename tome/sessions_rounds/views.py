@@ -147,7 +147,8 @@ def get_pods(_, round):
     pods_participants = PodsParticipants.objects.filter(
         pods_id__in=[x.id for x in all_pods]
     )
-    achievement_objs = Achievements.objects.filter(deleted=False)
+
+    achievement_objs = Achievements.objects.all()
     achievement_data = AchievementsSerializer(achievement_objs, many=True).data
     achievement_map = {x["id"]: x for x in achievement_data}
 
