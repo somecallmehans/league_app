@@ -88,13 +88,12 @@ const ScorecardFormFields = ({
     const colorId = colorIdFinder(colors, colorsData);
 
     let winSlug = "";
-    // Precon wins are always worth +2 points no matter what, so if we have that
-    // we can just give them the 3 win colors for now
+    // Precon wins do not qualify for wins now
     if (
-      winnerDeckbuildingAchievements.some(({ name }) => name.includes("precon"))
+      !winnerDeckbuildingAchievements.some(({ name }) =>
+        name.includes("precon")
+      )
     ) {
-      winSlug = "win-3-colors";
-    } else {
       winSlug = getWinSlug(colors);
     }
 
@@ -118,7 +117,7 @@ const ScorecardFormFields = ({
       : {
           [winner?.participant_id]: {
             id: winner?.participant_id,
-            slugs: [winSlug],
+            slugs: winSlug ? [winSlug] : [],
             achievements: [],
           },
         };
