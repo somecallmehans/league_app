@@ -1,7 +1,7 @@
 import React from "react";
 import Select from "react-select";
 
-const buttonsClasses = "mx-2 text-slate-500 hover:text-sky-600";
+const buttonsClasses = "mx-2 text-slate-500";
 
 export function EditButtons({
   editing,
@@ -9,6 +9,7 @@ export function EditButtons({
   deleteAction,
   formName,
   disabled,
+  disableDelete,
 }) {
   return (
     <div>
@@ -34,7 +35,9 @@ export function EditButtons({
           />
           <i
             onClick={() => deleteAction()}
-            className={`fa-solid fa-trash ${buttonsClasses}`}
+            className={`fa-solid fa-trash ${buttonsClasses} ${
+              disableDelete ? "hover:text-red-400" : "hover:text-sky-400"
+            }`}
           />
         </div>
       )}

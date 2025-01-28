@@ -15,6 +15,7 @@ class AchievementsSerializer(serializers.ModelSerializer):
     parent = serializers.SerializerMethodField()
     points = serializers.IntegerField(read_only=True)
     full_name = serializers.CharField(read_only=True)
+    deleted = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Achievements
@@ -27,6 +28,7 @@ class AchievementsSerializer(serializers.ModelSerializer):
             "slug",
             "points",
             "full_name",
+            "deleted",
         ]
 
     def get_parent(self, obj):

@@ -22,6 +22,7 @@ const AchievementRow = ({
   parent_id,
   achievementChildren = [],
   openEdit,
+  disableDelete,
 }) => {
   const [editing, setEditing] = useState(openEdit);
   const [createChild, setCreateChild] = useState();
@@ -41,6 +42,10 @@ const AchievementRow = ({
   };
 
   const handleDelete = async () => {
+    if (disableDelete) {
+      return;
+    }
+
     await postUpsertAchievements({
       id: id,
       name: name,
@@ -97,6 +102,7 @@ const AchievementRow = ({
           setEditing={setEditing}
           deleteAction={handleDelete}
           formName={formName}
+          disableDelete={disableDelete}
         />
       </form>
       {createChild && (
@@ -164,7 +170,13 @@ export default function Page() {
       {Object.keys(achievements?.map).map((x) => {
         const achievementsData = achievements?.map[x];
         return achievementsData.map(
-          ({ id, name, children: achievementChildren, point_value }) => (
+          ({
+            id,
+            name,
+            children: achievementChildren,
+            point_value,
+            ...data
+          }) => (
             <AchievementRow
               key={id}
               id={id}
@@ -172,6 +184,7 @@ export default function Page() {
               name={name}
               point_value={point_value}
               achievementChildren={achievementChildren}
+              disableDelete={!!data?.slug}
             />
           )
         );
