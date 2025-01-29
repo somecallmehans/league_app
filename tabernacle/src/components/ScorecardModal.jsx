@@ -12,35 +12,29 @@ import {
 import { TextInput, CheckBoxInput, Selector } from "./FormInputs";
 import {
   useGetAchievementsQuery,
-  usePostRoundScoresMutation,
   useGetAllColorsQuery,
   useGetPodsAchievementsQuery,
   usePostUpsertEarnedV2Mutation,
 } from "../api/apiSlice";
-import {
-  formatInitialValues,
-  formatUpdate,
-  getWinSlug,
-} from "../helpers/formHelpers";
-import { ColorCheckboxes, colorIdFinder } from "./ColorInputs";
+import { formatInitialValues, formatUpdate } from "../helpers/formHelpers";
+import { ColorCheckboxes } from "./ColorInputs";
 import LoadingSpinner from "./LoadingSpinner";
 
 const slugRegex = /win-\d-colors/i;
 
 const ScorecardFormFields = ({
   focusedPod,
-  // sessionId,
+  sessionId,
   roundId,
   closeModal,
   initialValues,
   podData,
   refetch,
 }) => {
-  // const [postRoundScores] = usePostRoundScoresMutation();
   const [postUpsertEarnedV2] = usePostUpsertEarnedV2Mutation();
   const { data: colorsData, isLoading: colorsLoading } = useGetAllColorsQuery();
   const { data: achievementData, isLoading } = useGetAchievementsQuery();
-  const focusedIds = focusedPod?.participants?.map((p) => p.id);
+  const focusedIds = focusedPod?.participants?.map((p) => p?.participant_id);
 
   const {
     control,
@@ -49,7 +43,7 @@ const ScorecardFormFields = ({
     watch,
   } = useForm({ defaultValues: initialValues });
 
-  const { endInDraw } = watch();
+  const { "end-draw": endInDraw } = watch();
 
   if (isLoading || colorsLoading) {
     return null;
@@ -69,127 +63,12 @@ const ScorecardFormFields = ({
       new: true,
     }));
 
-  // const handleFormSubmit = async (formData) => {
-  //   // each of these is a list of participants except for:
-  //   // winner is a participant dict
-  //   // winnerDeckbuildingAchievements is a list of achievements
-  //   const {
-  //     "bring-snack": snack = [],
-  //     "lend-deck": loanedDeck = [],
-  //     "knock-out": knockOuts = [],
-  //     "submit-to-discord": shareToDiscord = [],
-  //     winner,
-  //     "last-in-order": lastInTurnOrder,
-  //     "commander-damage": commanderDamage,
-  //     "win-the-game-effect": winTheGameEffect,
-  //     "zero-or-less-life": zeroOrLessLife,
-  //     "lose-the-game-effect": loseTheGameEffect,
-  //     "winner-commander": winnersCommander,
-  //     "winner-achievements": winnerDeckbuildingAchievements = [],
-  //     colors,
-  //     "end-draw": endInDraw,
-  //   } = formData;
-
-  //   const colorId = colorIdFinder(colors, colorsData);
-
-  //   let winSlug = "";
-  //   // Precon wins are always worth +2 points no matter what, so if we have that
-  //   // we can just give them the 3 win colors for now
-  //   if (
-  //     winnerDeckbuildingAchievements.some(({ name }) => name.includes("precon"))
-  //   ) {
-  //     winSlug = "win-3-colors";
-  //   } else {
-  //     winSlug = getWinSlug(colors);
-  //   }
-
-  //   const boolConditions = [
-  //     { condition: lastInTurnOrder, slug: "last-in-order" },
-  //     { condition: commanderDamage, slug: "commander-damage" },
-  //     { condition: winTheGameEffect, slug: "win-the-game-effect" },
-  //     { condition: zeroOrLessLife, slug: "zero-or-less-life" },
-  //     { condition: loseTheGameEffect, slug: "lose-the-game-effect" },
-  //   ];
-
-  //   const participantAchievementMap = endInDraw
-  //     ? focusedPod.participants.reduce((acc, { participant_id }) => {
-  //         acc[participant_id] = {
-  //           id: participant_id,
-  //           slugs: ["end-draw"],
-  //           achievements: [],
-  //         };
-  //         return acc;
-  //       }, {})
-  //     : {
-  //         [winner?.participant_id]: {
-  //           id: winner?.participant_id,
-  //           slugs: [winSlug],
-  //           achievements: [],
-  //         },
-  //       };
-
-  //   const addAchievements = (participants, slug) => {
-  //     participants.forEach(({ participant_id }) => {
-  //       const entry = participantAchievementMap[participant_id] || {
-  //         id: participant_id,
-  //         slugs: [],
-  //         achievements: [],
-  //       };
-  //       entry.slugs.push(slug);
-  //       participantAchievementMap[participant_id] = entry;
-  //     });
-  //   };
-
-  //   addAchievements(snack, "bring-snack");
-  //   addAchievements(loanedDeck, "lend-deck");
-  //   addAchievements(knockOuts, "knock-out");
-  //   addAchievements(shareToDiscord, "submit-to-discord");
-
-  //   winnerDeckbuildingAchievements.forEach(({ achievement_id }) =>
-  //     participantAchievementMap[winner?.participant_id]["achievements"].push(
-  //       achievement_id
-  //     )
-  //   );
-
-  //   boolConditions.forEach(({ condition, slug }) => {
-  //     if (condition && slug) {
-  //       participantAchievementMap[winner?.participant_id]["slugs"].push(slug);
-  //     }
-  //   });
-
-  //   const participantList = Object.keys(participantAchievementMap).map(
-  //     (x) => participantAchievementMap[x]
-  //   );
-
-  //   const winnerInfo = endInDraw
-  //     ? null
-  //     : {
-  //         winner_id: winner?.participant_id,
-  //         color_id: colorId,
-  //         commander_name: winnersCommander,
-  //       };
-
-  //   const formattedData = {
-  //     round: roundId,
-  //     session: sessionId,
-  //     pod: focusedPod?.id,
-  //     winnerInfo: winnerInfo,
-  //     participants: participantList,
-  //   };
-
-  //   try {
-  //     await postRoundScores(formattedData).unwrap();
-  //     closeModal();
-  //   } catch (err) {
-  //     console.error("Failed to post round scores: ", err);
-  //   }
-  // };
-
   const handleFormSubmit = async (formData) => {
     const updates = formatUpdate(
       formData,
       podData,
       roundId,
+      sessionId,
       colorsData,
       focusedIds,
       focusedPod?.id

@@ -19,7 +19,7 @@ const disableColorBoxes = (colors, currColor) => {
 };
 
 export const ColorCheckboxes = ({ control, watch }) => {
-  const { colors, endInDraw } = watch();
+  const { colors, "end-draw": endInDraw } = watch();
   return (
     <div className="flex justify-between mb-2">
       {colorKeys.map((color) => {

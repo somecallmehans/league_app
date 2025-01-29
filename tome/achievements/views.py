@@ -244,6 +244,8 @@ def upsert_participant_achievements_v2(request):
     update = body.get("update", [])
     winner = body.get("winnerInfo", None)
 
+    pod = Pods.objects.get(id=winner["pod_id"])
+
     updated_objects = []
     created_objs = []
 
@@ -282,7 +284,11 @@ def upsert_participant_achievements_v2(request):
         all_achievements = Achievements.objects.filter(
             Q(slug__in=slugs) | Q(id__in=ids)
         )
-        achievement_dict = {a.slug or a.id: a for a in all_achievements}
+
+        achievement_dict = {
+            a.slug if a.slug and a.slug != "precon" else a.id: a
+            for a in all_achievements
+        }
 
         for record in new:
             if record.get("slug"):
@@ -292,6 +298,7 @@ def upsert_participant_achievements_v2(request):
                     participant_id=record["participant_id"],
                     achievement_id=achievement.id,
                     round_id=record["round_id"],
+                    session_id=record["session_id"],
                     earned_points=achievement.points,
                 )
                 created_objs.append(r)
@@ -302,6 +309,7 @@ def upsert_participant_achievements_v2(request):
                 participant_id=record["participant_id"],
                 achievement_id=record["achievement_id"],
                 round_id=record["round_id"],
+                session_id=record["session_id"],
                 earned_points=achievement.points,
             )
             created_objs.append(r)
@@ -321,5 +329,8 @@ def upsert_participant_achievements_v2(request):
             )
         if len(created_objs) > 0:
             ParticipantAchievements.objects.bulk_create(created_objs)
+            if not pod.submitted:
+                pod.submitted = True
+                pod.save()
 
     return Response({"message": "success"}, status=status.HTTP_201_CREATED)

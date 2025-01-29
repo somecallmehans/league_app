@@ -16,7 +16,10 @@ export const getWinSlug = (colorObj) => {
 
 function composeDeckbuildingAchievements(achievements, winnerId) {
   return achievements
-    .filter(({ participant_id, slug }) => participant_id === winnerId && !slug)
+    .filter(
+      ({ participant_id, slug }) =>
+        participant_id === winnerId && (!slug || slug === "precon")
+    )
     .map(({ id, achievement_id, achievement_name }) => ({
       id,
       achievement_id,
@@ -128,6 +131,7 @@ export function formatUpdate(
   newValues,
   existingValues,
   roundId,
+  sessionId,
   colorsData,
   participantIds,
   podId
@@ -152,6 +156,7 @@ export function formatUpdate(
           slug: key,
           participant_id: v?.participant_id,
           round_id: roundId,
+          session_id: sessionId,
         });
       }
     });
@@ -189,6 +194,7 @@ export function formatUpdate(
         participant_id: p,
         slug: "end-draw",
         round_id: roundId,
+        session_id: sessionId,
       })
     );
 
@@ -253,6 +259,7 @@ export function formatUpdate(
         slug: key,
         participant_id: winnerId,
         round_id: roundId,
+        session_id: sessionId,
       });
     }
 
@@ -268,25 +275,24 @@ export function formatUpdate(
   const foundWin = existingAchievements.find(({ slug }) =>
     winSlugs.includes(slug)
   );
-  const preconWin =
-    submittedAchievements?.findIndex(({ slug }) => slug === "precon") > 0;
 
   if (foundWin?.existingWinSlug && newWinSlug !== foundWin?.existingWinSlug) {
     out.update.push({
       id: foundWin?.id,
-      slug: preconWin ? "win-3-colors" : newWinSlug,
+      slug: newWinSlug,
     });
   } else if (newWinSlug && !foundWin?.existingWinSlug) {
     out.new.push({
       participant_id: winnerId,
-      slug: preconWin ? "win-3-colors" : newWinSlug,
+      slug: newWinSlug,
       round_id: roundId,
+      session_id: sessionId,
     });
   }
 
   // handle achievements that are pickable
   const existingIds = existingAchievements
-    ?.filter(({ slug }) => !slug)
+    ?.filter(({ slug }) => !slug || slug === "precon")
     .map((x) => x.id);
 
   submittedAchievements.forEach((a) => {
@@ -295,6 +301,7 @@ export function formatUpdate(
         achievement_id: a.achievement_id,
         participant_id: winnerId,
         round_id: roundId,
+        session_id: sessionId,
       });
     }
   });
