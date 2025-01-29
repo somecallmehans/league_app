@@ -59,7 +59,7 @@ export default function PointsModal({ isOpen, closeModal, selected }) {
                   <span>Points for {participant}</span>
                   <span>{round_points} Round Points</span>
                 </DialogTitle>
-                <DialogTitle>TODO: NEW ENDPOINT TO SHOW THIS INFO</DialogTitle>
+                <div className="border-b mb-2" />
                 {achievements.map(
                   ({ achievement: { full_name }, earned_points }, index) => (
                     <div

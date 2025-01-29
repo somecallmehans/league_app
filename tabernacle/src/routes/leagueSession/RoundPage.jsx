@@ -59,6 +59,13 @@ function Pods({
                   openModal(participants, id, winner_info, submitted)
                 }
               />
+              <div
+                className={`ml-4 text-sm p-2 rounded-lg text-white ${
+                  submitted ? "bg-sky-500" : "bg-green-500"
+                }`}
+              >
+                {submitted ? "Submitted" : "Open"}
+              </div>
             </div>
             <div className="shadow-lg border border-blue-300 grid grid-cols-1 sm:grid-cols-2 overflow-y-auto">
               {participants.map(
