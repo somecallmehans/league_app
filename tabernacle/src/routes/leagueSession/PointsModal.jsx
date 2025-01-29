@@ -8,9 +8,23 @@ import {
   TransitionChild,
 } from "@headlessui/react";
 
+import { useGetAchievementRoundQuery } from "../../api/apiSlice";
+import LoadingSpinner from "../../components/LoadingSpinner";
+
 export default function PointsModal({ isOpen, closeModal, selected }) {
   if (!selected) return null;
-  const { participant, round_points } = selected;
+  const { participant, round_points, participant_id, roundId } = selected;
+
+  const { data, isLoading: achievementsLoading } = useGetAchievementRoundQuery({
+    participant_id: participant_id,
+    round_id: roundId,
+  });
+
+  if (achievementsLoading) {
+    return <LoadingSpinner />;
+  }
+
+  const { achievements } = data;
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -46,25 +60,25 @@ export default function PointsModal({ isOpen, closeModal, selected }) {
                   <span>{round_points} Round Points</span>
                 </DialogTitle>
                 <DialogTitle>TODO: NEW ENDPOINT TO SHOW THIS INFO</DialogTitle>
-                {/* 
-                TODO: This is getting separated from the get_pods endpoint
-                {achievements.map(({ name, earned_points }, index) => (
-                  <div
-                    key={index}
-                    className={`grid grid-cols-4 gap-4 items-center ${
-                      index < achievements.length - 1
-                        ? "border-b border-gray-300 pb-2 mb-2"
-                        : ""
-                    }`}
-                  >
-                    <div className="col-span-3 text-left text-gray-800 font-medium">
-                      {name}
+                {achievements.map(
+                  ({ achievement: { full_name }, earned_points }, index) => (
+                    <div
+                      key={index}
+                      className={`grid grid-cols-4 gap-4 items-center ${
+                        index < achievements.length - 1
+                          ? "border-b border-gray-300 pb-2 mb-2"
+                          : ""
+                      }`}
+                    >
+                      <div className="col-span-3 text-left text-gray-800 font-medium">
+                        {full_name}
+                      </div>
+                      <div className="col-span-1 text-right text-gray-600 font-bold">
+                        {earned_points} points
+                      </div>
                     </div>
-                    <div className="col-span-1 text-right text-gray-600 font-bold">
-                      {earned_points} points
-                    </div>
-                  </div>
-                ))} */}
+                  )
+                )}
               </DialogPanel>
             </TransitionChild>
           </div>

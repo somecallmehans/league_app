@@ -4,6 +4,8 @@ from datetime import datetime
 
 from django.db import transaction
 from django.db.models import Q
+from django.core.exceptions import ObjectDoesNotExist
+
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import (
@@ -16,7 +18,10 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .models import Achievements, Colors
 from users.models import ParticipantAchievements
-from users.serializers import ParticipantsAchievementsSerializer
+from users.serializers import (
+    ParticipantsAchievementsSerializer,
+    ParticipantsAchievementsFullModelSerializer,
+)
 from sessions_rounds.models import Pods, Sessions
 from .serializers import AchievementsSerializer, ColorsSerializer
 from achievements.models import Achievements, WinningCommanders
@@ -334,3 +339,37 @@ def upsert_participant_achievements_v2(request):
                 pod.save()
 
     return Response({"message": "success"}, status=status.HTTP_201_CREATED)
+
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def get_participant_round_achievements(request, participant_id, round_id):
+    """Get all achievements + points for a participant in a particular round."""
+    try:
+        out_dict = {"total_points": 0}
+        achievements_for_round = ParticipantAchievements.objects.filter(
+            participant_id=participant_id, round_id=round_id
+        )
+        for achievement in achievements_for_round:
+            out_dict["total_points"] = (
+                out_dict["total_points"] + achievement.earned_points
+            )
+
+        out_dict["achievements"] = ParticipantsAchievementsFullModelSerializer(
+            achievements_for_round, many=True
+        ).data
+
+    except ObjectDoesNotExist:
+        return Response(
+            {"error": "Invalid participant or round ID."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    except Exception as e:
+        return Response(
+            {"error": f"An unexpected error occurred: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+    return Response(out_dict, status=status.HTTP_200_OK)

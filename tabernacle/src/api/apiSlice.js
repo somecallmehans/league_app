@@ -50,7 +50,14 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
 export const apiSlice = createApi({
   reducerPath: "api",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["Sessions", "Pods", "Participants", "Achievements", "Earned"],
+  tagTypes: [
+    "Sessions",
+    "Pods",
+    "Participants",
+    "Achievements",
+    "Earned",
+    "PodsAchievements",
+  ],
   endpoints: (builder) => ({
     ...getRoutes(builder),
     ...postRoutes(builder),
@@ -71,6 +78,7 @@ export const {
   useGetUniqueMonthsQuery,
   useGetMetricsQuery,
   useGetPodsAchievementsQuery,
+  useGetAchievementRoundQuery,
 
   // POSTS
   usePostCreateSessionMutation,

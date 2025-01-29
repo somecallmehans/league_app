@@ -8,9 +8,15 @@ from .views import (
     upsert_participant_achievements,
     get_achievements_by_participant_month,
     upsert_participant_achievements_v2,
+    get_participant_round_achievements,
 )
 
 urlpatterns = [
+    path(
+        "get_participant_round_achievements/<int:participant_id>/<int:round_id>/",
+        get_participant_round_achievements,
+        name="get_participant_round_achievements",
+    ),
     path(
         "upsert_earned_v2/", upsert_participant_achievements_v2, name="upsert_earned_v2"
     ),

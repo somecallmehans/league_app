@@ -34,8 +34,8 @@ function Pods({
     return null;
   }
 
-  const handleOnClick = (participant, round_points) => {
-    setSelected({ participant, round_points });
+  const handleOnClick = (participant, round_points, participant_id) => {
+    setSelected({ participant, round_points, participant_id, roundId });
     setModalOpen(!modalOpen);
   };
 
@@ -77,7 +77,9 @@ function Pods({
                     <span className="text-xl md:text-xl">
                       <a
                         className="hover:text-sky-500"
-                        onClick={() => handleOnClick(name, round_points)}
+                        onClick={() =>
+                          handleOnClick(name, round_points, participant_id)
+                        }
                       >
                         {name}
                       </a>
@@ -101,7 +103,6 @@ function Pods({
         focusedPod={focusedPod}
         sessionId={sessionId}
         roundId={roundId}
-        // initialValues={formatInitialValues(focusedPod)}
       />
       <PointsModal
         isOpen={modalOpen}
