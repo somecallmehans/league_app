@@ -1,4 +1,4 @@
-import React, { Fragment } from "react";
+import React, { Fragment, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 
 import StandardButton from "./Button";
@@ -41,7 +41,12 @@ const ScorecardFormFields = ({
     handleSubmit,
     formState: { isSubmitting, errors },
     watch,
+    reset,
   } = useForm({ defaultValues: initialValues });
+
+  useEffect(() => {
+    reset(initialValues);
+  }, [focusedPod, initialValues, reset]);
 
   const { "end-draw": endInDraw } = watch();
 
@@ -50,7 +55,6 @@ const ScorecardFormFields = ({
   }
 
   let counter = 0;
-
   // achievements that get passed in as initial values won't have
   // "new", so we set it here for future reference
   const filteredAchievementData = achievementData.data
@@ -268,6 +272,7 @@ export default function ScorecardModal({
       skip: !focusedPod?.id,
     }
   );
+
   if (!focusedPod) {
     return null;
   }
