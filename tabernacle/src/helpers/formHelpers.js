@@ -141,7 +141,7 @@ export function formatUpdate(
   // move most if not all of this logic into the backend
   // bc trying to pinpoint and update a specific PA record w/ a win
   // is difficult and a little mangled from this part of the logic
-  const existingAchievements = existingValues?.pod_achievements;
+  const existingAchievements = existingValues.pod_achievements;
   const existingCommander = existingValues?.winning_commander;
   const out = { new: [], update: [] };
 
@@ -151,7 +151,7 @@ export function formatUpdate(
     const newValIds = newVals
       .filter((n) => n?.earned_id)
       .map((n) => n?.earned_id);
-    const existingVals = existingValues.pod_achievements
+    const existingVals = existingAchievements
       .filter((v) => v.slug === key)
       .map((v) => v.id);
 
@@ -278,7 +278,7 @@ export function formatUpdate(
   // handle winner achievements that are bool centric
   winnerBoolSlugs.forEach((key) => {
     const newVal = newValues[key];
-    const existingId = existingValues.pod_achievements
+    const existingId = existingAchievements
       .filter((v) => v.slug === key)
       .map((v) => v.id);
 
@@ -327,13 +327,22 @@ export function formatUpdate(
   const newWinSlug = getWinSlug(newValues["colors"]);
   // 9/10 a slug should be used to find this achievement
   // but im tired and frustrated so im hardcoding the ID
-  const preconWin = submittedAchievements.find(({ id }) => id === 2);
+  const preconWin = submittedAchievements.find(
+    ({ achievement_id }) => achievement_id === 2
+  );
 
   out.winInfo = {
     participant_id: winnerId,
-    slug: !preconWin ? undefined : newWinSlug,
-    deleted: !preconWin ? true : false,
   };
+
+  if (preconWin) {
+    out.winInfo.slug = undefined;
+    out.winInfo.deleted = true;
+  }
+
+  if (!preconWin) {
+    out.winInfo.slug = newWinSlug;
+  }
 
   return out;
 }
