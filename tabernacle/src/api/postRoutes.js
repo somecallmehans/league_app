@@ -62,6 +62,7 @@ export default (builder) => ({
     invalidatesTags: (result, error, body) => [
       { type: "PodsAchievements", id: `${body.round_id}-${body.pod_id}` },
       "Pods",
+      "Earned",
     ],
   }),
 });

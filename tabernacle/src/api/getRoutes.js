@@ -43,5 +43,6 @@ export default (builder) => ({
   getAchievementRound: builder.query({
     query: ({ participant_id, round_id }) =>
       `get_participant_round_achievements/${participant_id}/${round_id}/`,
+    providesTags: ["Earned"],
   }),
 });
