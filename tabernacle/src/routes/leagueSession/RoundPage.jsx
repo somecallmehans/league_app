@@ -134,6 +134,7 @@ const CheckedInRow = ({ participant, checkNumber, removeParticipant, idx }) => (
 
 function RoundLobby({ roundId, sessionId, previousRoundId }) {
   const [postBeginRound] = usePostBeginRoundMutation();
+  const [isLocked, setIsLocked] = useState(false);
   const { data: previousPodsData, isLoading: isLoadingPods } = useGetPodsQuery(
     previousRoundId,
     {
@@ -141,14 +142,7 @@ function RoundLobby({ roundId, sessionId, previousRoundId }) {
     }
   );
   const { data: participantsData, isLoading } = useGetParticipantsQuery();
-  const {
-    handleSubmit,
-    control,
-    setValue,
-    watch,
-    reset,
-    formState: { isSubmitting },
-  } = useForm({
+  const { handleSubmit, control, setValue, watch, reset } = useForm({
     defaultValues: {
       participants: [],
     },
@@ -186,6 +180,7 @@ function RoundLobby({ roundId, sessionId, previousRoundId }) {
 
   const onSubmit = async () => {
     try {
+      setIsLocked(true);
       const normalizedParticipants = selectedParticipants.map((p) => ({
         name: p?.label,
         id: p?.value,
@@ -197,6 +192,7 @@ function RoundLobby({ roundId, sessionId, previousRoundId }) {
       }).unwrap();
     } catch (err) {
       console.error("Failed to begin round: ", err);
+      setIsLocked(false);
     }
   };
 
@@ -245,7 +241,7 @@ function RoundLobby({ roundId, sessionId, previousRoundId }) {
             />
           )}
         />
-        <StandardButton disabled={isSubmitting} type="submit" title="Submit" />
+        <StandardButton disabled={isLocked} type="submit" title="Submit" />
       </form>
       <div className="mt-4 text-xl flex justify-center">
         <span>
