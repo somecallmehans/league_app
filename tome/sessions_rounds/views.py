@@ -143,8 +143,9 @@ def begin_round(request):
 def get_pods(_, round):
     """Get the pods that were made for a given round."""
     round_obj = Rounds.objects.get(id=round)
-    all_pods = Pods.objects.filter(rounds_id=round)
+    all_pods = Pods.objects.filter(rounds_id=round, deleted=False)
     winners_by_pod = WinningCommandersSerializer.by_pods(all_pods)
+
     pods_participants = PodsParticipants.objects.filter(
         pods_id__in=[x.id for x in all_pods]
     )
