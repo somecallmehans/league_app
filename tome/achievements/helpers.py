@@ -128,3 +128,40 @@ def all_participant_achievements_for_month(session_id):
         result.append(participant_data)
 
     return result
+
+
+def handle_pod_win(winner, info, round_id):
+    """Handle scenarios where it would be prudent to update or create
+    a PA record specifically for a win."""
+    winAchievement = None
+    if info.get("slug"):
+        winAchievement = Achievements.objects.filter(slug=info.get("slug")).first()
+
+    win_record = (
+        ParticipantAchievements.objects.filter(
+            round_id=round_id,
+            achievement__slug__endswith="-colors",
+            deleted=False,
+        )
+        .select_related("achievement")
+        .first()
+    )
+
+    if not win_record:
+        if winAchievement:
+            ParticipantAchievements.objects.create(
+                participant_id=info.get("participant_id"),
+                round_id=round_id,
+                session_id=winner.get("session_id"),
+                achievement_id=winAchievement.id,
+                earned_points=winAchievement.points,
+            )
+        return
+
+    if info.get("deleted"):
+        win_record.deleted = info.get("deleted", False)
+
+    if winAchievement is not None and info.get("participant_id"):
+        win_record.achievement_id = winAchievement.id
+        win_record.participant_id = info.get("participant_id", None)
+    win_record.save()

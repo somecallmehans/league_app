@@ -30,6 +30,7 @@ from achievements.helpers import (
     AchievementCleaverService,
     all_participant_achievements_for_month,
     group_parents_by_point_value,
+    handle_pod_win,
 )
 
 
@@ -248,11 +249,15 @@ def upsert_participant_achievements_v2(request):
     new = body.get("new", [])
     update = body.get("update", [])
     winner = body.get("winnerInfo", None)
+    winInfo = body.get("winInfo", None)
 
+    # this should always exist
     pod = Pods.objects.get(id=winner["pod_id"])
 
     updated_objects = []
     created_objs = []
+
+    handle_pod_win(winner=winner, info=winInfo, round_id=pod.rounds_id)
 
     if len(update) > 0:
         update_ids = [x["id"] for x in update]
@@ -270,6 +275,7 @@ def upsert_participant_achievements_v2(request):
             if record:
                 obj.deleted = record.get("deleted", False)
                 slug = record.get("slug")
+                # participant_id isn't properly getting updated on the PA record
                 if slug:
                     achievement = slug_to_achievement.get(slug)
                     if not achievement:
@@ -279,6 +285,7 @@ def upsert_participant_achievements_v2(request):
                             },
                             status=status.HTTP_400_BAD_REQUEST,
                         )
+
                     obj.achievement = achievement
                 updated_objects.append(obj)
 
@@ -319,14 +326,13 @@ def upsert_participant_achievements_v2(request):
             )
             created_objs.append(r)
 
-    if winner:
-        WinningCommanders(
-            id=winner.get("id", None),
-            name=winner["commander_name"],
-            colors_id=winner["color_id"],
-            participants_id=winner["participant_id"],
-            pods_id=winner["pod_id"],
-        ).save()
+    WinningCommanders(
+        id=winner.get("id", None),
+        name=winner["commander_name"],
+        colors_id=winner["color_id"],
+        participants_id=winner["participant_id"],
+        pods_id=winner["pod_id"],
+    ).save()
     with transaction.atomic():
         if len(updated_objects) > 0:
             ParticipantAchievements.objects.bulk_update(
@@ -349,7 +355,7 @@ def get_participant_round_achievements(request, participant_id, round_id):
     try:
         out_dict = {"total_points": 0}
         achievements_for_round = ParticipantAchievements.objects.filter(
-            participant_id=participant_id, round_id=round_id
+            participant_id=participant_id, round_id=round_id, deleted=False
         )
         for achievement in achievements_for_round:
             out_dict["total_points"] = (

@@ -18,7 +18,8 @@ function composeDeckbuildingAchievements(achievements, winnerId) {
   return achievements
     .filter(
       ({ participant_id, slug }) =>
-        participant_id === winnerId && (!slug || slug === "precon")
+        participant_id === winnerId &&
+        (!slug || slug === "precon" || slug === "-colors")
     )
     .map(({ id, achievement_id, achievement_name }) => ({
       id,
@@ -136,6 +137,10 @@ export function formatUpdate(
   participantIds,
   podId
 ) {
+  // the actual todo
+  // move most if not all of this logic into the backend
+  // bc trying to pinpoint and update a specific PA record w/ a win
+  // is difficult and a little mangled from this part of the logic
   const existingAchievements = existingValues?.pod_achievements;
   const existingCommander = existingValues?.winning_commander;
   const out = { new: [], update: [] };
@@ -184,6 +189,7 @@ export function formatUpdate(
       ?.filter(
         (pa) =>
           !pa.slug ||
+          pa.slug === "precon" ||
           winnerBoolSlugs.includes(pa?.slug) ||
           winSlugs.includes(pa?.slug)
       )
@@ -206,6 +212,10 @@ export function formatUpdate(
       pod_id: podId,
     };
 
+    out.winInfo = {
+      deleted: true,
+    };
+
     return out;
   }
 
@@ -226,25 +236,43 @@ export function formatUpdate(
   }
 
   // If we never heard of a draw, we must have a winner and can proceed as normal
-  const winnerId =
-    newValues?.winner?.participant_id === existingCommander?.participants?.id
-      ? existingCommander?.participants?.id
-      : newValues?.winner?.participant_id;
-
-  const commanderName =
-    newValues["winner-commander"] === existingCommander?.name
-      ? existingCommander?.name
-      : newValues?.["winner-commander"];
 
   // jk bc if the winner changes than we ALSO have to remove all of the previous
   // winners achievements also
+  const winnerIsDifferent =
+    newValues?.winner?.participant_id !== existingCommander?.participants?.id;
+  let winnerId = existingCommander?.participants?.id;
+  if (winnerIsDifferent) {
+    winnerId = newValues?.winner?.participant_id;
+    existingAchievements
+      .filter(
+        (ach) =>
+          // do we have a slug, or is the slug precon
+          !ach.slug ||
+          ach.slug === "precon" ||
+          winnerBoolSlugs.includes(ach.slug)
+      )
+      .forEach((ach) =>
+        out.update.push({
+          id: ach.id,
+          deleted: true,
+        })
+      );
+  }
+
+  const commanderName =
+    newValues["winner-commander"] !== existingCommander?.name
+      ? newValues?.["winner-commander"]
+      : existingCommander?.name;
 
   out.winnerInfo = {
+    // existingCommander.id is a ref to the row
     id: existingCommander?.id,
     participant_id: winnerId,
     color_id: colorIdFinder(newValues?.colors, colorsData),
     commander_name: commanderName,
     pod_id: podId,
+    session_id: sessionId,
   };
 
   // handle winner achievements that are bool centric
@@ -270,26 +298,6 @@ export function formatUpdate(
 
   const submittedAchievements = newValues["winner-achievements"];
 
-  // handle if the win has changed or not
-  const newWinSlug = getWinSlug(newValues["colors"]);
-  const foundWin = existingAchievements.find(({ slug }) =>
-    winSlugs.includes(slug)
-  );
-
-  if (foundWin?.existingWinSlug && newWinSlug !== foundWin?.existingWinSlug) {
-    out.update.push({
-      id: foundWin?.id,
-      slug: newWinSlug,
-    });
-  } else if (newWinSlug && !foundWin?.existingWinSlug) {
-    out.new.push({
-      participant_id: winnerId,
-      slug: newWinSlug,
-      round_id: roundId,
-      session_id: sessionId,
-    });
-  }
-
   // handle achievements that are pickable
   const existingIds = existingAchievements
     ?.filter(({ slug }) => !slug || slug === "precon")
@@ -314,6 +322,18 @@ export function formatUpdate(
       });
     }
   });
+
+  // handle if the win has changed or not
+  const newWinSlug = getWinSlug(newValues["colors"]);
+  // 9/10 a slug should be used to find this achievement
+  // but im tired and frustrated so im hardcoding the ID
+  const preconWin = submittedAchievements.find(({ id }) => id === 2);
+
+  out.winInfo = {
+    participant_id: winnerId,
+    slug: !preconWin ? undefined : newWinSlug,
+    deleted: !preconWin ? true : false,
+  };
 
   return out;
 }
