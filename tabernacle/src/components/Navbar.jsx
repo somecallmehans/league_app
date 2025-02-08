@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import LoginPopover from "./LoginPopover";
 
 const navLinks = [
   { id: 1, name: "Home", to: "/", admin: false },
-  { id: 2, name: "FAQ", to: "/faq", admin: false },
+  { id: 2, name: "Info", to: "/info", admin: false },
   { id: 3, name: "Leaderboard", to: "/leaderboard", admin: false },
   { id: 4, name: "Achievements", to: "/achievements", admin: false },
   {
@@ -23,6 +23,7 @@ const navLinks = [
 
 export default function Navbar({ loggedIn, setLoggedIn }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { pathname } = useLocation();
   return (
     <nav className="text-slate-50 bg-slate-800">
       <div className="container mx-auto flex items-center justify-between p-4">
@@ -41,7 +42,9 @@ export default function Navbar({ loggedIn, setLoggedIn }) {
             .map(({ id, name, to }) => (
               <NavLink
                 key={id}
-                className="text-slate-50 text-2xl hover:text-sky-200 hover:underline "
+                className={`${
+                  pathname === to ? "underline text-sky-300" : ""
+                } text-xl hover:text-sky-200 hover:underline`}
                 to={to}
               >
                 {name}
