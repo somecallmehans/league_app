@@ -141,10 +141,17 @@ export const faqInfo = [
           such that players can easily distinguish them from across the table.
         </p>
         <p className="mb-2">
-          <a href="https://mtgprint.net/">MTG Print</a> is a useful resource for
-          formatting proxy prints and Mimic’s Market offers color printing at a
-          reasonable price! League participants also periodically order
-          high-quality proxies as a group - ask around!
+          <a
+            className="text-sky-500 hover:text-sky-300"
+            href="https://mtgprint.net/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            MTG Print
+          </a>{" "}
+          is a useful resource for formatting proxy prints and Mimic’s Market
+          offers color printing at a reasonable price! League participants also
+          periodically order high-quality proxies as a group - ask around!
         </p>
       </div>
     ),
