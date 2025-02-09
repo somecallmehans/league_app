@@ -43,7 +43,7 @@ export default function Navbar({ loggedIn, setLoggedIn }) {
               <NavLink
                 key={id}
                 className={`${
-                  pathname === to ? "underline text-sky-300" : ""
+                  pathname === to ? "text-sky-300" : ""
                 } text-xl hover:text-sky-200 hover:underline`}
                 to={to}
               >

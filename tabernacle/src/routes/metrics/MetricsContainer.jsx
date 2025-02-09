@@ -8,14 +8,20 @@ import ColorBarChart from "./ColorBarChart";
 import AchievementBarChart from "./AchievementBarChart";
 
 const colorMap = {
-  1: "rgba(31, 119, 180, 0.8)",
-  2: "rgba(255, 127, 14, 0.8)",
-  3: "rgba(44, 160, 44, 0.8)",
-  4: "rgba(148, 103, 189, 0.8)",
-  5: "rgba(140, 86, 75, 0.8)",
-  6: "rgba(255, 71, 76, 0.8)",
-  8: "rgba(188, 189, 34, 0.8)",
-  16: "rgba(23, 190, 207, 0.8)",
+  1: "rgba(31, 119, 180, 0.8)", // Blue
+  2: "rgba(255, 127, 14, 0.8)", // Orange
+  3: "rgba(44, 160, 44, 0.8)", // Green
+  4: "rgba(148, 103, 189, 0.8)", // Purple
+  5: "rgba(140, 86, 75, 0.8)", // Brown
+  6: "rgba(255, 71, 76, 0.8)", // Red
+  8: "rgba(188, 189, 34, 0.8)", // Yellow
+  9: "rgba(227, 119, 194, 0.8)", // Pink
+  12: "rgba(127, 127, 127, 0.8)", // Gray
+  15: "rgba(255, 165, 0, 0.8)", // Deep Orange
+  16: "rgba(23, 190, 207, 0.8)", // Cyan
+  18: "rgba(0, 128, 128, 0.8)", // Teal
+  21: "rgba(75, 0, 130, 0.8)", // Indigo
+  24: "rgba(128, 0, 128, 0.8)", // Dark Purple
 };
 
 const AchievementBarTitle = () => (
