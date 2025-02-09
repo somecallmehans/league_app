@@ -188,6 +188,14 @@ const ScorecardFormFields = ({
         isMulti
       />
       <Selector
+        name="shareToDiscord"
+        control={control}
+        options={focusedPod.participants}
+        placeholder="Did anyone use a decklist for the first time that has been shared on discord?"
+        classes="mb-2"
+        isMulti
+      />
+      <Selector
         name="loanedDeck"
         control={control}
         options={focusedPod.participants}
@@ -200,14 +208,6 @@ const ScorecardFormFields = ({
         control={control}
         options={focusedPod.participants}
         placeholder="Did anyone who did not win knock out other players?"
-        classes="mb-2"
-        isMulti
-      />
-      <Selector
-        name="shareToDiscord"
-        control={control}
-        options={focusedPod.participants}
-        placeholder="Did anyone use a decklist for the first time that has been shared on discord?"
         classes="mb-2"
         isMulti
       />
