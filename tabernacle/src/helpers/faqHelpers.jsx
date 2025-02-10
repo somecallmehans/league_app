@@ -1,5 +1,108 @@
 import React from "react";
 
+export const resourceInfo = [
+  {
+    id: 1,
+    title: "Shared Decklists",
+    Component: () => (
+      <div className="py-2">
+        <p className="mb-2">
+          If you&apos;d like opportunity to win more points during league, be
+          sure to submit your decklist to{" "}
+          <a
+            className="text-sky-500 hover:text-sky-300"
+            href="https://docs.google.com/document/d/1OoR3nKuWdfuEOzegfyM4QuPZFXtYOi-fsrKGOGlplpM/edit?tab=t.0"
+            target="_blank"
+            rel="noreferrer"
+          >
+            our shared league decklist page.
+          </a>
+        </p>
+        <p className="mb-2">
+          Please note: you <b>MUST</b> share your decklist in the
+          mtg-commander-league channel on the official{" "}
+          <a
+            className="text-sky-500 hover:text-sky-300"
+            href="https://discord.gg/zmfQbzmU7u"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Mimic&apos;s Market Discord Server
+          </a>{" "}
+          to be elligible for this achievement.
+        </p>
+      </div>
+    ),
+  },
+  {
+    id: 2,
+    title: "Deckbuilding For Commander League 101 (by pogobat)",
+    Component: () => (
+      <div className="py-2">
+        <p className="mb-2">
+          Learn more about how to make engaging in Commander League&apos;s point
+          structure easier by{" "}
+          <a
+            className="text-sky-500 hover:text-sky-300"
+            href="https://youtu.be/YhOVOVesfY8?si=2zqfl_k_NwvNk818"
+            target="_blank"
+            rel="noreferrer"
+          >
+            checking out this 30 minute video lesson
+          </a>{" "}
+          by pogobat.
+        </p>
+        <p className="mb-2">In this video you&apos;ll learn:</p>
+        <ul>
+          <li className="italic text-sm">
+            - How to use Scryfall.com for advanced card queries
+          </li>
+          <li className="italic text-sm">
+            - How to use Moxfield.com to design decks
+          </li>
+          <li className="italic text-sm">
+            - How to copy/paste Scryfall queries into Moxfield so that you can
+            add search results to your deck with one click{" "}
+          </li>
+          <li className="italic text-sm">
+            - How to order search results by “EDHREC Rank” to save time finding
+            the best cards How to “Update to Cheapest” on Moxfield for our
+            budget achievements
+          </li>{" "}
+          <li className="italic text-sm">
+            - How Moxfield’s tagging system can help you understand your own
+            decks (and figure out what to cut)
+          </li>
+        </ul>
+      </div>
+    ),
+  },
+  //
+  {
+    id: 3,
+    title: "Decklist Point Tracker (by redwizard42)",
+    Component: () => (
+      <div className="py-2">
+        <p className="mb-2">
+          A tool for tallying the number of deckbuilding achievements a deck is
+          worth. Click <b>file</b> -{">"} <b>Make a copy</b> to create a copy
+          for personal use.
+        </p>
+        <p className="mb-2">
+          <a
+            className="text-sky-500 hover:text-sky-300"
+            href="https://docs.google.com/spreadsheets/d/1_5DisOFwnczODFYLu01vRSJ839GmUvJ7dNyVkvP5A3c/edit?gid=0#gid=0"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Link to the spreadsheet tool.
+          </a>
+        </p>
+      </div>
+    ),
+  },
+];
+
 export const faqInfo = [
   {
     id: 1,
@@ -38,10 +141,17 @@ export const faqInfo = [
           such that players can easily distinguish them from across the table.
         </p>
         <p className="mb-2">
-          <a href="https://mtgprint.net/">MTG Print</a> is a useful resource for
-          formatting proxy prints and Mimic’s Market offers color printing at a
-          reasonable price! League participants also periodically order
-          high-quality proxies as a group - ask around!
+          <a
+            className="text-sky-500 hover:text-sky-300"
+            href="https://mtgprint.net/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            MTG Print
+          </a>{" "}
+          is a useful resource for formatting proxy prints and Mimic’s Market
+          offers color printing at a reasonable price! League participants also
+          periodically order high-quality proxies as a group - ask around!
         </p>
       </div>
     ),
@@ -149,39 +259,6 @@ export const faqInfo = [
           >
             the Mimic’s Market Discord Server!
           </a>
-        </p>
-      </div>
-    ),
-  },
-  {
-    id: 7,
-    title: "Shared Decklists",
-    Component: () => (
-      <div className="py-2">
-        <p className="mb-2">
-          If you&apos;d like opportunity to win more points during league, be
-          sure to submit your decklist to{" "}
-          <a
-            className="text-sky-500 hover:text-sky-300"
-            href="https://docs.google.com/document/d/1OoR3nKuWdfuEOzegfyM4QuPZFXtYOi-fsrKGOGlplpM/edit?tab=t.0"
-            target="_blank"
-            rel="noreferrer"
-          >
-            our shared league decklist page.
-          </a>
-        </p>
-        <p className="mb-2">
-          Please note: you <b>MUST</b> share your decklist in the
-          mtg-commander-league channel on the official{" "}
-          <a
-            className="text-sky-500 hover:text-sky-300"
-            href="https://discord.gg/zmfQbzmU7u"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Mimic&apos;s Market Discord Server
-          </a>{" "}
-          to be elligible for this achievement.
         </p>
       </div>
     ),

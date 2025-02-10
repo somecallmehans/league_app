@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import PageTitle from "../../components/PageTitle";
-import { faqInfo } from "../../helpers/faqHelpers";
+import { faqInfo, resourceInfo } from "../../helpers/faqHelpers";
 
-const FaqRow = ({ title, Component }) => {
+const ResourceRow = ({ title, Component }) => {
   const [toggle, setToggle] = useState(false);
 
   return (
@@ -29,13 +29,22 @@ const FaqRow = ({ title, Component }) => {
   );
 };
 
-export default function FAQ() {
+export default function Resources() {
   return (
     <div className="p-4 md:p-8 min-h-screen bg-gradient-to-b from-white to-slate-50">
-      <PageTitle title="Frequently Asked Questions" />
+      <PageTitle title="League Information" />
+      <div className="bg-white shadow-md rounded-lg overflow-hidden p-4 mb-4">
+        <div className="text-2xl text-sky-600 mb-2">Resources</div>
+        {resourceInfo.map((faq) => (
+          <ResourceRow key={faq.id} {...faq} />
+        ))}
+      </div>
       <div className="bg-white shadow-md rounded-lg overflow-hidden p-4">
+        <div className="text-2xl text-sky-600 mb-2">
+          Frequently Asked Questions
+        </div>
         {faqInfo.map((faq) => (
-          <FaqRow key={faq.id} {...faq} />
+          <ResourceRow key={faq.id} {...faq} />
         ))}
       </div>
     </div>

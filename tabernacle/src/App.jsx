@@ -5,7 +5,7 @@ import auth from "./helpers/authHelpers";
 
 import Navbar from "./components/Navbar";
 import Home from "./routes/home/Home";
-import FAQ from "./routes/home/FAQ";
+import Resources from "./routes/home/Resources";
 import LeaderBoard from "./routes/leaderboard/Leaderboard";
 import AchievementsPage from "./routes/achievements/Achievements";
 import LeagueRouter from "./routes/leagueSession/LeagueSession";
@@ -23,7 +23,7 @@ function App() {
       <ToastContainer />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/faq" element={<FAQ />} />
+        <Route path="/info" element={<Resources />} />
         <Route path="/leaderboard" element={<LeaderBoard />} />
         <Route path="/achievements" element={<AchievementsPage />} />
         <Route path="/metrics" element={<Metrics />} />

@@ -1,7 +1,6 @@
 from datetime import datetime
 
-from django.db.models import Sum, F, Q
-from django.db.models.functions import Coalesce
+from django.db.models import Sum, Q
 
 from achievements.models import WinningCommanders
 from users.models import ParticipantAchievements
@@ -108,12 +107,12 @@ class MetricsCalculator:
                 ParticipantAchievements.objects.filter(
                     achievement__slug="end-draw", deleted=False
                 )
-                .select_related("achievement", "session")
-                .order_by("-session__created_at")
-                .values("session__created_at")
+                .select_related("achievement", "round")
+                .order_by("-round__created_at")
+                .values("round__created_at")
                 .first()
             )
-            delta = today - last_draw["session__created_at"]
+            delta = today - last_draw["round__created_at"]
             self.since_last_draw = {"days": delta.days}
         except Exception as e:
             print(f"Error building since last draw: {e}")

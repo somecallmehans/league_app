@@ -133,8 +133,30 @@ const CheckedInRow = ({ participant, checkNumber, removeParticipant, idx }) => (
   </div>
 );
 
+const podCalculator = (len) => {
+  let threePods = 0;
+  let fourPods = 0;
+
+  if (len === 5 || len <= 2) {
+    return "Not enough players to begin round";
+  }
+
+  while (len > 0) {
+    if (len % 4 === 0 || len === 7 || len - 4 >= 6) {
+      fourPods += 1;
+      len -= 4;
+    } else {
+      threePods += 1;
+      len -= 3;
+    }
+  }
+
+  return `${fourPods} Four Pods, ${threePods} Three Pods`;
+};
+
 function RoundLobby({ roundId, sessionId, previousRoundId }) {
   const [postBeginRound] = usePostBeginRoundMutation();
+  const [isLocked, setIsLocked] = useState(false);
   const { data: previousPodsData, isLoading: isLoadingPods } = useGetPodsQuery(
     previousRoundId,
     {
@@ -142,14 +164,7 @@ function RoundLobby({ roundId, sessionId, previousRoundId }) {
     }
   );
   const { data: participantsData, isLoading } = useGetParticipantsQuery();
-  const {
-    handleSubmit,
-    control,
-    setValue,
-    watch,
-    reset,
-    formState: { isSubmitting },
-  } = useForm({
+  const { handleSubmit, control, setValue, watch, reset } = useForm({
     defaultValues: {
       participants: [],
     },
@@ -187,6 +202,7 @@ function RoundLobby({ roundId, sessionId, previousRoundId }) {
 
   const onSubmit = async () => {
     try {
+      setIsLocked(true);
       const normalizedParticipants = selectedParticipants.map((p) => ({
         name: p?.label,
         id: p?.value,
@@ -198,6 +214,7 @@ function RoundLobby({ roundId, sessionId, previousRoundId }) {
       }).unwrap();
     } catch (err) {
       console.error("Failed to begin round: ", err);
+      setIsLocked(false);
     }
   };
 
@@ -246,12 +263,23 @@ function RoundLobby({ roundId, sessionId, previousRoundId }) {
             />
           )}
         />
-        <StandardButton disabled={isSubmitting} type="submit" title="Submit" />
+        <StandardButton
+          disabled={
+            isLocked ||
+            selectedParticipants?.length < 3 ||
+            selectedParticipants?.length === 5
+          }
+          type="submit"
+          title="Submit"
+        />
       </form>
-      <div className="mt-4 text-xl flex justify-center">
-        <span>
+      <div className="mt-4 text-xl flex flex-col items-center text-center">
+        <span className="align-center">
           Checked In Players:{" "}
-          {selectedParticipants.length === 0 ? "" : selectedParticipants.length}
+          {selectedParticipants.length === 0 ? 0 : selectedParticipants.length}
+        </span>
+        <span className="text-sm">
+          {podCalculator(selectedParticipants.length)}
         </span>
       </div>
       {selectedParticipants.length > 0 && (
