@@ -4,7 +4,6 @@ import {
   useGetParticipantsQuery,
   usePostUpsertParticipantMutation,
 } from "../../api/apiSlice";
-// import { Input } from "@headlessui/react";
 import { EditButtons } from "./CrudComponents.jsx";
 import { TextInput } from "../../components/FormInputs.jsx";
 import LoadingSpinner from "../../components/LoadingSpinner";
@@ -75,6 +74,14 @@ export default function Page() {
   const [filteredData, Component, FilterList] = useSearch(participants || []);
   const [postUpsertParticipant] = usePostUpsertParticipantMutation();
 
+  console.log(filteredData);
+
+  const sortedData = [...filteredData].sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
+
+  console.log(sortedData);
+
   if (participantsLoading) {
     return <LoadingSpinner />;
   }
@@ -100,7 +107,7 @@ export default function Page() {
         </div>
       )}
       <FilterList
-        data={filteredData}
+        data={sortedData}
         listKey="id"
         classes="md:px-32"
         Component={ParticipantRow}
