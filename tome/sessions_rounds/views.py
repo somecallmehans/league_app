@@ -159,7 +159,7 @@ def get_pods(_, round):
     ).data
 
     achievements_earned_in_round = ParticipantAchievements.objects.filter(
-        round_id=round
+        round_id=round, deleted=False
     )
 
     achievement_map_by_participant = {}
