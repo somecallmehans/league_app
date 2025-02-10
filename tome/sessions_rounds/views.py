@@ -188,20 +188,26 @@ def get_pods(_, round):
         if pod_map.get(pod_id, None) is None:
             pod_map[pod_id] = {"id": pod_id, "submitted": submitted, "participants": []}
 
-        earned = [
-            achievement_map[x["achievement_id"]]
-            for x in achievement_map_by_participant[pod["participant_id"]]
-        ]
+        try:
+            earned = [
+                achievement_map[x["achievement_id"]]
+                for x in achievement_map_by_participant[pod["participant_id"]]
+            ]
+        except KeyError as e:
+            print(f"Key error: {e}")
 
         earned_achievements_dict = {e["id"]: e for e in earned}
 
-        serialized_earned_with_points = [
-            {
-                **earned_achievements_dict[x["achievement_id"]],
-                "earned_points": x["earned_points"],
-            }
-            for x in achievement_map_by_participant[pod["participant_id"]]
-        ]
+        try:
+            serialized_earned_with_points = [
+                {
+                    **earned_achievements_dict[x["achievement_id"]],
+                    "earned_points": x["earned_points"],
+                }
+                for x in achievement_map_by_participant[pod["participant_id"]]
+            ]
+        except KeyError as e:
+            print(f"Key error: {e}")
 
         participant_data = {
             "participant_id": pod["participant_id"],
