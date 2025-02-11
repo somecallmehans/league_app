@@ -10,7 +10,6 @@ export const Selector = ({
   isMulti,
   control,
   placeholder = "",
-  register,
   classes,
   defaultValue,
   onChange,
@@ -23,7 +22,6 @@ export const Selector = ({
     <Controller
       name={name}
       control={control}
-      register={register}
       render={({ field }) => (
         <Select
           {...field}

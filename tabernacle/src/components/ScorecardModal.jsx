@@ -22,6 +22,22 @@ import LoadingSpinner from "./LoadingSpinner";
 
 const slugRegex = /win-\d-colors/i;
 
+const fieldsToReset = [
+  "winner-achievements",
+  "lose-the-game-effect",
+  "zero-or-less-life",
+  "win-the-game-effect",
+  "commander-damage",
+  "last-in-order",
+  "winner-commander",
+  "colors.White",
+  "colors.Blue",
+  "colors.Black",
+  "colors.Red",
+  "colors.Green",
+  "colors.Colorless",
+];
+
 const ScorecardFormFields = ({
   focusedPod,
   sessionId,
@@ -42,6 +58,7 @@ const ScorecardFormFields = ({
     formState: { isSubmitting, errors },
     watch,
     reset,
+    setValue,
   } = useForm({ defaultValues: initialValues });
 
   useEffect(() => {
@@ -149,6 +166,9 @@ const ScorecardFormFields = ({
         options={focusedPod.participants}
         classes="mb-2"
         disabled={endInDraw}
+        onChange={() => {
+          fieldsToReset.map((x) => setValue(x, ""));
+        }}
       />
       {/* When redis gets rolling this should be a selector from that data */}
       <TextInput

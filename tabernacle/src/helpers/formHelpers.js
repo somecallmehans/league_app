@@ -141,7 +141,7 @@ export function formatUpdate(
   // move most if not all of this logic into the backend
   // bc trying to pinpoint and update a specific PA record w/ a win
   // is difficult and a little mangled from this part of the logic
-  const existingAchievements = existingValues.pod_achievements;
+  const existingAchievements = existingValues?.pod_achievements;
   const existingCommander = existingValues?.winning_commander;
   const out = { new: [], update: [] };
 
@@ -296,7 +296,7 @@ export function formatUpdate(
     }
   });
 
-  const submittedAchievements = newValues["winner-achievements"];
+  const submittedAchievements = newValues["winner-achievements"] || [];
 
   // handle achievements that are pickable
   const existingIds = existingAchievements
