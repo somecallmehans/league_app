@@ -28,7 +28,7 @@ const CrudTabPanel = () => {
       <TabList className="flex flex-wrap justify-center md:justify-start gap-2 sm:gap-4 mb-4">
         <ReusableTab name="Participants" />
         <ReusableTab name="Achievements" />
-        <ReusableTab name="Points" />
+        {/* <ReusableTab name="Points" /> */}
       </TabList>
       <TabPanels className="mt-4">
         <TabPanel>
