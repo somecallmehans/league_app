@@ -63,3 +63,8 @@ export function formatDateString(dateString) {
 
   return `${month} ${day}${getDaySuffix(day)}`;
 }
+
+export const monthStr = (month) => {
+  const split = month.split("-");
+  return `${monthMap[split[0]]} '${split[1]}`;
+};

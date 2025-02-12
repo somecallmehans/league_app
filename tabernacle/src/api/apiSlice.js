@@ -79,6 +79,7 @@ export const {
   useGetMetricsQuery,
   useGetPodsAchievementsQuery,
   useGetAchievementRoundQuery,
+  useGetRoundsByMonthQuery,
 
   // POSTS
   usePostCreateSessionMutation,

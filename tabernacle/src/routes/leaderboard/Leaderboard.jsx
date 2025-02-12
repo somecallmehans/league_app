@@ -3,7 +3,7 @@ import {
   useGetAchievementsForMonthQuery,
   useGetUniqueMonthsQuery,
 } from "../../api/apiSlice";
-import { monthMap } from "../../helpers/dateHelpers";
+import { monthMap, monthStr } from "../../helpers/dateHelpers";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import PageTitle from "../../components/PageTitle";
 import { SimpleSelect } from "../crud/CrudComponents";
@@ -59,11 +59,6 @@ export default function Leaderboard() {
   if (achievementsLoading || monthsLoading) {
     return <LoadingSpinner />;
   }
-
-  const monthStr = (month) => {
-    const split = month.split("-");
-    return `${monthMap[split[0]]} '${split[1]}`;
-  };
 
   return (
     <div className="p-4 md:p-8 mx-auto">

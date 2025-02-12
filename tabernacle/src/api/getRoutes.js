@@ -45,4 +45,7 @@ export default (builder) => ({
       `get_participant_round_achievements/${participant_id}/${round_id}/`,
     providesTags: ["Earned"],
   }),
+  getRoundsByMonth: builder.query({
+    query: (params) => `rounds_by_month/${params}/`,
+  }),
 });

@@ -2,6 +2,7 @@ import json
 import random
 
 from datetime import datetime
+from collections import defaultdict
 
 from rest_framework.response import Response
 from rest_framework import status
@@ -229,3 +230,25 @@ def close_round(request):
         Sessions.objects.filter(id=session).update(closed=True)
 
     return Response(status=status.HTTP_201_CREATED)
+
+
+@api_view(["GET"])
+def get_rounds_by_month(_, mm_yy):
+    """Get all rounds for a given month.
+    Return a dict where keys are dates and val is a list of rounds."""
+    try:
+        rounds = (
+            Rounds.objects.filter(
+                session__month_year=mm_yy, session__deleted=False, deleted=False
+            )
+            .select_related("session")
+            .values("session__id", "id", "round_number", "created_at")
+        )
+        round_dict = defaultdict(list)
+        for round in rounds:
+            formatted_date = round["created_at"].strftime("%-m/%-d")
+            round_dict[formatted_date].append(round)
+    except BaseException as e:
+        print(f"Exception found: {e}")
+        return Response({"message": "Bad request"}, status=status.HTTP_400_BAD_REQUEST)
+    return Response(round_dict, status=status.HTTP_200_OK)
