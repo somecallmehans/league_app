@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Route, Routes, Link } from "react-router-dom";
+import { Route, Routes, Link, useLocation } from "react-router-dom";
 
 import PageTitle from "../../components/PageTitle";
 import LoadingSpinner from "../../components/LoadingSpinner";
@@ -17,18 +17,23 @@ function dateSort(a, b) {
   return new Date(b) - new Date(a);
 }
 
-const RoundDisplay = ({ info, dateKey }) => {
+const RoundDisplay = ({ info, dateKey, selectedMonth }) => {
   return (
     <div className="flex flex-wrap w-full justify-around p-4 bg-white drop-shadow-md">
       {info.map(({ id, round_number }) => (
         <Link
           key={id}
           to={`${id}`}
-          state={{ roundId: id, roundNumber: round_number, date: dateKey }}
+          state={{
+            roundId: id,
+            roundNumber: round_number,
+            date: dateKey,
+            selectedMonth,
+          }}
         >
           <div
             className="bg-sky-300 hover:bg-sky-200 drop-shadow-md text-center rounded-md
-                     py-4 px-6 sm:py-6 sm:px-12 md:py-8 md:px-16 lg:py-10 lg:px-24"
+                     py-4 px-6 sm:py-6 sm:px-12 md:py-8 md:px-32 lg:py-10 lg:px-42 text-lg md:text-2xl"
           >
             Round {round_number}
           </div>
@@ -39,11 +44,14 @@ const RoundDisplay = ({ info, dateKey }) => {
 };
 
 function Page() {
+  const location = useLocation();
   const d = new Date();
   const month = d.getMonth() + 1;
   const year = d.getFullYear().toString().substr(-2);
+  const defaultMonth = `${month < 10 ? "0" : ""}${month}-${year}`;
+
   const [selectedMonth, setSelectedMonth] = useState(
-    month && year ? `${month < 10 ? "0" : ""}${month}-${year}` : undefined
+    location.state?.selectedMonth || defaultMonth
   );
 
   const { data: months, isLoading: monthsLoading } = useGetUniqueMonthsQuery();
@@ -93,7 +101,11 @@ function Page() {
           return (
             <div className="flex flex-col" key={round}>
               <div className="text-3xl font-bold my-2">{dateKey}</div>
-              <RoundDisplay info={roundInfo} dateKey={dateKey} />
+              <RoundDisplay
+                info={roundInfo}
+                dateKey={dateKey}
+                selectedMonth={selectedMonth}
+              />
             </div>
           );
         })}

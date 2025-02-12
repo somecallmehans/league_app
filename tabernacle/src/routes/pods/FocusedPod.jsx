@@ -13,7 +13,7 @@ export default function () {
   const [selected, setSelected] = useState();
 
   const location = useLocation();
-  const { roundId, roundNumber, date } = location.state;
+  const { roundId, roundNumber, date, selectedMonth } = location.state;
 
   const { data: pods, isLoading: podsLoading } = useGetPodsQuery(roundId, {
     skip: !roundId,
@@ -35,7 +35,7 @@ export default function () {
   return (
     <div className="bg-white p-4 mb-4 h-full">
       <PageTitle title={`Round ${roundNumber} for ${date}`} />
-      <Link to={"/pods"}>
+      <Link to={"/pods"} state={{ selectedMonth }}>
         <StandardButton title="Back" />
       </Link>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-4 sm:px-6 pb-8">
