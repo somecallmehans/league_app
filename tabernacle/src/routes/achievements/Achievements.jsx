@@ -8,6 +8,7 @@ import { SimpleSelect } from "../crud/CrudComponents";
 
 const Achievement = ({ name, achievementChildren, restrictions }) => {
   const [toggle, setToggle] = useState();
+  const [showAll, setShowAll] = useState();
 
   return (
     <div className="p-2">
@@ -42,11 +43,21 @@ const Achievement = ({ name, achievementChildren, restrictions }) => {
           </div>
         ))}
       {achievementChildren?.length > 0 &&
-        achievementChildren?.map(({ id, name }) => (
-          <div key={id} className="ml-4 italic text-gray-500">
-            {name}
-          </div>
-        ))}
+        achievementChildren
+          ?.slice(0, showAll ? achievementChildren.length : 4)
+          .map(({ id, name }) => (
+            <div key={id} className="ml-4 italic text-gray-500">
+              {name}
+            </div>
+          ))}
+      {achievementChildren.length > 4 && !showAll && (
+        <button
+          onClick={() => setShowAll(true)}
+          className="ml-4 text-blue-500 italic hover:underline"
+        >
+          Show More
+        </button>
+      )}
     </div>
   );
 };
