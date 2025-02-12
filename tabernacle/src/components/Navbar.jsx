@@ -6,6 +6,7 @@ const navLinks = [
   { id: 1, name: "Home", to: "/", admin: false },
   { id: 2, name: "Info", to: "/info", admin: false },
   { id: 3, name: "Leaderboard", to: "/leaderboard", admin: false },
+  { id: 8, name: "Pods", to: "/pods", admin: false },
   { id: 4, name: "Achievements", to: "/achievements", admin: false },
   {
     id: 7,
@@ -35,7 +36,6 @@ export default function Navbar({ loggedIn, setLoggedIn }) {
             <i className="fa-solid fa-bars" />
           </span>
         </button>
-
         <div className="hidden sm:flex space-x-4">
           {navLinks
             .filter((link) => !link.admin || (link.admin && loggedIn))
@@ -51,7 +51,6 @@ export default function Navbar({ loggedIn, setLoggedIn }) {
               </NavLink>
             ))}
         </div>
-
         <div className="flex-grow ml-4" />
         <LoginPopover loggedIn={loggedIn} setLoggedIn={setLoggedIn} />
       </div>

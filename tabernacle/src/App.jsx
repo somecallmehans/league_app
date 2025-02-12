@@ -11,6 +11,7 @@ import AchievementsPage from "./routes/achievements/Achievements";
 import LeagueRouter from "./routes/leagueSession/LeagueSession";
 import ManagementContainer from "./routes/crud/ManagementContainer";
 import Metrics from "./routes/metrics/MetricsContainer";
+import Pods from "./routes/pods/Pods";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -43,6 +44,7 @@ function App() {
             </PrivateRoute>
           }
         />
+        <Route path="/pods/*" element={<Pods />} />
         <Route path="*" element={<p>404 Error - Nothing here...</p>} />
       </Routes>
     </>
