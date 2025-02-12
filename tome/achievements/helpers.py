@@ -130,7 +130,7 @@ def all_participant_achievements_for_month(session_id):
     return result
 
 
-def handle_pod_win(winner, info, round_id):
+def handle_pod_win(winner, info, round_id, participant_ids):
     """Handle scenarios where it would be prudent to update or create
     a PA record specifically for a win."""
     win_achievement = None
@@ -142,6 +142,7 @@ def handle_pod_win(winner, info, round_id):
             round_id=round_id,
             achievement__slug__endswith="-colors",
             deleted=False,
+            participant_id__in=participant_ids,
         )
         .select_related("achievement")
         .first()

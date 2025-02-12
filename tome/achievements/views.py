@@ -22,7 +22,7 @@ from users.serializers import (
     ParticipantsAchievementsSerializer,
     ParticipantsAchievementsFullModelSerializer,
 )
-from sessions_rounds.models import Pods, Sessions
+from sessions_rounds.models import Pods, Sessions, PodsParticipants
 from .serializers import AchievementsSerializer, ColorsSerializer
 from achievements.models import Achievements, WinningCommanders
 
@@ -253,11 +253,19 @@ def upsert_participant_achievements_v2(request):
 
     # this should always exist
     pod = Pods.objects.get(id=winner["pod_id"])
+    pod_participants = PodsParticipants.objects.filter(pods_id=pod.id).values_list(
+        "participants_id", flat=True
+    )
 
     updated_objects = []
     created_objs = []
 
-    handle_pod_win(winner=winner, info=winInfo, round_id=pod.rounds_id)
+    handle_pod_win(
+        winner=winner,
+        info=winInfo,
+        round_id=pod.rounds_id,
+        participant_ids=pod_participants,
+    )
 
     if len(update) > 0:
         update_ids = [x["id"] for x in update]
