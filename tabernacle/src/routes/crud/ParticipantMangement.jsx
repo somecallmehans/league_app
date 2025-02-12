@@ -74,13 +74,9 @@ export default function Page() {
   const [filteredData, Component, FilterList] = useSearch(participants || []);
   const [postUpsertParticipant] = usePostUpsertParticipantMutation();
 
-  console.log(filteredData);
-
   const sortedData = [...filteredData].sort((a, b) =>
     a.name.localeCompare(b.name)
   );
-
-  console.log(sortedData);
 
   if (participantsLoading) {
     return <LoadingSpinner />;
