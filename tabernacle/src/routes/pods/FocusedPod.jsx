@@ -63,7 +63,7 @@ export default function () {
                       <span className="text-lg md:text-2xl">{name}</span>
                       <span className="text-sm md:text-md font-light">
                         <a
-                          className="hover:text-sky-500"
+                          className="text-sky-600 hover:text-sky-300"
                           onClick={() =>
                             handleOnClick(name, round_points, participant_id)
                           }
