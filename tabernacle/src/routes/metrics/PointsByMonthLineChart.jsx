@@ -46,7 +46,7 @@ const LineChart = ({ data }) => {
     responsive: true,
     plugins: {
       legend: { position: "top" },
-      title: { display: true, text: "Points by Session Across Months" },
+      title: { display: true, text: "Points by Session Across League Months" },
       tooltip: { mode: "index", intersect: false },
     },
     scales: {
