@@ -33,15 +33,31 @@ export default function () {
     return <LoadingSpinner />;
   }
 
+  if (Object.keys(pods).length === 0) {
+    return (
+      <div className="p-4 mb-4 h-full ">
+        <Link to={"/pods"} state={{ selectedMonth }}>
+          <StandardButton title="Back" />
+        </Link>
+        <div className="text-3xl">
+          No pod information here- the round has not started yet
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white p-4 mb-4 h-full">
-      <PageTitle title={`Round ${roundNumber} for ${date}`} />
-      <Link to={"/pods"} state={{ selectedMonth }}>
-        <StandardButton title="Back" />
-      </Link>
+      <div className="flex">
+        <Link to={"/pods"} state={{ selectedMonth }}>
+          <StandardButton title="Back" />
+        </Link>
+        <PageTitle title={`Round ${roundNumber} for ${date}`} />
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-4 sm:px-6 pb-8">
         {Object.keys(pods).map((pod_id, index) => {
           const { participants } = pods[pod_id];
+
           return (
             <div key={pod_id}>
               <div className="flex items-end justify-center content-center text-xl md:text-3xl mb-2">

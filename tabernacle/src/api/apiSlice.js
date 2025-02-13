@@ -80,6 +80,7 @@ export const {
   useGetPodsAchievementsQuery,
   useGetAchievementRoundQuery,
   useGetRoundsByMonthQuery,
+  useGetIndividualMetricsQuery,
 
   // POSTS
   usePostCreateSessionMutation,

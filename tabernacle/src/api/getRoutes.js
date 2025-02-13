@@ -48,4 +48,7 @@ export default (builder) => ({
   getRoundsByMonth: builder.query({
     query: (params) => `rounds_by_month/${params}/`,
   }),
+  getIndividualMetrics: builder.query({
+    query: (params) => `metrics/${params}/`,
+  }),
 });

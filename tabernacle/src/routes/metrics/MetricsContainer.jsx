@@ -46,10 +46,11 @@ const AchievementBarTitle = () => (
   </React.Fragment>
 );
 
-const MetricBlock = ({ data, mainKey, subtitleKey }) => (
+export const MetricBlock = ({ data, mainKey, subtitleKey, suffix = "" }) => (
   <React.Fragment>
     <div className="text-3xl md:text-4xl font-extrabold font-extrabold text-center flex flex-grow items-center justify-center">
       {data?.[mainKey]}
+      {suffix}
     </div>
     {subtitleKey && (
       <div className="text-slate-500 text-lg md:text-xl font-extrabold font-extrabold text-center flex flex-grow items-center justify-center">
@@ -108,7 +109,7 @@ const MetricBlockWithCycle = ({ data, subtitle, subtitleKey }) => {
   );
 };
 
-const MetricWrapper = ({ title, classes, children }) => (
+export const MetricWrapper = ({ title, classes, children }) => (
   <div
     className={`${classes} bg-gray-100 border border-gray-300 rounded-md w-full h-full p-4 flex flex-col text-center justify-between rounded-lg shadow-lg`}
   >
@@ -128,11 +129,7 @@ function Page() {
     <div className="p-4 md:p-8 mx-auto">
       <PageTitle title="Metrics" />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <MetricWrapper
-          title="Most Earned Points"
-          mainKey="name"
-          subtitleKey="total_points"
-        >
+        <MetricWrapper title="Most Earned Points">
           <MetricBlock
             data={data?.big_earner}
             mainKey="participant__name"

@@ -213,15 +213,25 @@ class IndividualMetricsCalculator:
         """Sum the number of points player has earned."""
         return sum([a["earned_points"] for a in self.participant_achievements])
 
+    def calculate_unique_achievements(self):
+        """Calculate number of unique achievements earned."""
+        return len(
+            list(
+                {v["achievement_id"]: v for v in self.participant_achievements}.values()
+            )
+        )
+
     def build(self):
         self.fetch_participant_achievements()
         self.fetch_participant_attendance()
         self.fetch_participant_obj()
 
         return {
+            "participant_name": self.participant_obj.name,
             "win_pct": self.calculate_win_percentage(),
             "win_number": self.calculate_win_number(),
             "attendance": len(self.participant_pods),
             "lifetime_points": self.calculate_lifetime_points(),
             "participant_since": self.participant_obj.created_at.strftime("%m/%d/%Y"),
+            "unique_achievements": self.calculate_unique_achievements(),
         }
