@@ -6,6 +6,7 @@ import PageTitle from "../../components/PageTitle";
 import { useGetIndividualMetricsQuery } from "../../api/apiSlice";
 import { MetricWrapper, MetricBlock } from "./MetricsContainer";
 import StandardButton from "../../components/Button";
+import LineChart from "./PointsByMonthLineChart";
 
 export default function InvdividualMetrics() {
   const { participant_id } = useParams();
@@ -45,6 +46,7 @@ export default function InvdividualMetrics() {
         <MetricWrapper title="Unique Achievements Earned">
           <MetricBlock data={metrics} mainKey="unique_achievements" />
         </MetricWrapper>
+        <LineChart data={metrics.session_points} />
       </div>
     </div>
   );

@@ -1,9 +1,9 @@
 from datetime import datetime
-
+from collections import defaultdict
 from django.db.models import Sum, Q
 
 from achievements.models import WinningCommanders
-from sessions_rounds.models import PodsParticipants
+from sessions_rounds.models import PodsParticipants, Sessions
 from users.models import ParticipantAchievements, Participants
 from achievements.serializers import WinningCommandersSerializer
 from users.serializers import ParticipantsAchievementsFullModelSerializer
@@ -158,6 +158,7 @@ class IndividualMetricsCalculator:
         self.participant_achievements = []
         self.participant_pods = []
         self.participant_obj = None
+        self.sessions = []
 
     def fetch_participant_achievements(self):
         """Get all of the participant achievements for a given participant."""
@@ -167,7 +168,14 @@ class IndividualMetricsCalculator:
                     participant_id=self.participant_id, deleted=False
                 )
                 .select_related("achievement")
-                .values("achievement_id", "earned_points", "achievement__slug")
+                .select_related("session")
+                .values(
+                    "achievement_id",
+                    "session_id",
+                    "session__month_year",
+                    "earned_points",
+                    "achievement__slug",
+                )
             )
         except BaseException as e:
             print(
@@ -193,6 +201,19 @@ class IndividualMetricsCalculator:
             print(
                 f"Exception raised in individual metrics calculator fetch participant: {e}"
             )
+
+    def fetch_sessions(self):
+        """Fetch all existing sessions."""
+        self.sessions = Sessions.objects.filter(deleted=False).values(
+            "id", "month_year"
+        )
+
+    def make_sessions_dict_by_month_year(self):
+        """Make a dict of sessions by month_year."""
+        out = defaultdict(list)
+        for s in self.sessions:
+            out[s["month_year"]].append(s)
+        return out
 
     def calculate_win_number(self):
         """Calculate the number of wins a participant has."""
@@ -221,10 +242,39 @@ class IndividualMetricsCalculator:
             )
         )
 
+    def calculate_session_points(self):
+        """Sum all of the points for each session, then format them in a way the
+        line chart would expect."""
+        out = defaultdict(list)
+        tmp = defaultdict(int)
+        session_dicts = self.make_sessions_dict_by_month_year()
+        for pa in self.participant_achievements:
+            tmp[pa["session_id"], pa["session__month_year"]] += pa["earned_points"]
+        sorted_list = sorted(
+            [
+                {"session_id": id1, "month_year": id2, "points": v}
+                for (id1, id2), v in tmp.items()
+            ],
+            key=lambda d: d["session_id"],
+        )
+
+        session_index_map = {
+            mm_yy: {s["id"]: idx + 1 for idx, s in enumerate(session_dicts[mm_yy])}
+            for mm_yy in session_dicts
+        }
+
+        for so in sorted_list:
+            mm_yy = so["month_year"]
+            session_num = session_index_map[mm_yy].get(so["session_id"], None)
+            if session_num is not None:
+                out[mm_yy].append({"session": session_num, "points": so["points"]})
+        return out
+
     def build(self):
         self.fetch_participant_achievements()
         self.fetch_participant_attendance()
         self.fetch_participant_obj()
+        self.fetch_sessions()
 
         return {
             "participant_name": self.participant_obj.name,
@@ -234,4 +284,5 @@ class IndividualMetricsCalculator:
             "lifetime_points": self.calculate_lifetime_points(),
             "participant_since": self.participant_obj.created_at.strftime("%m/%d/%Y"),
             "unique_achievements": self.calculate_unique_achievements(),
+            "session_points": self.calculate_session_points(),
         }
