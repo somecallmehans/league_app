@@ -12,19 +12,17 @@ import { useGetAchievementRoundQuery } from "../../api/apiSlice";
 import LoadingSpinner from "../../components/LoadingSpinner";
 
 export default function PointsModal({ isOpen, closeModal, selected }) {
-  if (!selected) return null;
-  const { participant, round_points, participant_id, roundId } = selected;
-
-  const { data, isLoading: achievementsLoading } = useGetAchievementRoundQuery({
-    participant_id: participant_id,
-    round_id: roundId,
-  });
+  const { data, isLoading: achievementsLoading } = useGetAchievementRoundQuery(
+    {
+      participant_id: selected?.participant_id,
+      round_id: selected?.roundId,
+    },
+    { skip: !selected }
+  );
 
   if (achievementsLoading) {
     return <LoadingSpinner />;
   }
-
-  const { achievements } = data;
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -56,16 +54,16 @@ export default function PointsModal({ isOpen, closeModal, selected }) {
                   as="h3"
                   className="mb-2 text-xl font-medium leading-6 text-gray-900 flex flex-wrap md:no-wrap justify-center md:justify-between"
                 >
-                  <span>Points for {participant}</span>
-                  <span>{round_points} Round Points</span>
+                  <span>Points for {selected?.participant}</span>
+                  <span>{selected?.round_points} Round Points</span>
                 </DialogTitle>
                 <div className="border-b mb-2" />
-                {achievements.map(
+                {data?.achievements.map(
                   ({ achievement: { full_name }, earned_points }, index) => (
                     <div
                       key={index}
                       className={`grid grid-cols-4 gap-4 items-center ${
-                        index < achievements.length - 1
+                        index < data?.achievements.length - 1
                           ? "border-b border-gray-300 pb-2 mb-2"
                           : ""
                       }`}
