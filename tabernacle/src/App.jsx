@@ -27,7 +27,7 @@ function App() {
         <Route path="/info" element={<Resources />} />
         <Route path="/leaderboard" element={<LeaderBoard />} />
         <Route path="/achievements" element={<AchievementsPage />} />
-        <Route path="/metrics" element={<Metrics />} />
+        <Route path="/metrics/*" element={<Metrics />} />
         <Route
           path="/management"
           element={

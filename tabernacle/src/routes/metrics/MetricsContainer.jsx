@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Routes, Route } from "react-router-dom";
 
 import { useGetMetricsQuery } from "../../api/apiSlice";
 import LoadingSpinner from "../../components/LoadingSpinner";
@@ -6,6 +7,7 @@ import LoadingSpinner from "../../components/LoadingSpinner";
 import PageTitle from "../../components/PageTitle";
 import ColorBarChart from "./ColorBarChart";
 import AchievementBarChart from "./AchievementBarChart";
+import IndividualMetrics from "./IndividualMetrics";
 
 const colorMap = {
   1: "rgba(31, 119, 180, 0.8)", // Blue
@@ -115,7 +117,7 @@ const MetricWrapper = ({ title, classes, children }) => (
   </div>
 );
 
-export default function Metrics() {
+function Page() {
   const { data, isLoading } = useGetMetricsQuery();
 
   if (isLoading) {
@@ -175,5 +177,14 @@ export default function Metrics() {
         </MetricWrapper>
       </div>
     </div>
+  );
+}
+
+export default function MetricsRouter() {
+  return (
+    <Routes>
+      <Route path="/" element={<Page />} />
+      <Route path="/:participant_id" element={<IndividualMetrics />} />
+    </Routes>
   );
 }

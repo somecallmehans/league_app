@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { useGetPodsQuery } from "../../api/apiSlice";
 
@@ -11,6 +11,7 @@ import PointsModal from "../leagueSession/PointsModal";
 export default function () {
   const [modalOpen, setModalOpen] = useState(false);
   const [selected, setSelected] = useState();
+  const navigate = useNavigate();
 
   const location = useLocation();
   const { roundId, roundNumber, date, selectedMonth } = location.state;
@@ -60,10 +61,16 @@ export default function () {
                           : ""
                       }`}
                     >
-                      <span className="text-lg md:text-2xl">{name}</span>
+                      <div
+                        onClick={() => navigate(`/metrics/${participant_id}/`)}
+                      >
+                        <span className="hover:text-sky-400 text-lg md:text-2xl">
+                          {name}
+                        </span>
+                      </div>
                       <span className="text-sm md:text-md font-light">
                         <a
-                          className="text-sky-600 hover:text-sky-300"
+                          className="text-sky-700 hover:text-sky-400"
                           onClick={() =>
                             handleOnClick(name, round_points, participant_id)
                           }
