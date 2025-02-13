@@ -3,7 +3,8 @@ from datetime import datetime
 from django.db.models import Sum, Q
 
 from achievements.models import WinningCommanders
-from users.models import ParticipantAchievements
+from sessions_rounds.models import PodsParticipants
+from users.models import ParticipantAchievements, Participants
 from achievements.serializers import WinningCommandersSerializer
 from users.serializers import ParticipantsAchievementsFullModelSerializer
 
@@ -148,4 +149,79 @@ class MetricsCalculator:
             "big_earner": self.big_earner,
             "last_draw": self.since_last_draw,
             "achievement_chart": self.achievement_chart,
+        }
+
+
+class IndividualMetricsCalculator:
+    def __init__(self, participant_id):
+        self.participant_id = participant_id
+        self.participant_achievements = []
+        self.participant_pods = []
+        self.participant_obj = None
+
+    def fetch_participant_achievements(self):
+        """Get all of the participant achievements for a given participant."""
+        try:
+            self.participant_achievements = (
+                ParticipantAchievements.objects.filter(
+                    participant_id=self.participant_id, deleted=False
+                )
+                .select_related("achievement")
+                .values("achievement_id", "earned_points", "achievement__slug")
+            )
+        except BaseException as e:
+            print(
+                f"Exception raised in individual metrics calculator fetch achievements: {e}"
+            )
+
+    def fetch_participant_attendance(self):
+        """Get all of the records from pods that a participant has appeared in.
+
+        This will act as our 'attendance' record."""
+        try:
+            self.participant_pods = PodsParticipants.objects.filter(
+                participants_id=self.participant_id, pods__deleted=False
+            ).select_related("pods")
+        except BaseException as e:
+            print(f"Exception raised in individual metrics calculator attendance: {e}")
+
+    def fetch_participant_obj(self):
+        """Get the participant object."""
+        try:
+            self.participant_obj = Participants.objects.get(id=self.participant_id)
+        except BaseException as e:
+            print(
+                f"Exception raised in individual metrics calculator fetch participant: {e}"
+            )
+
+    def calculate_win_number(self):
+        """Calculate the number of wins a participant has."""
+        wins = [
+            a
+            for a in self.participant_achievements
+            if a.get("achievement__slug") is not None
+            and "-colors" in a.get("achievement__slug")
+        ]
+        return len(wins)
+
+    def calculate_win_percentage(self):
+        """Calculate players win %. Achievements with a 'win' slug / participant_pods."""
+        wins = self.calculate_win_number()
+        return round((wins / len(self.participant_pods)) * 100, 2)
+
+    def calculate_lifetime_points(self):
+        """Sum the number of points player has earned."""
+        return sum([a["earned_points"] for a in self.participant_achievements])
+
+    def build(self):
+        self.fetch_participant_achievements()
+        self.fetch_participant_attendance()
+        self.fetch_participant_obj()
+
+        return {
+            "win_pct": self.calculate_win_percentage(),
+            "win_number": self.calculate_win_number(),
+            "attendance": len(self.participant_pods),
+            "lifetime_points": self.calculate_lifetime_points(),
+            "participant_since": self.participant_obj.created_at.strftime("%m/%d/%Y"),
         }
