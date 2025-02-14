@@ -66,4 +66,4 @@ class WinningCommandersSerializer(serializers.ModelSerializer):
 class CommandersSerializer(serializers.ModelSerializer):
     class Meta:
         model = Commanders
-        fields = ["id", "name", "colors_id"]
+        fields = ["id", "name", "colors_id", "has_partner", "is_background"]

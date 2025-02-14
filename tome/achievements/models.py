@@ -76,6 +76,8 @@ class WinningCommanders(models.Model):
 class Commanders(models.Model):
     name = models.CharField(max_length=255)
     deleted = models.BooleanField(default=False)
+    has_partner = models.BooleanField(default=False)
+    is_background = models.BooleanField(default=False)
 
     colors = models.ForeignKey(Colors, on_delete=models.CASCADE)
 

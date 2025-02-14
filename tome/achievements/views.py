@@ -394,10 +394,18 @@ def get_all_commanders(_):
     """Get and return all valid commanders we have currently."""
     try:
         commanders = Commanders.objects.filter(deleted=False)
+        partners_backgrounds = Commanders.objects.filter(
+            Q(has_partner=True) | Q(is_background=True),
+            deleted=False,
+        ).distinct("name")
     except Exception as e:
         return Response(
             {"error": f"An unexpected error occurred: {str(e)}"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
-    data = CommandersSerializer(commanders, many=True).data
-    return Response(data, status=status.HTTP_200_OK)
+    commander_data = CommandersSerializer(commanders, many=True).data
+    partner_data = CommandersSerializer(partners_backgrounds, many=True).data
+    return Response(
+        {"commanders": commander_data, "partners": partner_data},
+        status=status.HTTP_200_OK,
+    )

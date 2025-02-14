@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 
 import StandardButton from "./Button";
@@ -48,6 +48,7 @@ const ScorecardFormFields = ({
   podData,
   refetch,
 }) => {
+  const [showField, setShowField] = useState();
   const [postUpsertEarnedV2] = usePostUpsertEarnedV2Mutation();
   const { data: colorsData, isLoading: colorsLoading } = useGetAllColorsQuery();
   const { data: achievementData, isLoading } = useGetAchievementsQuery();
@@ -178,8 +179,16 @@ const ScorecardFormFields = ({
         name="winner-commander"
         placeholder="Winner's Commander"
         control={control}
-        options={commanders}
-        classes="mb-2"
+        options={commanders?.commanders}
+        classes="mb-2 w-1/2"
+        disabled={endInDraw}
+      />
+      <Selector
+        name="partner-commander"
+        placeholder="Addtl Commander"
+        control={control}
+        options={commanders?.partners}
+        classes="mb-2 w-1/2"
         disabled={endInDraw}
       />
       {/* <TextInput

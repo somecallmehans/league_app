@@ -90,7 +90,10 @@ export function formatInitialValues(podData) {
       id: podData?.winning_commander?.id,
     },
     "end-draw": !!mappedAchievements["end-draw"],
-    "winner-commander": podData?.winning_commander?.name,
+    "winner-commander": {
+      id: podData?.winning_commander?.id,
+      name: podData?.winning_commander?.name,
+    },
     colors: winningColors,
     "last-in-order": !!mappedAchievements["last-in-order"],
     "commander-damage": !!mappedAchievements["commander-damage"],
@@ -263,7 +266,7 @@ export function formatUpdate(
   console.log(newValues["winner-commander"]);
 
   const commanderName =
-    newValues["winner-commander"] !== existingCommander?.name
+    newValues["winner-commander"]?.name !== existingCommander?.name
       ? newValues?.["winner-commander"]?.name
       : existingCommander?.name;
 
@@ -275,6 +278,9 @@ export function formatUpdate(
     commander_name: commanderName,
     pod_id: podId,
     session_id: sessionId,
+    addtl_info: {
+      commander_color_id_1: newValues["winner-commander"]?.color_id,
+    },
   };
 
   // handle winner achievements that are bool centric
@@ -346,5 +352,5 @@ export function formatUpdate(
     out.winInfo.slug = newWinSlug;
   }
 
-  // return out;
+  return out;
 }
