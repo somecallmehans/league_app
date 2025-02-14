@@ -51,4 +51,7 @@ export default (builder) => ({
   getIndividualMetrics: builder.query({
     query: (params) => `metrics/${params}/`,
   }),
+  getCommanders: builder.query({
+    query: () => "commanders/",
+  }),
 });

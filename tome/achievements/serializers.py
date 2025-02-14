@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Achievements, Restrictions, Colors, WinningCommanders
+from .models import Achievements, Restrictions, Colors, WinningCommanders, Commanders
 from sessions_rounds.serializers import PodsSerializer
 from users.serializers import ParticipantsSerializer
 
@@ -61,3 +61,9 @@ class WinningCommandersSerializer(serializers.ModelSerializer):
             for winner in winning_commanders
         }
         return winners_by_pod
+
+
+class CommandersSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Commanders
+        fields = ["id", "name", "colors_id"]

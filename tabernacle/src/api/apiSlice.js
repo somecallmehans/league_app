@@ -81,6 +81,7 @@ export const {
   useGetAchievementRoundQuery,
   useGetRoundsByMonthQuery,
   useGetIndividualMetricsQuery,
+  useGetCommandersQuery,
 
   // POSTS
   usePostCreateSessionMutation,

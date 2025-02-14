@@ -71,3 +71,13 @@ class WinningCommanders(models.Model):
 
     class Meta:
         db_table = "winning_commanders"
+
+
+class Commanders(models.Model):
+    name = models.CharField(max_length=255)
+    deleted = models.BooleanField(default=False)
+
+    colors = models.ForeignKey(Colors, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = "commanders"

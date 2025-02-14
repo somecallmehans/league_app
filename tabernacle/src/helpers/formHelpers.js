@@ -260,9 +260,11 @@ export function formatUpdate(
       );
   }
 
+  console.log(newValues["winner-commander"]);
+
   const commanderName =
     newValues["winner-commander"] !== existingCommander?.name
-      ? newValues?.["winner-commander"]
+      ? newValues?.["winner-commander"]?.name
       : existingCommander?.name;
 
   out.winnerInfo = {
@@ -344,5 +346,5 @@ export function formatUpdate(
     out.winInfo.slug = newWinSlug;
   }
 
-  return out;
+  // return out;
 }

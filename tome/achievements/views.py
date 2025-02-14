@@ -23,8 +23,8 @@ from users.serializers import (
     ParticipantsAchievementsFullModelSerializer,
 )
 from sessions_rounds.models import Pods, Sessions, PodsParticipants
-from .serializers import AchievementsSerializer, ColorsSerializer
-from achievements.models import Achievements, WinningCommanders
+from .serializers import AchievementsSerializer, ColorsSerializer, CommandersSerializer
+from achievements.models import Achievements, WinningCommanders, Commanders
 
 from achievements.helpers import (
     AchievementCleaverService,
@@ -387,3 +387,17 @@ def get_participant_round_achievements(request, participant_id, round_id):
         )
 
     return Response(out_dict, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+def get_all_commanders(_):
+    """Get and return all valid commanders we have currently."""
+    try:
+        commanders = Commanders.objects.filter(deleted=False)
+    except Exception as e:
+        return Response(
+            {"error": f"An unexpected error occurred: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+    data = CommandersSerializer(commanders, many=True).data
+    return Response(data, status=status.HTTP_200_OK)

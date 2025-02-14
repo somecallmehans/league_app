@@ -9,12 +9,13 @@ import {
   Transition,
   TransitionChild,
 } from "@headlessui/react";
-import { TextInput, CheckBoxInput, Selector } from "./FormInputs";
+import { CheckBoxInput, Selector } from "./FormInputs";
 import {
   useGetAchievementsQuery,
   useGetAllColorsQuery,
   useGetPodsAchievementsQuery,
   usePostUpsertEarnedV2Mutation,
+  useGetCommandersQuery,
 } from "../api/apiSlice";
 import { formatInitialValues, formatUpdate } from "../helpers/formHelpers";
 import { ColorCheckboxes } from "./ColorInputs";
@@ -50,6 +51,8 @@ const ScorecardFormFields = ({
   const [postUpsertEarnedV2] = usePostUpsertEarnedV2Mutation();
   const { data: colorsData, isLoading: colorsLoading } = useGetAllColorsQuery();
   const { data: achievementData, isLoading } = useGetAchievementsQuery();
+  const { data: commanders, isLoading: commandersLoading } =
+    useGetCommandersQuery();
   const focusedIds = focusedPod?.participants?.map((p) => p?.participant_id);
 
   const {
@@ -67,7 +70,7 @@ const ScorecardFormFields = ({
 
   const { "end-draw": endInDraw } = watch();
 
-  if (isLoading || colorsLoading) {
+  if (isLoading || colorsLoading || commandersLoading) {
     return null;
   }
 
@@ -171,13 +174,21 @@ const ScorecardFormFields = ({
         }}
       />
       {/* When redis gets rolling this should be a selector from that data */}
-      <TextInput
+      <Selector
+        name="winner-commander"
+        placeholder="Winner's Commander"
+        control={control}
+        options={commanders}
+        classes="mb-2"
+        disabled={endInDraw}
+      />
+      {/* <TextInput
         classes="basis-2/3 border py-2 mb-2 data-[hover]:shadow data-[focus]:bg-blue-100"
         name="winner-commander"
         placeholder="Winner's Commander"
         control={control}
         disabled={endInDraw}
-      />
+      /> */}
 
       <ColorCheckboxes control={control} watch={watch} />
       <div className="mb-2 flex gap-2">
