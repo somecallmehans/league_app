@@ -17,6 +17,78 @@ import CreatableSelect from "react-select/creatable";
 import ScorecardModal from "../../components/ScorecardModal";
 import PointsModal from "./PointsModal";
 
+const colorObj = {
+  colorless: "166, 159, 157",
+  white: "249, 250, 244",
+  blue: "14, 104, 171",
+  black: "21, 11, 0",
+  red: "211, 32, 42",
+  green: "0, 115, 62",
+};
+
+const colorToRGBA = (color, alpha) =>
+  `rgba(${colorObj[color] || "0, 0, 0"}, ${alpha})`;
+
+const PodSquare = ({
+  participant_id,
+  name,
+  total_points,
+  round_points,
+  colSize,
+  handleOnClick,
+  colors = [],
+  winnerId,
+}) => {
+  const gradientStyle = {
+    background:
+      winnerId === participant_id
+        ? `linear-gradient(to right, ${colors
+            ?.split(" ")
+            .map((color) => colorToRGBA(color, 0.4))
+            .join(", ")} )`
+        : "",
+  };
+  return (
+    <div
+      key={participant_id}
+      className={`p-4 sm:p-6 border border-blue-300 grid grid-cols-1 overflow-y-auto text-center ${
+        colSize ? "sm:col-span-2" : ""
+      }`}
+      style={gradientStyle}
+    >
+      <span className="text-xl md:text-xl">
+        <a
+          className="hover:text-sky-500"
+          onClick={() => handleOnClick(name, round_points, participant_id)}
+        >
+          {name}
+        </a>
+      </span>
+      <span className="text-xs md:text-xs">
+        {round_points} Points This Round
+      </span>
+      <span className="text-xs md:text-xs">
+        {total_points} Points This Month
+      </span>
+    </div>
+  );
+};
+
+const PodGrouping = ({ participants, winnerInfo, handleOnClick }) => (
+  <div className="shadow-lg border border-blue-300 grid grid-cols-1 sm:grid-cols-2 overflow-y-auto">
+    {participants.map((participant, index) => (
+      <PodSquare
+        key={participant?.participant_id}
+        handleOnClick={handleOnClick}
+        colSize={participants?.length === 3 && index === 2}
+        colors={winnerInfo?.colors?.name}
+        winnerId={winnerInfo?.participants?.id}
+        {...participant}
+      />
+    ))}
+  </div>
+);
+
 function Pods({
   pods,
   podKeys,
@@ -67,40 +139,11 @@ function Pods({
                 {submitted ? "Submitted" : "Open"}
               </div>
             </div>
-            <div className="shadow-lg border border-blue-300 grid grid-cols-1 sm:grid-cols-2 overflow-y-auto">
-              {participants.map(
-                (
-                  { participant_id, name, total_points, round_points },
-                  index
-                ) => (
-                  <div
-                    key={participant_id}
-                    className={`p-4 sm:p-6 border border-blue-300 grid grid-cols-1 overflow-y-auto text-center ${
-                      participants.length === 3 && index === 2
-                        ? "sm:col-span-2"
-                        : ""
-                    }`}
-                  >
-                    <span className="text-xl md:text-xl">
-                      <a
-                        className="hover:text-sky-500"
-                        onClick={() =>
-                          handleOnClick(name, round_points, participant_id)
-                        }
-                      >
-                        {name}
-                      </a>
-                    </span>
-                    <span className="text-xs md:text-xs">
-                      {round_points} Points This Round
-                    </span>
-                    <span className="text-xs md:text-xs">
-                      {total_points} Points This Month
-                    </span>
-                  </div>
-                )
-              )}
-            </div>
+            <PodGrouping
+              participants={participants}
+              winnerInfo={winner_info}
+              handleOnClick={handleOnClick}
+            />
           </div>
         );
       })}

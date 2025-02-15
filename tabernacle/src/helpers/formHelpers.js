@@ -194,7 +194,6 @@ export function formatUpdate(
   // move most if not all of this logic into the backend
   // bc trying to pinpoint and update a specific PA record w/ a win
   // is difficult and a little mangled from this part of the logic
-  console.log(existingValues);
   const existingAchievements = existingValues?.pod_achievements;
   const existingCommander = existingValues?.winning_commander;
   const existingPartner = existingValues?.partner_commander;
@@ -314,11 +313,6 @@ export function formatUpdate(
         })
       );
   }
-
-  console.log(newValues["winner-commander"], newValues["partner-commander"]);
-
-  console.log(colorsData);
-
   // idk maybe we calculate this everytime and let the backend figure it out
   const colorId = getCommanderColorId(
     colorsData,

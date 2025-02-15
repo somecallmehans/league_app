@@ -18,7 +18,6 @@ import {
   useGetCommandersQuery,
 } from "../api/apiSlice";
 import { formatInitialValues, formatUpdate } from "../helpers/formHelpers";
-import { ColorCheckboxes } from "./ColorInputs";
 import LoadingSpinner from "./LoadingSpinner";
 
 const slugRegex = /win-\d-colors/i;
@@ -32,12 +31,6 @@ const fieldsToReset = [
   "last-in-order",
   "winner-commander",
   "partner-commander",
-  // "colors.White",
-  // "colors.Blue",
-  // "colors.Black",
-  // "colors.Red",
-  // "colors.Green",
-  // "colors.Colorless",
 ];
 
 const ScorecardFormFields = ({
@@ -175,7 +168,6 @@ const ScorecardFormFields = ({
           fieldsToReset.map((x) => setValue(x, ""));
         }}
       />
-      {/* When redis gets rolling this should be a selector from that data */}
       <div className="flex">
         <Selector
           name="winner-commander"
@@ -196,8 +188,6 @@ const ScorecardFormFields = ({
           isClearable
         />
       </div>
-
-      {/* <ColorCheckboxes control={control} watch={watch} /> */}
       <div className="mb-2 flex gap-2">
         Were they last in turn order:{" "}
         <Controller
@@ -320,8 +310,6 @@ export default function ScorecardModal({
   if (isLoading || commandersLoading) {
     return <LoadingSpinner />;
   }
-
-  console.log(commanders);
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
