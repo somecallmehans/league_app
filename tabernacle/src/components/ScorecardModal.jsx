@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useState } from "react";
+import React, { Fragment, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 
 import StandardButton from "./Button";
@@ -31,12 +31,13 @@ const fieldsToReset = [
   "commander-damage",
   "last-in-order",
   "winner-commander",
-  "colors.White",
-  "colors.Blue",
-  "colors.Black",
-  "colors.Red",
-  "colors.Green",
-  "colors.Colorless",
+  "partner-commander",
+  // "colors.White",
+  // "colors.Blue",
+  // "colors.Black",
+  // "colors.Red",
+  // "colors.Green",
+  // "colors.Colorless",
 ];
 
 const ScorecardFormFields = ({
@@ -47,13 +48,12 @@ const ScorecardFormFields = ({
   initialValues,
   podData,
   refetch,
+  commanders,
 }) => {
-  const [showField, setShowField] = useState();
   const [postUpsertEarnedV2] = usePostUpsertEarnedV2Mutation();
   const { data: colorsData, isLoading: colorsLoading } = useGetAllColorsQuery();
   const { data: achievementData, isLoading } = useGetAchievementsQuery();
-  const { data: commanders, isLoading: commandersLoading } =
-    useGetCommandersQuery();
+
   const focusedIds = focusedPod?.participants?.map((p) => p?.participant_id);
 
   const {
@@ -69,9 +69,10 @@ const ScorecardFormFields = ({
     reset(initialValues);
   }, [focusedPod, initialValues, reset]);
 
-  const { "end-draw": endInDraw } = watch();
+  const { "end-draw": endInDraw, "winner-commander": winnerCommander } =
+    watch();
 
-  if (isLoading || colorsLoading || commandersLoading) {
+  if (isLoading || colorsLoading) {
     return null;
   }
 
@@ -175,31 +176,28 @@ const ScorecardFormFields = ({
         }}
       />
       {/* When redis gets rolling this should be a selector from that data */}
-      <Selector
-        name="winner-commander"
-        placeholder="Winner's Commander"
-        control={control}
-        options={commanders?.commanders}
-        classes="mb-2 w-1/2"
-        disabled={endInDraw}
-      />
-      <Selector
-        name="partner-commander"
-        placeholder="Addtl Commander"
-        control={control}
-        options={commanders?.partners}
-        classes="mb-2 w-1/2"
-        disabled={endInDraw}
-      />
-      {/* <TextInput
-        classes="basis-2/3 border py-2 mb-2 data-[hover]:shadow data-[focus]:bg-blue-100"
-        name="winner-commander"
-        placeholder="Winner's Commander"
-        control={control}
-        disabled={endInDraw}
-      /> */}
+      <div className="flex">
+        <Selector
+          name="winner-commander"
+          placeholder="Winner's Commander"
+          control={control}
+          options={commanders?.commanders}
+          classes="mb-2 w-1/2 pr-1"
+          disabled={endInDraw}
+          isClearable
+        />
+        <Selector
+          name="partner-commander"
+          placeholder="Partner/Background/Companion"
+          control={control}
+          options={commanders?.partners}
+          classes="mb-2 w-1/2 pl-1"
+          disabled={endInDraw || !winnerCommander?.name}
+          isClearable
+        />
+      </div>
 
-      <ColorCheckboxes control={control} watch={watch} />
+      {/* <ColorCheckboxes control={control} watch={watch} /> */}
       <div className="mb-2 flex gap-2">
         Were they last in turn order:{" "}
         <Controller
@@ -302,6 +300,8 @@ export default function ScorecardModal({
   sessionId,
   roundId,
 }) {
+  const { data: commanders, isLoading: commandersLoading } =
+    useGetCommandersQuery();
   const {
     data: podData,
     isLoading,
@@ -317,9 +317,11 @@ export default function ScorecardModal({
     return null;
   }
 
-  if (isLoading) {
+  if (isLoading || commandersLoading) {
     return <LoadingSpinner />;
   }
+
+  console.log(commanders);
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -358,9 +360,13 @@ export default function ScorecardModal({
                   roundId={roundId}
                   sessionId={sessionId}
                   closeModal={closeModal}
-                  initialValues={formatInitialValues(podData)}
+                  initialValues={formatInitialValues(
+                    podData,
+                    commanders?.commander_lookup
+                  )}
                   podData={podData}
                   refetch={refetch}
+                  commanders={commanders}
                 />
               </DialogPanel>
             </TransitionChild>

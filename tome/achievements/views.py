@@ -98,11 +98,22 @@ def get_achievements_by_participant_month(_, mm_yy):
 def get_colors(request):
     colors_objects = Colors.objects.all()
     colors = [
-        {"id": c["id"], "name": c["name"].title()}
+        {
+            "id": c["id"],
+            "name": c["name"].title(),
+            "symbol": c["symbol"],
+            "symbol_length": c["symbol_length"],
+        }
         for c in ColorsSerializer(colors_objects, many=True).data
     ]
 
-    return Response(colors, status=status.HTTP_200_OK)
+    id_obj = {v["id"]: v for v in colors}
+    symbol_obj = {v["symbol"]: v["id"] for v in colors}
+
+    return Response(
+        {"list": colors, "idObj": id_obj, "symbolObj": symbol_obj},
+        status=status.HTTP_200_OK,
+    )
 
 
 @api_view(["POST"])
@@ -348,9 +359,9 @@ def upsert_participant_achievements_v2(request):
             )
         if len(created_objs) > 0:
             ParticipantAchievements.objects.bulk_create(created_objs)
-            if not pod.submitted:
-                pod.submitted = True
-                pod.save()
+        if not pod.submitted:
+            pod.submitted = True
+            pod.save()
 
     return Response({"message": "success"}, status=status.HTTP_201_CREATED)
 
@@ -404,8 +415,13 @@ def get_all_commanders(_):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
     commander_data = CommandersSerializer(commanders, many=True).data
+    commander_lookup = {c["name"]: c for c in commander_data}
     partner_data = CommandersSerializer(partners_backgrounds, many=True).data
     return Response(
-        {"commanders": commander_data, "partners": partner_data},
+        {
+            "commanders": commander_data,
+            "partners": partner_data,
+            "commander_lookup": commander_lookup,
+        },
         status=status.HTTP_200_OK,
     )

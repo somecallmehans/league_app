@@ -14,6 +14,7 @@ export const Selector = ({
   defaultValue,
   onChange,
   disabled = false,
+  isClearable,
   getOptionLabel = (option) => option.name,
   getOptionValue = (option) => option.id,
   mapToApiFormat = (option) => option,
@@ -46,6 +47,7 @@ export const Selector = ({
             if (onChange) onChange(mappedValue);
           }}
           isDisabled={disabled}
+          isClearable={isClearable}
         />
       )}
     />

@@ -52,6 +52,12 @@ class Colors(models.Model):
     class Meta:
         db_table = "colors"
 
+    @property
+    def symbol_length(self):
+        if self.symbol == "c":
+            return 0
+        return len(self.symbol)
+
 
 class ColorFactions(models.Model):
     name = models.CharField(max_length=50)

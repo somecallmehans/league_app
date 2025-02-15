@@ -1,5 +1,3 @@
-import { colorIdFinder } from "../components/ColorInputs";
-
 export const getWinSlug = (colorObj) => {
   let slug_value = 0;
   if (!colorObj.Colorless) {
@@ -57,7 +55,7 @@ function mapParticipants(achievements, checkSlug) {
     }));
 }
 
-export function formatInitialValues(podData) {
+export function formatInitialValues(podData, commanderLookup) {
   if (!podData) {
     return {};
   }
@@ -79,6 +77,11 @@ export function formatInitialValues(podData) {
     return acc;
   }, {});
 
+  const [commander, partner] =
+    podData?.winning_commander?.name?.split("+") || [];
+  const cColor = commanderLookup[commander]?.colors_id;
+  const pColor = commanderLookup[partner]?.colors_id;
+
   return {
     "bring-snack": mappedAchievements["bring-snack"],
     "lend-deck": mappedAchievements["lend-deck"],
@@ -92,7 +95,13 @@ export function formatInitialValues(podData) {
     "end-draw": !!mappedAchievements["end-draw"],
     "winner-commander": {
       id: podData?.winning_commander?.id,
-      name: podData?.winning_commander?.name,
+      name: commander,
+      colors_id: cColor,
+    },
+    "partner-commander": {
+      id: podData?.winning_commander?.id,
+      name: partner,
+      colors_id: pColor,
     },
     colors: winningColors,
     "last-in-order": !!mappedAchievements["last-in-order"],
@@ -131,6 +140,47 @@ const winSlugs = [
   "win-5-colors",
 ];
 
+const normalizeSymbols = (sym1, sym2) =>
+  [...new Set((sym1 + sym2).split(""))].sort().join("");
+
+const getCommanderColorId = (colorsObj, c1, c2) => {
+  // if we don't have a second commander, we can just return the given commanders color id
+  if (!c2) {
+    return colorsObj.idObj[c1].id;
+  }
+  // if we do have a second commander but it has the same color as our primary, just return
+  // the primary's color
+  const sym1 = colorsObj.idObj[c1].symbol;
+  const sym2 = colorsObj.idObj[c2].symbol;
+  if (sym1.includes(sym2)) {
+    return sym1;
+  }
+
+  const normalizedKey = normalizeSymbols(sym1, sym2);
+  const key = Object.keys(colorsObj.symbolObj).find(
+    (sym) => normalizedKey === sym.split("").sort().join("")
+  );
+
+  return colorsObj.symbolObj[key];
+};
+
+const getCommanderName = (prev1, prev2, cM1, cM2) => {
+  if (!prev1) {
+    return cM2 ? `${cM1}+${cM2}` : cM1;
+  }
+
+  // could do a check like {pN1}+{pN2} === {cM1}+{cM2}
+  // if pN2(old partner) is undefined then there won't be a match if
+  // we submit a partner
+  // alternatively if we don't have a partner either time we're essentially matching strings
+  // {pN1}+  === {cM1}
+  if (`${prev1}+${prev2}` !== `${cM1}+${cM2}`) {
+    return cM2 ? `${cM1}+${cM2}` : cM1;
+  }
+
+  return prev2 ? `${prev1}+${prev2}` : prev1;
+};
+
 export function formatUpdate(
   newValues,
   existingValues,
@@ -144,8 +194,10 @@ export function formatUpdate(
   // move most if not all of this logic into the backend
   // bc trying to pinpoint and update a specific PA record w/ a win
   // is difficult and a little mangled from this part of the logic
+  console.log(existingValues);
   const existingAchievements = existingValues?.pod_achievements;
   const existingCommander = existingValues?.winning_commander;
+  const existingPartner = existingValues?.partner_commander;
   const out = { new: [], update: [] };
 
   // Handle general achievements that everyone is eligible for
@@ -263,18 +315,28 @@ export function formatUpdate(
       );
   }
 
-  console.log(newValues["winner-commander"]);
+  console.log(newValues["winner-commander"], newValues["partner-commander"]);
 
-  const commanderName =
-    newValues["winner-commander"]?.name !== existingCommander?.name
-      ? newValues?.["winner-commander"]?.name
-      : existingCommander?.name;
+  console.log(colorsData);
+
+  // idk maybe we calculate this everytime and let the backend figure it out
+  const colorId = getCommanderColorId(
+    colorsData,
+    newValues["winner-commander"]?.colors_id,
+    newValues["partner-commander"]?.colors_id
+  );
+  const commanderName = getCommanderName(
+    existingCommander?.name,
+    existingPartner?.name,
+    newValues["winner-commander"]?.name,
+    newValues["partner-commander"]?.name
+  );
 
   out.winnerInfo = {
     // existingCommander.id is a ref to the row
     id: existingCommander?.id,
     participant_id: winnerId,
-    color_id: colorIdFinder(newValues?.colors, colorsData),
+    color_id: colorId,
     commander_name: commanderName,
     pod_id: podId,
     session_id: sessionId,
@@ -332,7 +394,7 @@ export function formatUpdate(
   });
 
   // handle if the win has changed or not
-  const newWinSlug = getWinSlug(newValues["colors"]);
+  // const newWinSlug = getWinSlug(newValues["colors"]);
   // 9/10 a slug should be used to find this achievement
   // but im tired and frustrated so im hardcoding the ID
   const preconWin = submittedAchievements.find(
@@ -349,7 +411,7 @@ export function formatUpdate(
   }
 
   if (!preconWin) {
-    out.winInfo.slug = newWinSlug;
+    out.winInfo.slug = `win-${colorsData.idObj[colorId]["symbol_length"]}-colors`;
   }
 
   return out;
