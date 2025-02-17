@@ -10,6 +10,7 @@ import {
 
 import { useGetAchievementRoundQuery } from "../../api/apiSlice";
 import LoadingSpinner from "../../components/LoadingSpinner";
+import ColorGrid from "../../components/ColorGrid";
 
 export default function PointsModal({ isOpen, closeModal, selected }) {
   const { data, isLoading: achievementsLoading } = useGetAchievementRoundQuery(
@@ -23,7 +24,6 @@ export default function PointsModal({ isOpen, closeModal, selected }) {
   if (achievementsLoading) {
     return <LoadingSpinner />;
   }
-
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={closeModal}>
@@ -52,10 +52,22 @@ export default function PointsModal({ isOpen, closeModal, selected }) {
               <DialogPanel className="md:w-9/12 min-w-[65vw] transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                 <DialogTitle
                   as="h3"
-                  className="mb-2 text-xl font-medium leading-6 text-gray-900 flex flex-wrap md:no-wrap justify-center md:justify-between"
+                  className="mb-2 text-2xl font-medium leading-6 text-gray-900 flex flex-col flex-wrap md:no-wrap justify-center md:justify-between"
                 >
-                  <span>Points for {selected?.participant}</span>
-                  <span>{selected?.round_points} Round Points</span>
+                  <span>{selected?.participant}</span>
+                  {selected?.isWinner && (
+                    <div className="flex align-middle gap-2">
+                      <span className="text-lg">
+                        {selected?.winnerCommander || ""}
+                      </span>
+                      <ColorGrid
+                        show
+                        colors={selected?.colors}
+                        containerClasses="my-auto"
+                        submitted
+                      />
+                    </div>
+                  )}
                 </DialogTitle>
                 <div className="border-b mb-2" />
                 {data?.achievements.map(
@@ -77,6 +89,9 @@ export default function PointsModal({ isOpen, closeModal, selected }) {
                     </div>
                   )
                 )}
+                <span className="flex justify-end text-lg font-semibold mt-2 border-t border-gray-300">
+                  = {selected?.round_points} Round Points
+                </span>
               </DialogPanel>
             </TransitionChild>
           </div>

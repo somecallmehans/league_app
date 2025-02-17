@@ -16,18 +16,7 @@ import LoadingSpinner from "../../components/LoadingSpinner";
 import CreatableSelect from "react-select/creatable";
 import ScorecardModal from "../../components/ScorecardModal";
 import PointsModal from "./PointsModal";
-
-const colorObj = {
-  colorless: "166, 159, 157",
-  white: "249, 250, 244",
-  blue: "14, 104, 171",
-  black: "21, 11, 0",
-  red: "211, 32, 42",
-  green: "0, 115, 62",
-};
-
-const colorToRGBA = (color, alpha) =>
-  `rgba(${colorObj[color] || "0, 0, 0"}, ${alpha})`;
+import ColorGrid from "../../components/ColorGrid";
 
 const PodSquare = ({
   participant_id,
@@ -36,45 +25,55 @@ const PodSquare = ({
   round_points,
   colSize,
   handleOnClick,
-  colors = [],
+  colors,
   winnerId,
+  winnerCommander,
+  submitted,
 }) => {
-  const gradientStyle = {
-    background:
-      winnerId === participant_id
-        ? `linear-gradient(to right, ${colors
-            ?.split(" ")
-            .map((color) => colorToRGBA(color, 0.4))
-            .join(", ")} )`
-        : "",
-  };
   return (
     <div
       key={participant_id}
       className={`p-4 sm:p-6 border border-blue-300 grid grid-cols-1 overflow-y-auto text-center ${
         colSize ? "sm:col-span-2" : ""
       }`}
-      style={gradientStyle}
     >
-      <span className="text-xl md:text-xl">
+      <span className="text-xl md:text-xl font-semibold">
         <a
           className="hover:text-sky-500"
-          onClick={() => handleOnClick(name, round_points, participant_id)}
+          onClick={() =>
+            handleOnClick(
+              name,
+              round_points,
+              participant_id,
+              winnerCommander,
+              colors,
+              participant_id === winnerId
+            )
+          }
         >
           {name}
         </a>
       </span>
-      <span className="text-xs md:text-xs">
-        {round_points} Points This Round
-      </span>
-      <span className="text-xs md:text-xs">
-        {total_points} Points This Month
-      </span>
+      <div className="flex justify-center gap-2">
+        <span className="text-sm md:text-md">{round_points} Round</span> /
+        <span className="text-sm md:text-md">{total_points} Month</span>
+      </div>
+      <ColorGrid
+        submitted={submitted}
+        show={winnerId === participant_id}
+        colors={colors}
+        containerClasses="mt-2"
+      />
     </div>
   );
 };
 
-const PodGrouping = ({ participants, winnerInfo, handleOnClick }) => (
+const PodGrouping = ({
+  participants,
+  winnerInfo,
+  handleOnClick,
+  submitted,
+}) => (
   <div className="shadow-lg border border-blue-300 grid grid-cols-1 sm:grid-cols-2 overflow-y-auto">
     {participants.map((participant, index) => (
       <PodSquare
@@ -83,6 +82,8 @@ const PodGrouping = ({ participants, winnerInfo, handleOnClick }) => (
         colSize={participants?.length === 3 && index === 2}
         colors={winnerInfo?.colors?.name}
         winnerId={winnerInfo?.participants?.id}
+        winnerCommander={winnerInfo?.name}
+        submitted={submitted}
         {...participant}
       />
     ))}
@@ -106,12 +107,28 @@ function Pods({
     return null;
   }
 
-  const handleOnClick = (participant, round_points, participant_id) => {
-    setSelected({ participant, round_points, participant_id, roundId });
+  const handleOnClick = (
+    participant,
+    round_points,
+    participant_id,
+    winnerCommander,
+    colors,
+    isWinner
+  ) => {
+    setSelected({
+      participant,
+      round_points,
+      participant_id,
+      roundId,
+      winnerCommander,
+      colors,
+      isWinner,
+    });
     setModalOpen(!modalOpen);
   };
 
   const handleClose = () => {
+    setSelected(undefined);
     setModalOpen(false);
   };
 
@@ -143,6 +160,7 @@ function Pods({
               participants={participants}
               winnerInfo={winner_info}
               handleOnClick={handleOnClick}
+              submitted={submitted}
             />
           </div>
         );
