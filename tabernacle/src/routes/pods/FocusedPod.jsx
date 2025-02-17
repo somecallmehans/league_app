@@ -7,12 +7,13 @@ import PageTitle from "../../components/PageTitle";
 import StandardButton from "../../components/Button";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import PointsModal from "../leagueSession/PointsModal";
+import ColorGrid from "../../components/ColorGrid";
 
 const PointsBlock = ({ children }) => (
   <span className="text-sm md:text-md font-light">{children}</span>
 );
 
-const PodSquare = ({ participants, handleOnClick }) => {
+const PodSquare = ({ participants, handleOnClick, winnerInfo, submitted }) => {
   const navigate = useNavigate();
 
   return participants.map(
@@ -26,15 +27,32 @@ const PodSquare = ({ participants, handleOnClick }) => {
         <div onClick={() => navigate(`/metrics/${participant_id}/`)}>
           <span className="hover:text-sky-400 text-lg md:text-2xl">{name}</span>
         </div>
-        <PointsBlock>
-          <a
-            className="text-sky-700 hover:text-sky-400"
-            onClick={() => handleOnClick(name, round_points, participant_id)}
-          >
-            {round_points} Points This Round{" "}
-          </a>
-        </PointsBlock>
-        <PointsBlock>{total_points} Points This Month</PointsBlock>
+        <div className="flex justify-center gap-2">
+          <PointsBlock>
+            <a
+              className="text-sky-700 hover:text-sky-400"
+              onClick={() =>
+                handleOnClick(
+                  name,
+                  round_points,
+                  participant_id,
+                  winnerInfo?.name,
+                  winnerInfo?.colors?.name,
+                  participant_id === winnerInfo?.participants?.id
+                )
+              }
+            >
+              {round_points} Round{" "}
+            </a>
+          </PointsBlock>{" "}
+          / <PointsBlock>{total_points} Month</PointsBlock>
+        </div>
+        <ColorGrid
+          submitted={submitted}
+          show={winnerInfo?.participants?.id === participant_id}
+          colors={winnerInfo?.colors?.name}
+          containerClasses="mt-2"
+        />
       </div>
     )
   );
@@ -54,7 +72,7 @@ const PodContainer = ({ pods, handleOnClick }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-4 sm:px-6 pb-8">
       {Object.keys(pods).map((pod_id, index) => {
-        const { participants } = pods[pod_id];
+        const { participants, winner_info, submitted } = pods[pod_id];
 
         return (
           <div key={pod_id}>
@@ -66,6 +84,8 @@ const PodContainer = ({ pods, handleOnClick }) => {
                 participants={participants}
                 index={index}
                 handleOnClick={handleOnClick}
+                winnerInfo={winner_info}
+                submitted={submitted}
               />
             </div>
           </div>
@@ -86,8 +106,23 @@ export default function () {
     skip: !roundId,
   });
 
-  const handleOnClick = (participant, round_points, participant_id) => {
-    setSelected({ participant, round_points, participant_id, roundId });
+  const handleOnClick = (
+    participant,
+    round_points,
+    participant_id,
+    winnerCommander,
+    colors,
+    isWinner
+  ) => {
+    setSelected({
+      participant,
+      round_points,
+      participant_id,
+      roundId,
+      winnerCommander,
+      colors,
+      isWinner,
+    });
     setModalOpen(!modalOpen);
   };
 
