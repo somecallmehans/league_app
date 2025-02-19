@@ -4,6 +4,18 @@ import { Controller } from "react-hook-form";
 import Select from "react-select";
 import { Checkbox, Input, Label, Field } from "@headlessui/react";
 
+const customStyles = {
+  option: (styles, { isDisabled }) => {
+    return {
+      ...styles,
+      backgroundColor: isDisabled ? "" : "",
+      color: isDisabled ? "black" : "",
+      cursor: isDisabled ? "not-allowed" : "default",
+    };
+  },
+  menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+};
+
 export const Selector = ({
   name,
   options,
@@ -18,6 +30,7 @@ export const Selector = ({
   getOptionLabel = (option) => option.name,
   getOptionValue = (option) => option.id,
   mapToApiFormat = (option) => option,
+  filterOption,
 }) => {
   return (
     <Controller
@@ -36,7 +49,7 @@ export const Selector = ({
           menuPortalTarget={document.body}
           menuPosition="fixed"
           menuPlacement="auto"
-          styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+          styles={customStyles}
           placeholder={placeholder}
           defaultValue={defaultValue}
           onChange={(selectedOption) => {
@@ -48,6 +61,8 @@ export const Selector = ({
           }}
           isDisabled={disabled}
           isClearable={isClearable}
+          filterOption={filterOption}
+          isOptionDisabled={(option) => option.disabled}
         />
       )}
     />

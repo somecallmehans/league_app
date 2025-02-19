@@ -14,14 +14,14 @@ export default function ColorGrid({
   if (!show) {
     return (
       <div>
-        <i className="fa-solid fa-skull-crossbones" />
+        <i className="fa-solid fa-skull-crossbones text-2xl" />
       </div>
     );
   }
   return (
     <div className={`flex gap-2 justify-center ${containerClasses}`}>
       {colors?.split(" ")?.map((c, idx) => (
-        <img key={idx} className="w-4 h-4" src={imgs[c]} />
+        <img key={idx} className="w-6 h-6" src={imgs[c]} />
       ))}
     </div>
   );

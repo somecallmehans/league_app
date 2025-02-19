@@ -173,19 +173,45 @@ const ScorecardFormFields = ({
           name="winner-commander"
           placeholder="Winner's Commander"
           control={control}
-          options={commanders?.commanders}
+          options={[
+            {
+              id: "notOption",
+              name: "Type To Select a Commander",
+              disabled: true,
+            },
+            ...commanders.commanders,
+          ]}
           classes="mb-2 w-1/2 pr-1"
           disabled={endInDraw}
           isClearable
+          filterOption={(option, input) => {
+            if (input.length > 1) {
+              return option.label.toLowerCase().includes(input.toLowerCase());
+            }
+            return option.value === "notOption";
+          }}
         />
         <Selector
           name="partner-commander"
           placeholder="Partner/Background/Companion"
           control={control}
-          options={commanders?.partners}
+          options={[
+            {
+              id: "notOption",
+              name: "Type To Select a Partner/Background/Companion",
+              disabled: true,
+            },
+            ...commanders.partners,
+          ]}
           classes="mb-2 w-1/2 pl-1"
           disabled={endInDraw || !winnerCommander?.name}
           isClearable
+          filterOption={(option, input) => {
+            if (input.length > 1) {
+              return option.label.toLowerCase().includes(input.toLowerCase());
+            }
+            return option.value === "notOption";
+          }}
         />
       </div>
       <div className="mb-2 flex gap-2">
