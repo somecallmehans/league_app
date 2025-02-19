@@ -37,23 +37,7 @@ const PodSquare = ({
         colSize ? "sm:col-span-2" : ""
       }`}
     >
-      <span className="text-xl md:text-xl font-semibold">
-        <a
-          className="hover:text-sky-500"
-          onClick={() =>
-            handleOnClick(
-              name,
-              round_points,
-              participant_id,
-              winnerCommander,
-              colors,
-              participant_id === winnerId
-            )
-          }
-        >
-          {name}
-        </a>
-      </span>
+      <span className="text-xl md:text-xl font-semibold">{name}</span>
       <div className="flex justify-center gap-2">
         <span className="text-sm md:text-md">{round_points} Round</span> /
         <span className="text-sm md:text-md">{total_points} Month</span>
@@ -63,6 +47,16 @@ const PodSquare = ({
         show={winnerId === participant_id}
         colors={colors}
         containerClasses="mt-2"
+        action={() =>
+          handleOnClick(
+            name,
+            round_points,
+            participant_id,
+            winnerCommander,
+            colors,
+            participant_id === winnerId
+          )
+        }
       />
     </div>
   );

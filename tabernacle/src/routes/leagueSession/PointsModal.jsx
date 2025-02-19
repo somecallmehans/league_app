@@ -38,8 +38,8 @@ export default function PointsModal({ isOpen, closeModal, selected }) {
         >
           <div className="fixed inset-0 bg-black/25" />
         </TransitionChild>
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-4/5 items-center justify-center p-4 text-center">
+        <div className="fixed inset-0 overflow-y-auto flex items-center justify-center ">
+          <div className="flex w-full max-w-3xl items-center justify-center p-4 text-center">
             <TransitionChild
               as="div"
               enter="ease-out duration-300"
@@ -48,13 +48,16 @@ export default function PointsModal({ isOpen, closeModal, selected }) {
               leave="ease-in duration-200"
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
+              className="flex justify-center"
             >
-              <DialogPanel className="md:w-9/12 min-w-[65vw] transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+              <DialogPanel className="md:w-9/12 min-w-[50vw] transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                 <DialogTitle
                   as="h3"
-                  className="mb-2 text-2xl font-medium leading-6 text-gray-900 flex flex-col flex-wrap md:no-wrap justify-center md:justify-between"
+                  className="mb-2 text-2xl font-medium leading-6 text-gray-900 flex flex-wrap md:no-wrap justify-center md:justify-between"
                 >
-                  <span>{selected?.participant}</span>
+                  <span className="text-2xl font-bold">
+                    {selected?.participant}
+                  </span>
                   {selected?.isWinner && (
                     <div className="flex align-middle gap-2">
                       <span className="text-lg">
