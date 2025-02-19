@@ -429,7 +429,7 @@ export default function RoundPage() {
       {data && Object?.keys(data)?.length > 0 && (
         <Link to={"/league-session"}>
           <StandardButton
-            title="Close"
+            title="End Round"
             action={() => handleCloseRound()}
             disabled={allPodsSubmitted && completed}
           />
