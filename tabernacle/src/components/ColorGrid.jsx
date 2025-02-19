@@ -7,21 +7,25 @@ export default function ColorGrid({
   colors,
   containerClasses,
   submitted,
+  action,
 }) {
   if (!submitted) {
     return;
   }
   if (!show) {
     return (
-      <div>
-        <i className="fa-solid fa-skull-crossbones text-2xl" />
+      <div onClick={action}>
+        <i className="fa-solid fa-skull-crossbones text-xl md:text-3xl hover:text-sky-400 cursor-pointer" />
       </div>
     );
   }
   return (
-    <div className={`flex gap-2 justify-center ${containerClasses}`}>
+    <div
+      onClick={action}
+      className={`flex gap-2 justify-center clickable-icon ${containerClasses}`}
+    >
       {colors?.split(" ")?.map((c, idx) => (
-        <img key={idx} className="w-6 h-6" src={imgs[c]} />
+        <img key={idx} className="w-4 h-4 md:w-6 md:h-6" src={imgs[c]} />
       ))}
     </div>
   );

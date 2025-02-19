@@ -28,30 +28,24 @@ const PodSquare = ({ participants, handleOnClick, winnerInfo, submitted }) => {
           <span className="hover:text-sky-400 text-lg md:text-2xl">{name}</span>
         </div>
         <div className="flex justify-center gap-2">
-          <PointsBlock>
-            <a
-              className="text-sky-700 hover:text-sky-400"
-              onClick={() =>
-                handleOnClick(
-                  name,
-                  round_points,
-                  participant_id,
-                  winnerInfo?.name,
-                  winnerInfo?.colors?.name,
-                  participant_id === winnerInfo?.participants?.id
-                )
-              }
-            >
-              {round_points} Round{" "}
-            </a>
-          </PointsBlock>{" "}
-          / <PointsBlock>{total_points} Month</PointsBlock>
+          <PointsBlock>{round_points} Round</PointsBlock> /{" "}
+          <PointsBlock>{total_points} Month</PointsBlock>
         </div>
         <ColorGrid
           submitted={submitted}
           show={winnerInfo?.participants?.id === participant_id}
           colors={winnerInfo?.colors?.name}
           containerClasses="mt-2"
+          action={() =>
+            handleOnClick(
+              name,
+              round_points,
+              participant_id,
+              winnerInfo?.name,
+              winnerInfo?.colors?.name,
+              participant_id === winnerInfo?.participants?.id
+            )
+          }
         />
       </div>
     )

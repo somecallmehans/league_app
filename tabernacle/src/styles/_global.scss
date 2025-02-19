@@ -2,3 +2,12 @@ body {
   background-color: rgb(250 250 250);
   font-family: "Roboto Mono", monospace;
 }
+
+.clickable-icon {
+  cursor: pointer;  
+  transition: opacity 0.2s ease-in-out;
+}
+
+.clickable-icon:hover {
+  opacity: 0.5;
+}
