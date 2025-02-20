@@ -27,8 +27,8 @@ export const Selector = ({
   onChange,
   disabled = false,
   isClearable,
-  getOptionLabel = (option) => option.name,
-  getOptionValue = (option) => option.id,
+  getOptionLabel,
+  getOptionValue,
   mapToApiFormat = (option) => option,
   filterOption,
 }) => {

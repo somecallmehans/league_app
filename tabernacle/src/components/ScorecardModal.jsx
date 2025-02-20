@@ -167,6 +167,8 @@ const ScorecardFormFields = ({
         onChange={() => {
           fieldsToReset.map((x) => setValue(x, ""));
         }}
+        getOptionLabel={(option) => option.name}
+        getOptionValue={(option) => option.id}
       />
       <Selector
         name="winner-commander"
@@ -189,6 +191,8 @@ const ScorecardFormFields = ({
           }
           return option.value === "notOption";
         }}
+        getOptionLabel={(option) => option.name}
+        getOptionValue={(option) => option.id}
       />
       <Selector
         name="partner-commander"
@@ -211,6 +215,8 @@ const ScorecardFormFields = ({
           }
           return option.value === "notOption";
         }}
+        getOptionLabel={(option) => option.name}
+        getOptionValue={(option) => option.id}
       />
 
       <div className="mb-2 flex gap-2">
