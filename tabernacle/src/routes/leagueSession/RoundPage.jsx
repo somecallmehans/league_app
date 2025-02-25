@@ -15,6 +15,7 @@ import StandardButton from "../../components/Button";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import CreatableSelect from "react-select/creatable";
 import ScorecardModal from "../../components/ScorecardModal";
+import ConfirmModal from "../../components/ConfirmModal";
 import PointsModal from "./PointsModal";
 import ColorGrid from "../../components/ColorGrid";
 
@@ -212,6 +213,7 @@ const podCalculator = (len) => {
 function RoundLobby({ roundId, sessionId, previousRoundId }) {
   const [postBeginRound] = usePostBeginRoundMutation();
   const [isLocked, setIsLocked] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const { data: previousPodsData, isLoading: isLoadingPods } = useGetPodsQuery(
     previousRoundId,
     {
@@ -219,7 +221,7 @@ function RoundLobby({ roundId, sessionId, previousRoundId }) {
     }
   );
   const { data: participantsData, isLoading } = useGetParticipantsQuery();
-  const { handleSubmit, control, setValue, watch, reset } = useForm({
+  const { control, setValue, watch, reset } = useForm({
     defaultValues: {
       participants: [],
     },
@@ -255,7 +257,7 @@ function RoundLobby({ roundId, sessionId, previousRoundId }) {
     )
     .map(({ id, name }) => ({ value: id, label: name }));
 
-  const onSubmit = async () => {
+  const submitForm = async () => {
     try {
       setIsLocked(true);
       const normalizedParticipants = selectedParticipants.map((p) => ({
@@ -296,10 +298,7 @@ function RoundLobby({ roundId, sessionId, previousRoundId }) {
 
   return (
     <div>
-      <form
-        className="flex w-full justify-center gap-2 md:gap-4"
-        onSubmit={handleSubmit(onSubmit)}
-      >
+      <form className="flex w-full justify-center gap-2 md:gap-4">
         <Controller
           control={control}
           name="participants"
@@ -324,7 +323,8 @@ function RoundLobby({ roundId, sessionId, previousRoundId }) {
             selectedParticipants?.length < 3 ||
             selectedParticipants?.length === 5
           }
-          type="submit"
+          action={() => setIsOpen(true)}
+          type="button"
           title="Submit"
         />
       </form>
@@ -350,6 +350,12 @@ function RoundLobby({ roundId, sessionId, previousRoundId }) {
           ))}
         </div>
       )}
+      <ConfirmModal
+        isOpen={isOpen}
+        title="Begin Round?"
+        confirmAction={() => submitForm()}
+        closeModal={() => setIsOpen(!isOpen)}
+      />
     </div>
   );
 }

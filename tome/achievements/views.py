@@ -367,8 +367,6 @@ def upsert_participant_achievements_v2(request):
 
 
 @api_view(["GET"])
-@authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
 def get_participant_round_achievements(request, participant_id, round_id):
     """Get all achievements + points for a participant in a particular round."""
     try:

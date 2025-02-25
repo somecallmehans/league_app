@@ -50,7 +50,7 @@ export default function PointsModal({ isOpen, closeModal, selected }) {
               leaveTo="opacity-0 scale-95"
               className="flex justify-center"
             >
-              <DialogPanel className="md:w-9/12 min-w-[50vw] transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+              <DialogPanel className="md:w-9/12 min-w-[50vw] max-w-[80vw] mx-auto transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                 <DialogTitle
                   as="h3"
                   className="mb-2 text-2xl font-medium leading-6 text-gray-900 flex flex-wrap md:no-wrap justify-center md:justify-between"
@@ -87,7 +87,7 @@ export default function PointsModal({ isOpen, closeModal, selected }) {
                         {full_name}
                       </div>
                       <div className="col-span-1 text-right text-gray-600 font-bold">
-                        {earned_points} points
+                        {earned_points} point{earned_points === 1 ? "" : "s"}
                       </div>
                     </div>
                   )
