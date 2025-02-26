@@ -9,7 +9,13 @@ import {
   TransitionChild,
 } from "@headlessui/react";
 
-export default function ({ isOpen, title, confirmAction, closeModal }) {
+export default function ({
+  isOpen,
+  title,
+  confirmAction,
+  closeModal,
+  disableSubmit,
+}) {
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={closeModal}>
@@ -39,7 +45,11 @@ export default function ({ isOpen, title, confirmAction, closeModal }) {
                 {title}
               </DialogTitle>
               <div className="mt-4 flex items-center gap-2  sm:justify-center">
-                <StandardButton title="Confirm" action={confirmAction} />
+                <StandardButton
+                  title="Confirm"
+                  action={confirmAction}
+                  disabled={disableSubmit}
+                />
                 <StandardButton title="Cancel" action={closeModal} />
               </div>
             </DialogPanel>

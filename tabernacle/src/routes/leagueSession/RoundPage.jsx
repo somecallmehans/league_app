@@ -355,6 +355,7 @@ function RoundLobby({ roundId, sessionId, previousRoundId }) {
         title="Begin Round?"
         confirmAction={() => submitForm()}
         closeModal={() => setIsOpen(!isOpen)}
+        disableSubmit={isLocked}
       />
     </div>
   );
