@@ -28,8 +28,8 @@ export default function InvdividualMetrics() {
         <PageTitle title={metrics.participant_name} />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <MetricWrapper title="Win Percentage">
-          <MetricBlock data={metrics} mainKey="win_pct" suffix="%" />
+        <MetricWrapper title="Average Win Points">
+          <MetricBlock data={metrics} mainKey="avg_win_points" />
         </MetricWrapper>
         <MetricWrapper title="Participant Since">
           <MetricBlock data={metrics} mainKey="participant_since" />

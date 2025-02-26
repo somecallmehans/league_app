@@ -168,10 +168,12 @@ class IndividualMetricsCalculator:
                     participant_id=self.participant_id, deleted=False
                 )
                 .select_related("achievement")
+                .select_related("round")
                 .select_related("session")
                 .values(
                     "achievement_id",
                     "session_id",
+                    "round_id",
                     "session__month_year",
                     "earned_points",
                     "achievement__slug",
@@ -225,10 +227,23 @@ class IndividualMetricsCalculator:
         ]
         return len(wins)
 
-    def calculate_win_percentage(self):
+    def calculate_average_win_points(self):
         """Calculate players win %. Achievements with a 'win' slug / participant_pods."""
         wins = self.calculate_win_number()
-        return round((wins / len(self.participant_pods)) * 100, 2)
+        if wins == 0:
+            return 0
+        round_list = [
+            w["round_id"]
+            for w in self.participant_achievements
+            if w["achievement__slug"] and "-colors" in w.get("achievement__slug")
+        ]
+        total = sum(
+            pa["earned_points"]
+            for pa in self.participant_achievements
+            if pa["round_id"] in round_list
+        )
+
+        return round((total / wins), 2)
 
     def calculate_lifetime_points(self):
         """Sum the number of points player has earned."""
@@ -278,7 +293,7 @@ class IndividualMetricsCalculator:
 
         return {
             "participant_name": self.participant_obj.name,
-            "win_pct": self.calculate_win_percentage(),
+            "avg_win_points": self.calculate_average_win_points(),
             "win_number": self.calculate_win_number(),
             "attendance": len(self.participant_pods),
             "lifetime_points": self.calculate_lifetime_points(),
