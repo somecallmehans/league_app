@@ -3,6 +3,7 @@ import { Controller } from "react-hook-form";
 
 import Select from "react-select";
 import { Checkbox, Input, Label, Field } from "@headlessui/react";
+import { v4 as uuidv4 } from "uuid";
 
 const customStyles = {
   option: (styles, { isDisabled }) => {
@@ -16,55 +17,161 @@ const customStyles = {
   menuPortal: (base) => ({ ...base, zIndex: 9999 }),
 };
 
+const CustomMultiValue = ({ data, handleRemove, selectProps }) => {
+  return (
+    <div className="flex items-center p-2 border border-gray-300 rounded-md bg-gray-100">
+      {data.name}
+      <button
+        onClick={() => handleRemove(data?.tempId, selectProps?.value)} // react-select handles the removal internally
+      >
+        <i className="fa-solid fa-x text-xs" />
+      </button>
+    </div>
+  );
+};
+
+export const MultiSelector = ({
+  name,
+  options,
+  control,
+  placeholder,
+  classes,
+  disabled,
+  isClearable,
+  getOptionLabel,
+  getOptionValue,
+}) => {
+  return (
+    <Controller
+      name={name}
+      control={control}
+      render={({ field }) => {
+        return (
+          <Select
+            {...field}
+            isMulti
+            name={name}
+            options={options}
+            className={`basic-multi-select ${classes}`}
+            menuPortalTarget={document.body}
+            menuPosition="fixed"
+            menuPlacement="auto"
+            styles={customStyles}
+            placeholder={placeholder}
+            isDisabled={disabled}
+            isClearable={isClearable}
+            getOptionLabel={getOptionLabel}
+            getOptionValue={getOptionValue}
+          />
+        );
+      }}
+    />
+  );
+};
+
+export const AchievementSelector = ({
+  name,
+  options,
+  control,
+  placeholder,
+  classes,
+  disabled,
+  isClearable,
+  getOptionLabel,
+  getOptionValue,
+}) => {
+  return (
+    <Controller
+      name={name}
+      control={control}
+      render={({ field }) => {
+        const handleChange = (selectedOption) => {
+          if (!selectedOption) return;
+          const entries = selectedOption.map((sO) => ({
+            ...sO,
+            tempId: uuidv4(),
+          }));
+          field.onChange(entries);
+        };
+
+        const handleRemove = (id, list) => {
+          const toRemove = list?.filter(({ tempId }) => tempId !== id);
+          field.onChange(toRemove);
+        };
+
+        return (
+          <Select
+            {...field}
+            isMulti
+            name={name}
+            options={options}
+            className={`basic-multi-select ${classes}`}
+            menuPortalTarget={document.body}
+            menuPosition="fixed"
+            menuPlacement="auto"
+            styles={customStyles}
+            placeholder={placeholder}
+            isDisabled={disabled}
+            isClearable={isClearable}
+            getOptionLabel={getOptionLabel}
+            getOptionValue={getOptionValue}
+            hideSelectedOptions={false}
+            onChange={handleChange}
+            components={{
+              MultiValueContainer: (props) => (
+                <CustomMultiValue {...props} handleRemove={handleRemove} />
+              ),
+            }}
+          />
+        );
+      }}
+    />
+  );
+};
+
 export const Selector = ({
   name,
   options,
-  isMulti,
   control,
   placeholder = "",
   classes,
   defaultValue,
-  onChange,
   disabled = false,
   isClearable,
   getOptionLabel,
   getOptionValue,
-  mapToApiFormat = (option) => option,
   filterOption,
 }) => {
   return (
     <Controller
       name={name}
       control={control}
-      render={({ field }) => (
-        <Select
-          {...field}
-          isMulti={isMulti}
-          name={name}
-          options={options}
-          className={`basic-multi-select ${classes}`}
-          classNamePrefix="select"
-          getOptionLabel={getOptionLabel}
-          getOptionValue={getOptionValue}
-          menuPortalTarget={document.body}
-          menuPosition="fixed"
-          menuPlacement="auto"
-          styles={customStyles}
-          placeholder={placeholder}
-          defaultValue={defaultValue}
-          onChange={(selectedOption) => {
-            const mappedValue = Array.isArray(selectedOption)
-              ? selectedOption.map(mapToApiFormat)
-              : mapToApiFormat(selectedOption);
-            field.onChange(mappedValue);
-            if (onChange) onChange(mappedValue);
-          }}
-          isDisabled={disabled}
-          isClearable={isClearable}
-          filterOption={filterOption}
-          isOptionDisabled={(option) => option.disabled}
-        />
-      )}
+      render={({ field }) => {
+        return (
+          <Select
+            {...field}
+            name={name}
+            options={options}
+            className={`basic-multi-select ${classes}`}
+            classNamePrefix="select"
+            getOptionLabel={getOptionLabel}
+            getOptionValue={getOptionValue}
+            menuPortalTarget={document.body}
+            menuPosition="fixed"
+            menuPlacement="auto"
+            styles={customStyles}
+            placeholder={placeholder}
+            defaultValue={defaultValue}
+            onChange={(selectedOption) => {
+              field.onChange(selectedOption);
+            }}
+            isDisabled={disabled}
+            isClearable={isClearable}
+            filterOption={filterOption}
+            isOptionDisabled={(option) => option.disabled}
+          />
+        );
+      }}
     />
   );
 };

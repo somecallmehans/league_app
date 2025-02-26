@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from "uuid";
+
 export const getWinSlug = (colorObj) => {
   let slug_value = 0;
   if (!colorObj.Colorless) {
@@ -23,6 +25,7 @@ function composeDeckbuildingAchievements(achievements, winnerId) {
       id,
       achievement_id,
       name: achievement_name,
+      tempId: uuidv4(),
     }));
 }
 
@@ -87,22 +90,28 @@ export function formatInitialValues(podData, commanderLookup) {
     "lend-deck": mappedAchievements["lend-deck"],
     "knock-out": mappedAchievements["knock-out"],
     "submit-to-discord": mappedAchievements["submit-to-discord"],
-    winner: {
-      name: podData?.winning_commander?.participants?.name,
-      participant_id: podData?.winning_commander?.participants?.id,
-      id: podData?.winning_commander?.id,
-    },
+    winner: podData?.winning_commander?.participants?.id
+      ? {
+          name: podData?.winning_commander?.participants?.name,
+          participant_id: podData?.winning_commander?.participants?.id,
+          id: podData?.winning_commander?.id,
+        }
+      : undefined,
     "end-draw": !!mappedAchievements["end-draw"],
-    "winner-commander": {
-      id: podData?.winning_commander?.id,
-      name: commander,
-      colors_id: cColor,
-    },
-    "partner-commander": {
-      id: podData?.winning_commander?.id,
-      name: partner,
-      colors_id: pColor,
-    },
+    "winner-commander": commander
+      ? {
+          id: podData?.winning_commander?.id,
+          name: commander,
+          colors_id: cColor,
+        }
+      : undefined,
+    "partner-commander": partner
+      ? {
+          id: podData?.winning_commander?.id,
+          name: partner,
+          colors_id: pColor,
+        }
+      : undefined,
     colors: winningColors,
     "last-in-order": !!mappedAchievements["last-in-order"],
     "commander-damage": !!mappedAchievements["commander-damage"],

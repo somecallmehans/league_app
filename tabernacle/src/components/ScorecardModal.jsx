@@ -9,7 +9,12 @@ import {
   Transition,
   TransitionChild,
 } from "@headlessui/react";
-import { CheckBoxInput, Selector } from "./FormInputs";
+import {
+  CheckBoxInput,
+  Selector,
+  MultiSelector,
+  AchievementSelector,
+} from "./FormInputs";
 import {
   useGetAchievementsQuery,
   useGetAllColorsQuery,
@@ -69,14 +74,12 @@ const ScorecardFormFields = ({
     return null;
   }
 
-  let counter = 0;
   // achievements that get passed in as initial values won't have
   // "new", so we set it here for future reference
   const filteredAchievementData = achievementData.data
     .filter((achievement) => !achievementData.parents.includes(achievement.id))
     .filter(({ slug }) => !slug?.match(slugRegex))
     .map((achievement) => ({
-      id: `${counter++}`,
       achievement_id: achievement?.id,
       name: achievement?.full_name,
       new: true,
@@ -103,7 +106,7 @@ const ScorecardFormFields = ({
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="flex flex-col">
-      <Selector
+      <MultiSelector
         name="bring-snack"
         control={control}
         options={focusedPod.participants}
@@ -111,9 +114,8 @@ const ScorecardFormFields = ({
         classes="mb-2"
         getOptionLabel={(option) => option.name}
         getOptionValue={(option) => option.participant_id}
-        isMulti
       />
-      <Selector
+      <MultiSelector
         name="lend-deck"
         control={control}
         options={focusedPod.participants}
@@ -121,9 +123,8 @@ const ScorecardFormFields = ({
         classes="mb-2"
         getOptionLabel={(option) => option.name}
         getOptionValue={(option) => option.participant_id}
-        isMulti
       />
-      <Selector
+      <MultiSelector
         name="knock-out"
         control={control}
         options={focusedPod.participants}
@@ -131,9 +132,8 @@ const ScorecardFormFields = ({
         getOptionLabel={(option) => option.name}
         getOptionValue={(option) => option.participant_id}
         classes="mb-2"
-        isMulti
       />
-      <Selector
+      <MultiSelector
         name="submit-to-discord"
         control={control}
         options={focusedPod.participants}
@@ -141,7 +141,6 @@ const ScorecardFormFields = ({
         getOptionLabel={(option) => option.name}
         getOptionValue={(option) => option.participant_id}
         classes="mb-2"
-        isMulti
       />
       <div className="mb-2 flex gap-2">
         Did the game end in a draw?
@@ -167,8 +166,8 @@ const ScorecardFormFields = ({
         onChange={() => {
           fieldsToReset.map((x) => setValue(x, ""));
         }}
-        getOptionLabel={(option) => option.name}
-        getOptionValue={(option) => option.id}
+        getOptionLabel={(option) => option?.name}
+        getOptionValue={(option) => option?.participant_id}
       />
       <Selector
         name="winner-commander"
@@ -295,16 +294,13 @@ const ScorecardFormFields = ({
           />
         </div>
       </div>
-      <Selector
+      <AchievementSelector
         control={control}
         name="winner-achievements"
         options={filteredAchievementData}
         placeholder="Other Deck Building Achievements"
         getOptionLabel={(option) => option.name}
-        getOptionValue={(option) =>
-          option?.achievement_id ? option.id : option.id
-        }
-        isMulti
+        getOptionValue={(option) => option?.tempId}
         disabled={endInDraw}
       />
       <div className="mt-2">
