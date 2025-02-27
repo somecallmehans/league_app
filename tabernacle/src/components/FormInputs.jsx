@@ -3,8 +3,7 @@ import { Controller } from "react-hook-form";
 
 import Select from "react-select";
 import { Checkbox, Input, Label, Field } from "@headlessui/react";
-import uuid from "uuid";
-const uuidv4 = uuid.v4;
+import { v4 as uuidv4 } from "uuid";
 
 const customStyles = {
   option: (styles, { isDisabled }) => {
