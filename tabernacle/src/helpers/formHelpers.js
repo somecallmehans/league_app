@@ -1,5 +1,3 @@
-import { v4 as uuidv4 } from "uuid";
-
 export const getWinSlug = (colorObj) => {
   let slug_value = 0;
   if (!colorObj.Colorless) {
@@ -15,6 +13,7 @@ export const getWinSlug = (colorObj) => {
 };
 
 function composeDeckbuildingAchievements(achievements, winnerId) {
+  const uuidv4 = () => crypto.randomUUID();
   return achievements
     .filter(
       ({ participant_id, slug }) =>

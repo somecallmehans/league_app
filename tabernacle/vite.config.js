@@ -10,9 +10,4 @@ export default defineConfig({
       plugins: [tailwindcss()],
     },
   },
-  build: {
-    rollupOptions: {
-      external: ["uuid"],
-    },
-  },
 });

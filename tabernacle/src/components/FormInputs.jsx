@@ -3,7 +3,6 @@ import { Controller } from "react-hook-form";
 
 import Select from "react-select";
 import { Checkbox, Input, Label, Field } from "@headlessui/react";
-import { v4 as uuidv4 } from "uuid";
 
 const customStyles = {
   option: (styles, { isDisabled }) => {
@@ -80,6 +79,7 @@ export const AchievementSelector = ({
   getOptionLabel,
   getOptionValue,
 }) => {
+  const uuidv4 = () => crypto.randomUUID();
   return (
     <Controller
       name={name}
