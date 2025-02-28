@@ -20,25 +20,29 @@ function dateSort(a, b) {
 const RoundDisplay = ({ info, dateKey, selectedMonth }) => {
   return (
     <div className="flex flex-wrap w-full justify-around p-4 bg-white drop-shadow-md">
-      {info.map(({ id, round_number }) => (
-        <Link
-          key={id}
-          to={`${id}`}
-          state={{
-            roundId: id,
-            roundNumber: round_number,
-            date: dateKey,
-            selectedMonth,
-          }}
-        >
-          <div
-            className="bg-sky-300 hover:bg-sky-200 drop-shadow-md text-center rounded-md
-                     py-4 px-6 sm:py-6 sm:px-12 md:py-8 md:px-32 lg:py-10 lg:px-42 text-lg md:text-2xl"
+      {[...info]
+        .sort((a, b) => {
+          return a.round_number - b.round_number;
+        })
+        .map(({ id, round_number }) => (
+          <Link
+            key={id}
+            to={`${id}`}
+            state={{
+              roundId: id,
+              roundNumber: round_number,
+              date: dateKey,
+              selectedMonth,
+            }}
           >
-            Round {round_number}
-          </div>
-        </Link>
-      ))}
+            <div
+              className="bg-sky-300 hover:bg-sky-200 drop-shadow-md text-center rounded-md
+                     py-4 px-6 sm:py-6 sm:px-12 md:py-8 md:px-32 lg:py-10 lg:px-42 text-lg md:text-2xl"
+            >
+              Round {round_number}
+            </div>
+          </Link>
+        ))}
     </div>
   );
 };
