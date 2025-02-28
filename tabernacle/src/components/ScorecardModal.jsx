@@ -22,8 +22,13 @@ import {
   usePostUpsertEarnedV2Mutation,
   useGetCommandersQuery,
 } from "../api/apiSlice";
-import { formatInitialValues, formatUpdate } from "../helpers/formHelpers";
+import {
+  formatInitialValues,
+  formatUpdate,
+  getCommanderColorId,
+} from "../helpers/formHelpers";
 import LoadingSpinner from "./LoadingSpinner";
+import ColorGrid from "./ColorGrid";
 
 const slugRegex = /win-\d-colors/i;
 
@@ -67,12 +72,26 @@ const ScorecardFormFields = ({
     reset(initialValues);
   }, [focusedPod, initialValues, reset]);
 
-  const { "end-draw": endInDraw, "winner-commander": winnerCommander } =
-    watch();
+  const {
+    "end-draw": endInDraw,
+    "winner-commander": winnerCommander,
+    "partner-commander": partnerCommander,
+  } = watch();
 
   if (isLoading || colorsLoading) {
     return null;
   }
+
+  const displayColorId = winnerCommander
+    ? getCommanderColorId(
+        colorsData,
+        winnerCommander?.colors_id,
+        partnerCommander?.colors_id
+      )
+    : null;
+
+  const displayColorName =
+    colorsData.idObj[displayColorId]?.name?.toLowerCase();
 
   // achievements that get passed in as initial values won't have
   // "new", so we set it here for future reference
@@ -218,20 +237,23 @@ const ScorecardFormFields = ({
         getOptionValue={(option) => option.id}
       />
 
-      <div className="mb-2 flex gap-2">
-        Were they last in turn order:{" "}
-        <Controller
-          name="last-in-order"
-          control={control}
-          defaultValue={false}
-          render={({ field }) => (
-            <CheckBoxInput
-              {...field}
-              checked={field.value}
-              disabled={endInDraw}
-            />
-          )}
-        />
+      <div className="mb-2 flex gap-2 justify-between">
+        <div className="flex gap-2">
+          Were they last in turn order:{" "}
+          <Controller
+            name="last-in-order"
+            control={control}
+            defaultValue={false}
+            render={({ field }) => (
+              <CheckBoxInput
+                {...field}
+                checked={field.value}
+                disabled={endInDraw}
+              />
+            )}
+          />
+        </div>
+        <ColorGrid colors={displayColorName} submitted show noHover />
       </div>
       <div className="mb-2">
         <span>Did they win via:</span>
