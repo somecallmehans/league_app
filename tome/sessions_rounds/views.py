@@ -140,6 +140,23 @@ def begin_round(request):
     return Response(serialized_data, status=status.HTTP_201_CREATED)
 
 
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def reroll_pods(request):
+    """Take in a list of participants and a round_id. Create any participants that don't exist
+    and then roll everyone into new pods (either random or sorted based on round)"""
+    body = json.loads(request.body.decode("utf-8"))
+    participants = body.get("participants", None)
+    round = Rounds.objects.get(id=body.get("round", None))
+
+    if not participants or not round:
+        return Response(
+            {"message": "Missing information to reroll pods."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+
 @api_view(["GET"])
 def get_pods(_, round):
     """Get the pods that were made for a given round."""

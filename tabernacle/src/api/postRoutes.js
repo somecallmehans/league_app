@@ -65,4 +65,12 @@ export default (builder) => ({
       "Earned",
     ],
   }),
+  postRerollPods: builder.mutation({
+    query: (body) => ({
+      url: "reroll_pods/",
+      method: "POST",
+      body: body,
+    }),
+    invalidatesTags: ["Pods"],
+  }),
 });

@@ -9,6 +9,7 @@ from .views import (
     get_unique_session_months,
     get_pods_achievements,
     get_rounds_by_month,
+    reroll_pods,
 )
 
 urlpatterns = [
@@ -29,4 +30,5 @@ urlpatterns = [
     path("close_round/", close_round, name="close_round"),
     path("unique_months/", get_unique_session_months, name="unique_months"),
     path("rounds_by_month/<str:mm_yy>/", get_rounds_by_month, name="rounds_by_month"),
+    path("reroll_pods/", reroll_pods, name="reroll_pods"),
 ]
