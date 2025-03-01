@@ -8,6 +8,7 @@ import {
   useGetPodsQuery,
   usePostBeginRoundMutation,
   usePostCloseRoundMutation,
+  usePostRerollPodsMutation,
 } from "../../api/apiSlice";
 
 import PageTitle from "../../components/PageTitle";
@@ -396,6 +397,8 @@ function FocusedRound({ pods = {}, sessionId, roundId }) {
 
 export default function RoundPage() {
   const [postCloseRound] = usePostCloseRoundMutation();
+  const [postRerollPods] = usePostRerollPodsMutation();
+  const [modalOpen, setModalOpen] = useState(false);
   const location = useLocation();
   const { roundNumber, date, sessionId, roundId, completed, previousRoundId } =
     location.state;
@@ -417,8 +420,21 @@ export default function RoundPage() {
     }
   };
 
+  const handleModalSubmit = async () => {
+    try {
+      await postRerollPods({
+        round: roundId,
+      });
+    } catch (error) {
+      console.error("Failed to reroll pods: ", error);
+    }
+  };
+
   const allPodsSubmitted =
     data && Object.values(data)?.every(({ submitted }) => submitted);
+
+  // const somePodsSubmitted =
+  //   data && Object.values(data)?.some(({ submitted }) => submitted);
 
   return (
     <div className="bg-white p-4 mb-4 h-full">
@@ -436,6 +452,11 @@ export default function RoundPage() {
           />
         </Link>
       )}
+      <StandardButton
+        title="Reroll Pods"
+        action={() => setModalOpen(true)}
+        // disabled={somePodsSubmitted}
+      />
 
       <div className="mt-4">
         {!completed && data && Object.keys(data).length === 0 ? (
@@ -453,6 +474,12 @@ export default function RoundPage() {
           />
         )}
       </div>
+      <ConfirmModal
+        title="Reroll Pods?"
+        isOpen={modalOpen}
+        confirmAction={handleModalSubmit}
+        closeModal={() => setModalOpen(!modalOpen)}
+      />
     </div>
   );
 }
