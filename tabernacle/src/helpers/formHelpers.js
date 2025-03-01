@@ -154,7 +154,7 @@ const normalizeSymbols = (sym1, sym2) =>
 export const getCommanderColorId = (colorsObj, c1, c2) => {
   // if we don't have a second commander, we can just return the given commanders color id
   if (!c2) {
-    return colorsObj.idObj[c1].id;
+    return colorsObj.idObj[c1]?.id;
   }
   // if we do have a second commander but it has the same color as our primary, just return
   // the primary's color
