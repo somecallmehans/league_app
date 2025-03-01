@@ -92,6 +92,7 @@ export const {
   usePostUpsertAchievementsMutation,
   usePostUpsertEarnedMutation,
   usePostUpsertEarnedV2Mutation,
+  usePostRerollPodsMutation,
 
   // AUTH
   useLoginMutation,
