@@ -15,11 +15,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .models import Sessions, Rounds, Pods, PodsParticipants
-from users.models import ParticipantAchievements
+from users.models import ParticipantAchievements, Participants
 
 from .serializers import SessionSerializer, PodsParticipantsSerializer
 from achievements.serializers import WinningCommandersSerializer
-from users.serializers import ParticipantsAchievementsFullModelSerializer
+from users.serializers import (
+    ParticipantsAchievementsFullModelSerializer,
+    ParticipantsSerializer,
+)
 from .helpers import (
     generate_pods,
     get_participants_total_scores,
@@ -155,6 +158,22 @@ def reroll_pods(request):
             {"message": "Missing information to reroll pods."},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+
+@api_view(["GET"])
+def get_round_participants(_, round):
+    """Take in a round id and return all participants who
+    are assigned to a pods for that given round."""
+    if not round:
+        return Response("Error, no round provided.", status=status.HTTP_400_BAD_REQUEST)
+
+    participants = Participants.objects.filter(
+        podsparticipants__pods__rounds_id=round, podsparticipants__pods__deleted=False
+    )
+
+    return Response(
+        ParticipantsSerializer(participants, many=True).data, status=status.HTTP_200_OK
+    )
 
 
 @api_view(["GET"])

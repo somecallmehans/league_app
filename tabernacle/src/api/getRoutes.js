@@ -54,4 +54,8 @@ export default (builder) => ({
   getCommanders: builder.query({
     query: () => "commanders/",
   }),
+  getRoundParticipants: builder.query({
+    query: (round) => `round_participants/${round}/`,
+    providesTags: ["Participants"],
+  }),
 });

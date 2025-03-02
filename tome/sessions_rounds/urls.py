@@ -10,6 +10,7 @@ from .views import (
     get_pods_achievements,
     get_rounds_by_month,
     reroll_pods,
+    get_round_participants,
 )
 
 urlpatterns = [
@@ -23,6 +24,11 @@ urlpatterns = [
         "pods_achievements/<int:round>/<int:pod>/",
         get_pods_achievements,
         name="pods_achievements",
+    ),
+    path(
+        "round_participants/<int:round>/",
+        get_round_participants,
+        name="round_participants",
     ),
     path("all_sessions/", all_sessions, name="all_sessions"),
     path("sessions/<str:mm_yy>/", sessions_and_rounds, name="make_sessions_and_rounds"),
