@@ -15,8 +15,9 @@ import PageTitle from "../../components/PageTitle";
 import StandardButton from "../../components/Button";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import CreatableSelect from "react-select/creatable";
-import ScorecardModal from "../../components/ScorecardModal";
-import ConfirmModal from "../../components/ConfirmModal";
+import ScorecardModal from "../../components/Modals/ScorecardModal";
+import ConfirmModal from "../../components/Modals/ConfirmModal";
+import RerollPodsModal from "../../components/Modals/RerollPodsModal";
 import PointsModal from "./PointsModal";
 import ColorGrid from "../../components/ColorGrid";
 
@@ -420,10 +421,11 @@ export default function RoundPage() {
     }
   };
 
-  const handleModalSubmit = async () => {
+  const handleModalSubmit = async (participants) => {
     try {
       await postRerollPods({
         round: roundId,
+        participants,
       });
     } catch (error) {
       console.error("Failed to reroll pods: ", error);
@@ -474,11 +476,13 @@ export default function RoundPage() {
           />
         )}
       </div>
-      <ConfirmModal
-        title="Reroll Pods?"
+
+      <RerollPodsModal
         isOpen={modalOpen}
-        confirmAction={handleModalSubmit}
+        confirmAction={(participants) => handleModalSubmit(participants)}
         closeModal={() => setModalOpen(!modalOpen)}
+        round={roundId}
+        // currentParticipants={}
       />
     </div>
   );
