@@ -82,6 +82,7 @@ export const {
   useGetRoundsByMonthQuery,
   useGetIndividualMetricsQuery,
   useGetCommandersQuery,
+  useGetRoundParticipantsQuery,
 
   // POSTS
   usePostCreateSessionMutation,
