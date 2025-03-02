@@ -1,6 +1,6 @@
 import React, { Fragment } from "react";
 
-import StandardButton from "./Button";
+import StandardButton from "../Button";
 import {
   Dialog,
   DialogPanel,
@@ -9,13 +9,29 @@ import {
   TransitionChild,
 } from "@headlessui/react";
 
+import {
+  useGetParticipantsQuery,
+  useGetRoundParticipantsQuery,
+} from "../../api/apiSlice";
+
 export default function ({
   isOpen,
-  title,
   confirmAction,
   closeModal,
   disableSubmit,
+  round,
 }) {
+  const { data: roundParticipants, isLoading: roundParticipantsLoading } =
+    useGetRoundParticipantsQuery(round, { skip: !isOpen || !round });
+  const { data: allParticipants, isLoading: participantsLoading } =
+    useGetParticipantsQuery(undefined, { skip: !isOpen || !round });
+
+  if (roundParticipantsLoading || participantsLoading) {
+    return null;
+  }
+
+  console.log(roundParticipants, allParticipants);
+
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={closeModal}>
@@ -42,7 +58,7 @@ export default function ({
           >
             <DialogPanel className="sm:max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-center shadow-xl transition-all">
               <DialogTitle as="h1" className="text-2xl font-semibold">
-                {title}
+                Reroll Pods?
               </DialogTitle>
               <div className="mt-4 flex items-center gap-2  sm:justify-center">
                 <StandardButton
