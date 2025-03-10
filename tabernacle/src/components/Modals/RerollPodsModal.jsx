@@ -1,4 +1,5 @@
 import React, { Fragment } from "react";
+import CreatableSelect from "react-select/creatable";
 
 import StandardButton from "../Button";
 import {
@@ -21,6 +22,10 @@ export default function ({
   disableSubmit,
   round,
 }) {
+  //  TODO:   1. Add people who weren't in round originally (whether they're new or not)
+  //          2. Remove people who were in the round or added
+  //          3. Highlight participants who are new, put them at the top of the list
+  //          4. Format the modal
   const { data: roundParticipants, isLoading: roundParticipantsLoading } =
     useGetRoundParticipantsQuery(round, { skip: !isOpen || !round });
   const { data: allParticipants, isLoading: participantsLoading } =
@@ -30,7 +35,12 @@ export default function ({
     return null;
   }
 
-  console.log(roundParticipants, allParticipants);
+  const roundParticipantIds = roundParticipants?.map(({ id }) => id);
+  const filteredParticipants = allParticipants
+    ?.filter((p1) => !roundParticipantIds.includes(p1.id))
+    .map(({ id, name }) => ({ value: id, label: name }));
+
+  const addParticipant = () => {};
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -56,10 +66,33 @@ export default function ({
             leaveFrom="opacity-100 scale-100"
             leaveTo="opacity-0 scale-95"
           >
-            <DialogPanel className="sm:max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-center shadow-xl transition-all">
+            <DialogPanel className="w-2xl transform overflow-hidden rounded-2xl bg-white p-6 text-center shadow-xl transition-all">
               <DialogTitle as="h1" className="text-2xl font-semibold">
                 Reroll Pods?
               </DialogTitle>
+              <div className="flex row justify-between">
+                <div className="h-64 overflow-y-auto">
+                  <span>Players In Round</span>
+                  <div className="text-sm">
+                    {roundParticipants?.map(({ id, name }) => (
+                      <div key={id}>{name}</div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <CreatableSelect
+                    className="mr-2"
+                    isClearable
+                    options={filteredParticipants}
+                    onChange={() => {}}
+                    onCreateOption={(inputValue) =>
+                      addParticipant({ value: undefined, label: inputValue })
+                    }
+                    isValidNewOption={(inputValue) => !!inputValue}
+                    formatCreateLabel={(option) => `Create ${option}`}
+                  />
+                </div>
+              </div>
               <div className="mt-4 flex items-center gap-2  sm:justify-center">
                 <StandardButton
                   title="Confirm"
