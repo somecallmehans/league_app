@@ -24,11 +24,11 @@ Tome is build using Django + Django Rest Framework and connects to a Postgresql 
 ## Example Screenshots
 
 ### Pods + Point Modal
-<img width="50%" height="50%" src="tabernacle/public/gifs/pods-modal.gif">
+<img src="tabernacle/public/gifs/pods-modal.gif">
 
 ### Individual Metrics
-<img width="50%" height="50%" src="tabernacle/public/gifs/metrics.gif">
+<img src="tabernacle/public/gifs/metrics.gif">
 
 ### Score Editing
-<img width="50%" height="50%" src="tabernacle/public/gifs/score-edit.gif">
+<img src="tabernacle/public/gifs/score-edit.gif">
 
