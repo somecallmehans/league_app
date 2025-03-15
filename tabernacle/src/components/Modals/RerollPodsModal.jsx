@@ -23,10 +23,7 @@ export default function ({
   round,
 }) {
   const [selected, setSelected] = useState([]);
-  //  TODO:   1. Add people who weren't in round originally (whether they're new or not)
-  //          2. Remove people who were in the round or added
-  //          3. Highlight participants who are new, put them at the top of the list
-  //          4. Format the modal
+
   const { data: roundParticipants, isLoading: roundParticipantsLoading } =
     useGetRoundParticipantsQuery(round, { skip: !isOpen || !round });
   const { data: allParticipants, isLoading: participantsLoading } =
@@ -46,7 +43,6 @@ export default function ({
     .map(({ id, name }) => ({ value: id, label: name }));
 
   const addParticipant = (participant) => {
-    console.log(participant);
     const updated = [...selected];
     updated.unshift({
       id: participant?.value,
@@ -60,8 +56,6 @@ export default function ({
     const updated = [...selected.slice(0, idx), ...selected.slice(idx + 1)];
     setSelected(updated);
   };
-
-  console.log(selected);
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
