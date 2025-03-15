@@ -27,6 +27,7 @@ from .helpers import (
     generate_pods,
     get_participants_total_scores,
     RoundInformationService,
+    PodRerollService,
 )
 
 
@@ -152,12 +153,21 @@ def reroll_pods(request):
     body = json.loads(request.body.decode("utf-8"))
     participants = body.get("participants", None)
     round = Rounds.objects.get(id=body.get("round", None))
+    pods = Pods.objects.filter(rounds_id=round.id, deleted=False)
 
     if not participants or not round:
         return Response(
             {"message": "Missing information to reroll pods."},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+    pod_service = PodRerollService(participants=participants, round=round, pods=pods)
+
+    new_pods = pod_service.build()
+    return Response(
+        new_pods,
+        status=status.HTTP_201_CREATED,
+    )
 
 
 @api_view(["GET"])

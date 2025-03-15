@@ -1,3 +1,7 @@
+import math
+import random
+
+from .serializers import PodsParticipantsSerializer
 from users.models import Participants, ParticipantAchievements
 from users.serializers import ParticipantsSerializer
 from achievements.models import Achievements
@@ -124,3 +128,123 @@ class RoundInformationService:
         self.create_participation_achievements()
 
         return self.participant_data
+
+
+class PodRerollService:
+    def __init__(self, participants, round, pods):
+        self.participants = participants
+        self.round = round
+        self.pods = pods
+        self.existing = []
+        self.new = []
+        self.needs_points = []
+
+    def categorize_participants(self):
+        self.needs_points = [
+            p
+            for p in self.participants
+            if p.get("isNew") is True and p.get("id") is not None
+        ]
+        self.existing = [p for p in self.participants if p.get("id") is not None]
+        self.new = [p for p in self.participants if p.get("id") is None and "name" in p]
+
+        # if we're missing players who were in the original pod
+        # we need to remove their points
+        participant_ids = Participants.objects.filter(
+            podsparticipants__pods__rounds_id=self.round.id,
+            podsparticipants__pods__deleted=False,
+        ).values_list("id", flat=True)
+        if len(participant_ids) > len(self.existing):
+            participant_diff = set(participant_ids) ^ set(
+                [p["id"] for p in self.existing]
+            )
+            ParticipantAchievements.objects.filter(
+                participant_id__in=participant_diff, round_id=self.round.id
+            ).update(deleted=True)
+
+    def create_new_participants(self):
+        new_participants = Participants.objects.bulk_create(
+            [Participants(name=p["name"]) for p in self.new]
+        )
+        self.needs_points.extend(
+            ParticipantsSerializer(new_participants, many=True).data
+        )
+
+    def distribute_participation(self):
+        ParticipantAchievements.objects.bulk_create(
+            [
+                ParticipantAchievements(
+                    participant_id=pa["id"],
+                    round_id=self.round.id,
+                    session_id=self.round.session_id,
+                    achievement_id=24,
+                    earned_points=3,
+                )
+                for pa in self.needs_points
+            ]
+        )
+        self.existing.extend(self.needs_points)
+
+    def get_full_participant_objects(self):
+        objs = Participants.objects.filter(id__in=[e["id"] for e in self.existing])
+        self.existing = ParticipantsSerializer(objs, many=True).data
+
+    def shuffle_or_sort_pods(self):
+        if self.round.round_number == 1:
+            random.shuffle(self.existing)
+        else:
+            self.existing.sort(key=lambda x: x["total_points"], reverse=True)
+
+    def build_new_pods(self):
+        PodsParticipants.objects.filter(pods_id__in=[p.id for p in self.pods]).delete()
+        ids = [p["id"] for p in self.existing]
+        create = []
+        pods = list(self.pods)
+        while len(ids) > 0:
+            current_pod = pods.pop()
+            if len(ids) % 4 == 0 or len(ids) == 7 or (len(ids) - 4) >= 6:
+                block = ids[:4]
+                ids = ids[4:]
+            else:
+                block = ids[:3]
+                ids = ids[3:]
+
+            create.extend(
+                PodsParticipants(pods_id=current_pod.id, participants_id=i)
+                for i in block
+            )
+
+        return PodsParticipants.objects.bulk_create(create)
+
+    def build(self):
+
+        self.categorize_participants()
+
+        if self.new:
+            self.create_new_participants()
+
+        if self.needs_points:
+            self.distribute_participation()
+
+        self.get_full_participant_objects()
+
+        num_participants = len(self.existing)
+        # pods max out at 4 participants, so if the ceil of our
+        # current pods / 4 is more than our current pod number
+        # then we need to make some more
+        required_pods = math.ceil(num_participants / 4)
+        current_pods = len(self.pods)
+
+        if required_pods > current_pods:
+            new = Pods.objects.bulk_create(
+                [
+                    Pods(rounds_id=self.round.id)
+                    for _ in range(required_pods - current_pods)
+                ]
+            )
+            self.pods.extend(new)
+
+        self.shuffle_or_sort_pods()
+
+        new_pods = self.build_new_pods()
+        return PodsParticipantsSerializer(new_pods, many=True).data
