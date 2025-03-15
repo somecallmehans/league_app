@@ -427,6 +427,7 @@ export default function RoundPage() {
         round: roundId,
         participants,
       });
+      setModalOpen(false);
     } catch (error) {
       console.error("Failed to reroll pods: ", error);
     }
@@ -435,8 +436,8 @@ export default function RoundPage() {
   const allPodsSubmitted =
     data && Object.values(data)?.every(({ submitted }) => submitted);
 
-  // const somePodsSubmitted =
-  //   data && Object.values(data)?.some(({ submitted }) => submitted);
+  const somePodsSubmitted =
+    data && Object.values(data)?.some(({ submitted }) => submitted);
 
   return (
     <div className="bg-white p-4 mb-4 h-full">
@@ -457,7 +458,7 @@ export default function RoundPage() {
       <StandardButton
         title="Reroll Pods"
         action={() => setModalOpen(true)}
-        // disabled={somePodsSubmitted}
+        disabled={somePodsSubmitted}
       />
 
       <div className="mt-4">
@@ -482,7 +483,6 @@ export default function RoundPage() {
         confirmAction={(participants) => handleModalSubmit(participants)}
         closeModal={() => setModalOpen(!modalOpen)}
         round={roundId}
-        // currentParticipants={}
       />
     </div>
   );
