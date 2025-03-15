@@ -29,6 +29,3 @@ Tome is build using Django + Django Rest Framework and connects to a Postgresql 
 ### Individual Metrics
 <img src="tabernacle/public/gifs/metrics.gif">
 
-### Score Editing
-<img src="tabernacle/public/gifs/score-edit.gif">
-
