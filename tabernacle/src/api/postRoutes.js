@@ -71,6 +71,6 @@ export default (builder) => ({
       method: "POST",
       body: body,
     }),
-    invalidatesTags: ["Pods"],
+    invalidatesTags: ["Pods", "Participants"],
   }),
 });
