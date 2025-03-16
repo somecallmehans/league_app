@@ -37,9 +37,10 @@ export default function ({
     return null;
   }
 
-  const roundParticipantIds = roundParticipants?.map(({ id }) => id);
+  const roundParticipantIds = new Set(roundParticipants?.map(({ id }) => id));
+  const selectedIds = new Set(selected?.map(({ id }) => id));
   const filteredParticipants = allParticipants
-    ?.filter((p1) => !roundParticipantIds.includes(p1.id))
+    ?.filter(({ id }) => !roundParticipantIds.has(id) && !selectedIds.has(id))
     .map(({ id, name }) => ({ value: id, label: name }));
 
   const addParticipant = (participant) => {

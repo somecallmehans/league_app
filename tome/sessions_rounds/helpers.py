@@ -217,7 +217,6 @@ class PodRerollService:
         return PodsParticipants.objects.bulk_create(create)
 
     def build(self):
-
         self.categorize_participants()
 
         if self.new:
@@ -236,16 +235,15 @@ class PodRerollService:
         current_pods = len(self.pods)
 
         if required_pods > current_pods:
-            new = Pods.objects.bulk_create(
-                [
-                    Pods(rounds_id=self.round.id)
-                    for _ in range(required_pods - current_pods)
-                ]
+            self.pods = list(self.pods) + list(
+                Pods.objects.bulk_create(
+                    [
+                        Pods(rounds_id=self.round.id)
+                        for _ in range(required_pods - current_pods)
+                    ]
+                )
             )
-            self.pods.extend(new)
 
         self.shuffle_or_sort_pods()
-
         new_pods = self.build_new_pods()
-        breakpoint()
         return PodsParticipantsSerializer(new_pods, many=True).data
