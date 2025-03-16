@@ -129,7 +129,9 @@ export default function ({
                 <StandardButton
                   title="Confirm"
                   action={() => confirmAction(selected)}
-                  disabled={disableSubmit}
+                  disabled={
+                    disableSubmit || [1, 2, 5].includes(selected.length)
+                  }
                 />
                 <StandardButton title="Cancel" action={closeModal} />
               </div>

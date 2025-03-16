@@ -320,11 +320,7 @@ function RoundLobby({ roundId, sessionId, previousRoundId }) {
           )}
         />
         <StandardButton
-          disabled={
-            isLocked ||
-            selectedParticipants?.length < 3 ||
-            selectedParticipants?.length === 5
-          }
+          disabled={isLocked || [1, 2, 5].includes(selectedParticipants.length)}
           action={() => setIsOpen(true)}
           type="button"
           title="Submit"
@@ -429,7 +425,7 @@ export default function RoundPage() {
       });
       setModalOpen(false);
     } catch (error) {
-      console.error("Failed to reroll pods: ", error);
+      console.error("Failed to update pods: ", error);
     }
   };
 
@@ -456,7 +452,7 @@ export default function RoundPage() {
         </Link>
       )}
       <StandardButton
-        title="Reroll Pods"
+        title="Update Pods"
         action={() => setModalOpen(true)}
         disabled={somePodsSubmitted}
       />
