@@ -201,7 +201,7 @@ class PodRerollService:
         create = []
         pods = list(self.pods)
         while len(ids) > 0:
-            current_pod = pods.pop()
+            current_pod = pods.pop(0)
             if len(ids) % 4 == 0 or len(ids) == 7 or (len(ids) - 4) >= 6:
                 block = ids[:4]
                 ids = ids[4:]
@@ -247,4 +247,5 @@ class PodRerollService:
         self.shuffle_or_sort_pods()
 
         new_pods = self.build_new_pods()
+        breakpoint()
         return PodsParticipantsSerializer(new_pods, many=True).data
