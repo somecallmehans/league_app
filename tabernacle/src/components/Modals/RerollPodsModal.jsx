@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-key */
 import React, { Fragment, useState, useEffect } from "react";
 import CreatableSelect from "react-select/creatable";
 
@@ -14,6 +15,31 @@ import {
   useGetParticipantsQuery,
   useGetRoundParticipantsQuery,
 } from "../../api/apiSlice";
+
+const HelpfulText = ({
+  helpText,
+  warningText = "THIS IS A DESTRUCTIVE ACTION. IF CONFIRMED CURRENT PODS WILL BE BLOWN AWAY AND REMADE.",
+}) => (
+  <div className="flex flex-col text-start border-l-2 m-1">
+    <span className="text-xs m-1 pl-1  text-slate-500 italic">{helpText}</span>
+    <span className="text-xs m-1 pl-1  text-red-500 italic">{warningText}</span>
+  </div>
+);
+
+const HelpfulTextBlock = ({ roundNumber }) => {
+  const helpText =
+    roundNumber !== 0
+      ? "Updating pods in round 1 will randomly shuffle all participants into new pods.\nNew players can be created and will be randomly shuffled into the round."
+      : "Updating pods in round 2 will sort participants by their total points this month.\nNew players can be created and will be sorted into the round.";
+
+  return (
+    <HelpfulText
+      helpText={helpText.split("\n").map((text, i) => (
+        <p key={i}>{text}</p>
+      ))}
+    />
+  );
+};
 
 export default function ({
   isOpen,
@@ -42,6 +68,10 @@ export default function ({
   const filteredParticipants = allParticipants
     ?.filter(({ id }) => !roundParticipantIds.has(id) && !selectedIds.has(id))
     .map(({ id, name }) => ({ value: id, label: name }));
+
+  const removedParticipants = roundParticipants?.filter(
+    ({ id }) => !selectedIds.has(id)
+  );
 
   const addParticipant = (participant) => {
     const updated = [...selected];
@@ -86,6 +116,7 @@ export default function ({
               <DialogTitle as="h1" className="text-2xl font-semibold mb-2">
                 Select Participants For Pods {selected.length}
               </DialogTitle>
+              <HelpfulTextBlock roundNumber={round % 2 === 0} />
               <div className="flex flex-col">
                 <CreatableSelect
                   isClearable
@@ -94,23 +125,37 @@ export default function ({
                   onCreateOption={(inputValue) =>
                     addParticipant({ value: undefined, label: inputValue })
                   }
-                  placeholder="Add New"
+                  placeholder="Add New Participant"
                   isValidNewOption={(inputValue) => !!inputValue}
                   formatCreateLabel={(option) => `Create ${option}`}
                   className="mb-2"
                 />
                 <div className="h-64 overflow-y-auto">
                   <div className="text-sm">
-                    {selected?.map(({ id, name, isNew }, idx) => (
+                    {removedParticipants?.map(({ id, name }, idx) => (
                       <div
                         key={id}
                         className={`${
                           idx % 2 === 0 ? "bg-slate-200" : ""
                         } p-1 flex justify-between items-center`}
                       >
+                        <div className="flex-1 text-center text-red-400">
+                          {name}
+                        </div>
+                      </div>
+                    ))}
+                    {selected?.map(({ id, name, isNew }, idx) => (
+                      <div
+                        key={id}
+                        className={`${
+                          (removedParticipants?.length + idx) % 2 === 0
+                            ? "bg-slate-200"
+                            : ""
+                        } p-1 flex justify-between items-center`}
+                      >
                         <div
                           className={`flex-1 text-center ${
-                            isNew ? "text-sky-500" : ""
+                            isNew ? "text-sky-600" : ""
                           }`}
                         >
                           {name}
