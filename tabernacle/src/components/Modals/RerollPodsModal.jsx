@@ -21,16 +21,15 @@ const HelpfulText = ({
   warningText = "THIS IS A DESTRUCTIVE ACTION. IF CONFIRMED CURRENT PODS WILL BE BLOWN AWAY AND REMADE.",
 }) => (
   <div className="flex flex-col text-start border-l-2 m-1">
-    <span className="text-xs m-1 pl-1  text-slate-500 italic">{helpText}</span>
-    <span className="text-xs m-1 pl-1  text-red-500 italic">{warningText}</span>
+    <span className="text-xs m-1 pl-1 text-slate-500 italic">{helpText}</span>
+    <span className="text-xs m-1 pl-1 text-red-500 italic">{warningText}</span>
   </div>
 );
 
 const HelpfulTextBlock = ({ roundNumber }) => {
-  const helpText =
-    roundNumber !== 0
-      ? "Updating pods in round 1 will randomly shuffle all participants into new pods.\nNew players can be created and will be randomly shuffled into the round."
-      : "Updating pods in round 2 will sort participants by their total points this month.\nNew players can be created and will be sorted into the round.";
+  const helpText = roundNumber
+    ? "Updating pods in round 1 will randomly shuffle all participants into new pods.\nNew players can be created and will be randomly shuffled into the round."
+    : "Updating pods in round 2 will sort participants by their total points this month.\nNew players can be created and will be sorted into the round.";
 
   return (
     <HelpfulText
@@ -74,6 +73,7 @@ export default function ({
   );
 
   const addParticipant = (participant) => {
+    if (!participant) return;
     const updated = [...selected];
     updated.unshift({
       id: participant?.value,
@@ -116,7 +116,7 @@ export default function ({
               <DialogTitle as="h1" className="text-2xl font-semibold mb-2">
                 Select Participants For Pods {selected.length}
               </DialogTitle>
-              <HelpfulTextBlock roundNumber={round % 2 === 0} />
+              <HelpfulTextBlock roundNumber={round % 2 !== 0} />
               <div className="flex flex-col">
                 <CreatableSelect
                   isClearable
