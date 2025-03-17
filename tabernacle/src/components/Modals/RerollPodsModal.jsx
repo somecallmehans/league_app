@@ -28,13 +28,15 @@ const HelpfulText = ({
 
 const HelpfulTextBlock = ({ roundNumber }) => {
   const helpText = roundNumber
-    ? "Updating pods in round 1 will randomly shuffle all participants into new pods.\nNew players can be created and will be randomly shuffled into the round."
+    ? "Updating pods in round 1 will randomly shuffle all participants into new pods.\nNew players can be created and will be randomly shuffled into the round.\nIf you'd just like to reshuffle pods, click confirm."
     : "Updating pods in round 2 will sort participants by their total points this month.\nNew players can be created and will be sorted into the round.";
 
   return (
     <HelpfulText
       helpText={helpText.split("\n").map((text, i) => (
-        <p key={i}>{text}</p>
+        <p key={i} className="my-1">
+          {text}
+        </p>
       ))}
     />
   );
