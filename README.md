@@ -21,7 +21,7 @@ Tabernacle was built using React and Redux Tool Kit. Once my list of desired fea
 Tome is build using Django + Django Rest Framework and connects to a Postgresql DB.
 
 
-## Example Screenshots
+## Examples
 
 ### Pods + Point Modal
 <img src="tabernacle/public/gifs/pods-modal.gif">
