@@ -35,7 +35,6 @@ class MetricsCalculator:
             )
 
             for earned in achievements:
-
                 if earned["achievement__slug"] is not None:
                     continue
                 name = calculate_full_name(
@@ -73,7 +72,7 @@ class MetricsCalculator:
             achievement_map = defaultdict(lambda: {"name": "", "count": 0})
             for earned in achievements:
                 slug = earned.get("achievement__slug")
-                if slug == "precon" or slug == "participation":
+                if slug is not None:
                     continue
                 name = calculate_full_name(
                     earned["achievement__name"], earned["achievement__parent__name"]
