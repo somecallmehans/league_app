@@ -28,7 +28,7 @@ const colorMap = {
 
 const AchievementBarTitle = () => (
   <React.Fragment>
-    <div className="text-center">All Earned Achievements</div>
+    <div className="text-center">Popular Deckbuilding Achievements</div>
     <div className="flex flex-wrap justify-center">
       {Object.entries(colorMap).map(([pointValue, color]) => (
         <div key={pointValue} className="w-1/8 md:w-16">
@@ -120,6 +120,8 @@ export const MetricWrapper = ({ title, classes, children }) => (
 
 function Page() {
   const { data, isLoading } = useGetMetricsQuery();
+
+  console.log(data);
 
   if (isLoading) {
     return <LoadingSpinner />;
