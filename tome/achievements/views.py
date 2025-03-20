@@ -5,7 +5,6 @@ from collections import defaultdict
 from django.db import transaction
 from django.db.models import Q, F, Value
 from django.db.models.functions import Coalesce, Concat
-from django.contrib.postgres.aggregates import ArrayAgg
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import status
 from rest_framework.response import Response
@@ -38,39 +37,20 @@ from achievements.helpers import (
 @api_view(["GET"])
 def get_achievements_with_restrictions(_):
     """Get achievements with their restrictions and put them in a map, raw list, and parents only."""
-
-    achievements = list(
-        Achievements.objects.filter(deleted=False)
-        .prefetch_related("restrictions")
-        .values(
-            "id",
-            "name",
-            "point_value",
-            "slug",
-            "parent_id",
-            "parent__name",
-            "restrictions__name",
-        )
-        .distinct()
-        .annotate(
-            restrictions=Coalesce(
-                ArrayAgg("restrictions__name", distinct=True),
-                Value([]),
-            ),
-            full_name=Coalesce(
-                Concat(F("parent__name"), Value(" "), F("name")), F("name")
-            ),
-        )
-        .order_by(F("parent_id").desc(nulls_last=False))
-    )
-
-    parent_map = defaultdict(lambda: {"children": []})
     try:
+        data = (
+            Achievements.objects.filter(deleted=False)
+            .prefetch_related("restrictions")
+            .order_by(F("parent_id").desc(nulls_last=False))
+        )
+        achievements = AchievementsSerializer(data, many=True).data
+        parent_map = defaultdict(lambda: {"children": []})
+
         for achievement in achievements:
-            if achievement["parent_id"] is None:
+            if achievement["parent"] is None:
                 parent_map[achievement["id"]] = {**achievement, "children": []}
             else:
-                parent_map[achievement["parent_id"]]["children"].append(achievement)
+                parent_map[achievement["parent"]]["children"].append(achievement)
     except BaseException as e:
         print(e)
 

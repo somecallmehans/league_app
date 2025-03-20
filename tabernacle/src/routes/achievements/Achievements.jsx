@@ -22,6 +22,7 @@ const Achievement = ({ name, achievementChildren, restrictions }) => {
           {name}
         </div>
       </div>
+      {console.log(restrictions)}
       {toggle &&
         restrictions?.map(({ id, name, url }) => (
           <div
