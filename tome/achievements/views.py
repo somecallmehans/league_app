@@ -1,11 +1,12 @@
 import json
 
 from datetime import datetime
-
+from collections import defaultdict
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, F, Value
+from django.db.models.functions import Coalesce, Concat
+from django.contrib.postgres.aggregates import ArrayAgg
 from django.core.exceptions import ObjectDoesNotExist
-
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import (
@@ -35,28 +36,48 @@ from achievements.helpers import (
 
 
 @api_view(["GET"])
-def get_achievements_with_restrictions(request):
+def get_achievements_with_restrictions(_):
     """Get achievements with their restrictions and put them in a map, raw list, and parents only."""
-    achievements = Achievements.objects.filter(deleted=False).prefetch_related(
-        "restrictions"
+
+    achievements = list(
+        Achievements.objects.filter(deleted=False)
+        .prefetch_related("restrictions")
+        .values(
+            "id",
+            "name",
+            "point_value",
+            "slug",
+            "parent_id",
+            "parent__name",
+            "restrictions__name",
+        )
+        .distinct()
+        .annotate(
+            restrictions=Coalesce(
+                ArrayAgg("restrictions__name", distinct=True),
+                Value([]),
+            ),
+            full_name=Coalesce(
+                Concat(F("parent__name"), Value(" "), F("name")), F("name")
+            ),
+        )
+        .order_by(F("parent_id").desc(nulls_last=False))
     )
-    serializer = AchievementsSerializer(achievements, many=True).data
-    parent_map = {
-        a["id"]: {**a, "children": []} for a in serializer if a["parent"] is None
-    }
-    for achievement in serializer:
-        if achievement["parent"] is not None:
-            parent_map[achievement["parent"]["id"]]["children"].append(achievement)
+
+    parent_map = defaultdict(lambda: {"children": []})
+    try:
+        for achievement in achievements:
+            if achievement["parent_id"] is None:
+                parent_map[achievement["id"]] = {**achievement, "children": []}
+            else:
+                parent_map[achievement["parent_id"]]["children"].append(achievement)
+    except BaseException as e:
+        print(e)
 
     grouped = group_parents_by_point_value(parent_map)
-    parents = [
-        achievement["parent"]["id"]
-        for achievement in serializer
-        if achievement["parent"] is not None and achievement["deleted"] is False
-    ]
 
     return Response(
-        {"map": grouped, "data": serializer, "parents": parents},
+        {"map": grouped, "data": achievements, "parents": parent_map.keys()},
         status=status.HTTP_200_OK,
     )
 

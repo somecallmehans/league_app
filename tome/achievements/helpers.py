@@ -81,7 +81,7 @@ class AchievementCleaverService:
 def group_parents_by_point_value(parent_dict):
     grouped_by_points = defaultdict(list)
 
-    for achievement_id, achievement in parent_dict.items():
+    for _, achievement in parent_dict.items():
         point_value = achievement["point_value"]
         grouped_by_points[point_value].append(achievement)
 
