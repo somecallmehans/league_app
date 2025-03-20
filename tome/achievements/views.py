@@ -2,10 +2,13 @@ import json
 
 from datetime import datetime
 from collections import defaultdict
+
 from django.db import transaction
 from django.db.models import Q, F, Value
-from django.db.models.functions import Coalesce, Concat
+from django.contrib.postgres.aggregates import ArrayAgg
+from django.db.models.functions import Concat, Coalesce
 from django.core.exceptions import ObjectDoesNotExist
+
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import (
@@ -16,7 +19,7 @@ from rest_framework.decorators import (
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from .models import Achievements, Colors
+from .models import Achievements, Colors, Restrictions
 from users.models import ParticipantAchievements
 from users.serializers import (
     ParticipantsAchievementsSerializer,
@@ -38,26 +41,55 @@ from achievements.helpers import (
 def get_achievements_with_restrictions(_):
     """Get achievements with their restrictions and put them in a map, raw list, and parents only."""
     try:
-        data = (
-            Achievements.objects.filter(deleted=False)
-            .prefetch_related("restrictions")
-            .order_by(F("parent_id").desc(nulls_last=False))
-        )
-        achievements = AchievementsSerializer(data, many=True).data
         parent_map = defaultdict(lambda: {"children": []})
 
+        achievements = (
+            Achievements.objects.filter(deleted=False)
+            .annotate(
+                restrictions_list=ArrayAgg("restrictions"),
+                full_name=Coalesce(
+                    Concat(F("parent__name"), Value(" "), F("name")), F("name")
+                ),
+            )
+            .distinct()
+            .values(
+                "id",
+                "name",
+                "parent_id",
+                "point_value",
+                "slug",
+                "restrictions_list",
+                "full_name",
+            )
+            .order_by(F("parent_id").desc(nulls_last=False))
+        )
+        restrictions = Restrictions.objects.filter(deleted=False).values(
+            "id", "name", "url"
+        )
+        restriction_lookup = {r["id"]: r for r in restrictions}
+
         for achievement in achievements:
-            if achievement["parent"] is None:
+            achievement["restrictions"] = [
+                restriction_lookup[r]
+                for r in achievement["restrictions_list"]
+                if r is not None
+            ]
+            del achievement["restrictions_list"]
+
+            if achievement["parent_id"] is None:
                 parent_map[achievement["id"]] = {**achievement, "children": []}
             else:
-                parent_map[achievement["parent"]]["children"].append(achievement)
+                parent_map[achievement["parent_id"]]["children"].append(achievement)
+
+        grouped = group_parents_by_point_value(parent_map)
+        parents_with_kids = [
+            p["id"] for p in achievements if parent_map[p["id"]]["children"]
+        ]
     except BaseException as e:
         print(e)
 
-    grouped = group_parents_by_point_value(parent_map)
-
     return Response(
-        {"map": grouped, "data": achievements, "parents": parent_map.keys()},
+        {"map": grouped, "data": achievements, "parents": parents_with_kids},
         status=status.HTTP_200_OK,
     )
 
