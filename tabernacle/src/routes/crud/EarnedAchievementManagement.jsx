@@ -82,7 +82,7 @@ const EditAchievement = ({
         onChange={openEdit ? undefined : handleOnChangeEdit}
         disabled={!editing}
         register={{ ...register("participantAchievement") }}
-        getOptionLabel={(option) => option?.name}
+        getOptionLabel={(option) => option?.full_name}
         getOptionValue={(option) => option?.id}
       />
       <Selector

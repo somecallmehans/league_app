@@ -122,7 +122,7 @@ const AchievementRow = ({
             id: childId,
             name: childName,
             point_value: childPointValue,
-            parent: { id: parent_id },
+            parent_id,
           }) => (
             <AchievementRow
               key={childId}

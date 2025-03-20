@@ -121,8 +121,6 @@ export const MetricWrapper = ({ title, classes, children }) => (
 function Page() {
   const { data, isLoading } = useGetMetricsQuery();
 
-  console.log(data);
-
   if (isLoading) {
     return <LoadingSpinner />;
   }

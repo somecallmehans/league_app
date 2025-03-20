@@ -78,7 +78,6 @@ export default function AchievementsPage() {
   const handleFilterChange = (val) => {
     setFilteredValues(val.map(({ value }) => value));
   };
-
   const achievementKeys = Object.keys(data?.map) || [];
 
   return (
