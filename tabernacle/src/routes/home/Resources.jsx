@@ -20,11 +20,15 @@ const ResourceRow = ({ title, Component }) => {
           } mr-2 text-slate-500 group-hover:text-blue-400 transition duration-200`}
         />
       </div>
-      {toggle && (
+      <div
+        className={`transition-all duration-300 ease-in-out overflow-hidden ${
+          toggle ? "max-h-[1000px] opacity-100" : "max-h-0 opacity-0"
+        }`}
+      >
         <div className="mt-3 text-slate-600 leading-relaxed">
           <Component />
         </div>
-      )}
+      </div>
     </div>
   );
 };
