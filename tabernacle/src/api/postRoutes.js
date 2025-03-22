@@ -73,4 +73,10 @@ export default (builder) => ({
     }),
     invalidatesTags: ["Pods", "Participants"],
   }),
+  postInsertCommanders: builder.mutation({
+    query: () => ({
+      url: "fetch_new_commanders/",
+      method: "POST",
+    }),
+  }),
 });
