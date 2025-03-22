@@ -27,26 +27,32 @@ export default function Page() {
 
   return (
     <React.Fragment>
-      <div className="p-4 text-center text-xl">
+      <div className="py-12 px-4 sm:px-8 md:px-16 lg:px-32 xl:px-64 text-center text-lg sm:text-xl">
         <p className="mb-4">
           Pressing the below will kick off a request to Scryfall to check if
-          there are any new Commander&apos;s that need to be added to the DB.
+          there are any new Commanders that need to be added to the DB.
         </p>
         <p className="mb-4">
-          Scryfall offers their information free to everyone. As a show of Good
-          Citizenship please use this feature sparingly and{" "}
+          Scryfall offers their information free to everyone. As a show of{" "}
+          <span className="font-medium">Good Citizenship</span> please use this
+          feature sparingly and{" "}
           <span className="text-sky-500 underline">
             only when a new set is released
           </span>
           .
         </p>
-
-        <StandardButton
-          title="Request New"
-          action={() => setOpen(true)}
-          disabled={isLocked}
-        />
-        {isLocked && <LoadingSpinner />}
+        <div className="flex justify-center">
+          <StandardButton
+            title="Request New"
+            action={() => setOpen(true)}
+            disabled={isLocked}
+          />
+        </div>
+        {isLocked && (
+          <div className="mt-4 flex justify-center">
+            <LoadingSpinner />
+          </div>
+        )}
       </div>
       <ConfirmModal
         isOpen={open}
