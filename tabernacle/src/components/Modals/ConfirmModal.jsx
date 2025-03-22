@@ -12,6 +12,7 @@ import {
 export default function ({
   isOpen,
   title,
+  bodyText = "",
   confirmAction,
   closeModal,
   disableSubmit,
@@ -44,6 +45,7 @@ export default function ({
               <DialogTitle as="h1" className="text-2xl font-semibold">
                 {title}
               </DialogTitle>
+              {bodyText}
               <div className="mt-4 flex items-center gap-2  sm:justify-center">
                 <StandardButton
                   title="Confirm"

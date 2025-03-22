@@ -5,6 +5,7 @@ import PageTitle from "../../components/PageTitle";
 import ParticipantPage from "./ParticipantMangement";
 import AchievementPage from "./AchievementManagement";
 import EarnedAchievementPage from "./EarnedAchievementManagement";
+import InsertCommanderPage from "./InsertCommanders";
 import { useGetAchievementsQuery } from "../../api/apiSlice";
 import LoadingSpinner from "../../components/LoadingSpinner";
 
@@ -29,6 +30,7 @@ const CrudTabPanel = () => {
         <ReusableTab name="Participants" />
         <ReusableTab name="Achievements" />
         <ReusableTab name="Points" />
+        <ReusableTab name="Update Commanders" />
       </TabList>
       <TabPanels className="mt-4">
         <TabPanel>
@@ -39,6 +41,9 @@ const CrudTabPanel = () => {
         </TabPanel>
         <TabPanel>
           <EarnedAchievementPage />
+        </TabPanel>
+        <TabPanel>
+          <InsertCommanderPage />
         </TabPanel>
       </TabPanels>
     </TabGroup>
