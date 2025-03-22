@@ -10,6 +10,7 @@ from .views import (
     upsert_participant_achievements_v2,
     get_participant_round_achievements,
     get_all_commanders,
+    fetch_and_insert_commanders,
 )
 
 urlpatterns = [
@@ -45,4 +46,9 @@ urlpatterns = [
     ),
     path("colors/", get_colors, name="colors"),
     path("commanders/", get_all_commanders, name="commanders"),
+    path(
+        "fetch_new_commanders/",
+        fetch_and_insert_commanders,
+        name="fetch_new_commanders",
+    ),
 ]

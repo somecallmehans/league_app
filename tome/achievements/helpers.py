@@ -1,9 +1,11 @@
+import requests
+import json
+import time
+
 from collections import defaultdict
+from django.db.models import Q
 
-from django.db.models import F, Value
-from django.db.models.functions import Concat, Coalesce
-
-from achievements.models import Achievements, WinningCommanders, Colors
+from achievements.models import Achievements, WinningCommanders, Colors, Commanders
 from users.models import Participants, ParticipantAchievements
 from users.serializers import ParticipantsSerializer
 from sessions_rounds.models import Sessions, Rounds, Pods
@@ -191,3 +193,65 @@ def handle_pod_win(winner, info, round_id, participant_ids):
         win_record.participant_id = info.get("participant_id", None)
         win_record.earned_points = win_achievement.points
     win_record.save()
+
+
+class ScryfallCommanderData:
+    def __init__(self, name, colors):
+        self.name = name
+        self.colors = colors
+
+
+def fetch_scryfall_data():
+    """Hit our special scryfall endpoint to fetch all existing commanders."""
+
+    SCRYFALL_COMMANDER_URL = "https://api.scryfall.com/cards/search?q=is%3Acommander+legal%3Acommander&order=name&as=checklist&unique=cards"
+    keep_going = True
+    out = []
+
+    print("Beginning fetch")
+    while keep_going:
+        try:
+            data = requests.get(
+                SCRYFALL_COMMANDER_URL,
+                headers={"User-Agent": "MTGCommanderLeague/1.0", "Accept": "*/*"},
+            )
+            parsed = json.loads(data.content)
+
+            out.extend(parsed["data"])
+
+            SCRYFALL_COMMANDER_URL = parsed.get("next_page")
+            keep_going = parsed["has_more"]
+            # To be extra careful about overloading Scryfall's API we sleep for 200ms between requests
+            time.sleep(0.200)
+
+        except BaseException as e:
+            print(e)
+            break
+
+    # These are special Commanders that depend on a player choosing a color identity,
+    # they already exist with individual colors so we don't need to re-add the non-color ones
+    to_remove = set(["The Prismatic Piper", "Faceless One", "Clara Oswald"])
+    name_set = {card["name"] for card in out} - to_remove
+    color_dict = {c["name"]: c.get("colors", []) for c in out}
+
+    return name_set, color_dict
+
+
+def fetch_current_commanders():
+    """Fetch all the commanders currently in their DB and return them as a set."""
+    excluded = ["The Prismatic Piper", "Faceless One", "Clara Oswald"]
+
+    query = Q()
+    for keyword in excluded:
+        query |= Q(name__icontains=keyword)
+
+    return set(
+        Commanders.objects.filter(deleted=False)
+        .exclude(query)
+        .values_list("name", flat=True)
+    )
+
+
+def normalize_color_identity(color_identity):
+    """Convert API color list to a sorted, lowercase string matching DB symbols."""
+    return "".join(sorted(color_identity)).lower() or "c"

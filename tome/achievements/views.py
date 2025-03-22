@@ -35,6 +35,9 @@ from achievements.helpers import (
     calculate_total_points_for_month,
     group_parents_by_point_value,
     handle_pod_win,
+    fetch_scryfall_data,
+    fetch_current_commanders,
+    normalize_color_identity,
 )
 
 
@@ -455,4 +458,53 @@ def get_all_commanders(_):
             "commander_lookup": commander_lookup,
         },
         status=status.HTTP_200_OK,
+    )
+
+
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def fetch_and_insert_commanders(_):
+    """
+    Query scryfall and see if any new commanders have been added.
+
+    Update the db with the new commanders if yes, else do nothing.
+    """
+
+    name_set, color_dict = fetch_scryfall_data()
+    existing_commanders = fetch_current_commanders()
+
+    print("\n\n", len(name_set), len(existing_commanders), "\n\n")
+    if len(name_set) <= len(existing_commanders):
+        return Response(
+            {"message": "No new Commanders found."}, status=status.HTTP_200_OK
+        )
+
+    to_update = list(name_set - existing_commanders)
+
+    color_map = {
+        tuple(sorted(color["symbol"].lower())): color["id"]
+        for color in Colors.objects.values("id", "symbol")
+    }
+
+    records = []
+    try:
+        for commander in to_update:
+            color_key = tuple(normalize_color_identity(color_dict[commander]))
+            color_id = color_map.get(color_key)
+
+            if color_id is not None:
+                records.append(Commanders(name=commander, colors_id=color_id))
+            else:
+                print(
+                    f"Warning: No matching color_id for {commander.name} with colors {commander.colors}"
+                )
+    except Exception as e:
+        print(f"Error found in commander mapping: {e}")
+
+    out = Commanders.objects.bulk_create(records)
+
+    return Response(
+        {"message": f"Added {len(out)} new commanders to the database."},
+        status=status.HTTP_201_CREATED,
     )
