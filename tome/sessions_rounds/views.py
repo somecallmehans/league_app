@@ -113,35 +113,35 @@ def begin_round(request):
     """Begin a round. Request expects a round_id, session_id, and a list of participants.
     If a participant in the list does not have an id, it will be created.
 
-    Return a list of lists (pods)"""
+    Return the bridge records on success"""
     body = json.loads(request.body.decode("utf-8"))
     participants = body.get("participants", None)
-    round = Rounds.objects.get(id=body.get("round", None))
-    session = Sessions.objects.get(id=body.get("session", None))
+    round_id = body.get("round", None)
+    session_id = body.get("session", None)
 
-    if not participants or not round or not session:
+    if not participants or not round or not session_id:
         return Response(
             {"message": "Missing information to begin round."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
     round_service = RoundInformationService(
-        participants=participants, session=session, round=round
+        participants=participants, session_id=session_id, round_id=round_id
     )
 
     all_participants = list(round_service.build_participants_and_achievements())
 
     (
         random.shuffle(all_participants)
-        if round.round_number == 1
+        # Round 1 is always odd id, round 2 is always evem
+        if round_id % 2 != 0
         else all_participants.sort(key=lambda x: x.total_points, reverse=True)
     )
-    pods = generate_pods(participants=all_participants, round=round)
-    serialized_data = [
-        PodsParticipantsSerializer(pods_participant, many=True).data
-        for pods_participant in pods
-    ]
-    return Response(serialized_data, status=status.HTTP_201_CREATED)
+
+    pods = PodsParticipantsSerializer(
+        generate_pods(participants=all_participants, round_id=round_id), many=True
+    ).data
+    return Response(pods, status=status.HTTP_201_CREATED)
 
 
 @api_view(["POST"])
