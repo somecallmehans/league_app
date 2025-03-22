@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 
 import { useGetMetricsQuery } from "../../api/apiSlice";
 import LoadingSpinner from "../../components/LoadingSpinner";
+import { formatDateString } from "../../helpers/dateHelpers";
 
 import PageTitle from "../../components/PageTitle";
 import ColorBarChart from "./ColorBarChart";
@@ -60,7 +61,7 @@ export const MetricBlock = ({ data, mainKey, subtitleKey, suffix = "" }) => (
   </React.Fragment>
 );
 
-const MetricBlockWithCycle = ({ data, subtitle, subtitleKey }) => {
+const MetricBlockWithCycle = ({ data, subtitle, subtitleKey, smallText }) => {
   const [idx, setIdx] = useState(0);
   const showIncrementers = data?.length > 1;
 
@@ -92,7 +93,13 @@ const MetricBlockWithCycle = ({ data, subtitle, subtitleKey }) => {
             className="hover:text-sky-500 fa-solid fa-chevron-left text-xl md:text-2xl mr-4 md:mr-4 cursor-pointer"
           />
         )}
-        <span className="text-2xl md:text-xl">{data[idx]?.name}</span>
+        <span
+          className={`${
+            smallText ? "text-sm md:text-md" : "text-3xl md:text-4xl"
+          }`}
+        >
+          {data[idx]?.name}
+        </span>
         {showIncrementers && (
           <i
             onClick={() => incUp()}
@@ -108,6 +115,17 @@ const MetricBlockWithCycle = ({ data, subtitle, subtitleKey }) => {
     </React.Fragment>
   );
 };
+
+const RoundDateBlock = ({ data: { date, total, round_number } }) => (
+  <React.Fragment>
+    <div className="text-xl md:text-2xl font-extrabold font-extrabold text-center flex flex-grow items-center justify-center">
+      Round {round_number} {formatDateString(date)}
+    </div>
+    <div className="text-slate-500 text-lg md:text-xl font-extrabold font-extrabold text-center flex flex-grow items-center justify-center">
+      {total} Participants
+    </div>
+  </React.Fragment>
+);
 
 export const MetricWrapper = ({ title, classes, children }) => (
   <div
@@ -150,13 +168,33 @@ function Page() {
             data={data?.most_earned}
             subtitle="Times"
             subtitleKey="count"
+            smallText
           />
+        </MetricWrapper>
+
+        <MetricWrapper title="Top Commanders">
+          {Object.keys(data?.common_commanders).map((name, idx) => (
+            <div
+              key={idx}
+              className="flex items-center justify-between gap-4 text-sm sm:text-base border-b border-gray-200 py-2"
+            >
+              <span className="truncate">
+                {idx + 1}. {name}
+              </span>
+              <span className="font-medium">
+                {data?.common_commanders[name]} Wins
+              </span>
+            </div>
+          ))}
+        </MetricWrapper>
+
+        <MetricWrapper title="Highest Attendence">
+          <RoundDateBlock data={data?.highest_attendence} />
         </MetricWrapper>
 
         <MetricWrapper title="Days Since Last Draw">
           <MetricBlock data={data?.last_draw} mainKey="days" />
         </MetricWrapper>
-
         <MetricWrapper
           title="All Time Color Wins"
           classes="col-span-1 sm:col-span-2 max-h-[24rem] md:max-h-[36rem] md:pb-12"

@@ -1,10 +1,9 @@
-from collections import defaultdict
-from django.db.models import Sum, Value, F
-from django.db.models.functions import Concat
+from collections import defaultdict, Counter
+from django.db.models import Sum
 from django.utils.timezone import now, make_aware
 
 from achievements.models import WinningCommanders
-from sessions_rounds.models import PodsParticipants, Sessions
+from sessions_rounds.models import PodsParticipants, Sessions, Rounds
 from users.models import ParticipantAchievements, Participants
 
 
@@ -124,18 +123,47 @@ class MetricsCalculator:
         except Exception as e:
             print(f"Error building since last draw: {e}")
 
+    def top_five_commanders(self, winners):
+        try:
+            commander_wins = Counter()
+            for winner in winners:
+                if winner["name"] and winner["name"] != "UNKNOWN":
+                    commander_wins[winner["name"]] += 1
+            self.metrics["common_commanders"] = dict(
+                Counter(commander_wins).most_common(5)
+            )
+        except Exception as e:
+            print(f"Error building top 5: {e}")
+
+    def highest_attendence(self, achievements):
+        try:
+            highest_round = Counter()
+            for achievement in achievements:
+                if achievement["achievement__slug"] == "participation":
+                    highest_round[achievement["round_id"]] += 1
+            round = max(highest_round, key=highest_round.get)
+            round_obj = Rounds.objects.get(id=round)
+            self.metrics["highest_attendence"] = {
+                "date": round_obj.created_at,
+                "total": highest_round[round],
+                "round_number": round_obj.round_number,
+            }
+        except Exception as e:
+            print(f"Error building highest attendence: {e}")
+
     def build_metrics(self):
         try:
             winners = list(
                 WinningCommanders.objects.filter(deleted=False)
                 .select_related("colors", "participants")
-                .values("colors__symbol", "participants__name")
+                .values("name", "colors__symbol", "participants__name")
             )
             achievements = list(
                 ParticipantAchievements.objects.filter(deleted=False)
                 .select_related("achievement")
                 .values(
                     "earned_points",
+                    "round_id",
                     "achievement__id",
                     "achievement__name",
                     "achievement__slug",
@@ -150,6 +178,8 @@ class MetricsCalculator:
         self.build_color_pie(winners)
         self.build_big_winner(winners)
         self.build_most_earned(achievements)
+        self.top_five_commanders(winners)
+        self.highest_attendence(achievements)
         self.build_big_earner()
         self.days_since_last_draw()
         self.build_achievement_chart(achievements)
