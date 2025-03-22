@@ -32,6 +32,7 @@ from achievements.models import Achievements, WinningCommanders, Commanders
 from achievements.helpers import (
     AchievementCleaverService,
     all_participant_achievements_for_month,
+    all_participant_achievements_for_month_v2,
     group_parents_by_point_value,
     handle_pod_win,
 )
@@ -115,16 +116,11 @@ def get_achievements_by_participant_month(_, mm_yy):
 
     sessions_for_month = Sessions.objects.filter(month_year=mm_yy)
 
-    result = {}
-    for session in sessions_for_month:
-        achievements = all_participant_achievements_for_month(session.id)
-        for achievement in achievements:
-            result[achievement["id"]] = achievement
+    res = all_participant_achievements_for_month_v2(sessions_for_month)
 
-    unique_achievements = list(result.values())
-    unique_achievements.sort(key=lambda x: x["total_points"], reverse=True)
+    res.sort(key=lambda x: x["total_points"], reverse=True)
 
-    return Response(unique_achievements, status=status.HTTP_200_OK)
+    return Response(res, status=status.HTTP_200_OK)
 
 
 @api_view(["GET"])

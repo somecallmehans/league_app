@@ -1,5 +1,8 @@
 from collections import defaultdict
 
+from django.db.models import F, Value
+from django.db.models.functions import Concat, Coalesce
+
 from achievements.models import Achievements, WinningCommanders, Colors
 from users.models import Participants, ParticipantAchievements
 from users.serializers import ParticipantsSerializer
@@ -88,10 +91,47 @@ def group_parents_by_point_value(parent_dict):
     return dict(grouped_by_points)
 
 
-def all_participant_achievements_for_month(session_id):
-    session = Sessions.objects.get(id=session_id)
+def all_participant_achievements_for_month_v2(sessions):
+    data = (
+        ParticipantAchievements.objects.filter(
+            session_id__in=[s.id for s in sessions],
+            participant__deleted=False,
+            deleted=False,
+        )
+        .select_related("participant", "achievement")
+        .annotate(
+            achievement__full_name=Coalesce(
+                Concat(
+                    F("achievement__parent__name"), Value(" "), F("achievement__name")
+                ),
+                F("achievement__name"),
+            ),
+        )
+        .values(
+            "id",
+            "earned_points",
+            "round_id",
+            "participant_id",
+            "participant__name",
+            "achievement__full_name",
+        )
+    )
+
+    by_participant = defaultdict(int)
+    participant_info = set()
+    for d in data:
+        participant_info.add((d["participant_id"], d["participant__name"]))
+        by_participant[d["participant_id"]] += d["earned_points"]
+
+    return [
+        {"id": p[0], "name": p[1], "total_points": by_participant[p[0]]}
+        for p in participant_info
+    ]
+
+
+def all_participant_achievements_for_month(session):
     data = ParticipantAchievements.objects.filter(
-        session=session_id, participant__deleted=False, deleted=False
+        session_id=session.id, participant__deleted=False, deleted=False
     ).select_related("participant", "achievement", "round")
 
     achievements_by_participant = defaultdict(list)
