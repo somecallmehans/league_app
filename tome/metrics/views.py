@@ -11,7 +11,6 @@ from .helpers import MetricsCalculator, IndividualMetricsCalculator
 @api_view(["GET"])
 def get_all_metrics(request):
     """Get all of the metrics we want and gather them in a nice object."""
-
     try:
         calculator = MetricsCalculator()
         metrics = calculator.build_metrics()

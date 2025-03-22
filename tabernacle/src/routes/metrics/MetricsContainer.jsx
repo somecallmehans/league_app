@@ -95,7 +95,7 @@ const MetricBlockWithCycle = ({ data, subtitle, subtitleKey, smallText }) => {
         )}
         <span
           className={`${
-            smallText ? "text-sm md:text-md" : "text-3xl md:text-4xl"
+            smallText ? "text-sm md:text-lg" : "text-3xl md:text-4xl"
           }`}
         >
           {data[idx]?.name}
@@ -136,6 +136,21 @@ export const MetricWrapper = ({ title, classes, children }) => (
   </div>
 );
 
+const TopFiveList = ({ data, list, script }) =>
+  list.map((name, idx) => (
+    <div
+      key={idx}
+      className="flex items-center justify-between gap-4 text-sm sm:text-base border-b border-gray-200 py-2"
+    >
+      <span className="truncate">
+        {idx + 1}. {name}
+      </span>
+      <span className="font-medium">
+        {data[name]} {script}
+      </span>
+    </div>
+  ));
+
 function Page() {
   const { data, isLoading } = useGetMetricsQuery();
 
@@ -162,6 +177,21 @@ function Page() {
             subtitleKey="wins"
           />
         </MetricWrapper>
+        <MetricWrapper title="Overall Earned">
+          <TopFiveList
+            data={data?.overall_points}
+            list={Object.keys(data?.overall_points)}
+            script="Points"
+          />
+        </MetricWrapper>
+
+        <MetricWrapper title="Top Match Wins">
+          <TopFiveList
+            data={data?.top_winners}
+            list={Object.keys(data?.top_winners)}
+            script="Wins"
+          />
+        </MetricWrapper>
 
         <MetricWrapper title="Most Earned Deckbuilding Achievement">
           <MetricBlockWithCycle
@@ -173,19 +203,11 @@ function Page() {
         </MetricWrapper>
 
         <MetricWrapper title="Top Commanders">
-          {Object.keys(data?.common_commanders).map((name, idx) => (
-            <div
-              key={idx}
-              className="flex items-center justify-between gap-4 text-sm sm:text-base border-b border-gray-200 py-2"
-            >
-              <span className="truncate">
-                {idx + 1}. {name}
-              </span>
-              <span className="font-medium">
-                {data?.common_commanders[name]} Wins
-              </span>
-            </div>
-          ))}
+          <TopFiveList
+            data={data?.common_commanders}
+            list={Object.keys(data?.common_commanders)}
+            script="Wins"
+          />
         </MetricWrapper>
 
         <MetricWrapper title="Highest Attendence">

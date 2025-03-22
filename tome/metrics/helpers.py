@@ -126,19 +126,28 @@ class MetricsCalculator:
     def top_five_commanders(self, winners):
         try:
             commander_wins = Counter()
+            participant_wins = Counter()
             for winner in winners:
                 if winner["name"] and winner["name"] != "UNKNOWN":
                     commander_wins[winner["name"]] += 1
+                participant_wins[winner["participants__name"]] += 1
             self.metrics["common_commanders"] = dict(
                 Counter(commander_wins).most_common(5)
+            )
+            self.metrics["top_winners"] = dict(
+                Counter(participant_wins).most_common(6)[1:]
             )
         except Exception as e:
             print(f"Error building top 5: {e}")
 
-    def highest_attendence(self, achievements):
+    def highest_attendence_and_overall_points(self, achievements):
         try:
             highest_round = Counter()
+            points_by_participant = Counter()
             for achievement in achievements:
+                points_by_participant[achievement["participant__name"]] += achievement[
+                    "earned_points"
+                ]
                 if achievement["achievement__slug"] == "participation":
                     highest_round[achievement["round_id"]] += 1
             round = max(highest_round, key=highest_round.get)
@@ -148,6 +157,9 @@ class MetricsCalculator:
                 "total": highest_round[round],
                 "round_number": round_obj.round_number,
             }
+            self.metrics["overall_points"] = dict(
+                Counter(points_by_participant).most_common(6)[1:]
+            )
         except Exception as e:
             print(f"Error building highest attendence: {e}")
 
@@ -160,7 +172,7 @@ class MetricsCalculator:
             )
             achievements = list(
                 ParticipantAchievements.objects.filter(deleted=False)
-                .select_related("achievement")
+                .select_related("achievement", "participant")
                 .values(
                     "earned_points",
                     "round_id",
@@ -169,6 +181,7 @@ class MetricsCalculator:
                     "achievement__slug",
                     "achievement__point_value",
                     "achievement__parent__name",
+                    "participant__name",
                 )
             )
 
@@ -179,7 +192,7 @@ class MetricsCalculator:
         self.build_big_winner(winners)
         self.build_most_earned(achievements)
         self.top_five_commanders(winners)
-        self.highest_attendence(achievements)
+        self.highest_attendence_and_overall_points(achievements)
         self.build_big_earner()
         self.days_since_last_draw()
         self.build_achievement_chart(achievements)
