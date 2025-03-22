@@ -32,7 +32,7 @@ from achievements.models import Achievements, WinningCommanders, Commanders
 from achievements.helpers import (
     AchievementCleaverService,
     all_participant_achievements_for_month,
-    all_participant_achievements_for_month_v2,
+    calculate_total_points_for_month,
     group_parents_by_point_value,
     handle_pod_win,
 )
@@ -98,8 +98,8 @@ def get_achievements_with_restrictions(_):
 @api_view(["GET"])
 def get_achievements_by_participant_session(_, session_id):
     """Get all the achievements earned by participants for a given session."""
-
-    result = all_participant_achievements_for_month(session_id)
+    session = Sessions.objects.get(id=session_id)
+    result = all_participant_achievements_for_month(session)
     result.sort(reverse=True, key=lambda x: x["total_points"])
 
     return Response(result, status=status.HTTP_200_OK)
@@ -107,7 +107,11 @@ def get_achievements_by_participant_session(_, session_id):
 
 @api_view(["GET"])
 def get_achievements_by_participant_month(_, mm_yy):
-    """Get all of the achievements earned by participants in a given month."""
+    """Calculate the total points earned by a participant in a given month
+
+    Originally this endpoint was meant for much more given the name but it's
+    pretty much only used for the leaderboard. Naming will be updated to reflect
+    it's true purpose sometime in the future."""
 
     today = datetime.today()
 
@@ -116,7 +120,7 @@ def get_achievements_by_participant_month(_, mm_yy):
 
     sessions_for_month = Sessions.objects.filter(month_year=mm_yy)
 
-    res = all_participant_achievements_for_month_v2(sessions_for_month)
+    res = calculate_total_points_for_month(sessions_for_month)
 
     res.sort(key=lambda x: x["total_points"], reverse=True)
 

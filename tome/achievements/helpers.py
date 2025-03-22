@@ -91,30 +91,15 @@ def group_parents_by_point_value(parent_dict):
     return dict(grouped_by_points)
 
 
-def all_participant_achievements_for_month_v2(sessions):
+def calculate_total_points_for_month(sessions):
     data = (
         ParticipantAchievements.objects.filter(
             session_id__in=[s.id for s in sessions],
             participant__deleted=False,
             deleted=False,
         )
-        .select_related("participant", "achievement")
-        .annotate(
-            achievement__full_name=Coalesce(
-                Concat(
-                    F("achievement__parent__name"), Value(" "), F("achievement__name")
-                ),
-                F("achievement__name"),
-            ),
-        )
-        .values(
-            "id",
-            "earned_points",
-            "round_id",
-            "participant_id",
-            "participant__name",
-            "achievement__full_name",
-        )
+        .select_related("participant")
+        .values("id", "earned_points", "participant_id", "participant__name")
     )
 
     by_participant = defaultdict(int)
@@ -131,7 +116,7 @@ def all_participant_achievements_for_month_v2(sessions):
 
 def all_participant_achievements_for_month(session):
     data = ParticipantAchievements.objects.filter(
-        session_id=session.id, participant__deleted=False, deleted=False
+        session=session, participant__deleted=False, deleted=False
     ).select_related("participant", "achievement", "round")
 
     achievements_by_participant = defaultdict(list)
@@ -146,7 +131,6 @@ def all_participant_achievements_for_month(session):
         )
 
     result = []
-
     for participant, achievements in achievements_by_participant.items():
         participant_data = ParticipantsSerializer(
             participant, context={"mm_yy": session.month_year}
