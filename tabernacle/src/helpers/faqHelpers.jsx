@@ -183,51 +183,51 @@ export const faqInfo = [
       </div>
     ),
   },
-  {
-    id: 4,
-    title: "Winning the League",
-    Component: () => (
-      <div className="py-2">
-        <p className="mb-2">
-          While someone will finish with more points than others, the real
-          winner is the player who has the most fun along the way. In that
-          spirit, prizes for winning are much less valuable than the booster
-          packs most players will earn over the course of league games.
-        </p>
-        <p className="mb-2">
-          At the end of each season, Mimic’s Market will provide eight prize
-          piles. The league champion will choose one pile to keep. The runner up
-          chooses second, third place chooses third, and so on. If a player is
-          absent, Mimic’s Market will hold their prize until they return!
-        </p>
-      </div>
-    ),
-  },
+  // {
+  //   id: 4,
+  //   title: "Winning the League",
+  //   Component: () => (
+  //     <div className="py-2">
+  //       <p className="mb-2">
+  //         While someone will finish with more points than others, the real
+  //         winner is the player who has the most fun along the way. In that
+  //         spirit, prizes for winning are much less valuable than the booster
+  //         packs most players will earn over the course of league games.
+  //       </p>
+  //       {/* <p className="mb-2">
+  //         At the end of each season, Mimic’s Market will provide eight prize
+  //         piles. The league champion will choose one pile to keep. The runner up
+  //         chooses second, third place chooses third, and so on. If a player is
+  //         absent, Mimic’s Market will hold their prize until they return!
+  //       </p> */}
+  //     </div>
+  //   ),
+  // },
   {
     id: 5,
     title: "Updating the League",
     Component: () => (
       <div className="py-2">
         <p className="mb-2">
-          Currently, Commander League’s rules are the product of benevolent
-          dictatorship. While lively discussion about the league continues on
+          Commander League&apos;s rules are the product of a council of
+          dedicated players who monitor league play and meet bi-quarterly to
+          discuss potential changes to league structure, with the changes
+          themselves rolled out quarterly. Lively discussion about the league
+          continues on
           <a
             className="text-sky-500 hover:text-sky-300"
             href="https://discord.com/channels/1123750208937938964/1203058271620038756"
           >
             {" "}
             Mimic’s Market’s Discord server
-          </a>
-          , ultimately, just one person finalizes each season’s rules, without
-          any defined process. Every effort is made to integrate community
-          feedback and govern by consensus, but a more democratic model might be
-          preferable someday.
+          </a>{" "}
+          and every effort is made to integrate community feedback.
         </p>
-        <p className="mb-2">
+        {/* <p className="mb-2">
           Until then, any changes to league rules will occur between monthly
           seasons. If you have ideas for new achievements or would like to see a
           rule changed, bring it up at league or on Discord!
-        </p>
+        </p> */}
       </div>
     ),
   },
