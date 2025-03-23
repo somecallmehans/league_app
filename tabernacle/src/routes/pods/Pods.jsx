@@ -14,7 +14,12 @@ import { monthMap, monthStr } from "../../helpers/dateHelpers";
 import FocusedPod from "./FocusedPod";
 
 function dateSort(a, b) {
-  return new Date(b) - new Date(a);
+  const parseDate = (str) => {
+    const [month, day] = str.split("/").map(Number);
+    return new Date(new Date().getFullYear(), month - 1, day);
+  };
+
+  return parseDate(b) - parseDate(a);
 }
 
 const RoundDisplay = ({ info, dateKey, selectedMonth }) => {
