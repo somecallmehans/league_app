@@ -161,7 +161,7 @@ export const getCommanderColorId = (colorsObj, c1, c2) => {
   const sym1 = colorsObj.idObj[c1].symbol;
   const sym2 = colorsObj.idObj[c2].symbol;
   if (sym1.includes(sym2)) {
-    return sym1;
+    return colorsObj.symbolObj[sym1];
   }
 
   const normalizedKey = normalizeSymbols(sym1, sym2);
