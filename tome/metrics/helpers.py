@@ -275,15 +275,18 @@ class IndividualMetricsCalculator:
         ]
         return len(wins)
 
-    def calculate_average_win_points(self):
+    def calculate_average_win_points(self, win_count):
         """Calculate players win %. Achievements with a 'win' slug / participant_pods."""
-        wins = self.calculate_win_number()
-        if wins == 0:
+        if win_count == 0:
             return 0
         round_list = [
             w["round_id"]
             for w in self.participant_achievements
-            if w["achievement__slug"] and "-colors" in w.get("achievement__slug")
+            if w["achievement__slug"]
+            and (
+                "-colors" in w.get("achievement__slug")
+                or "precon" in w.get("achievement__slug")
+            )
         ]
         total = sum(
             pa["earned_points"]
@@ -291,7 +294,7 @@ class IndividualMetricsCalculator:
             if pa["round_id"] in round_list
         )
 
-        return round((total / wins), 2)
+        return round((total / win_count), 2)
 
     def calculate_lifetime_points(self):
         """Sum the number of points player has earned."""
@@ -345,7 +348,7 @@ class IndividualMetricsCalculator:
 
         return {
             "participant_name": self.participant_obj.name,
-            "avg_win_points": self.calculate_average_win_points(),
+            "avg_win_points": self.calculate_average_win_points(win_count),
             "win_number": win_count,
             "attendance": len(self.participant_pods),
             "lifetime_points": self.calculate_lifetime_points(),
