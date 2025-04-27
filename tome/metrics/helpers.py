@@ -339,10 +339,14 @@ class IndividualMetricsCalculator:
         self.fetch_participant_obj()
         self.fetch_sessions()
 
+        win_count = WinningCommanders.objects.filter(
+            participants_id=self.participant_id, deleted=False
+        ).count()
+
         return {
             "participant_name": self.participant_obj.name,
             "avg_win_points": self.calculate_average_win_points(),
-            "win_number": self.calculate_win_number(),
+            "win_number": win_count,
             "attendance": len(self.participant_pods),
             "lifetime_points": self.calculate_lifetime_points(),
             "participant_since": self.participant_obj.created_at.strftime("%m/%d/%Y"),
