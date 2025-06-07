@@ -21,7 +21,7 @@ const Round = ({
   completed,
 }) => {
   return (
-    <div className={`justify-self-end ${!completed ? "animate-pulse" : ""}`}>
+    <div className="justify-self-end">
       <Link
         to={`${id}`}
         state={{
