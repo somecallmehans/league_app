@@ -10,7 +10,7 @@ from sessions_rounds.models import Pods, PodsParticipants
 PARTICIPATION_ACHIEVEMENT = "participation"
 
 
-def make_bridge_records(ids, pods):
+def make_bridge_records(ids: list, pods: list):
     """
     Generate bridge records for PodsParticipants based on number of players.
 
@@ -249,7 +249,8 @@ class PodRerollService:
         ids = [p["id"] for p in self.existing]
 
         # Generate the new ones
-        create = make_bridge_records(ids, self.pods)
+
+        create = make_bridge_records(ids, list(self.pods))
 
         return PodsParticipants.objects.bulk_create(create)
 
