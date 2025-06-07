@@ -10,41 +10,86 @@ from sessions_rounds.models import Pods, PodsParticipants
 PARTICIPATION_ACHIEVEMENT = "participation"
 
 
+def make_bridge_records(ids, pods):
+    """
+    Generate bridge records for PodsParticipants based on number of players.
+
+    X mod 4 = Y, based on val we can sort pods accordingly
+    8 mod 4 = 0, all 4 pods
+    9 mod 4 = 1, which means all 4 pods and 1 5 pod
+    10 mod 4 = 2, which means all 4 pods and 2 3 pods
+    11 mod 4 = 3, which means all 4 pods and 1 3 pod
+    etc etc
+    """
+    pod_mod = len(ids) % 4
+    records = []
+
+    if pod_mod == 1:
+        ids_for_last = ids[-5:]
+        ids = ids[:-5]
+        last_pod = pods.pop()
+        records.extend(
+            [PodsParticipants(pods=last_pod, participants_id=p) for p in ids_for_last]
+        )
+    elif pod_mod == 2:
+        for pod in reversed(pods[-2:]):
+            group = ids[-3:]
+            ids = ids[:-3]
+            records.extend(
+                [PodsParticipants(pods=pod, participants_id=p) for p in group]
+            )
+    elif pod_mod == 3:
+        ids_for_last = ids[-3:]
+        ids = ids[:-3]
+        last_pod = pods.pop()
+        records.extend(
+            [PodsParticipants(pods=last_pod, participants_id=p) for p in ids_for_last]
+        )
+
+    for pod in pods:
+        group = ids[:4]
+        ids = ids[4:]
+        records.extend([PodsParticipants(pods=pod, participants_id=p) for p in group])
+
+    return records
+
+
 def generate_pods(participants, round_id):
-    """Generate pods of 4 or 3"""
+    """
+    Generate pods with the following rules:
+    - Prefer pods of 4
+    - Only use pods of 3 or 5 at the end
+    - Never create more than two pods of 3
+    - No leftover participants
+    """
     try:
         length = len(participants)
-        if length in {1, 2, 5}:
+
+        if length < 6:
             return [participants]
 
-        participant_groups = []
-        mutate_ids = participants
-        while length > 0:
-            if length % 4 == 0 or length == 7 or (length - 4) >= 6:
-                participant_groups.append(mutate_ids[:4])
-                mutate_ids = mutate_ids[4:]
-                length -= 4
-            else:
-                participant_groups.append(mutate_ids[:3])
-                mutate_ids = mutate_ids[3:]
-                length -= 3
+        pod_mod = length % 4
+        ids = [p.id for p in participants]
 
-        bridge_records = []
+        if pod_mod == 1:
+            pods_needed = ((length - 5) // 4) + 1
+        elif pod_mod == 2:
+            pods_needed = ((length - 6) // 4) + 2
+        elif pod_mod == 3:
+            pods_needed = ((length - 3) // 4) + 1
+        else:
+            pods_needed = length // 4
+
         new_pods = Pods.objects.bulk_create(
-            [Pods(rounds_id=round_id) for _ in participant_groups]
+            [Pods(rounds_id=round_id) for _ in range(pods_needed)]
         )
-    except Exception as e:
-        print(f"Exception found in pod generator {e}")
 
-    try:
-        for pg, p in zip(participant_groups, new_pods):
-            bridge_records.extend(
-                [PodsParticipants(pods=p, participants=x) for x in pg]
-            )
+        records = make_bridge_records(ids, new_pods)
 
-        return PodsParticipants.objects.bulk_create(bridge_records)
+        return PodsParticipants.objects.bulk_create(records)
     except Exception as e:
-        print(f"Exception in pod generator creating bridge records: {e}")
+        print(f"Exception in pod generation: {e}")
+        return []
 
 
 def get_participants_total_scores(mm_yy):
@@ -199,23 +244,12 @@ class PodRerollService:
             self.existing.sort(key=lambda x: x["total_points"], reverse=True)
 
     def build_new_pods(self):
+        # Delete our old bridge rows
         PodsParticipants.objects.filter(pods_id__in=[p.id for p in self.pods]).delete()
         ids = [p["id"] for p in self.existing]
-        create = []
-        pods = list(self.pods)
-        while len(ids) > 0:
-            current_pod = pods.pop(0)
-            if len(ids) % 4 == 0 or len(ids) == 7 or (len(ids) - 4) >= 6:
-                block = ids[:4]
-                ids = ids[4:]
-            else:
-                block = ids[:3]
-                ids = ids[3:]
 
-            create.extend(
-                PodsParticipants(pods_id=current_pod.id, participants_id=i)
-                for i in block
-            )
+        # Generate the new ones
+        create = make_bridge_records(ids, self.pods)
 
         return PodsParticipants.objects.bulk_create(create)
 
@@ -230,11 +264,12 @@ class PodRerollService:
 
         self.get_full_participant_objects()
 
-        num_participants = len(self.existing)
-        # pods max out at 4 participants, so if the ceil of our
-        # current pods / 4 is more than our current pod number
-        # then we need to make some more
-        required_pods = math.ceil(num_participants / 4)
+        length = len(self.existing)
+
+        mod = length % 4
+        full_pods = length // 4
+        required_pods = full_pods + (1 if mod else 0)
+
         current_pods = len(self.pods)
 
         if required_pods > current_pods:
