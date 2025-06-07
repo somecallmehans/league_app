@@ -76,7 +76,10 @@ const PodGrouping = ({
       <PodSquare
         key={participant?.participant_id}
         handleOnClick={handleOnClick}
-        colSize={participants?.length === 3 && index === 2}
+        colSize={
+          [3, 5].includes(participants?.length) &&
+          index === participants?.length - 1
+        }
         colors={winnerInfo?.colors?.name}
         winnerId={winnerInfo?.participants?.id}
         winnerCommander={winnerInfo?.name}
