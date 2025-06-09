@@ -4,6 +4,7 @@ __pycache__/
 db.sqlite3
 *.env
 .venv/
+/tome/venv/
 
 # Node.js-specific files
 node_modules/
