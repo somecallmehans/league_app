@@ -121,10 +121,8 @@ export const faqInfo = [
         </p>
         <p className="mb-2">
           Each round, after 90 minutes, “sudden death” ensues. As the next turn
-          begins, all players’ life totals become 1. For the rest of the game,
-          players can’t gain life, damage can’t be prevented, and extra turns
-          are skipped. Each player may play one more full turn, after which the
-          game is a draw.
+          begins, each player plays one more turn. If the game is not over, it
+          is a draw.
         </p>
       </div>
     ),

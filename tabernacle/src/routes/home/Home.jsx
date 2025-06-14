@@ -7,11 +7,6 @@ const CodeOfConduct = () => (
     <h2 className="text-2xl font-bold text-blue-600 mb-4">
       Be Excellent to Each Other
     </h2>
-    <p className="leading-relaxed">
-      There is inherent tension between the Commander format and leagues as
-      concepts. While Commander was invented as a strictly casual respite for
-      judges, leagues of any kind are inherently competitive.
-    </p>
     <p className="leading-relaxed mt-4">
       League participants are required to be kind and respectful to all other
       league participants at all times. Bigotry in any form will not be
@@ -27,13 +22,9 @@ const CodeOfConduct = () => (
 
 const SuddenDeathContent = () => (
   <div className="flex flex-col p-2">
-    <span className="mb-2">All players life totals become 1.</span>
-    <span className="mb-2">
-      Life cannot be gained, damage cannot be prevented, extra turns are
-      skipped.
-    </span>
-    <span className="mb-2">
-      Each player gets one more full turn, after which the game is a draw.
+    <span>
+      After 90 minutes, as the next turn begins, each player plays one more
+      turn. If the game is not over, it is a draw.
     </span>
   </div>
 );
