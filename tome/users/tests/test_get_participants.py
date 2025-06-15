@@ -9,7 +9,7 @@ def test_get_all_participants(client, seed_db):
     parsed_res = res.json()
 
     assert res.status_code == status.HTTP_200_OK
-    assert len(parsed_res) == 1
+    assert len(parsed_res) == 10
 
 
 def test_get_one_participant(client):

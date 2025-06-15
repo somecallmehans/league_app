@@ -4,6 +4,19 @@ from django.db import connection
 
 from users.models import Participants, Users
 
+test_participants = [
+    Participants(name="Charlie Smith"),
+    Participants(name="Trenna Thain"),
+    Participants(name="Fern Penvarden"),
+    Participants(name="Nikita Heape"),
+    Participants(name="Bevon Goldster"),
+    Participants(name="Jeffrey Blackwood"),
+    Participants(name="Amanda Tinnin"),
+    Participants(name="Bless Frankfurt"),
+    Participants(name="Fran Brek"),
+    Participants(name="Thom Horn"),
+]
+
 
 @pytest.fixture
 def api_client():
@@ -33,4 +46,4 @@ def seed_db(db):
     with connection.cursor() as cursor:
         cursor.execute("ALTER SEQUENCE participants_id_seq RESTART WITH 1")
 
-    Participants.objects.create(name="Charlie Smith")
+    Participants.objects.bulk_create(test_participants)
