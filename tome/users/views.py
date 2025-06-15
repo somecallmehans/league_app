@@ -18,10 +18,13 @@ from .serializers import ParticipantsSerializer
 
 
 @api_view(["GET"])
-def get_all_participants(_):
-    participants = Participants.objects.all().filter(deleted=False)
-    serializer = ParticipantsSerializer(participants, many=True)
-    return Response(serializer.data)
+def get_all_participants(_, id=None):
+    filters = {"deleted": False}
+    if id:
+        filters["id"] = id
+    data = Participants.objects.all().filter(**filters)
+    participants = ParticipantsSerializer(data, many=True).data
+    return Response(participants, status=status.HTTP_200_OK)
 
 
 @api_view(["POST"])
@@ -65,6 +68,6 @@ class Login(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    def get(self, _):
         content = {"message": "Hello, World!"}
         return Response(content)
