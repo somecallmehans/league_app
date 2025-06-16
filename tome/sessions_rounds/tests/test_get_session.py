@@ -1,9 +1,7 @@
-import pytest
 from datetime import datetime
 
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APIClient
 from unittest import mock
 
 
@@ -57,3 +55,15 @@ def test_get_no_session(mock_date, client):
 
     assert res.status_code == status.HTTP_400_BAD_REQUEST
     assert parsed_res["message"] == "Open session for current month not found."
+
+
+def test_get_months(client):
+    """Get a list of months based on our recorded sessions."""
+
+    url = reverse("unique_months")
+
+    res = client.get(url)
+    parsed_res = res.json()
+
+    assert res.status_code == status.HTTP_200_OK
+    assert parsed_res == ["10-24", "11-24"]
