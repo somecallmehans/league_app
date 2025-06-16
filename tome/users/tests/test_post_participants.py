@@ -6,7 +6,6 @@ from rest_framework import status
 from users.models import Participants
 
 
-@pytest.mark.django_db
 def test_post_new_participant(client, seed_db):
 
     url = reverse("upsert_participant")
@@ -21,7 +20,6 @@ def test_post_new_participant(client, seed_db):
     assert participant_exists
 
 
-@pytest.mark.django_db
 def test_post_update_participant(client, seed_db):
     url = reverse("upsert_participant")
 
@@ -31,7 +29,6 @@ def test_post_update_participant(client, seed_db):
     assert response.status_code == status.HTTP_201_CREATED
 
 
-@pytest.mark.django_db()
 def test_post_new_participant_fail(client, seed_db):
     url = reverse("upsert_participant")
 

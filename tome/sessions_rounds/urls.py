@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, re_path
 from .views import (
     sessions_and_rounds,
     begin_round,
@@ -31,7 +31,11 @@ urlpatterns = [
         name="round_participants",
     ),
     path("all_sessions/", all_sessions, name="all_sessions"),
-    path("sessions/<str:mm_yy>/", sessions_and_rounds, name="make_sessions_and_rounds"),
+    re_path(
+        r"^sessions(?:/(?P<mm_yy>[^/]+))?/$",
+        sessions_and_rounds,
+        name="make_sessions_and_rounds",
+    ),
     path("begin_round/", begin_round, name="begin_round"),
     path("close_round/", close_round, name="close_round"),
     path("unique_months/", get_unique_session_months, name="unique_months"),

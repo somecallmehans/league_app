@@ -68,32 +68,31 @@ def get_unique_session_months(request):
 
 
 @api_view(["GET", "POST"])
-def sessions_and_rounds(request, mm_yy):
+def sessions_and_rounds(request, mm_yy=None):
     """Get or create a sessions/rounds for today."""
-    today = datetime.today()
 
-    if mm_yy == "new" or None:
+    if mm_yy is None or mm_yy == "new":
+        today = datetime.today()
         mm_yy = today.strftime("%m-%y")
 
     if request.method == POST:
         new_session = Sessions.objects.create(month_year=mm_yy)
         Rounds.objects.create(session_id=new_session.id, round_number=1)
         Rounds.objects.create(session_id=new_session.id, round_number=2)
-        serializer = SessionSerializer(new_session)
+        session = SessionSerializer(new_session).data
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
+        return Response(session, status=status.HTTP_201_CREATED)
     try:
-        current_session = Sessions.objects.filter(
-            month_year=mm_yy, deleted=False
-        ).latest("created_at")
-        serializer = SessionSerializer(current_session).data
+        session_data = Sessions.objects.filter(month_year=mm_yy, deleted=False).latest(
+            "created_at"
+        )
+        session = SessionSerializer(session_data).data
     except Sessions.DoesNotExist:
         return Response(
             {"message": "Open session for current month not found."},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    return Response(serializer, status=status.HTTP_200_OK)
+    return Response(session, status=status.HTTP_200_OK)
 
 
 @api_view(["GET"])
