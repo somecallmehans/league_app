@@ -6,7 +6,7 @@ from rest_framework import status
 from users.models import Participants
 
 
-def test_post_new_participant(client, seed_db):
+def test_post_new_participant(client):
 
     url = reverse("upsert_participant")
 
@@ -20,16 +20,16 @@ def test_post_new_participant(client, seed_db):
     assert participant_exists
 
 
-def test_post_update_participant(client, seed_db):
+def test_post_update_participant(client):
     url = reverse("upsert_participant")
 
-    payload = {"id": 1, "name": "Jane Newgirl"}
+    payload = {"id": 901, "name": "Jane Newgirl"}
     response = client.post(url, payload, format="json")
 
     assert response.status_code == status.HTTP_201_CREATED
 
 
-def test_post_new_participant_fail(client, seed_db):
+def test_post_new_participant_fail(client):
     url = reverse("upsert_participant")
 
     payload = {}

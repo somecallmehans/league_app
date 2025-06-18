@@ -15,7 +15,7 @@ class Achievements(models.Model):
     name = models.CharField(max_length=255)
     point_value = models.IntegerField(null=True, blank=True)
     deleted = models.BooleanField(default=False)
-    slug = models.SlugField(unique=True, default=None)
+    slug = models.SlugField(unique=True, null=True, blank=True)
     parent = models.ForeignKey("self", on_delete=models.CASCADE, null=True, blank=True)
 
     restrictions = models.ManyToManyField(

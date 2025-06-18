@@ -93,13 +93,12 @@ def generate_pods(participants, round_id):
 
 
 def get_participants_total_scores(mm_yy):
-    participants_data = Participants.objects.filter(deleted=False)
-    serialized = ParticipantsSerializer(
-        participants_data, many=True, context={"mm_yy": mm_yy}
-    )
-    participants = [p for p in serialized.data if p["total_points"] != 0]
-    participants.sort(key=lambda x: x["total_points"], reverse=True)
-    return participants
+    data = Participants.objects.filter(deleted=False)
+    participants = ParticipantsSerializer(
+        data, many=True, context={"mm_yy": mm_yy}
+    ).data
+    participants_with_points = [p for p in participants if p["total_points"] != 0]
+    return participants_with_points.sort(key=lambda x: x["total_points"], reverse=True)
 
 
 class RoundInformationService:

@@ -4,18 +4,19 @@ from django.db import connection
 
 from users.models import Participants, Users
 from sessions_rounds.models import Sessions, Rounds
+from achievements.models import Achievements
 
 test_participants = [
-    Participants(name="Charlie Smith"),
-    Participants(name="Trenna Thain"),
-    Participants(name="Fern Penvarden"),
-    Participants(name="Nikita Heape"),
-    Participants(name="Bevon Goldster"),
-    Participants(name="Jeffrey Blackwood"),
-    Participants(name="Amanda Tinnin"),
-    Participants(name="Bless Frankfurt"),
-    Participants(name="Fran Brek"),
-    Participants(name="Thom Horn"),
+    Participants(id=901, name="Charlie Smith"),
+    Participants(id=902, name="Trenna Thain"),
+    Participants(id=903, name="Fern Penvarden"),
+    Participants(id=904, name="Nikita Heape"),
+    Participants(id=905, name="Bevon Goldster"),
+    Participants(id=906, name="Jeffrey Blackwood"),
+    Participants(id=907, name="Amanda Tinnin"),
+    Participants(id=908, name="Bless Frankfurt"),
+    Participants(id=909, name="Fran Brek"),
+    Participants(id=910, name="Thom Horn"),
 ]
 
 test_sessions = [
@@ -31,6 +32,23 @@ test_rounds = [
     Rounds(id=114, session_id=102, round_number=2),
     Rounds(id=115, session_id=103, round_number=1),
     Rounds(id=116, session_id=103, round_number=2),
+]
+
+test_achievements = [
+    Achievements(id=24, name="Participation", slug="participation", point_value=3),
+    Achievements(id=25, name="Kill the table", point_value=2),
+    Achievements(
+        id=26, name="Win with a deck that has no instants or sorceries", point_value=5
+    ),
+    Achievements(
+        id=27, name="Win with no creatures except your commander", point_value=4
+    ),
+    Achievements(id=28, name="Win with no lands", point_value=9),
+    Achievements(id=29, name="Win with 88 or more basic lands", point_value=11),
+    Achievements(
+        id=30, name="Win via commander damage", slug="cmdr-damage", point_value=1
+    ),
+    Achievements(id=31, name="The game is a draw", slug="end-draw", point_value=3),
 ]
 
 
@@ -62,6 +80,7 @@ def seed_db(db):
     Participants.objects.bulk_create(test_participants)
     Sessions.objects.bulk_create(test_sessions)
     Rounds.objects.bulk_create(test_rounds)
+    Achievements.objects.bulk_create(test_achievements)
 
     with connection.cursor() as cursor:
         cursor.execute(
