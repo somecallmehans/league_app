@@ -35,20 +35,14 @@ POST = "POST"
 
 
 @api_view(["GET"])
-def all_sessions(request):
+def all_sessions(_):
     """Get all sessions that are not deleted, including their rounds info."""
-    sessions = Sessions.objects.filter(deleted=False)
+    data = Sessions.objects.filter(deleted=False).order_by("-created_at")
+    sessions = SessionSerializer(data, many=True).data
 
-    data = SessionSerializer(sessions, many=True).data
-
-    session_map = {}
-
-    # this sort is probably not needed once things get rolling for real
-    data.sort(reverse=True, key=lambda x: x["created_at"])
-    for session in data:
+    session_map = defaultdict(list)
+    for session in sessions:
         mm_yy = session["month_year"]
-        if session_map.get(mm_yy, None) is None:
-            session_map[session["month_year"]] = []
         session_map[mm_yy].append(session)
 
     return Response(session_map, status=status.HTTP_200_OK)
