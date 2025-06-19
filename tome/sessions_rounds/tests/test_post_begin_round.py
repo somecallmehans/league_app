@@ -2,14 +2,16 @@ from django.urls import reverse
 from rest_framework import status
 from django.db.models import Count
 
-from conftest import test_participants
+from utils.test_helpers import get_ids
 
 from sessions_rounds.models import Pods, PodsParticipants
-from users.models import ParticipantAchievements
+from users.models import ParticipantAchievements, Participants
+
+ids = get_ids()
 
 
 def test_post_begin_round_one(client):
-    """Make a post request to begin a round.
+    """Make a post request to begin round one.
 
     Takes in a list of participants, a session, and a round.
     Uses all of this to make and return pods.
@@ -18,18 +20,35 @@ def test_post_begin_round_one(client):
     getting created + right number of pods getting made.
     """
 
+    flat_participants = list(
+        Participants.objects.filter(
+            id__in=[
+                ids.P1,
+                ids.P2,
+                ids.P3,
+                ids.P4,
+                ids.P5,
+                ids.P6,
+                ids.P7,
+                ids.P8,
+                ids.P9,
+                ids.P10,
+            ]
+        ).values("id", "name")
+    )
+
     url = reverse("begin_round")
 
     req_body = {
-        "participants": [{"id": p.id, "name": p.name} for p in test_participants]
+        "participants": flat_participants
         + [{"name": "BMO"}, {"name": "Jake the Dog"}, {"name": "Finn the Human"}],
-        "round": 115,
-        "session": 103,
+        "round": ids.R1_SESSION_THIS_MONTH_OPEN,
+        "session": ids.SESSION_THIS_MONTH_OPEN,
     }
 
     res = client.post(url, req_body, format="json")
 
-    new_pods = Pods.objects.filter(rounds_id=115)
+    new_pods = Pods.objects.filter(rounds_id=ids.R1_SESSION_THIS_MONTH_OPEN)
     pod_ids = [p.id for p in new_pods]
     pods_counts = {
         entry["pods_id"]: entry["count"]
@@ -40,7 +59,7 @@ def test_post_begin_round_one(client):
 
     new_participation = list(
         ParticipantAchievements.objects.filter(
-            round__id=115, achievement__id=24
+            round__id=ids.R1_SESSION_THIS_MONTH_OPEN, achievement__id=ids.PARTICIPATION
         ).values_list("earned_points", flat=True)
     )
 
@@ -53,3 +72,16 @@ def test_post_begin_round_one(client):
 
     assert len(new_participation) == 13
     assert len(set(new_participation)) == 1
+
+
+def test_post_begin_round_two(client):
+    """
+    Make a post request to begin round two
+
+    Takes in a list of participants, a session, and a round.
+    Uses all of this to make and return pods.
+
+    Round 2- sorted pairings based on total points. Success is
+    new folks get created w/ points and everyone gets
+    created in the right order.
+    """
