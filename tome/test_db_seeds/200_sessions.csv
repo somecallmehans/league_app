@@ -1,0 +1,4 @@
+id,month_year,closed,created_at,deleted
+101,10-24,True,2024-11-25T00:00:00Z,False
+102,11-24,True,2024-12-03T00:00:00Z,False
+103,11-24,False,2024-12-10T00:00:00Z,False

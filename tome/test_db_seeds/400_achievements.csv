@@ -1,0 +1,9 @@
+id,name,slug,point_value,deleted
+24,Participation,participation,3,False
+25,Kill the table,,2,False
+26,Win with a deck that has no instants or sorceries,,5,False
+27,Win with no creatures except your commander,,4,False
+28,Win with no lands,,9,False
+29,Win with 88 or more basic lands,,11,False
+30,Win via commander damage,cmdr-damage,1,False
+31,The game is a draw,end-draw,3,False
