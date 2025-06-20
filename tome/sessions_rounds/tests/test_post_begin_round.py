@@ -6,7 +6,7 @@ from django.db.models import Count
 from utils.test_helpers import get_ids
 
 from sessions_rounds.models import Pods, PodsParticipants
-from users.models import ParticipantAchievements, Participants
+from users.models import ParticipantAchievements
 
 ids = get_ids()
 
