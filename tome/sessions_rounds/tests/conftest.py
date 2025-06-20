@@ -1,9 +1,29 @@
 import pytest
 
 from utils.test_helpers import get_ids
-from users.models import ParticipantAchievements
+from users.models import ParticipantAchievements, Participants
 
 ids = get_ids()
+
+
+@pytest.fixture(scope="function")
+def base_participants_list() -> None:
+    return list(
+        Participants.objects.filter(
+            id__in=[
+                ids.P1,
+                ids.P2,
+                ids.P3,
+                ids.P4,
+                ids.P5,
+                ids.P6,
+                ids.P7,
+                ids.P8,
+                ids.P9,
+                ids.P10,
+            ]
+        ).values("id", "name")
+    )
 
 
 @pytest.fixture(scope="function")

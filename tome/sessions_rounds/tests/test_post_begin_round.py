@@ -11,7 +11,7 @@ from users.models import ParticipantAchievements, Participants
 ids = get_ids()
 
 
-def test_post_begin_round_one(client):
+def test_post_begin_round_one(client, base_participants_list):
     """Make a post request to begin round one.
 
     Takes in a list of participants, a session, and a round.
@@ -21,27 +21,10 @@ def test_post_begin_round_one(client):
     getting created + right number of pods getting made.
     """
 
-    flat_participants = list(
-        Participants.objects.filter(
-            id__in=[
-                ids.P1,
-                ids.P2,
-                ids.P3,
-                ids.P4,
-                ids.P5,
-                ids.P6,
-                ids.P7,
-                ids.P8,
-                ids.P9,
-                ids.P10,
-            ]
-        ).values("id", "name")
-    )
-
     url = reverse("begin_round")
 
     req_body = {
-        "participants": flat_participants
+        "participants": base_participants_list
         + [{"name": "BMO"}, {"name": "Jake the Dog"}, {"name": "Finn the Human"}],
         "round": ids.R1_SESSION_THIS_MONTH_OPEN,
         "session": ids.SESSION_THIS_MONTH_OPEN,
@@ -76,7 +59,7 @@ def test_post_begin_round_one(client):
 
 
 def test_post_begin_round_two(
-    client, populate_participation, populate_other_achievements
+    client, populate_participation, populate_other_achievements, base_participants_list
 ):
     """
     Make a post request to begin round two
@@ -88,22 +71,7 @@ def test_post_begin_round_two(
     new folks get created w/ points and everyone gets
     created in the right order.
     """
-    base_participants = list(
-        Participants.objects.filter(
-            id__in=[
-                ids.P1,
-                ids.P2,
-                ids.P3,
-                ids.P4,
-                ids.P5,
-                ids.P6,
-                ids.P7,
-                ids.P8,
-                ids.P9,
-                ids.P10,
-            ]
-        ).values("id", "name")
-    )
+
     new_participants = [
         {"name": "Princess Bubblegum"},
         {"name": "Marceline the Vampire Queen"},
@@ -112,7 +80,7 @@ def test_post_begin_round_two(
     url = reverse("begin_round")
 
     req_body = {
-        "participants": base_participants + new_participants,
+        "participants": base_participants_list + new_participants,
         "round": ids.R2_SESSION_THIS_MONTH_OPEN,
         "session": ids.SESSION_THIS_MONTH_OPEN,
     }
