@@ -1,3 +1,4 @@
+from collections import defaultdict
 from django.urls import reverse
 from rest_framework import status
 from django.db.models import Count
@@ -74,7 +75,9 @@ def test_post_begin_round_one(client):
     assert len(set(new_participation)) == 1
 
 
-def test_post_begin_round_two(client):
+def test_post_begin_round_two(
+    client, populate_participation, populate_other_achievements
+):
     """
     Make a post request to begin round two
 
@@ -85,3 +88,66 @@ def test_post_begin_round_two(client):
     new folks get created w/ points and everyone gets
     created in the right order.
     """
+    base_participants = list(
+        Participants.objects.filter(
+            id__in=[
+                ids.P1,
+                ids.P2,
+                ids.P3,
+                ids.P4,
+                ids.P5,
+                ids.P6,
+                ids.P7,
+                ids.P8,
+                ids.P9,
+                ids.P10,
+            ]
+        ).values("id", "name")
+    )
+    new_participants = [
+        {"name": "Princess Bubblegum"},
+        {"name": "Marceline the Vampire Queen"},
+    ]
+
+    url = reverse("begin_round")
+
+    req_body = {
+        "participants": base_participants + new_participants,
+        "round": ids.R2_SESSION_THIS_MONTH_OPEN,
+        "session": ids.SESSION_THIS_MONTH_OPEN,
+    }
+
+    expected_pods = {
+        4: ["Charlie Smith", "Trenna Thain", "Fern Penvarden", "Nikita Heape"],
+        5: ["Bevon Goldster", "Jeffrey Blackwood", "Amanda Tinnin", "Bless Frankfurt"],
+        6: [
+            "Fran Brek",
+            "Thom Horn",
+            "Princess Bubblegum",
+            "Marceline the Vampire Queen",
+        ],
+    }
+
+    res = client.post(url, req_body, format="json")
+
+    assert res.status_code == status.HTTP_201_CREATED
+
+    earned = ParticipantAchievements.objects.filter(
+        round_id=ids.R2_SESSION_THIS_MONTH_OPEN,
+        achievement_id=ids.PARTICIPATION,
+    ).count()
+
+    assert earned == 12
+
+    rows = (
+        PodsParticipants.objects.filter(pods__rounds_id=ids.R2_SESSION_THIS_MONTH_OPEN)
+        .select_related("participants")
+        .values("pods_id", "participants__name")
+    )
+
+    actual_pods = defaultdict(list)
+    for row in rows:
+        actual_pods[row["pods_id"]].append(row["participants__name"])
+
+    for pod_id, expected_names in expected_pods.items():
+        assert actual_pods[pod_id] == expected_names

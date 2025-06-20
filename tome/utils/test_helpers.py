@@ -63,13 +63,15 @@ class Identifiers:
     R2_SESSION_THIS_MONTH_OPEN: int = id_from_csv_row("250_rounds", 5)
 
     PARTICIPATION: int = id_from_csv_row("400_achievements", 0)
-    ACHIVEMENT_1: int = id_from_csv_row("400_achievements", 1)
-    ACHIVEMENT_2: int = id_from_csv_row("400_achievements", 2)
-    ACHIVEMENT_3: int = id_from_csv_row("400_achievements", 3)
-    ACHIVEMENT_4: int = id_from_csv_row("400_achievements", 4)
-    ACHIVEMENT_5: int = id_from_csv_row("400_achievements", 5)
-    ACHIVEMENT_6: int = id_from_csv_row("400_achievements", 6)
-    ACHIVEMENT_7: int = id_from_csv_row("400_achievements", 7)
+    KILL_TABLE: int = id_from_csv_row("400_achievements", 1)
+    NO_INSTANTS_SORCERIES: int = id_from_csv_row("400_achievements", 2)
+    NO_CREATURES: int = id_from_csv_row("400_achievements", 3)
+    NO_LANDS: int = id_from_csv_row("400_achievements", 4)
+    ALL_BASICS: int = id_from_csv_row("400_achievements", 5)
+    CMDR_DMG: int = id_from_csv_row("400_achievements", 6)
+    DRAW: int = id_from_csv_row("400_achievements", 7)
+    SNACK: int = id_from_csv_row("400_achievements", 8)
+    KNOCK_OUT: int = id_from_csv_row("400_achievements", 9)
 
 
 @cache
