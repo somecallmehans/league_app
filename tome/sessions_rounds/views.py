@@ -30,11 +30,11 @@ from .helpers import (
     PodRerollService,
 )
 
-
+GET = "GET"
 POST = "POST"
 
 
-@api_view(["GET"])
+@api_view([GET])
 def all_sessions(_):
     """Get all sessions that are not deleted, including their rounds info."""
     data = Sessions.objects.filter(deleted=False).order_by("-created_at")
@@ -48,7 +48,7 @@ def all_sessions(_):
     return Response(session_map, status=status.HTTP_200_OK)
 
 
-@api_view(["GET"])
+@api_view([GET])
 def get_unique_session_months(request):
     """Get a list of unique month-years for sessions."""
     months = Sessions.objects.filter(deleted=False).values("month_year").distinct()
@@ -61,7 +61,7 @@ def get_unique_session_months(request):
     return Response(sorted_months, status=status.HTTP_200_OK)
 
 
-@api_view(["GET", "POST"])
+@api_view([GET, POST])
 def sessions_and_rounds(request, mm_yy=None):
     """Get or create a sessions/rounds for today."""
 
@@ -89,7 +89,7 @@ def sessions_and_rounds(request, mm_yy=None):
     return Response(session, status=status.HTTP_200_OK)
 
 
-@api_view(["GET"])
+@api_view([GET])
 def sessions_and_rounds_by_date(request):
     """Get participants total scores by session month."""
 
@@ -99,7 +99,7 @@ def sessions_and_rounds_by_date(request):
     return Response(participants, status=status.HTTP_200_OK)
 
 
-@api_view(["POST"])
+@api_view([POST])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def begin_round(request):
@@ -137,7 +137,7 @@ def begin_round(request):
     return Response(pods, status=status.HTTP_201_CREATED)
 
 
-@api_view(["POST"])
+@api_view([POST])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def reroll_pods(request):
@@ -163,7 +163,7 @@ def reroll_pods(request):
     )
 
 
-@api_view(["GET"])
+@api_view([GET])
 def get_round_participants(_, round):
     """Take in a round id and return all participants who
     are assigned to a pods for that given round."""
@@ -179,7 +179,7 @@ def get_round_participants(_, round):
     )
 
 
-@api_view(["GET"])
+@api_view([GET])
 def get_pods(_, round):
     """Get the pods that were made for a given round."""
     round_obj = Rounds.objects.get(id=round)
@@ -221,7 +221,7 @@ def get_pods(_, round):
     return Response(pod_map, status=status.HTTP_200_OK)
 
 
-@api_view(["GET"])
+@api_view([GET])
 def get_pods_achievements(_, round, pod):
     """Get all of the achievements earned for a pod + round."""
     participant_achievements = ParticipantAchievements.objects.filter(
@@ -245,7 +245,7 @@ def get_pods_achievements(_, round, pod):
     )
 
 
-@api_view(["POST"])
+@api_view([POST])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def close_round(request):
@@ -271,7 +271,7 @@ def close_round(request):
     return Response(status=status.HTTP_201_CREATED)
 
 
-@api_view(["GET"])
+@api_view([GET])
 def get_rounds_by_month(_, mm_yy):
     """Get all rounds for a given month.
     Return a dict where keys are dates and val is a list of rounds."""
