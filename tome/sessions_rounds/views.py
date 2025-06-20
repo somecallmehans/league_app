@@ -118,6 +118,12 @@ def begin_round(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+    if len(participants) in (1, 2):
+        return Response(
+            {"message": "Not enough players to begin round."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
     round_service = RoundInformationService(
         participants=participants, session_id=session_id, round_id=round_id
     )

@@ -151,3 +151,32 @@ def test_post_begin_round_two(
 
     for pod_id, expected_names in expected_pods.items():
         assert actual_pods[pod_id] == expected_names
+
+
+def test_post_begin_round_fail_malformed_body(client):
+    """Malformed post body should return 400"""
+
+    url = reverse("begin_round")
+
+    req_body = {}
+
+    res = client.post(url, req_body, format="json")
+
+    assert res.status_code == status.HTTP_400_BAD_REQUEST
+    assert res.data["message"] == "Missing information to begin round."
+
+
+def test_post_begin_round_fail_not_enough_players(client):
+    """Less than 3 players in body should return 400"""
+    url = reverse("begin_round")
+
+    req_body = {
+        "participants": [{"name": "Beavis"}, {"name": "Butthead"}],
+        "round": ids.R1_SESSION_THIS_MONTH_OPEN,
+        "session": ids.SESSION_THIS_MONTH_OPEN,
+    }
+
+    res = client.post(url, req_body, format="json")
+
+    assert res.status_code == status.HTTP_400_BAD_REQUEST
+    assert res.data["message"] == "Not enough players to begin round."

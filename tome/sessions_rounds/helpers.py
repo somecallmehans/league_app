@@ -89,7 +89,7 @@ def generate_pods(participants, round_id):
         return PodsParticipants.objects.bulk_create(records)
     except Exception as e:
         print(f"Exception in pod generation: {e}")
-        return []
+        raise Exception
 
 
 def get_participants_total_scores(mm_yy):
