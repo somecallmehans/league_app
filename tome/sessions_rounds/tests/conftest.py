@@ -2,12 +2,13 @@ import pytest
 
 from utils.test_helpers import get_ids
 from users.models import ParticipantAchievements, Participants
+from sessions_rounds.models import Pods, PodsParticipants
 
 ids = get_ids()
 
 
 @pytest.fixture(scope="function")
-def base_participants_list() -> None:
+def base_participants_list() -> list:
     return list(
         Participants.objects.filter(
             id__in=[
@@ -52,6 +53,38 @@ def populate_participation() -> None:
             for pid in participant_list
         ]
     )
+
+
+@pytest.fixture(scope="function")
+def build_pods_participants(base_participants_list) -> None:
+    pods = Pods.objects.bulk_create(
+        [
+            Pods(rounds_id=ids.R1_SESSION_THIS_MONTH_OPEN, submitted=False),
+            Pods(rounds_id=ids.R1_SESSION_THIS_MONTH_OPEN, submitted=False),
+            Pods(rounds_id=ids.R1_SESSION_THIS_MONTH_OPEN, submitted=False),
+        ]
+    )
+    pod_ids = [p.id for p in pods]
+
+    participants = base_participants_list
+
+    pods_participants = []
+    for e, p in enumerate(pod_ids):
+        if e == 0:
+            players = participants[:4]
+            pods_participants.extend(
+                PodsParticipants(pods_id=p, participants_id=player["id"])
+                for player in players
+            )
+            participants = participants[4:]
+        else:
+            players = participants[:3]
+            pods_participants.extend(
+                PodsParticipants(pods_id=p, participants_id=player["id"])
+                for player in players
+            )
+            participants = participants[:3]
+    PodsParticipants.objects.bulk_create(pods_participants)
 
 
 @pytest.fixture(scope="function")
