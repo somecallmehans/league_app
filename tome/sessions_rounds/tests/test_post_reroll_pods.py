@@ -1,3 +1,4 @@
+import pytest
 from django.urls import reverse
 from rest_framework import status
 
@@ -6,6 +7,15 @@ from users.models import Participants, ParticipantAchievements
 from utils.test_helpers import get_ids
 
 ids = get_ids()
+
+round_1_ids = {
+    "round_id": ids.R1_SESSION_THIS_MONTH_OPEN,
+    "session_id": ids.SESSION_THIS_MONTH_OPEN,
+}
+round_2_ids = {
+    "round_id": ids.R2_SESSION_THIS_MONTH_OPEN,
+    "session_id": ids.SESSION_THIS_MONTH_OPEN,
+}
 
 
 def get_existing_pods_participants():
@@ -16,6 +26,11 @@ def get_existing_pods_participants():
     )
 
 
+@pytest.mark.parametrize(
+    "build_pods_participants",
+    [round_1_ids],
+    indirect=True,
+)
 def test_post_reroll_pods_round_one(
     client, base_participants_list, build_pods_participants
 ) -> None:
@@ -46,6 +61,11 @@ def test_post_reroll_pods_round_one(
     assert new_pods != existing_pods
 
 
+@pytest.mark.parametrize(
+    "build_pods_participants",
+    [round_1_ids],
+    indirect=True,
+)
 def test_post_reroll_pods_round_one_new_players(
     client, base_participants_list, build_pods_participants
 ) -> None:
@@ -96,6 +116,11 @@ def test_post_reroll_pods_round_one_new_players(
     assert Pods.objects.all().count() == 4
 
 
+@pytest.mark.parametrize(
+    "build_pods_participants",
+    [round_1_ids],
+    indirect=True,
+)
 def test_post_reroll_pods_round_one_remove_players(
     client, base_participants_list, build_pods_participants
 ) -> None:
@@ -136,3 +161,38 @@ def test_post_reroll_pods_round_one_remove_players(
 
     assert ids.P9 not in existing_participants
     assert ids.P10 not in existing_participants
+
+
+@pytest.mark.parametrize(
+    ("build_pods_participants", "populate_other_achievements"),
+    [(round_2_ids, round_2_ids)],
+    indirect=True,
+)
+def test_post_reroll_pods_round_two(
+    client,
+    build_pods_participants,
+    populate_other_achievements,
+    base_participants_list,
+    populate_participation,
+) -> None:
+    """Should: take in a list of participants and sort them
+    based on standing."""
+
+    url = reverse("reroll_pods")
+
+    req_body = {
+        "participants": base_participants_list,
+        "round": ids.R2_SESSION_THIS_MONTH_OPEN,
+    }
+
+    existing_pods = get_existing_pods_participants()
+
+    res = client.post(url, req_body, format="json")
+
+    new_pods = list(
+        PodsParticipants.objects.filter(pods_id__in=[1, 2, 3])
+        .values("pods_id", "participants_id")
+        .order_by("pods_id")
+    )
+
+    assert res.status_code == status.HTTP_201_CREATED

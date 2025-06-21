@@ -56,12 +56,14 @@ def populate_participation() -> None:
 
 
 @pytest.fixture(scope="function")
-def build_pods_participants(base_participants_list) -> None:
+def build_pods_participants(request, base_participants_list) -> None:
+    round_id = request.param["round_id"]
+
     pods = Pods.objects.bulk_create(
         [
-            Pods(rounds_id=ids.R1_SESSION_THIS_MONTH_OPEN, submitted=False),
-            Pods(rounds_id=ids.R1_SESSION_THIS_MONTH_OPEN, submitted=False),
-            Pods(rounds_id=ids.R1_SESSION_THIS_MONTH_OPEN, submitted=False),
+            Pods(rounds_id=round_id, submitted=False),
+            Pods(rounds_id=round_id, submitted=False),
+            Pods(rounds_id=round_id, submitted=False),
         ]
     )
     pod_ids = [p.id for p in pods]
@@ -88,63 +90,65 @@ def build_pods_participants(base_participants_list) -> None:
 
 
 @pytest.fixture(scope="function")
-def populate_other_achievements() -> None:
+def populate_other_achievements(request) -> None:
+    round_id = request.param["round_id"]
+    session_id = request.param["session_id"]
     ParticipantAchievements.objects.bulk_create(
         [
             ParticipantAchievements(
                 participant_id=ids.P1,
                 achievement_id=ids.NO_INSTANTS_SORCERIES,
-                round_id=ids.R1_SESSION_THIS_MONTH_OPEN,
-                session_id=ids.SESSION_THIS_MONTH_OPEN,
+                round_id=round_id,
+                session_id=session_id,
                 earned_points=5,
             ),
             ParticipantAchievements(
                 participant_id=ids.P1,
                 achievement_id=ids.ALL_BASICS,
-                round_id=ids.R1_SESSION_THIS_MONTH_OPEN,
-                session_id=ids.SESSION_THIS_MONTH_OPEN,
+                round_id=round_id,
+                session_id=session_id,
                 earned_points=8,
             ),
             ParticipantAchievements(
                 participant_id=ids.P3,
                 achievement_id=ids.KILL_TABLE,
-                round_id=ids.R1_SESSION_THIS_MONTH_OPEN,
-                session_id=ids.SESSION_THIS_MONTH_OPEN,
+                round_id=round_id,
+                session_id=session_id,
                 earned_points=6,
             ),
             ParticipantAchievements(
                 participant_id=ids.P3,
                 achievement_id=ids.NO_LANDS,
-                round_id=ids.R1_SESSION_THIS_MONTH_OPEN,
-                session_id=ids.SESSION_THIS_MONTH_OPEN,
+                round_id=round_id,
+                session_id=session_id,
                 earned_points=12,
             ),
             ParticipantAchievements(
                 participant_id=ids.P6,
                 achievement_id=ids.NO_CREATURES,
-                round_id=ids.R1_SESSION_THIS_MONTH_OPEN,
-                session_id=ids.SESSION_THIS_MONTH_OPEN,
+                round_id=round_id,
+                session_id=session_id,
                 earned_points=6,
             ),
             ParticipantAchievements(
                 participant_id=ids.P6,
                 achievement_id=ids.CMDR_DMG,
-                round_id=ids.R1_SESSION_THIS_MONTH_OPEN,
-                session_id=ids.SESSION_THIS_MONTH_OPEN,
+                round_id=round_id,
+                session_id=session_id,
                 earned_points=3,
             ),
             ParticipantAchievements(
                 participant_id=ids.P8,
                 achievement_id=ids.KNOCK_OUT,
-                round_id=ids.R1_SESSION_THIS_MONTH_OPEN,
-                session_id=ids.SESSION_THIS_MONTH_OPEN,
+                round_id=round_id,
+                session_id=session_id,
                 earned_points=2,
             ),
             ParticipantAchievements(
                 participant_id=ids.P9,
                 achievement_id=ids.SNACK,
-                round_id=ids.R1_SESSION_THIS_MONTH_OPEN,
-                session_id=ids.SESSION_THIS_MONTH_OPEN,
+                round_id=round_id,
+                session_id=session_id,
                 earned_points=3,
             ),
         ]

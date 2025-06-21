@@ -1,3 +1,5 @@
+import pytest
+
 from collections import defaultdict
 from django.urls import reverse
 from rest_framework import status
@@ -9,6 +11,11 @@ from sessions_rounds.models import Pods, PodsParticipants
 from users.models import ParticipantAchievements
 
 ids = get_ids()
+
+round_2_ids = {
+    "round_id": ids.R2_SESSION_THIS_MONTH_OPEN,
+    "session_id": ids.SESSION_THIS_MONTH_OPEN,
+}
 
 
 def test_post_begin_round_one(client, base_participants_list):
@@ -58,8 +65,16 @@ def test_post_begin_round_one(client, base_participants_list):
     assert len(set(new_participation)) == 1
 
 
+@pytest.mark.parametrize(
+    "populate_other_achievements",
+    [round_2_ids],
+    indirect=True,
+)
 def test_post_begin_round_two(
-    client, populate_participation, populate_other_achievements, base_participants_list
+    client,
+    populate_other_achievements,
+    populate_participation,
+    base_participants_list,
 ):
     """
     Make a post request to begin round two
