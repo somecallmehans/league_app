@@ -8,6 +8,14 @@ from utils.test_helpers import get_ids
 ids = get_ids()
 
 
+def get_existing_pods_participants():
+    return list(
+        PodsParticipants.objects.all()
+        .values("pods_id", "participants_id")
+        .order_by("pods_id")
+    )
+
+
 def test_post_reroll_pods_round_one(
     client, base_participants_list, build_pods_participants
 ) -> None:
@@ -23,11 +31,7 @@ def test_post_reroll_pods_round_one(
         "round": ids.R1_SESSION_THIS_MONTH_OPEN,
     }
 
-    existing_pods = list(
-        PodsParticipants.objects.filter(pods_id__in=[1, 2, 3])
-        .values("pods_id", "participants_id")
-        .order_by("pods_id")
-    )
+    existing_pods = get_existing_pods_participants()
 
     res = client.post(url, req_body, format="json")
 
@@ -65,11 +69,7 @@ def test_post_reroll_pods_round_one_new_players(
         "round": ids.R1_SESSION_THIS_MONTH_OPEN,
     }
 
-    existing_pods = list(
-        PodsParticipants.objects.filter(pods_id__in=[1, 2, 3])
-        .values("pods_id", "participants_id")
-        .order_by("pods_id")
-    )
+    existing_pods = get_existing_pods_participants()
 
     res = client.post(url, req_body, format="json")
 
@@ -87,10 +87,52 @@ def test_post_reroll_pods_round_one_new_players(
         name__in=[player["name"] for player in new_players]
     ).exists()
 
-    new_achievements = ParticipantAchievements.objects.filter(
+    new_participation = ParticipantAchievements.objects.filter(
         participant__name__in=[player["name"] for player in new_players],
         achievement_id=ids.PARTICIPATION,
     ).count()
 
-    assert new_achievements == 4
+    assert new_participation == 4
     assert Pods.objects.all().count() == 4
+
+
+def test_post_reroll_pods_round_one_remove_players(
+    client, base_participants_list, build_pods_participants
+) -> None:
+    """
+    Should: remove players from our pods_participants for a pod
+    if we don't include them in the request. Side effect of this,
+    we should be down a pod in that table if we have less players
+    to support them.
+    """
+
+    url = reverse("reroll_pods")
+
+    req_body = {
+        "participants": base_participants_list[:8],
+        "round": ids.R1_SESSION_THIS_MONTH_OPEN,
+    }
+
+    existing_pods = get_existing_pods_participants()
+
+    res = client.post(url, req_body, format="json")
+
+    new_pods = list(
+        PodsParticipants.objects.all()
+        .values("pods_id", "participants_id")
+        .order_by("pods_id")
+    )
+
+    assert res.status_code == status.HTTP_201_CREATED
+
+    assert new_pods != existing_pods
+
+    assert PodsParticipants.objects.values("pods_id").distinct().count() == 2
+    assert PodsParticipants.objects.values("pods_id").count() == 8
+
+    existing_participants = set(
+        PodsParticipants.objects.values_list("participants_id", flat=True)
+    )
+
+    assert ids.P9 not in existing_participants
+    assert ids.P10 not in existing_participants

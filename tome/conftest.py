@@ -50,3 +50,5 @@ def seed_db(db):
             SELECT setval('participants_id_seq', (SELECT MAX(id) FROM participants));
         """
         )
+        cursor.execute("TRUNCATE TABLE pods_participants RESTART IDENTITY CASCADE")
+        cursor.execute("TRUNCATE TABLE pods RESTART IDENTITY CASCADE")
