@@ -179,7 +179,7 @@ r2_pods_start = [
 
 @pytest.mark.parametrize(
     ("populate_other_achievements"),
-    [round_2_ids],
+    [round_1_ids],
     indirect=True,
 )
 def test_post_reroll_pods_round_two(
@@ -339,3 +339,35 @@ def test_post_reroll_pods_round_two_remove_players(
 
     assert ids.P6 not in existing_participants
     assert ids.P10 not in existing_participants
+
+
+def test_post_reroll_pods_not_enough_players(client, base_participants_list) -> None:
+    """Should: if our participants list has < 3 players in, raise an exception
+    and return 400."""
+
+    url = reverse("reroll_pods")
+
+    mutated_list = base_participants_list.copy()
+
+    req_body = {
+        "participants": mutated_list[:2],
+        "round": ids.R1_SESSION_THIS_MONTH_OPEN,
+    }
+
+    res = client.post(url, req_body, format="json")
+
+    assert res.status_code == status.HTTP_400_BAD_REQUEST
+    assert res.data["message"] == "Need at least 3 players"
+
+
+def test_post_reroll_pods_malformed_body(client) -> None:
+    """Should: fail if our request body is malformed."""
+
+    url = reverse("reroll_pods")
+
+    req_body = {}
+
+    res = client.post(url, req_body, format="json")
+
+    assert res.status_code == status.HTTP_400_BAD_REQUEST
+    assert res.data["message"] == "Missing information to reroll pods"

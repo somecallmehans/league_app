@@ -254,6 +254,9 @@ class PodRerollService:
         return PodsParticipants.objects.bulk_create(create)
 
     def build(self):
+        if len(self.participants) < 3:
+            raise Exception("Need at least 3 players")
+
         self.categorize_participants()
 
         if self.new:

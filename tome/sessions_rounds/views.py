@@ -150,19 +150,24 @@ def reroll_pods(request):
     """Take in a list of participants and a round_id. Create any participants that don't exist
     and then roll everyone into new pods (either random or sorted based on round)"""
     body = json.loads(request.body.decode("utf-8"))
-    participants = body.get("participants", None)
-    round = Rounds.objects.get(id=body.get("round", None))
-    pods = Pods.objects.filter(rounds_id=round.id, deleted=False)
 
-    if not participants or not round:
+    try:
+        participants = body.get("participants", None)
+        round = Rounds.objects.get(id=body.get("round", None))
+        pods = Pods.objects.filter(rounds_id=round.id, deleted=False)
+    except Exception as e:
         return Response(
-            {"message": "Missing information to reroll pods."},
+            {"message": "Missing information to reroll pods"},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    pod_service = PodRerollService(participants=participants, round=round, pods=pods)
-
-    new_pods = pod_service.build()
+    try:
+        pod_service = PodRerollService(
+            participants=participants, round=round, pods=pods
+        )
+        new_pods = pod_service.build()
+    except Exception as e:
+        return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     return Response(
         new_pods,
         status=status.HTTP_201_CREATED,
