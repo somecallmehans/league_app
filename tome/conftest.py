@@ -18,6 +18,7 @@ def api_client():
 
 @pytest.fixture
 def mock_authenticated_user(db):
+    """Mock authenticate our test user"""
     user = Users.objects.create(
         name="Testy McTestface", password="letmein", email="email@email.com", admin=True
     )
@@ -34,8 +35,11 @@ def client(api_client, mock_authenticated_user):
     return api_client
 
 
-@pytest.fixture(autouse=True, scope="session")
+@pytest.fixture(autouse=True, scope="function")
 def mock_today():
+    """Mock what 'today' is for our tests, which generally all assume
+    it's November 2024."""
+
     class MockDateTime(datetime):
         @classmethod
         def today(cls):
@@ -47,6 +51,9 @@ def mock_today():
 
 @pytest.fixture(autouse=True, scope="function")
 def seed_db(db):
+    """Seed our test_db based on the contents of our csv files.
+
+    Additionally, reset id sequences for various tables."""
     with connection.cursor() as cursor:
         for file in sorted(Path(SEED_DIRECTORY).iterdir()):
             with file.open() as f:

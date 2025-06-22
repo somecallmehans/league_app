@@ -308,7 +308,7 @@ def test_post_reroll_pods_round_two_remove_players(
 
     # Want to specifically remove one of our top earners
     # and someone who would just have participation
-    mutated_list = base_participants_list
+    mutated_list = base_participants_list.copy()
     del mutated_list[5]
     del mutated_list[8]
 

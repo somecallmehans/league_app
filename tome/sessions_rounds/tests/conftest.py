@@ -1,4 +1,5 @@
 import pytest
+from itertools import islice
 
 from utils.test_helpers import get_ids
 from users.models import ParticipantAchievements, Participants
@@ -6,41 +7,31 @@ from sessions_rounds.models import Pods, PodsParticipants
 
 ids = get_ids()
 
+ALL_PARTICIPANTS = [
+    ids.P1,
+    ids.P2,
+    ids.P3,
+    ids.P4,
+    ids.P5,
+    ids.P6,
+    ids.P7,
+    ids.P8,
+    ids.P9,
+    ids.P10,
+]
+
 
 @pytest.fixture(scope="function")
 def base_participants_list() -> list:
+    """Grab a list of our baseline participants that get populated into the testdb"""
     return list(
-        Participants.objects.filter(
-            id__in=[
-                ids.P1,
-                ids.P2,
-                ids.P3,
-                ids.P4,
-                ids.P5,
-                ids.P6,
-                ids.P7,
-                ids.P8,
-                ids.P9,
-                ids.P10,
-            ]
-        ).values("id", "name")
+        Participants.objects.filter(id__in=ALL_PARTICIPANTS).values("id", "name")
     )
 
 
 @pytest.fixture(scope="function")
 def populate_participation() -> None:
-    participant_list = [
-        ids.P1,
-        ids.P2,
-        ids.P3,
-        ids.P4,
-        ids.P5,
-        ids.P6,
-        ids.P7,
-        ids.P8,
-        ids.P9,
-        ids.P10,
-    ]
+    """Give our baseline participants the participation for RD1"""
     ParticipantAchievements.objects.bulk_create(
         [
             ParticipantAchievements(
@@ -50,13 +41,15 @@ def populate_participation() -> None:
                 session_id=ids.SESSION_THIS_MONTH_OPEN,
                 earned_points=3,
             )
-            for pid in participant_list
+            for pid in ALL_PARTICIPANTS
         ]
     )
 
 
 @pytest.fixture(scope="function")
 def build_pods_participants(request, base_participants_list) -> None:
+    """For a supplied round, create our pods objects + populate our
+    bridge table with pairings."""
     round_id = request.param["round_id"]
 
     pods = Pods.objects.bulk_create(
@@ -66,31 +59,24 @@ def build_pods_participants(request, base_participants_list) -> None:
             Pods(rounds_id=round_id, submitted=False),
         ]
     )
-    pod_ids = [p.id for p in pods]
 
     participants = base_participants_list
 
+    participants = iter(base_participants_list)
     pods_participants = []
-    for e, p in enumerate(pod_ids):
-        if e == 0:
-            players = participants[:4]
-            pods_participants.extend(
-                PodsParticipants(pods_id=p, participants_id=player["id"])
-                for player in players
-            )
-            participants = participants[4:]
-        else:
-            players = participants[:3]
-            pods_participants.extend(
-                PodsParticipants(pods_id=p, participants_id=player["id"])
-                for player in players
-            )
-            participants = participants[:3]
+    for pod in pods:
+        players = list(islice(participants, 4 if pod == pods[0] else 3))
+        pods_participants.extend(
+            PodsParticipants(pods_id=pod.id, participants_id=player["id"])
+            for player in players
+        )
+
     PodsParticipants.objects.bulk_create(pods_participants)
 
 
 @pytest.fixture(scope="function")
 def populate_other_achievements(request) -> None:
+    """For a given round and session, give our base participants various achievements."""
     round_id = request.param["round_id"]
     session_id = request.param["session_id"]
     ParticipantAchievements.objects.bulk_create(
