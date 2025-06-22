@@ -101,10 +101,10 @@ def test_post_begin_round_two(
     }
 
     expected_pods = {
-        1: ["Charlie Smith", "Trenna Thain", "Fern Penvarden", "Nikita Heape"],
-        2: ["Bevon Goldster", "Jeffrey Blackwood", "Amanda Tinnin", "Bless Frankfurt"],
+        1: ["Fern Penvarden", "Charlie Smith", "Jeffrey Blackwood", "Fran Brek"],
+        2: ["Bless Frankfurt", "Trenna Thain", "Nikita Heape", "Bevon Goldster"],
         3: [
-            "Fran Brek",
+            "Amanda Tinnin",
             "Thom Horn",
             "Princess Bubblegum",
             "Marceline the Vampire Queen",

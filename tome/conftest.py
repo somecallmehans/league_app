@@ -1,4 +1,7 @@
 import pytest
+from unittest import mock
+from datetime import datetime
+
 from rest_framework.test import APIClient
 from django.db import connection
 from pathlib import Path
@@ -31,6 +34,17 @@ def client(api_client, mock_authenticated_user):
     return api_client
 
 
+@pytest.fixture(autouse=True, scope="session")
+def mock_today():
+    class MockDateTime(datetime):
+        @classmethod
+        def today(cls):
+            return cls(2024, 11, 25)
+
+    with mock.patch("users.models.datetime", MockDateTime):
+        yield
+
+
 @pytest.fixture(autouse=True, scope="function")
 def seed_db(db):
     with connection.cursor() as cursor:
@@ -45,10 +59,7 @@ def seed_db(db):
                     f"COPY {table_name} ({colnames}) FROM STDIN CSV HEADER", f
                 )
 
-        cursor.execute(
-            """
-            SELECT setval('participants_id_seq', (SELECT MAX(id) FROM participants));
-        """
-        )
+        cursor.execute("SELECT setval('participants_id_seq', 1, false);")
+
         cursor.execute("TRUNCATE TABLE pods_participants RESTART IDENTITY CASCADE")
         cursor.execute("TRUNCATE TABLE pods RESTART IDENTITY CASCADE")
