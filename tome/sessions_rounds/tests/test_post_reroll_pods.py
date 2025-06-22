@@ -4,7 +4,7 @@ from rest_framework import status
 
 from sessions_rounds.models import Pods, PodsParticipants
 from users.models import Participants, ParticipantAchievements
-from utils.test_helpers import get_ids, prune_fields
+from utils.test_helpers import get_ids
 
 ids = get_ids()
 

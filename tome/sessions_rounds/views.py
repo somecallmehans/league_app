@@ -13,6 +13,7 @@ from rest_framework.decorators import (
 )
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from django.core.exceptions import ObjectDoesNotExist
 
 from .models import Sessions, Rounds, Pods, PodsParticipants
 from users.models import ParticipantAchievements, Participants
@@ -177,12 +178,17 @@ def reroll_pods(request):
 @api_view([GET])
 def get_round_participants(_, round):
     """Take in a round id and return all participants who
-    are assigned to a pods for that given round."""
-    if not round:
-        return Response("Error, no round provided.", status=status.HTTP_400_BAD_REQUEST)
+    are assigned to pods for that given round."""
+    try:
+        round_obj = Rounds.objects.get(id=round)
+    except ObjectDoesNotExist:
+        return Response(
+            {"message": "Round not found for given id"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     participants = Participants.objects.filter(
-        podsparticipants__pods__rounds_id=round, podsparticipants__pods__deleted=False
+        podsparticipants__pods__rounds=round_obj, podsparticipants__pods__deleted=False
     )
 
     return Response(
