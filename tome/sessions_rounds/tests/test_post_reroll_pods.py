@@ -164,16 +164,16 @@ def test_post_reroll_pods_round_one_remove_players(
 
 
 r2_pods_start = [
-    {"pods_id": 1, "participants_id": 906},
-    {"pods_id": 1, "participants_id": 901},
-    {"pods_id": 1, "participants_id": 903},
-    {"pods_id": 1, "participants_id": 909},
-    {"pods_id": 2, "participants_id": 904},
-    {"pods_id": 2, "participants_id": 908},
-    {"pods_id": 2, "participants_id": 902},
-    {"pods_id": 3, "participants_id": 905},
-    {"pods_id": 3, "participants_id": 910},
-    {"pods_id": 3, "participants_id": 907},
+    {"pods_id": 1, "participants_id": ids.P6},
+    {"pods_id": 1, "participants_id": ids.P1},
+    {"pods_id": 1, "participants_id": ids.P3},
+    {"pods_id": 1, "participants_id": ids.P9},
+    {"pods_id": 2, "participants_id": ids.P4},
+    {"pods_id": 2, "participants_id": ids.P8},
+    {"pods_id": 2, "participants_id": ids.P2},
+    {"pods_id": 3, "participants_id": ids.P5},
+    {"pods_id": 3, "participants_id": ids.P10},
+    {"pods_id": 3, "participants_id": ids.P7},
 ]
 
 
@@ -267,5 +267,75 @@ def test_post_reroll_pods_round_two_add_players(
         "participants_id", flat=True
     )
 
-    for id in [ids.P1, ids.P3, ids.P6, ids.P9]:
+    for id in [p["participants_id"] for p in r2_pods_start[:4]]:
         assert id in top_pod
+
+    assert Pods.objects.all().count() == 4
+
+
+@pytest.mark.parametrize(
+    ("populate_other_achievements"),
+    [round_1_ids],
+    indirect=True,
+)
+def test_post_reroll_pods_round_two_remove_players(
+    client,
+    populate_other_achievements,
+    base_participants_list,
+    populate_participation,
+) -> None:
+    """
+    Should: Reroll pods when we remove some players. Top pod
+    should take a different shape if we remove one of the players.
+    """
+
+    Pods.objects.bulk_create(
+        [
+            Pods(rounds_id=ids.R2_SESSION_THIS_MONTH_OPEN),
+            Pods(rounds_id=ids.R2_SESSION_THIS_MONTH_OPEN),
+            Pods(rounds_id=ids.R2_SESSION_THIS_MONTH_OPEN),
+        ]
+    )
+
+    PodsParticipants.objects.bulk_create(
+        [
+            PodsParticipants(participants_id=p["participants_id"], pods_id=p["pods_id"])
+            for p in r2_pods_start
+        ]
+    )
+
+    url = reverse("reroll_pods")
+
+    # Want to specifically remove one of our top earners
+    # and someone who would just have participation
+    mutated_list = base_participants_list
+    del mutated_list[5]
+    del mutated_list[8]
+
+    req_body = {
+        "participants": mutated_list,
+        "round": ids.R2_SESSION_THIS_MONTH_OPEN,
+    }
+
+    res = client.post(url, req_body, format="json")
+
+    assert res.status_code == status.HTTP_201_CREATED
+
+    top_pod = list(
+        PodsParticipants.objects.filter(pods_id=1).values_list(
+            "participants_id", flat=True
+        )
+    )
+
+    for id in [ids.P1, ids.P3, ids.P9, ids.P8]:
+        assert id in top_pod
+
+    assert PodsParticipants.objects.values("pods_id").distinct().count() == 2
+    assert PodsParticipants.objects.values("pods_id").count() == 8
+
+    existing_participants = set(
+        PodsParticipants.objects.values_list("participants_id", flat=True)
+    )
+
+    assert ids.P6 not in existing_participants
+    assert ids.P10 not in existing_participants
