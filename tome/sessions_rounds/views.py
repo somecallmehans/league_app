@@ -269,7 +269,18 @@ def close_round(request):
     """Close a round. Endpoint expects a round_id and a session_id
     Essentially flipping the associated round 'closed' flag to true
 
-    If the received round is a second round, also flip the session flag to true."""
+    If the received round is a second round, also flip the session flag to true.
+
+    NOTE 6/22/25: Unexpected, but the powers that be whom submit scores totally ignore
+    the "close round" button this endpoint is attached to. Even though it blinks bright red, afaik
+    they have never touched it. And in the 8~ months this app has been active, there hasn't been
+    any ill effects or any notable reason for a round or session to be marked closed/submitted
+    other than that being something that made sense to me in August 2024
+
+    For that reason, this endpoint will soon be deprecated in favor of a check whenever
+    a pod gets submitted to see whether a round should be closed or not based on if any pods are
+    still active/open or not.
+    """
     body = json.loads(request.body.decode("utf-8"))
     round = body.get("round", None)
     session = body.get("session", None)
