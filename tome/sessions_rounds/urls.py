@@ -21,7 +21,7 @@ urlpatterns = [
     ),
     path("pods/<int:round>/", get_pods, name="pods"),
     path(
-        "pods_achievements/<int:round>/<int:pod>/",
+        "pods_achievements/<int:pod>/",
         get_pods_achievements,
         name="pods_achievements",
     ),

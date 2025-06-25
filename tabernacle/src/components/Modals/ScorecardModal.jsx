@@ -346,7 +346,7 @@ export default function ScorecardModal({
     isLoading,
     refetch,
   } = useGetPodsAchievementsQuery(
-    { round: roundId, pod: focusedPod?.id },
+    { pod: focusedPod?.id },
     {
       skip: !focusedPod?.id,
     }

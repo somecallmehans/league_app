@@ -35,9 +35,9 @@ export default (builder) => ({
     query: () => "metrics/",
   }),
   getPodsAchievements: builder.query({
-    query: ({ round, pod }) => `pods_achievements/${round}/${pod}/`,
-    providesTags: (result, error, { round, pod }) => [
-      { type: "PodsAchievements", id: `${round}-${pod}` },
+    query: ({ pod }) => `pods_achievements/${pod}/`,
+    providesTags: (result, error, { pod }) => [
+      { type: "PodsAchievements", id: `$${pod}` },
     ],
   }),
   getAchievementRound: builder.query({

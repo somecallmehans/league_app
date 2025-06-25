@@ -239,13 +239,21 @@ def get_pods(_, round):
 
 
 @api_view([GET])
-def get_pods_achievements(_, round, pod):
-    """Get all of the achievements earned for a pod + round."""
+def get_pods_achievements(_, pod):
+    """Get all of the achievements earned for a pod
+
+    this data is used to populate the initial values
+    of the scorecard form."""
+    try:
+        pod_obj = Pods.objects.filter(id=pod, deleted=False).first()
+    except ObjectDoesNotExist:
+        return Response({"message": "No pod found"}, status=status.HTTP_400_BAD_REQUEST)
+
     participant_achievements = ParticipantAchievements.objects.filter(
-        round_id=round,
+        round_id=pod_obj.rounds_id,
         deleted=False,
         participant__in=PodsParticipants.objects.filter(
-            pods_id=pod, pods__deleted=False
+            pods_id=pod_obj.id, pods__deleted=False
         ).values_list("participants", flat=True),
     )
     achievement_data = ParticipantsAchievementsFullModelSerializer().to_dict(
