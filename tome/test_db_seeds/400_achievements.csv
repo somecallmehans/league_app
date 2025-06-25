@@ -9,3 +9,4 @@ id,name,slug,point_value,deleted
 31,The game is a draw,end-draw,3,False
 32,Brought snack,snack,2,False
 33,Knock out,knock-out,2,False
+34,Win Two Colors,win-2-colors,4,False

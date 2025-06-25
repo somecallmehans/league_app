@@ -72,6 +72,12 @@ class Identifiers:
     DRAW: int = id_from_csv_row("400_achievements", 7)
     SNACK: int = id_from_csv_row("400_achievements", 8)
     KNOCK_OUT: int = id_from_csv_row("400_achievements", 9)
+    WIN_TWO_COLORS: int = id_from_csv_row("400_achievements", 10)
+
+    COLORLESS: int = id_from_csv_row("600_colors", 0)
+    GREEN: int = id_from_csv_row("600_colors", 1)
+    GRUUL: int = id_from_csv_row("600_colors", 2)
+    ESPER: int = id_from_csv_row("600_colors", 3)
 
 
 @cache
