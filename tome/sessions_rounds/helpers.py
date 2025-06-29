@@ -65,9 +65,6 @@ def generate_pods(participants, round_id):
     try:
         length = len(participants)
 
-        if length < 6:
-            return [participants]
-
         pod_mod = length % 4
         ids = [p.id for p in participants]
 
