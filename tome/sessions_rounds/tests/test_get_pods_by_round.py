@@ -225,7 +225,7 @@ def test_get_pods_by_round_with_winner(
                 },
                 "pods": {
                     "id": 987,
-                    "submitted": False,
+                    "submitted": True,
                 },
             },
         },
