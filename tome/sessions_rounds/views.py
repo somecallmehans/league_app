@@ -199,41 +199,48 @@ def get_round_participants(_, round):
 @api_view([GET])
 def get_pods(_, round):
     """Get the pods that were made for a given round."""
-    round_obj = Rounds.objects.get(id=round)
-    all_pods = Pods.objects.filter(rounds_id=round, deleted=False)
-    winners_by_pod = WinningCommandersSerializer.by_pods(all_pods)
+    try:
+        round_obj = Rounds.objects.get(id=round)
+    except ObjectDoesNotExist:
+        return Response(
+            {"message": "Round not found"}, status=status.HTTP_400_BAD_REQUEST
+        )
 
-    pods_participants = PodsParticipants.objects.filter(
-        pods_id__in=[x.id for x in all_pods]
-    )
+    pods = Pods.objects.filter(rounds_id=round, deleted=False)
+    pod_ids = pods.values_list("id", flat=True)
+    winners_by_pod = WinningCommandersSerializer.by_pods(pods)
 
-    serialized_pods_participants = PodsParticipantsSerializer(
+    pods_participants = PodsParticipants.objects.filter(pods_id__in=pod_ids)
+
+    serialized_participants = PodsParticipantsSerializer(
         pods_participants,
         many=True,
         context={"round_id": round, "mm_yy": round_obj.session.month_year},
     ).data
 
-    pod_map = {}
-    for pod in serialized_pods_participants:
-        pod_id = pod["pods"]["id"]
-        submitted = pod["pods"]["submitted"]
+    pod_map = defaultdict(lambda: {"participants": []})
 
-        if pod_map.get(pod_id, None) is None:
-            pod_map[pod_id] = {
-                "id": pod_id,
-                "submitted": submitted,
-                "participants": [],
-                "winner_info": winners_by_pod.get(pod_id, None),
+    for entry in serialized_participants:
+        pod_id = entry["pods"]["id"]
+        pod_data = pod_map[pod_id]
+
+        if not pod_data.get("id"):
+            pod_data.update(
+                {
+                    "id": pod_id,
+                    "submitted": entry["pods"]["submitted"],
+                    "winner_info": winners_by_pod.get(pod_id),
+                }
+            )
+
+        pod_data["participants"].append(
+            {
+                "participant_id": entry["participant_id"],
+                "name": entry["name"],
+                "total_points": entry["total_points"],
+                "round_points": entry["round_points"],
             }
-
-        participant_data = {
-            "participant_id": pod["participant_id"],
-            "name": pod["name"],
-            "total_points": pod["total_points"],
-            "round_points": pod["round_points"],
-        }
-
-        pod_map[pod_id]["participants"].append(participant_data)
+        )
 
     return Response(pod_map, status=status.HTTP_200_OK)
 
