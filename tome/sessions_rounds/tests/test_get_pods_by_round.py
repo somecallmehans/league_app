@@ -134,7 +134,7 @@ def test_get_pods_by_round(
 def build_pods_and_winners():
     Pods.objects.bulk_create(
         [
-            Pods(id=POD_1, rounds_id=ids.R1_SESSION_THIS_MONTH_OPEN),
+            Pods(id=POD_1, rounds_id=ids.R1_SESSION_THIS_MONTH_OPEN, submitted=True),
             Pods(id=POD_2, rounds_id=ids.R1_SESSION_THIS_MONTH_OPEN),
         ]
     )
@@ -206,7 +206,7 @@ def test_get_pods_by_round_with_winner(
                     "total_points": 6,
                 },
             ],
-            "submitted": False,
+            "submitted": True,
             "winner_info": {
                 "colors": {
                     "id": 12,

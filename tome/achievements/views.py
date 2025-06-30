@@ -40,8 +40,11 @@ from achievements.helpers import (
     normalize_color_identity,
 )
 
+GET = "GET"
+POST = "POST"
 
-@api_view(["GET"])
+
+@api_view([GET])
 def get_achievements_with_restrictions(_):
     """Get achievements with their restrictions and put them in a map, raw list, and parents only."""
     try:
@@ -98,7 +101,7 @@ def get_achievements_with_restrictions(_):
     )
 
 
-@api_view(["GET"])
+@api_view([GET])
 def get_achievements_by_participant_session(_, session_id):
     """Get all the achievements earned by participants for a given session."""
     session = Sessions.objects.get(id=session_id)
@@ -108,7 +111,7 @@ def get_achievements_by_participant_session(_, session_id):
     return Response(result, status=status.HTTP_200_OK)
 
 
-@api_view(["GET"])
+@api_view([GET])
 def get_achievements_by_participant_month(_, mm_yy):
     """Calculate the total points earned by a participant in a given month
 
@@ -130,7 +133,7 @@ def get_achievements_by_participant_month(_, mm_yy):
     return Response(res, status=status.HTTP_200_OK)
 
 
-@api_view(["GET"])
+@api_view([GET])
 def get_colors(request):
     colors_objects = Colors.objects.all()
     colors = [
@@ -152,7 +155,7 @@ def get_colors(request):
     )
 
 
-@api_view(["POST"])
+@api_view([POST])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def upsert_achievements(request):
@@ -188,7 +191,7 @@ def upsert_achievements(request):
     return Response(serialized.data, status=status.HTTP_201_CREATED)
 
 
-@api_view(["POST"])
+@api_view([POST])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def post_achievements_for_participants(request):
@@ -230,7 +233,7 @@ def post_achievements_for_participants(request):
     return Response(status=status.HTTP_201_CREATED)
 
 
-@api_view(["POST"])
+@api_view([POST])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def upsert_participant_achievements(request):
@@ -285,7 +288,7 @@ def upsert_participant_achievements(request):
     )
 
 
-@api_view(["POST"])
+@api_view([POST])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def upsert_participant_achievements_v2(request):
@@ -402,7 +405,7 @@ def upsert_participant_achievements_v2(request):
     return Response({"message": "success"}, status=status.HTTP_201_CREATED)
 
 
-@api_view(["GET"])
+@api_view([GET])
 def get_participant_round_achievements(request, participant_id, round_id):
     """Get all achievements + points for a participant in a particular round."""
     try:
@@ -434,7 +437,7 @@ def get_participant_round_achievements(request, participant_id, round_id):
     return Response(out_dict, status=status.HTTP_200_OK)
 
 
-@api_view(["GET"])
+@api_view([GET])
 def get_all_commanders(_):
     """Get and return all valid commanders we have currently."""
     try:
@@ -461,7 +464,7 @@ def get_all_commanders(_):
     )
 
 
-@api_view(["POST"])
+@api_view([POST])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def fetch_and_insert_commanders(_):
