@@ -134,7 +134,8 @@ def get_achievements_by_participant_month(_, mm_yy):
 
 
 @api_view([GET])
-def get_colors(request):
+def get_colors(_):
+    """Get all of the color combinations."""
     colors_objects = Colors.objects.all()
     colors = [
         {
@@ -151,7 +152,6 @@ def get_colors(request):
 
     return Response(
         {"list": colors, "idObj": id_obj, "symbolObj": symbol_obj},
-        status=status.HTTP_200_OK,
     )
 
 
