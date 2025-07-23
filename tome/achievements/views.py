@@ -162,33 +162,43 @@ def upsert_achievements(request):
     """Create or update an achievement. Name is required."""
     body = json.loads(request.body.decode("utf-8"))
     id = body.get("id", None)
-    deleted = body.get("deleted", None)
-    point_value = body.get("point_value", None)
-    parent_id = body.get("parent_id", None)
     name = body.get("name", None)
 
-    if name is None:
+    if not name and not id:
         return Response(
-            {
-                "message": "Information to create/update achievement missing from request body."
-            },
+            {"message": "Missing 'name' for achievement."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    achievement, _ = Achievements.objects.update_or_create(
-        id=(id if id else None),
-        defaults={
-            "name": name or None,
-            "deleted": deleted or False,
-            "point_value": point_value or None,
-            "parent_id": parent_id,
-        },
-    )
-    if achievement.deleted:
-        return Response(status=status.HTTP_201_CREATED)
+    achievement = None
+    if id:
+        achievement = Achievements.objects.filter(id=id).first()
+        if not achievement:
+            return Response(
+                {"message": "Achievement with given ID not found."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-    serialized = AchievementsSerializer(achievement)
-    return Response(serialized.data, status=status.HTTP_201_CREATED)
+    if achievement:
+        if name:
+            achievement.name = name
+        if "deleted" in body:
+            achievement.deleted = body["deleted"]
+        if "point_value" in body:
+            achievement.point_value = body["point_value"]
+        if "parent_id" in body:
+            achievement.parent_id = body["parent_id"]
+        achievement.save()
+    else:
+        achievement = Achievements.objects.create(
+            name=name,
+            deleted=body.get("deleted", False),
+            point_value=body.get("point_value"),
+            parent_id=body.get("parent_id"),
+        )
+
+    serialized = AchievementsSerializer(achievement).data
+    return Response(serialized, status=status.HTTP_201_CREATED)
 
 
 @api_view([POST])

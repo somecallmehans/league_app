@@ -1,11 +1,9 @@
 from django.urls import path
 from .views import (
     get_achievements_with_restrictions,
-    post_achievements_for_participants,
     upsert_achievements,
     get_colors,
     get_achievements_by_participant_session,
-    # upsert_participant_achievements,
     get_achievements_by_participant_month,
     upsert_participant_achievements_v2,
     get_participant_round_achievements,
