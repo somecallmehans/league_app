@@ -21,14 +21,6 @@ export default (builder) => ({
       body: body,
     }),
   }),
-  postRoundScores: builder.mutation({
-    query: (body) => ({
-      url: "submit_achievements/",
-      method: "POST",
-      body,
-    }),
-    invalidatesTags: ["Pods"],
-  }),
   postUpsertParticipant: builder.mutation({
     query: (body) => ({
       url: "upsert_participant/",
@@ -44,14 +36,6 @@ export default (builder) => ({
       body: body,
     }),
     invalidatesTags: ["Achievements"],
-  }),
-  postUpsertEarned: builder.mutation({
-    query: (body) => ({
-      url: "upsert_earned/",
-      method: "POST",
-      body: body,
-    }),
-    invalidatesTags: ["Earned"],
   }),
   postUpsertEarnedV2: builder.mutation({
     query: (body) => ({

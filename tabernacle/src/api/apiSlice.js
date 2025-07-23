@@ -88,7 +88,6 @@ export const {
   usePostCreateSessionMutation,
   usePostBeginRoundMutation,
   usePostCloseRoundMutation,
-  usePostRoundScoresMutation,
   usePostUpsertParticipantMutation,
   usePostUpsertAchievementsMutation,
   usePostUpsertEarnedMutation,
