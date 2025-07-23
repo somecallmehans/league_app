@@ -408,33 +408,20 @@ def upsert_participant_achievements_v2(request):
 @api_view([GET])
 def get_participant_round_achievements(request, participant_id, round_id):
     """Get all achievements + points for a participant in a particular round."""
-    try:
-        out_dict = {"total_points": 0}
-        achievements_for_round = ParticipantAchievements.objects.filter(
-            participant_id=participant_id, round_id=round_id, deleted=False
-        )
-        for achievement in achievements_for_round:
-            out_dict["total_points"] = (
-                out_dict["total_points"] + achievement.earned_points
-            )
+    achievements = ParticipantAchievements.objects.select_related("achievement").filter(
+        participant_id=participant_id, round_id=round_id, deleted=False
+    )
 
-        out_dict["achievements"] = ParticipantsAchievementsFullModelSerializer(
-            achievements_for_round, many=True
-        ).data
+    out = [
+        {
+            "id": a.id,
+            "full_name": a.achievement.full_name,
+            "earned_points": a.earned_points,
+        }
+        for a in achievements
+    ]
 
-    except ObjectDoesNotExist:
-        return Response(
-            {"error": "Invalid participant or round ID."},
-            status=status.HTTP_404_NOT_FOUND,
-        )
-
-    except Exception as e:
-        return Response(
-            {"error": f"An unexpected error occurred: {str(e)}"},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )
-
-    return Response(out_dict, status=status.HTTP_200_OK)
+    return Response(out)
 
 
 @api_view([GET])
@@ -459,8 +446,7 @@ def get_all_commanders(_):
             "commanders": commander_data,
             "partners": partner_data,
             "commander_lookup": commander_lookup,
-        },
-        status=status.HTTP_200_OK,
+        }
     )
 
 
