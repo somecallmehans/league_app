@@ -5,7 +5,7 @@ from .views import (
     upsert_achievements,
     get_colors,
     get_achievements_by_participant_session,
-    upsert_participant_achievements,
+    # upsert_participant_achievements,
     get_achievements_by_participant_month,
     upsert_participant_achievements_v2,
     get_participant_round_achievements,
@@ -22,7 +22,6 @@ urlpatterns = [
     path(
         "upsert_earned_v2/", upsert_participant_achievements_v2, name="upsert_earned_v2"
     ),
-    path("upsert_earned/", upsert_participant_achievements, name="upsert_earned"),
     path(
         "earned_for_session/<int:session_id>/",
         get_achievements_by_participant_session,
@@ -34,11 +33,6 @@ urlpatterns = [
         name="achievements_for_month",
     ),
     path("upsert_achievements/", upsert_achievements, name="upsert_achievements"),
-    path(
-        "submit_achievements/",
-        post_achievements_for_participants,
-        name="submit_achievements",
-    ),
     path(
         "achievements_restrictions/",
         get_achievements_with_restrictions,
