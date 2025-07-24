@@ -16,9 +16,9 @@ This application was developed so that:
 
 This mono repo contains both the frontend (tabernacle) and backend (tome) for the league app. 
 
-Tabernacle was built using React and Redux Tool Kit. Once my list of desired features is complete I'd like to migrate to Typescript.
+Tabernacle was built using React and Redux Tool Kit. Once my list of desired features is complete I'd like to migrate this whole side of the repo to Typescript.
 
-Tome is build using Django + Django Rest Framework and connects to a Postgresql DB.
+Tome is built using Django + Django Rest Framework connected to a Postgresql DB hosted on [Render](https://render.com/).
 
 
 ## Examples
