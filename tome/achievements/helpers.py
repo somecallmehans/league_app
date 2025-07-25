@@ -96,7 +96,7 @@ def group_parents_by_point_value(parent_dict):
 def calculate_total_points_for_month(sessions):
     data = (
         ParticipantAchievements.objects.filter(
-            session_id__in=[s.id for s in sessions],
+            session_id__in=sessions,
             participant__deleted=False,
             deleted=False,
         )

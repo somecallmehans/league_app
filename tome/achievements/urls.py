@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, re_path
 from .views import (
     get_achievements_with_restrictions,
     upsert_achievements,
@@ -25,8 +25,8 @@ urlpatterns = [
         get_achievements_by_participant_session,
         name="earned_for_session",
     ),
-    path(
-        "achievements_for_month/<str:mm_yy>/",
+    re_path(
+        r"^achievements_for_month(?:/(?P<mm_yy>[^/]+))?/$",
         get_achievements_by_participant_month,
         name="achievements_for_month",
     ),

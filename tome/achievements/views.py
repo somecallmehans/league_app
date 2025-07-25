@@ -112,7 +112,7 @@ def get_achievements_by_participant_session(_, session_id):
 
 
 @api_view([GET])
-def get_achievements_by_participant_month(_, mm_yy):
+def get_achievements_by_participant_month(_, mm_yy=None):
     """Calculate the total points earned by a participant in a given month
 
     Originally this endpoint was meant for much more given the name but it's
@@ -121,16 +121,16 @@ def get_achievements_by_participant_month(_, mm_yy):
 
     today = datetime.today()
 
-    if mm_yy == "new" or None:
+    if mm_yy == "new" or mm_yy == None:
         mm_yy = today.strftime("%m-%y")
 
-    sessions_for_month = Sessions.objects.filter(month_year=mm_yy)
+    session_ids = Sessions.objects.filter(month_year=mm_yy).values_list("id", flat=True)
 
-    res = calculate_total_points_for_month(sessions_for_month)
+    res = calculate_total_points_for_month(session_ids)
 
     res.sort(key=lambda x: x["total_points"], reverse=True)
 
-    return Response(res, status=status.HTTP_200_OK)
+    return Response(res)
 
 
 @api_view([GET])

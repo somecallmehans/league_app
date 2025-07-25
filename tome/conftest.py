@@ -45,7 +45,10 @@ def mock_today():
         def today(cls):
             return cls(2024, 11, 25)
 
-    with mock.patch("users.models.datetime", MockDateTime):
+    with (
+        mock.patch("users.models.datetime", MockDateTime),
+        mock.patch("achievements.views.datetime", MockDateTime),
+    ):
         yield
 
 
