@@ -38,10 +38,10 @@ const ScheduleSection = () => (
     </p>
     <ul className="list-disc pl-5 mt-4">
       <li>
-        <b className="text-blue-600">Round One:</b> 12:30 PM
+        <b className="text-blue-600">Round One:</b> 1:30 PM
       </li>
       <li>
-        <b className="text-blue-600">Round Two:</b> 2:30 PM
+        <b className="text-blue-600">Round Two:</b> 3:30 PM
       </li>
     </ul>
     <p className="leading-relaxed mt-4">

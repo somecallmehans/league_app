@@ -114,7 +114,7 @@ export const faqInfo = [
           and concludes on the month’s final Sunday.
         </p>
         <p className="mb-2">
-          Each week, round one begins at 12:30pm, and round two at 2:30pm. Pod
+          Each week, round one begins at 1:30pm, and round two at 3:30pm. Pod
           assignments for round one are random. In round two, pod assignments
           are ranked by league standings: players with the most points are
           grouped together, as are players with the fewest points.
