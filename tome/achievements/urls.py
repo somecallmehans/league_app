@@ -3,7 +3,6 @@ from .views import (
     get_achievements_with_restrictions,
     upsert_achievements,
     get_colors,
-    get_achievements_by_participant_session,
     get_achievements_by_participant_month,
     upsert_participant_achievements_v2,
     get_participant_round_achievements,
@@ -19,11 +18,6 @@ urlpatterns = [
     ),
     path(
         "upsert_earned_v2/", upsert_participant_achievements_v2, name="upsert_earned_v2"
-    ),
-    path(
-        "earned_for_session/<int:session_id>/",
-        get_achievements_by_participant_session,
-        name="earned_for_session",
     ),
     re_path(
         r"^achievements_for_month(?:/(?P<mm_yy>[^/]+))?/$",

@@ -47,68 +47,51 @@ POST = "POST"
 @api_view([GET])
 def get_achievements_with_restrictions(_):
     """Get achievements with their restrictions and put them in a map, raw list, and parents only."""
-    try:
-        parent_map = defaultdict(lambda: {"children": []})
 
-        achievements = (
-            Achievements.objects.filter(deleted=False)
-            .annotate(
-                restrictions_list=ArrayAgg("restrictions"),
-                full_name=Coalesce(
-                    Concat(F("parent__name"), Value(" "), F("name")), F("name")
-                ),
-            )
-            .distinct()
-            .values(
-                "id",
-                "name",
-                "parent_id",
-                "point_value",
-                "slug",
-                "restrictions_list",
-                "full_name",
-            )
-            .order_by(F("parent_id").desc(nulls_last=False))
+    parent_map = defaultdict(lambda: {"children": []})
+    achievements = (
+        Achievements.objects.filter(deleted=False)
+        .annotate(
+            restrictions_list=ArrayAgg("restrictions"),
+            full_name=Coalesce(
+                Concat(F("parent__name"), Value(" "), F("name")), F("name")
+            ),
         )
-        restrictions = Restrictions.objects.filter(deleted=False).values(
-            "id", "name", "url"
+        .distinct()
+        .values(
+            "id",
+            "name",
+            "parent_id",
+            "point_value",
+            "slug",
+            "restrictions_list",
+            "full_name",
         )
-        restriction_lookup = {r["id"]: r for r in restrictions}
-
-        for achievement in achievements:
-            achievement["restrictions"] = [
-                restriction_lookup[r]
-                for r in achievement["restrictions_list"]
-                if r is not None
-            ]
-            del achievement["restrictions_list"]
-
-            if achievement["parent_id"] is None:
-                parent_map[achievement["id"]] = {**achievement, "children": []}
-            else:
-                parent_map[achievement["parent_id"]]["children"].append(achievement)
-
-        grouped = group_parents_by_point_value(parent_map)
-        parents_with_kids = [
-            p["id"] for p in achievements if parent_map[p["id"]]["children"]
+        .order_by(F("parent_id").desc(nulls_last=None))
+    )
+    restrictions = Restrictions.objects.filter(deleted=False).values(
+        "id", "name", "url"
+    )
+    restriction_lookup = {r["id"]: r for r in restrictions}
+    for achievement in achievements:
+        achievement["restrictions"] = [
+            restriction_lookup[r]
+            for r in achievement["restrictions_list"]
+            if r is not None
         ]
-    except BaseException as e:
-        print(e)
+        del achievement["restrictions_list"]
+        if achievement["parent_id"] is None:
+            parent_map[achievement["id"]] = {**achievement, "children": []}
+        else:
+            parent_map[achievement["parent_id"]]["children"].append(achievement)
+    grouped = group_parents_by_point_value(parent_map)
+    parents_with_kids = [
+        p["id"] for p in achievements if parent_map[p["id"]]["children"]
+    ]
 
     return Response(
         {"map": grouped, "data": achievements, "parents": parents_with_kids},
-        status=status.HTTP_200_OK,
     )
-
-
-@api_view([GET])
-def get_achievements_by_participant_session(_, session_id):
-    """Get all the achievements earned by participants for a given session."""
-    session = Sessions.objects.get(id=session_id)
-    result = all_participant_achievements_for_month(session)
-    result.sort(reverse=True, key=lambda x: x["total_points"])
-
-    return Response(result, status=status.HTTP_200_OK)
 
 
 @api_view([GET])
