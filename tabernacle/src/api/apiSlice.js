@@ -72,7 +72,6 @@ export const {
   useGetParticipantsQuery,
   useGetPodsQuery,
   useGetAllColorsQuery,
-  useGetAchievementsForSessionQuery,
   useGetSessionByDateQuery,
   useGetAchievementsForMonthQuery,
   useGetUniqueMonthsQuery,
