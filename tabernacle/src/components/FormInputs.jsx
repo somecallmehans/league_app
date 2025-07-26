@@ -141,35 +141,44 @@ export const Selector = ({
   getOptionLabel,
   getOptionValue,
   filterOption,
+  rules,
 }) => {
   return (
     <Controller
       name={name}
       control={control}
-      render={({ field }) => {
+      rules={rules}
+      render={({ field, fieldState }) => {
         return (
-          <Select
-            {...field}
-            name={name}
-            options={options}
-            className={`basic-multi-select ${classes}`}
-            classNamePrefix="select"
-            getOptionLabel={getOptionLabel}
-            getOptionValue={getOptionValue}
-            menuPortalTarget={document.body}
-            menuPosition="fixed"
-            menuPlacement="auto"
-            styles={customStyles}
-            placeholder={placeholder}
-            defaultValue={defaultValue}
-            onChange={(selectedOption) => {
-              field.onChange(selectedOption);
-            }}
-            isDisabled={disabled}
-            isClearable={isClearable}
-            filterOption={filterOption}
-            isOptionDisabled={(option) => option.disabled}
-          />
+          <>
+            {fieldState.error && (
+              <span className="text-red-500 text-xs">
+                {fieldState.error.message}
+              </span>
+            )}
+            <Select
+              {...field}
+              name={name}
+              options={options}
+              className={`basic-multi-select ${classes}`}
+              classNamePrefix="select"
+              getOptionLabel={getOptionLabel}
+              getOptionValue={getOptionValue}
+              menuPortalTarget={document.body}
+              menuPosition="fixed"
+              menuPlacement="auto"
+              styles={customStyles}
+              placeholder={placeholder}
+              defaultValue={defaultValue}
+              onChange={(selectedOption) => {
+                field.onChange(selectedOption);
+              }}
+              isDisabled={disabled}
+              isClearable={isClearable}
+              filterOption={filterOption}
+              isOptionDisabled={(option) => option.disabled}
+            />
+          </>
         );
       }}
     />
