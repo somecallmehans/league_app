@@ -1,11 +1,14 @@
 import pytest
 
-from achievements.models import WinningCommanders
+from achievements.models import WinningCommanders, Achievements
 from users.models import ParticipantAchievements
 from sessions_rounds.models import Pods
 from utils.test_helpers import get_ids
 
 ids = get_ids()
+
+WIN_3_COLORS_ID = 35
+WIN_3_COLORS_SLUG = "win-3-colors"
 
 POD_1_ID = 1111
 POD_2_ID = 2222
@@ -15,6 +18,12 @@ WINNING_COMMANDER_NAME = "Yarus, Roar of the Old Gods"
 
 @pytest.fixture(autouse=True, scope="function")
 def build_state() -> None:
+    Achievements.models.create(
+        id=WIN_3_COLORS_ID,
+        name="Win Three Colors",
+        slug=WIN_3_COLORS_SLUG,
+        point_value=3,
+    )
     Pods.objects.create(
         id=POD_1_ID,
         rounds_id=ids.R1_SESSION_THIS_MONTH_OPEN,
@@ -40,6 +49,20 @@ def build_state() -> None:
     )
     ParticipantAchievements.objects.bulk_create(
         [
+            ParticipantAchievements(
+                participant_id=ids.P1,
+                achievement_id=WIN_3_COLORS_ID,
+                round_id=ids.R1_SESSION_THIS_MONTH_CLOSED,
+                session_id=ids.SESSION_THIS_MONTH_CLOSED,
+                earned_points=3,
+            ),
+            ParticipantAchievements(
+                participant_id=ids.P1,
+                achievement_id=ids.WIN_TWO_COLORS,
+                round_id=ids.R1_SESSION_THIS_MONTH_OPEN,
+                session_id=ids.SESSION_THIS_MONTH_OPEN,
+                earned_points=4,
+            ),
             ParticipantAchievements(
                 participant_id=ids.P1,
                 achievement_id=ids.KILL_TABLE,
