@@ -31,13 +31,13 @@ def test_get_metrics_individual() -> None:
 
     assert metrics == {
         "participant_name": "Charlie Smith",
-        "avg_win_points": 1.5,
+        "avg_win_points": 5.5,
         "win_number": 2,
         "attendance": 0,
-        "lifetime_points": 4,
+        "lifetime_points": 11,
         "participant_since": "10/01/2024",
-        "unique_achievements": 2,
+        "unique_achievements": 3,
         "session_points": {
-            "11-24": [{"session": 1, "points": 3}, {"session": 2, "points": 1}]
+            "11-24": [{"session": 1, "points": 6}, {"session": 2, "points": 5}]
         },
     }

@@ -18,7 +18,7 @@ WINNING_COMMANDER_NAME = "Yarus, Roar of the Old Gods"
 
 @pytest.fixture(autouse=True, scope="function")
 def build_state() -> None:
-    Achievements.models.create(
+    Achievements.objects.create(
         id=WIN_3_COLORS_ID,
         name="Win Three Colors",
         slug=WIN_3_COLORS_SLUG,
