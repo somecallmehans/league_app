@@ -57,6 +57,7 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_HOST=db
       - DB_PORT=${DB_PORT}
+      - SECRET_KEY=${DJANGO_SECRET_KEY}
   
 
 volumes:
