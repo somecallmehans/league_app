@@ -4,7 +4,6 @@ from django.urls import reverse
 from rest_framework import status
 
 from achievements.models import Achievements, WinningCommanders
-from sessions_rounds.models import Pods, PodsParticipants
 from users.models import ParticipantAchievements
 from utils.test_helpers import get_ids
 
@@ -15,21 +14,15 @@ POD_ID = 1111
 WINNING_COMMANDER = "Yarus, Roar of the Old Gods"
 
 
-def get_participant_achievements(participant_id: int) -> list[ParticipantAchievements]:
+def get_participant_achievements(
+    participant_id: int, deleted: bool = False
+) -> list[ParticipantAchievements]:
     return list(
         ParticipantAchievements.objects.filter(
-            participant_id=participant_id, session_id=ids.SESSION_THIS_MONTH_OPEN
+            participant_id=participant_id,
+            session_id=ids.SESSION_THIS_MONTH_OPEN,
+            deleted=deleted,
         ).values_list("achievement_id", flat=True)
-    )
-
-
-@pytest.fixture(autouse=True, scope="function")
-def create_pod_and_bridge_records() -> None:
-    """Generate a pod and bridge records for the below tests."""
-    Pods.objects.create(id=POD_ID, rounds_id=ids.R1_SESSION_THIS_MONTH_OPEN)
-    PodsParticipants.objects.bulk_create(
-        PodsParticipants(pods_id=POD_ID, participants_id=pid)
-        for pid in [ids.P1, ids.P3, ids.P5, ids.P8]
     )
 
 
@@ -143,6 +136,14 @@ def test_insert_draw(client) -> None:
     res = client.post(url, body, format="json")
 
     assert res.status_code == status.HTTP_201_CREATED
+    assert get_participant_achievements(ids.P1, deleted=False) == [ids.DRAW]
+    assert get_participant_achievements(ids.P3, deleted=False) == [
+        ids.DRAW,
+    ]
+    assert get_participant_achievements(ids.P5, deleted=False) == [
+        ids.DRAW,
+    ]
+    assert get_participant_achievements(ids.P8, deleted=False) == [ids.DRAW]
 
 
 def test_insert_participant_achievements(client) -> None:

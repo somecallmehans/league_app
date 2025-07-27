@@ -6,12 +6,10 @@ from collections import defaultdict
 from django.db.models import Q
 
 from achievements.models import Achievements, Commanders
-from users.models import  ParticipantAchievements
+from users.models import ParticipantAchievements
 from users.serializers import ParticipantsSerializer
 from users.serializers import ParticipantsSerializer
 from sessions_rounds.serializers import RoundsSerializer
-
-
 
 
 def group_parents_by_point_value(parent_dict):
