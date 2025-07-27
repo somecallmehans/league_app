@@ -37,9 +37,9 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      DB_NAME: league_db
-      DB_USER: postgres
-      DB_PASSWORD: password
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
   
   web:
     build:
