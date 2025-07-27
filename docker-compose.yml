@@ -40,6 +40,24 @@ services:
       DB_NAME: league_db
       DB_USER: postgres
       DB_PASSWORD: password
+  
+  web:
+    build:
+      context: ./tome 
+    command: >
+      sh -c "python manage.py migrate &&
+             pytest --ds=tome.settings"
+    volumes:
+      - ./tome:/app
+    depends_on:
+      - db
+    environment:
+      POSTGRES_DB: league_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_HOST: db
+      DJANGO_SETTINGS_MODULE: tome.settings
+  
 
 volumes:
   postgres_data:
