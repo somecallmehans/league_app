@@ -1,12 +1,36 @@
 import pytest
 
+from achievements.models import Achievements
 from sessions_rounds.models import Pods, PodsParticipants
+from users.models import ParticipantAchievements
 
 from utils.test_helpers import get_ids
 
 ids = get_ids()
 
 POD_ID = 1111
+
+
+@pytest.fixture
+def get_slug():
+    def _get(achievement_id):
+        return Achievements.objects.filter(id=achievement_id).values("slug").first()
+
+    return _get
+
+
+@pytest.fixture
+def get_achievements():
+    def _get(participant_id, deleted=False):
+        return list(
+            ParticipantAchievements.objects.filter(
+                participant_id=participant_id,
+                session_id=ids.SESSION_THIS_MONTH_OPEN,
+                deleted=deleted,
+            ).values_list("achievement_id", flat=True)
+        )
+
+    return _get
 
 
 @pytest.fixture(autouse=True, scope="function")

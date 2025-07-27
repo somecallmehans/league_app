@@ -3,8 +3,7 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 
-from achievements.models import Achievements, WinningCommanders
-from users.models import ParticipantAchievements
+from achievements.models import WinningCommanders
 from utils.test_helpers import get_ids
 
 ids = get_ids()
@@ -14,19 +13,9 @@ POD_ID = 1111
 WINNING_COMMANDER = "Yarus, Roar of the Old Gods"
 
 
-def get_participant_achievements(
-    participant_id: int, deleted: bool = False
-) -> list[ParticipantAchievements]:
-    return list(
-        ParticipantAchievements.objects.filter(
-            participant_id=participant_id,
-            session_id=ids.SESSION_THIS_MONTH_OPEN,
-            deleted=deleted,
-        ).values_list("achievement_id", flat=True)
-    )
-
-
-def test_insert_winner_deckbuilding_achievements(client) -> None:
+def test_insert_winner_deckbuilding_achievements(
+    client, get_slug, get_achievements
+) -> None:
     """
     should: correctly insert winner info and earned achievements
 
@@ -39,8 +28,8 @@ def test_insert_winner_deckbuilding_achievements(client) -> None:
 
     url = reverse("upsert_earned_v2")
 
-    cmdr_dmg_slug = Achievements.objects.filter(id=ids.CMDR_DMG).values("slug").first()
-    win_slug = Achievements.objects.filter(id=ids.WIN_TWO_COLORS).values("slug").first()
+    cmdr_dmg_slug = get_slug(ids.CMDR_DMG)
+    win_slug = get_slug(ids.WIN_TWO_COLORS)
 
     body = {
         "new": [
@@ -77,7 +66,7 @@ def test_insert_winner_deckbuilding_achievements(client) -> None:
         .values("name")
         .first()
     )
-    assert get_participant_achievements(ids.P1) == [
+    assert get_achievements(ids.P1) == [
         ids.WIN_TWO_COLORS,
         ids.NO_CREATURES,
         ids.CMDR_DMG,
@@ -85,13 +74,13 @@ def test_insert_winner_deckbuilding_achievements(client) -> None:
     assert winning_commander["name"] == WINNING_COMMANDER
 
 
-def test_insert_draw(client) -> None:
+def test_insert_draw(client, get_slug, get_achievements) -> None:
     """
     should: correctly insert the draw achievement for everyone in the pod
     """
     url = reverse("upsert_earned_v2")
 
-    draw_slug = Achievements.objects.filter(id=ids.DRAW).values("slug").first()
+    draw_slug = get_slug(ids.DRAW)
 
     body = {
         "new": [
@@ -136,29 +125,27 @@ def test_insert_draw(client) -> None:
     res = client.post(url, body, format="json")
 
     assert res.status_code == status.HTTP_201_CREATED
-    assert get_participant_achievements(ids.P1, deleted=False) == [ids.DRAW]
-    assert get_participant_achievements(ids.P3, deleted=False) == [
+    assert get_achievements(ids.P1, deleted=False) == [ids.DRAW]
+    assert get_achievements(ids.P3, deleted=False) == [
         ids.DRAW,
     ]
-    assert get_participant_achievements(ids.P5, deleted=False) == [
+    assert get_achievements(ids.P5, deleted=False) == [
         ids.DRAW,
     ]
-    assert get_participant_achievements(ids.P8, deleted=False) == [ids.DRAW]
+    assert get_achievements(ids.P8, deleted=False) == [ids.DRAW]
 
 
-def test_insert_participant_achievements(client) -> None:
+def test_insert_participant_achievements(client, get_slug, get_achievements) -> None:
     """
     should: correctly insert achievements for people who weren't the winner
     """
 
     url = reverse("upsert_earned_v2")
 
-    cmdr_dmg_slug = Achievements.objects.filter(id=ids.CMDR_DMG).values("slug").first()
-    win_slug = Achievements.objects.filter(id=ids.WIN_TWO_COLORS).values("slug").first()
-    knock_out_slug = (
-        Achievements.objects.filter(id=ids.KNOCK_OUT).values("slug").first()
-    )
-    snack_slug = Achievements.objects.filter(id=ids.SNACK).values("slug").first()
+    cmdr_dmg_slug = get_slug(ids.CMDR_DMG)
+    win_slug = get_slug(ids.WIN_TWO_COLORS)
+    knock_out_slug = get_slug(ids.KNOCK_OUT)
+    snack_slug = get_slug(ids.SNACK)
 
     body = {
         "new": [
@@ -211,11 +198,11 @@ def test_insert_participant_achievements(client) -> None:
 
     assert res.status_code == status.HTTP_201_CREATED
 
-    assert get_participant_achievements(ids.P1) == [
+    assert get_achievements(ids.P1) == [
         ids.WIN_TWO_COLORS,
         ids.NO_CREATURES,
         ids.CMDR_DMG,
     ]
-    assert get_participant_achievements(ids.P3) == [ids.KNOCK_OUT]
-    assert get_participant_achievements(ids.P5) == [ids.KNOCK_OUT]
-    assert get_participant_achievements(ids.P8) == [ids.SNACK]
+    assert get_achievements(ids.P3) == [ids.KNOCK_OUT]
+    assert get_achievements(ids.P5) == [ids.KNOCK_OUT]
+    assert get_achievements(ids.P8) == [ids.SNACK]

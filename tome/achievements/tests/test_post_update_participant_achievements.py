@@ -3,7 +3,7 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 
-from achievements.models import Achievements, WinningCommanders
+from achievements.models import WinningCommanders
 from users.models import ParticipantAchievements
 from utils.test_helpers import get_ids
 
@@ -14,18 +14,6 @@ POD_ID = 1111
 COMMANDER_ID = 234
 WINNING_COMMANDER = "Yarus, Roar of the Old Gods"
 NEW_COMMANDER = "Stangg, Echo Warrior"
-
-
-def get_participant_achievements(
-    participant_id: int, deleted: bool = False
-) -> list[ParticipantAchievements]:
-    return list(
-        ParticipantAchievements.objects.filter(
-            participant_id=participant_id,
-            session_id=ids.SESSION_THIS_MONTH_OPEN,
-            deleted=deleted,
-        ).values_list("achievement_id", flat=True)
-    )
 
 
 def generate_achievements_for_participant(
@@ -61,7 +49,9 @@ def populate_participant_achievements() -> None:
     )
 
 
-def test_update_winner_deckbuilding_achievements(client) -> None:
+def test_update_winner_deckbuilding_achievements(
+    client, get_slug, get_achievements
+) -> None:
     """
     should: update achievements for a pod's winner
     """
@@ -77,7 +67,7 @@ def test_update_winner_deckbuilding_achievements(client) -> None:
         .values("id")
         .first()
     )
-    win_slug = Achievements.objects.filter(id=ids.WIN_TWO_COLORS).values("slug").first()
+    win_slug = get_slug(ids.WIN_TWO_COLORS)
 
     body = {
         "update": [{"id": delete_target["id"], "deleted": True}],
@@ -103,15 +93,15 @@ def test_update_winner_deckbuilding_achievements(client) -> None:
 
     assert res.status_code == status.HTTP_201_CREATED
 
-    assert get_participant_achievements(ids.P1, deleted=False) == [
+    assert get_achievements(ids.P1, deleted=False) == [
         ids.WIN_TWO_COLORS,
         ids.NO_CREATURES,
         ids.KILL_TABLE,
     ]
-    assert get_participant_achievements(ids.P1, deleted=True) == [ids.CMDR_DMG]
+    assert get_achievements(ids.P1, deleted=True) == [ids.CMDR_DMG]
 
 
-def test_update_pod_winner(client) -> None:
+def test_update_pod_winner(client, get_slug, get_achievements) -> None:
     """
     should: update the winner of a given pod
     """
@@ -131,7 +121,7 @@ def test_update_pod_winner(client) -> None:
         .exclude(achievement_id=ids.WIN_TWO_COLORS)
         .values_list("id", flat=True)
     )
-    win_slug = Achievements.objects.filter(id=ids.WIN_TWO_COLORS).values("slug").first()
+    win_slug = get_slug(ids.WIN_TWO_COLORS)
 
     body = {
         "update": [{"id": id, "deleted": True} for id in delete_targets],
@@ -159,11 +149,11 @@ def test_update_pod_winner(client) -> None:
     winning_commander = WinningCommanders.objects.filter(id=COMMANDER_ID).first()
 
     assert res.status_code == status.HTTP_201_CREATED
-    assert get_participant_achievements(ids.P1, deleted=True) == [
+    assert get_achievements(ids.P1, deleted=True) == [
         ids.CMDR_DMG,
         ids.NO_CREATURES,
     ]
-    assert get_participant_achievements(ids.P3, deleted=False) == [
+    assert get_achievements(ids.P3, deleted=False) == [
         ids.KNOCK_OUT,
         ids.WIN_TWO_COLORS,
         ids.KILL_TABLE,
@@ -172,7 +162,7 @@ def test_update_pod_winner(client) -> None:
     assert winning_commander.name == NEW_COMMANDER
 
 
-def test_update_to_draw(client) -> None:
+def test_update_to_draw(client, get_slug, get_achievements) -> None:
     """
     should: update a pod to a draw. should wipe out all previous winner data
     and award everyone a draw achievement.
@@ -189,7 +179,7 @@ def test_update_to_draw(client) -> None:
             "id", flat=True
         )
     )
-    draw_slug = Achievements.objects.filter(id=ids.DRAW).values("slug").first()
+    draw_slug = get_slug(ids.DRAW)
 
     body = {
         "update": [{"id": id, "deleted": True} for id in delete_targets],
@@ -237,13 +227,13 @@ def test_update_to_draw(client) -> None:
 
     assert res.status_code == status.HTTP_201_CREATED
 
-    assert get_participant_achievements(ids.P1, deleted=False) == [ids.DRAW]
-    assert get_participant_achievements(ids.P3, deleted=False) == [
+    assert get_achievements(ids.P1, deleted=False) == [ids.DRAW]
+    assert get_achievements(ids.P3, deleted=False) == [
         ids.KNOCK_OUT,
         ids.DRAW,
     ]
-    assert get_participant_achievements(ids.P5, deleted=False) == [
+    assert get_achievements(ids.P5, deleted=False) == [
         ids.KNOCK_OUT,
         ids.DRAW,
     ]
-    assert get_participant_achievements(ids.P8, deleted=False) == [ids.SNACK, ids.DRAW]
+    assert get_achievements(ids.P8, deleted=False) == [ids.SNACK, ids.DRAW]
