@@ -7,7 +7,6 @@ from django.db import transaction
 from django.db.models import Q, F, Value
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models.functions import Concat, Coalesce
-from django.core.exceptions import ObjectDoesNotExist
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -21,17 +20,12 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .models import Achievements, Colors, Restrictions
 from users.models import ParticipantAchievements
-from users.serializers import (
-    ParticipantsAchievementsSerializer,
-    ParticipantsAchievementsFullModelSerializer,
-)
+
 from sessions_rounds.models import Pods, Sessions, PodsParticipants
 from .serializers import AchievementsSerializer, ColorsSerializer, CommandersSerializer
 from achievements.models import Achievements, WinningCommanders, Commanders
 
 from achievements.helpers import (
-    AchievementCleaverService,
-    all_participant_achievements_for_month,
     calculate_total_points_for_month,
     group_parents_by_point_value,
     handle_pod_win,

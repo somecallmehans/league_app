@@ -71,9 +71,11 @@ class WinningCommanders(models.Model):
     name = models.CharField(max_length=255)
     deleted = models.BooleanField(default=False)
 
-    colors = models.ForeignKey(Colors, on_delete=models.CASCADE)
+    colors = models.ForeignKey(Colors, on_delete=models.CASCADE, null=True, blank=True)
     pods = models.ForeignKey("sessions_rounds.Pods", on_delete=models.CASCADE)
-    participants = models.ForeignKey("users.Participants", on_delete=models.CASCADE)
+    participants = models.ForeignKey(
+        "users.Participants", on_delete=models.CASCADE, null=True, blank=True
+    )
 
     class Meta:
         db_table = "winning_commanders"
