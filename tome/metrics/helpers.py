@@ -135,7 +135,7 @@ class MetricsCalculator:
                 Counter(commander_wins).most_common(5)
             )
             self.metrics["top_winners"] = dict(
-                Counter(participant_wins).most_common(6)[1:]
+                Counter(participant_wins).most_common(5)[1:]
             )
         except Exception as e:
             print(f"Error building top 5: {e}")
@@ -158,7 +158,7 @@ class MetricsCalculator:
                 "round_number": round_obj.round_number,
             }
             self.metrics["overall_points"] = dict(
-                Counter(points_by_participant).most_common(6)[1:]
+                Counter(points_by_participant).most_common(5)[1:]
             )
         except Exception as e:
             print(f"Error building highest attendence: {e}")
@@ -167,6 +167,7 @@ class MetricsCalculator:
         try:
             winners = list(
                 WinningCommanders.objects.filter(deleted=False)
+                .exclude(name="END IN DRAW")
                 .select_related("colors", "participants")
                 .values("name", "colors__symbol", "participants__name")
             )

@@ -136,14 +136,15 @@ export const MetricWrapper = ({ title, classes, children }) => (
   </div>
 );
 
-const TopFiveList = ({ data, list, script }) =>
+const TopFiveList = ({ data, list, script, mod = 1 }) =>
   list.map((name, idx) => (
     <div
       key={idx}
       className="flex items-center justify-between gap-4 text-sm sm:text-base border-b border-gray-200 py-2"
     >
       <span className="truncate">
-        {idx + 1}. {name}
+        {/* We have a different metric for the "top" so we use mod to make sure the list looks right */}
+        {idx + mod}. {name}
       </span>
       <span className="font-medium">
         {data[name]} {script}
@@ -182,6 +183,7 @@ function Page() {
             data={data?.overall_points}
             list={Object.keys(data?.overall_points)}
             script="Points"
+            mod={2}
           />
         </MetricWrapper>
 
@@ -190,6 +192,7 @@ function Page() {
             data={data?.top_winners}
             list={Object.keys(data?.top_winners)}
             script="Wins"
+            mod={2}
           />
         </MetricWrapper>
 
