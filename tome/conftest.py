@@ -73,3 +73,6 @@ def seed_db(db):
         cursor.execute("SELECT setval('achievements_id_seq', 1, false);")
         cursor.execute("TRUNCATE TABLE pods_participants RESTART IDENTITY CASCADE")
         cursor.execute("TRUNCATE TABLE pods RESTART IDENTITY CASCADE")
+        cursor.execute(
+            "TRUNCATE TABLE participant_achievements RESTART IDENTITY CASCADE"
+        )
