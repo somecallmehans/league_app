@@ -23,6 +23,7 @@ PyJWT==2.9.0
 pytest==8.3.3
 pytest-django==4.9.0
 python-dotenv==1.0.1
+pytz
 requests==2.32.3
 sqlparse==0.5.1
 tomli==2.0.1

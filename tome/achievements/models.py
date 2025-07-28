@@ -15,7 +15,7 @@ class Achievements(models.Model):
     name = models.CharField(max_length=255)
     point_value = models.IntegerField(null=True, blank=True)
     deleted = models.BooleanField(default=False)
-    slug = models.SlugField(unique=True, default=None)
+    slug = models.SlugField(unique=True, null=True, blank=True)
     parent = models.ForeignKey("self", on_delete=models.CASCADE, null=True, blank=True)
 
     restrictions = models.ManyToManyField(
@@ -71,9 +71,11 @@ class WinningCommanders(models.Model):
     name = models.CharField(max_length=255)
     deleted = models.BooleanField(default=False)
 
-    colors = models.ForeignKey(Colors, on_delete=models.CASCADE)
+    colors = models.ForeignKey(Colors, on_delete=models.CASCADE, null=True, blank=True)
     pods = models.ForeignKey("sessions_rounds.Pods", on_delete=models.CASCADE)
-    participants = models.ForeignKey("users.Participants", on_delete=models.CASCADE)
+    participants = models.ForeignKey(
+        "users.Participants", on_delete=models.CASCADE, null=True, blank=True
+    )
 
     class Meta:
         db_table = "winning_commanders"

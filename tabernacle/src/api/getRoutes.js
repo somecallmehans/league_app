@@ -21,12 +21,9 @@ export default (builder) => ({
     query: (params) => `pods/${params}/`,
     providesTags: ["Pods"],
   }),
-  getAchievementsForSession: builder.query({
-    query: (params) => `earned_for_session/${params}/`,
-    providesTags: ["Earned"],
-  }),
   getAchievementsForMonth: builder.query({
     query: (params) => `achievements_for_month/${params}/`,
+    providesTags: ["Earned"],
   }),
   getUniqueMonths: builder.query({
     query: () => "unique_months/",
@@ -35,9 +32,9 @@ export default (builder) => ({
     query: () => "metrics/",
   }),
   getPodsAchievements: builder.query({
-    query: ({ round, pod }) => `pods_achievements/${round}/${pod}/`,
-    providesTags: (result, error, { round, pod }) => [
-      { type: "PodsAchievements", id: `${round}-${pod}` },
+    query: ({ pod }) => `pods_achievements/${pod}/`,
+    providesTags: (result, error, { pod }) => [
+      { type: "PodsAchievements", id: `$${pod}` },
     ],
   }),
   getAchievementRound: builder.query({
@@ -57,5 +54,9 @@ export default (builder) => ({
   getRoundParticipants: builder.query({
     query: (round) => `round_participants/${round}/`,
     providesTags: ["Participants"],
+  }),
+  getAllRounds: builder.query({
+    query: ({ participant_id }) => `get_all_rounds/${participant_id}/`,
+    providesTags: ["Rounds"],
   }),
 });

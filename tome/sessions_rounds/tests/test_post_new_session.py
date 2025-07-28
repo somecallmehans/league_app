@@ -1,36 +1,35 @@
-import pytest
 from datetime import datetime
 
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APIClient
+
 from unittest import mock
+from utils.test_helpers import prune_fields
 
-from sessions_rounds.models import Sessions
 
-
-@pytest.mark.django_db(serialized_rollback=True)
 @mock.patch(
     "sessions_rounds.views.datetime", side_effect=lambda *args, **kw: date(*args, **kw)
 )
-def test_post_new_session_no_id(
-    mock_date,
-):
-    client = APIClient()
+def test_post_new_session(mock_date, client):
+    """Post a session. This action also creates 2 rounds
+    associated with it."""
 
-    url = reverse("make_sessions_and_rounds")
+    url = reverse("make_sessions_and_rounds", kwargs={"mm_yy": "new"})
 
     mocked_today = datetime(2024, 11, 25)
     mock_date.today.return_value = mocked_today
 
-    payload = {}
+    res = client.post(url)
+    parsed_res = res.json()
 
-    response = client.post(url, payload, format="json")
-    parsed_res = response.json()
+    expected = {
+        "id": 1,
+        "month_year": "11-24",
+        "rounds": [{"id": 1, "round_number": 1}, {"id": 2, "round_number": 2}],
+    }
 
-    assert response.status_code == status.HTTP_201_CREATED
-    assert parsed_res["id"] == 1 and parsed_res["month_year"] == "11-24"
-    assert len(parsed_res["rounds"]) == 2
-
-    session_exists = Sessions.objects.filter(id=1).exists()
-    assert session_exists
+    assert res.status_code == status.HTTP_201_CREATED
+    assert (
+        prune_fields(parsed_res, {"id", "month_year", "rounds", "round_number"})
+        == expected
+    )

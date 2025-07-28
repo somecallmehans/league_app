@@ -1,40 +1,141 @@
 import pytest
-from unittest import mock
-from datetime import datetime
-from users.models import Participants
-from sessions_rounds.models import Sessions, Rounds
+from itertools import islice
 
-test_participants = [
-    {"name": "Glennis Sansam"},
-    {"name": "Sara Dewhurst"},
-    {"name": "Uriel Cohani"},
-    {"name": "Noella Gannon"},
+from utils.test_helpers import get_ids
+from users.models import ParticipantAchievements, Participants
+from sessions_rounds.models import Pods, PodsParticipants
+
+ids = get_ids()
+
+ALL_PARTICIPANTS = [
+    ids.P1,
+    ids.P2,
+    ids.P3,
+    ids.P4,
+    ids.P5,
+    ids.P6,
+    ids.P7,
+    ids.P8,
+    ids.P9,
+    ids.P10,
 ]
 
 
 @pytest.fixture(scope="function")
-def create_base_participants(django_db_setup, django_db_blocker):
-    base_participants = []
-    with django_db_blocker.unblock():
-        for p in test_participants:
-            participant = Participants.objects.create(name=p["name"])
-            base_participants.append(participant)
-    return base_participants
+def base_participants_list() -> list:
+    """Grab a list of our baseline participants that get populated into the testdb"""
+    return list(
+        Participants.objects.filter(id__in=ALL_PARTICIPANTS).values("id", "name")
+    )
 
 
 @pytest.fixture(scope="function")
-@mock.patch("users.models.datetime", side_effect=lambda *args, **kw: date(*args, **kw))
-def create_base_session_and_rounds(mock_date, django_db_setup, django_db_blocker):
-    mocked_today = datetime(2024, 11, 25)
-    mock_date.today.return_value = mocked_today
-    mocked_mmyy = mocked_today.strftime("%m-%y")
+def populate_participation() -> None:
+    """Give our baseline participants the participation for RD1"""
+    ParticipantAchievements.objects.bulk_create(
+        [
+            ParticipantAchievements(
+                participant_id=pid,
+                achievement_id=ids.PARTICIPATION,
+                round_id=ids.R1_SESSION_THIS_MONTH_OPEN,
+                session_id=ids.SESSION_THIS_MONTH_OPEN,
+                earned_points=3,
+            )
+            for pid in ALL_PARTICIPANTS
+        ]
+    )
 
-    with django_db_blocker.unblock():
-        s1 = Sessions.objects.create(id=51, month_year=mocked_mmyy, closed=False)
-        s2 = Sessions.objects.create(id=52, month_year=mocked_mmyy, closed=True)
-        r1 = Rounds.objects.create(id=11, session_id=s1.id, round_number=1)
-        r2 = Rounds.objects.create(id=12, session_id=s1.id, round_number=2)
-        r3 = Rounds.objects.create(id=13, session_id=s2.id, round_number=1)
-        r4 = Rounds.objects.create(id=14, session_id=s2.id, round_number=2)
 
-    return s1, s2, r1, r2, r3, r4
+@pytest.fixture(scope="function")
+def build_pods_participants(request, base_participants_list) -> None:
+    """For a supplied round, create our pods objects + populate our
+    bridge table with pairings."""
+    round_id = request.param["round_id"]
+
+    pods = Pods.objects.bulk_create(
+        [
+            Pods(rounds_id=round_id, submitted=False),
+            Pods(rounds_id=round_id, submitted=False),
+            Pods(rounds_id=round_id, submitted=False),
+        ]
+    )
+
+    participants = base_participants_list
+
+    participants = iter(base_participants_list)
+    pods_participants = []
+    for pod in pods:
+        players = list(islice(participants, 4 if pod == pods[0] else 3))
+        pods_participants.extend(
+            PodsParticipants(pods_id=pod.id, participants_id=player["id"])
+            for player in players
+        )
+
+    PodsParticipants.objects.bulk_create(pods_participants)
+
+
+@pytest.fixture(scope="function")
+def populate_other_achievements(request) -> None:
+    """For a given round and session, give our base participants various achievements."""
+    round_id = request.param["round_id"]
+    session_id = request.param["session_id"]
+    ParticipantAchievements.objects.bulk_create(
+        [
+            ParticipantAchievements(
+                participant_id=ids.P1,
+                achievement_id=ids.NO_INSTANTS_SORCERIES,
+                round_id=round_id,
+                session_id=session_id,
+                earned_points=5,
+            ),
+            ParticipantAchievements(
+                participant_id=ids.P1,
+                achievement_id=ids.ALL_BASICS,
+                round_id=round_id,
+                session_id=session_id,
+                earned_points=8,
+            ),
+            ParticipantAchievements(
+                participant_id=ids.P3,
+                achievement_id=ids.KILL_TABLE,
+                round_id=round_id,
+                session_id=session_id,
+                earned_points=6,
+            ),
+            ParticipantAchievements(
+                participant_id=ids.P3,
+                achievement_id=ids.NO_LANDS,
+                round_id=round_id,
+                session_id=session_id,
+                earned_points=12,
+            ),
+            ParticipantAchievements(
+                participant_id=ids.P6,
+                achievement_id=ids.NO_CREATURES,
+                round_id=round_id,
+                session_id=session_id,
+                earned_points=6,
+            ),
+            ParticipantAchievements(
+                participant_id=ids.P6,
+                achievement_id=ids.CMDR_DMG,
+                round_id=round_id,
+                session_id=session_id,
+                earned_points=3,
+            ),
+            ParticipantAchievements(
+                participant_id=ids.P8,
+                achievement_id=ids.KNOCK_OUT,
+                round_id=round_id,
+                session_id=session_id,
+                earned_points=2,
+            ),
+            ParticipantAchievements(
+                participant_id=ids.P9,
+                achievement_id=ids.SNACK,
+                round_id=round_id,
+                session_id=session_id,
+                earned_points=3,
+            ),
+        ]
+    )

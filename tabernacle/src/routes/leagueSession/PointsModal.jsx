@@ -73,25 +73,23 @@ export default function PointsModal({ isOpen, closeModal, selected }) {
                   )}
                 </DialogTitle>
                 <div className="border-b mb-2" />
-                {data?.achievements.map(
-                  ({ achievement: { full_name }, earned_points }, index) => (
-                    <div
-                      key={index}
-                      className={`grid grid-cols-4 gap-4 items-center ${
-                        index < data?.achievements.length - 1
-                          ? "border-b border-gray-300 pb-2 mb-2"
-                          : ""
-                      }`}
-                    >
-                      <div className="col-span-3 text-left text-gray-800 font-medium">
-                        {full_name}
-                      </div>
-                      <div className="col-span-1 text-right text-gray-600 font-bold">
-                        {earned_points} point{earned_points === 1 ? "" : "s"}
-                      </div>
+                {data?.map(({ id, full_name, earned_points }, index) => (
+                  <div
+                    key={id}
+                    className={`grid grid-cols-4 gap-4 items-center ${
+                      index < data?.length - 1
+                        ? "border-b border-gray-300 pb-2 mb-2"
+                        : ""
+                    }`}
+                  >
+                    <div className="col-span-3 text-left text-gray-800 font-medium">
+                      {full_name}
                     </div>
-                  )
-                )}
+                    <div className="col-span-1 text-right text-gray-600 font-bold">
+                      {earned_points} point{earned_points === 1 ? "" : "s"}
+                    </div>
+                  </div>
+                ))}
                 <span className="flex justify-end text-lg font-semibold mt-2 border-t border-gray-300">
                   = {selected?.round_points} Round Points
                 </span>

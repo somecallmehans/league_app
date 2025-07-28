@@ -9,7 +9,7 @@ from .helpers import MetricsCalculator, IndividualMetricsCalculator
 
 
 @api_view(["GET"])
-def get_all_metrics(request):
+def get_all_metrics(_):
     """Get all of the metrics we want and gather them in a nice object."""
     try:
         calculator = MetricsCalculator()

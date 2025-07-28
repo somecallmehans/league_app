@@ -7,7 +7,6 @@ from django.db import transaction
 from django.db.models import Q, F, Value
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models.functions import Concat, Coalesce
-from django.core.exceptions import ObjectDoesNotExist
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -21,17 +20,12 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .models import Achievements, Colors, Restrictions
 from users.models import ParticipantAchievements
-from users.serializers import (
-    ParticipantsAchievementsSerializer,
-    ParticipantsAchievementsFullModelSerializer,
-)
-from sessions_rounds.models import Pods, Sessions, PodsParticipants
+
+from sessions_rounds.models import Pods, Sessions, PodsParticipants, Rounds
 from .serializers import AchievementsSerializer, ColorsSerializer, CommandersSerializer
 from achievements.models import Achievements, WinningCommanders, Commanders
 
 from achievements.helpers import (
-    AchievementCleaverService,
-    all_participant_achievements_for_month,
     calculate_total_points_for_month,
     group_parents_by_point_value,
     handle_pod_win,
@@ -40,76 +34,62 @@ from achievements.helpers import (
     normalize_color_identity,
 )
 
+GET = "GET"
+POST = "POST"
 
-@api_view(["GET"])
+
+@api_view([GET])
 def get_achievements_with_restrictions(_):
     """Get achievements with their restrictions and put them in a map, raw list, and parents only."""
-    try:
-        parent_map = defaultdict(lambda: {"children": []})
 
-        achievements = (
-            Achievements.objects.filter(deleted=False)
-            .annotate(
-                restrictions_list=ArrayAgg("restrictions"),
-                full_name=Coalesce(
-                    Concat(F("parent__name"), Value(" "), F("name")), F("name")
-                ),
-            )
-            .distinct()
-            .values(
-                "id",
-                "name",
-                "parent_id",
-                "point_value",
-                "slug",
-                "restrictions_list",
-                "full_name",
-            )
-            .order_by(F("parent_id").desc(nulls_last=False))
+    parent_map = defaultdict(lambda: {"children": []})
+    achievements = (
+        Achievements.objects.filter(deleted=False)
+        .annotate(
+            restrictions_list=ArrayAgg("restrictions"),
+            full_name=Coalesce(
+                Concat(F("parent__name"), Value(" "), F("name")), F("name")
+            ),
         )
-        restrictions = Restrictions.objects.filter(deleted=False).values(
-            "id", "name", "url"
+        .distinct()
+        .values(
+            "id",
+            "name",
+            "parent_id",
+            "point_value",
+            "slug",
+            "restrictions_list",
+            "full_name",
         )
-        restriction_lookup = {r["id"]: r for r in restrictions}
-
-        for achievement in achievements:
-            achievement["restrictions"] = [
-                restriction_lookup[r]
-                for r in achievement["restrictions_list"]
-                if r is not None
-            ]
-            del achievement["restrictions_list"]
-
-            if achievement["parent_id"] is None:
-                parent_map[achievement["id"]] = {**achievement, "children": []}
-            else:
-                parent_map[achievement["parent_id"]]["children"].append(achievement)
-
-        grouped = group_parents_by_point_value(parent_map)
-        parents_with_kids = [
-            p["id"] for p in achievements if parent_map[p["id"]]["children"]
+        .order_by(F("parent_id").desc(nulls_last=None))
+    )
+    restrictions = Restrictions.objects.filter(deleted=False).values(
+        "id", "name", "url"
+    )
+    restriction_lookup = {r["id"]: r for r in restrictions}
+    for achievement in achievements:
+        achievement["restrictions"] = [
+            restriction_lookup[r]
+            for r in achievement["restrictions_list"]
+            if r is not None
         ]
-    except BaseException as e:
-        print(e)
+        del achievement["restrictions_list"]
+        if achievement["parent_id"] is None:
+            parent_map[achievement["id"]] = {**achievement, "children": []}
+        else:
+            parent_map[achievement["parent_id"]]["children"].append(achievement)
+    grouped = group_parents_by_point_value(parent_map)
+    parents_with_kids = [
+        p["id"] for p in achievements if parent_map[p["id"]]["children"]
+    ]
 
     return Response(
         {"map": grouped, "data": achievements, "parents": parents_with_kids},
-        status=status.HTTP_200_OK,
     )
 
 
-@api_view(["GET"])
-def get_achievements_by_participant_session(_, session_id):
-    """Get all the achievements earned by participants for a given session."""
-    session = Sessions.objects.get(id=session_id)
-    result = all_participant_achievements_for_month(session)
-    result.sort(reverse=True, key=lambda x: x["total_points"])
-
-    return Response(result, status=status.HTTP_200_OK)
-
-
-@api_view(["GET"])
-def get_achievements_by_participant_month(_, mm_yy):
+@api_view([GET])
+def get_achievements_by_participant_month(_, mm_yy=None):
     """Calculate the total points earned by a participant in a given month
 
     Originally this endpoint was meant for much more given the name but it's
@@ -118,20 +98,21 @@ def get_achievements_by_participant_month(_, mm_yy):
 
     today = datetime.today()
 
-    if mm_yy == "new" or None:
+    if mm_yy == "new" or mm_yy == None:
         mm_yy = today.strftime("%m-%y")
 
-    sessions_for_month = Sessions.objects.filter(month_year=mm_yy)
+    session_ids = Sessions.objects.filter(month_year=mm_yy).values_list("id", flat=True)
 
-    res = calculate_total_points_for_month(sessions_for_month)
+    res = calculate_total_points_for_month(session_ids)
 
     res.sort(key=lambda x: x["total_points"], reverse=True)
 
-    return Response(res, status=status.HTTP_200_OK)
+    return Response(res)
 
 
-@api_view(["GET"])
-def get_colors(request):
+@api_view([GET])
+def get_colors(_):
+    """Get all of the color combinations."""
     colors_objects = Colors.objects.all()
     colors = [
         {
@@ -148,144 +129,56 @@ def get_colors(request):
 
     return Response(
         {"list": colors, "idObj": id_obj, "symbolObj": symbol_obj},
-        status=status.HTTP_200_OK,
     )
 
 
-@api_view(["POST"])
+@api_view([POST])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def upsert_achievements(request):
     """Create or update an achievement. Name is required."""
     body = json.loads(request.body.decode("utf-8"))
     id = body.get("id", None)
-    deleted = body.get("deleted", None)
-    point_value = body.get("point_value", None)
-    parent_id = body.get("parent_id", None)
     name = body.get("name", None)
 
-    if name is None:
+    if not name and not id:
         return Response(
-            {
-                "message": "Information to create/update achievement missing from request body."
-            },
+            {"message": "Missing 'name' for achievement."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    achievement, _ = Achievements.objects.update_or_create(
-        id=(id if id else None),
-        defaults={
-            "name": name or None,
-            "deleted": deleted or False,
-            "point_value": point_value or None,
-            "parent_id": parent_id,
-        },
-    )
-    if achievement.deleted:
-        return Response(status=status.HTTP_201_CREATED)
-
-    serialized = AchievementsSerializer(achievement)
-    return Response(serialized.data, status=status.HTTP_201_CREATED)
-
-
-@api_view(["POST"])
-@authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
-def post_achievements_for_participants(request):
-    """
-    Take in session_id, round_id, and a list of participants,
-    each with a list of achievements earned
-    that round and log them each as new records under the ParticipantsAchievements table.
-    """
-    # TODO First iteration of this endpoint will not consider restrictions on achievements
-    # as that functionality will likely require it's own service to handle.
-    body = json.loads(request.body.decode("utf-8"))
-    participants = body.get("participants", None)
-    round_id = body.get("round", None)
-    session_id = body.get("session", None)
-    pod_id = body.get("pod", None)
-    winner_info = body.get("winnerInfo", None)
-
-    if not round_id or not session_id or not pod_id:
-        return Response(
-            {"message": "Missing round and/or session information"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    # maybe make a new service for updating?
-    # if round not closed, do the existing one
-    # if round closed, go into new one that:
-    # takes in the stuff, edits where it needs to
-    # and adds where else it needs to
-
-    achievement_service = AchievementCleaverService(
-        participants=participants,
-        round=round_id,
-        session=session_id,
-        pod_id=pod_id,
-        winner_info=winner_info,
-    )
-    achievement_service.build_service()
-    Pods.objects.filter(id=pod_id).update(submitted=True)
-    return Response(status=status.HTTP_201_CREATED)
-
-
-@api_view(["POST"])
-@authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
-def upsert_participant_achievements(request):
-    """Update the achievement for a given round/session."""
-    body = json.loads(request.body.decode("utf-8"))
-    earned_id = body.get("earned_id", None)
-    achievement = body.get("achievement", None)
-    participant = body.get("participant", None)
-    round = body.get("round", None)
-    session = body.get("session", None)
-    deleted = body.get("deleted", False)
+    achievement = None
+    if id:
+        achievement = Achievements.objects.filter(id=id).first()
+        if not achievement:
+            return Response(
+                {"message": "Achievement with given ID not found."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
     if achievement:
-        achievementObj = Achievements.objects.get(id=achievement)
+        if name:
+            achievement.name = name
+        if "deleted" in body:
+            achievement.deleted = body["deleted"]
+        if "point_value" in body:
+            achievement.point_value = body["point_value"]
+        if "parent_id" in body:
+            achievement.parent_id = body["parent_id"]
+        achievement.save()
+    else:
+        achievement = Achievements.objects.create(
+            name=name,
+            deleted=body.get("deleted", False),
+            point_value=body.get("point_value"),
+            parent_id=body.get("parent_id"),
+        )
 
-    if earned_id:
-        pa = ParticipantAchievements.objects.get(id=earned_id)
-        try:
-            if achievement:
-                pa.achievement_id = achievement
-                pa.earned_points = achievementObj.points
-            if participant:
-                pa.participant_id = participant
-            if round:
-                pa.round_id = round
-            if session:
-                pa.session_id = session
-            if deleted:
-                pa.deleted = deleted
-
-            pa.save()
-            return Response(
-                {"message": "Updated successfully"},
-                status=status.HTTP_201_CREATED,
-            )
-        except ParticipantAchievements.DoesNotExist:
-            return Response(
-                {"message": "ParticipantAchievement object not found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-    new_entry = ParticipantAchievements.objects.create(
-        achievement_id=achievement,
-        participant_id=participant,
-        round_id=round,
-        session_id=session,
-        earned_points=achievementObj.points,
-    )
-    return Response(
-        ParticipantsAchievementsSerializer(new_entry).data,
-        status=status.HTTP_201_CREATED,
-    )
+    serialized = AchievementsSerializer(achievement).data
+    return Response(serialized, status=status.HTTP_201_CREATED)
 
 
-@api_view(["POST"])
+@api_view([POST])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def upsert_participant_achievements_v2(request):
@@ -402,39 +295,26 @@ def upsert_participant_achievements_v2(request):
     return Response({"message": "success"}, status=status.HTTP_201_CREATED)
 
 
-@api_view(["GET"])
-def get_participant_round_achievements(request, participant_id, round_id):
+@api_view([GET])
+def get_participant_round_achievements(_, participant_id, round_id):
     """Get all achievements + points for a participant in a particular round."""
-    try:
-        out_dict = {"total_points": 0}
-        achievements_for_round = ParticipantAchievements.objects.filter(
-            participant_id=participant_id, round_id=round_id, deleted=False
-        )
-        for achievement in achievements_for_round:
-            out_dict["total_points"] = (
-                out_dict["total_points"] + achievement.earned_points
-            )
+    achievements = ParticipantAchievements.objects.select_related("achievement").filter(
+        participant_id=participant_id, round_id=round_id, deleted=False
+    )
 
-        out_dict["achievements"] = ParticipantsAchievementsFullModelSerializer(
-            achievements_for_round, many=True
-        ).data
+    out = [
+        {
+            "id": a.id,
+            "full_name": a.achievement.full_name,
+            "earned_points": a.earned_points,
+        }
+        for a in achievements
+    ]
 
-    except ObjectDoesNotExist:
-        return Response(
-            {"error": "Invalid participant or round ID."},
-            status=status.HTTP_404_NOT_FOUND,
-        )
-
-    except Exception as e:
-        return Response(
-            {"error": f"An unexpected error occurred: {str(e)}"},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )
-
-    return Response(out_dict, status=status.HTTP_200_OK)
+    return Response(out)
 
 
-@api_view(["GET"])
+@api_view([GET])
 def get_all_commanders(_):
     """Get and return all valid commanders we have currently."""
     try:
@@ -456,12 +336,11 @@ def get_all_commanders(_):
             "commanders": commander_data,
             "partners": partner_data,
             "commander_lookup": commander_lookup,
-        },
-        status=status.HTTP_200_OK,
+        }
     )
 
 
-@api_view(["POST"])
+@api_view([POST])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def fetch_and_insert_commanders(_):
@@ -508,3 +387,58 @@ def fetch_and_insert_commanders(_):
         {"message": f"Added {len(out)} new commanders to the database."},
         status=status.HTTP_201_CREATED,
     )
+
+
+@api_view([POST])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def upsert_earned_achievements(request):
+    """
+    Responsible for either inserting an achievement
+    or updating an existing one (primarily deleting)
+    """
+
+    body = json.loads(request.body.decode("utf-8"))
+
+    id = body.get("id", [])
+
+    if id:
+        achievement = ParticipantAchievements.objects.filter(id=id).first()
+        if not achievement:
+            return Response(
+                {"message": "Achievement with given ID not found."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if "deleted" in body:
+            achievement.deleted = body["deleted"]
+            achievement.save()
+
+        return Response(status=status.HTTP_201_CREATED)
+
+    participant_id = body.get("participant_id")
+    round_id = body.get("round_id")
+    achievement_id = body.get("achievement_id")
+
+    if not participant_id or not round_id or not achievement_id:
+        return Response(
+            {"message": "Missing information to create achievement."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    achievement = (
+        Achievements.objects.select_related("parent").filter(id=achievement_id).first()
+    )
+    point_value = achievement.points
+
+    session_id = (
+        Rounds.objects.filter(id=round_id).values_list("session_id", flat=True).first()
+    )
+
+    ParticipantAchievements.objects.create(
+        participant_id=participant_id,
+        achievement_id=achievement_id,
+        round_id=round_id,
+        session_id=session_id,
+        earned_points=point_value,
+    )
+    return Response(status=status.HTTP_201_CREATED)

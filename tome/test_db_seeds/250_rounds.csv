@@ -1,0 +1,7 @@
+id,session_id,round_number,deleted,completed,created_at
+111,101,1,false,True,2024-10-28T00:00:00Z
+112,101,2,false,True,2024-10-28T00:00:00Z
+113,102,1,false,True,2024-11-03T00:00:00Z
+114,102,2,false,True,2024-11-03T00:00:00Z
+115,103,1,false,False,2024-11-10T00:00:00Z
+116,103,2,false,False,2024-11-10T00:00:00Z

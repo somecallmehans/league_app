@@ -75,6 +75,7 @@ const ScorecardFormFields = ({
   const {
     "end-draw": endInDraw,
     "winner-commander": winnerCommander,
+    winner: selectedWinner,
     "partner-commander": partnerCommander,
   } = watch();
 
@@ -187,6 +188,12 @@ const ScorecardFormFields = ({
         }}
         getOptionLabel={(option) => option?.name}
         getOptionValue={(option) => option?.participant_id}
+        rules={{
+          validate: (value) =>
+            endInDraw || value
+              ? undefined
+              : "Winner is required if the game didn't end in a draw",
+        }}
       />
       <Selector
         name="winner-commander"
@@ -211,6 +218,12 @@ const ScorecardFormFields = ({
         }}
         getOptionLabel={(option) => option.name}
         getOptionValue={(option) => option.id}
+        rules={{
+          validate: (value) =>
+            selectedWinner && !value
+              ? "Commander is required when winner is selected"
+              : undefined,
+        }}
       />
       <Selector
         name="partner-commander"
@@ -346,7 +359,7 @@ export default function ScorecardModal({
     isLoading,
     refetch,
   } = useGetPodsAchievementsQuery(
-    { round: roundId, pod: focusedPod?.id },
+    { pod: focusedPod?.id },
     {
       skip: !focusedPod?.id,
     }
