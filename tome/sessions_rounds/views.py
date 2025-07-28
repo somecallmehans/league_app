@@ -338,3 +338,34 @@ def get_rounds_by_month(_, mm_yy):
         round_dict[formatted_date].append(round)
 
     return Response(round_dict, status=status.HTTP_200_OK)
+
+
+@api_view([GET])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def get_all_rounds(_, participant_id=None):
+    """
+    Get all of the rounds that have happened. If we have a participant_id, get
+    all of the rounds that occurred after that participant was created (by day)
+    """
+
+    filters = {"deleted": False}
+
+    if participant_id:
+        participant = (
+            Participants.objects.filter(id=participant_id).values("created_at").first()
+        )
+        if participant is None:
+            return Response(
+                {"message": f"Participant with ID {participant_id} not found"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        filters["created_at__date__gt"] = participant["created_at"].date()
+    rounds = (
+        Rounds.objects.filter(**filters)
+        .values("id", "round_number", "created_at")
+        .order_by("-created_at")
+    )
+    for r in rounds:
+        r["created_at"] = r["created_at"].strftime("%-m/%-d/%Y")
+    return Response(rounds)
