@@ -21,7 +21,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from .models import Achievements, Colors, Restrictions
 from users.models import ParticipantAchievements
 
-from sessions_rounds.models import Pods, Sessions, PodsParticipants
+from sessions_rounds.models import Pods, Sessions, PodsParticipants, Rounds
 from .serializers import AchievementsSerializer, ColorsSerializer, CommandersSerializer
 from achievements.models import Achievements, WinningCommanders, Commanders
 
@@ -387,3 +387,58 @@ def fetch_and_insert_commanders(_):
         {"message": f"Added {len(out)} new commanders to the database."},
         status=status.HTTP_201_CREATED,
     )
+
+
+@api_view([POST])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def upsert_earned_achievements(request):
+    """
+    Responsible for either inserting an achievement
+    or updating an existing one (primarily deleting)
+    """
+
+    body = json.loads(request.body.decode("utf-8"))
+
+    id = body.get("id", [])
+
+    if id:
+        achievement = ParticipantAchievements.objects.filter(id=id).first()
+        if not achievement:
+            return Response(
+                {"message": "Achievement with given ID not found."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if "deleted" in body:
+            achievement.deleted = body["deleted"]
+            achievement.save()
+
+        return Response(status=status.HTTP_201_CREATED)
+
+    participant_id = body.get("participant_id")
+    round_id = body.get("round_id")
+    achievement_id = body.get("achievement_id")
+
+    if not participant_id or not round_id or not achievement_id:
+        return Response(
+            {"message": "Missing information to create achievement."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    point_value = (
+        Achievements.objects.filter(id=achievement_id)
+        .values_list("point_value", flat=True)
+        .first()
+    )
+    session_id = (
+        Rounds.objects.filter(id=round_id).values_list("session_id", flat=True).first()
+    )
+
+    ParticipantAchievements.objects.create(
+        participant_id=participant_id,
+        achievement_id=achievement_id,
+        round_id=round_id,
+        session_id=session_id,
+        earned_points=point_value,
+    )
+    return Response(status=status.HTTP_201_CREATED)

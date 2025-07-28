@@ -21,11 +21,11 @@ def get_slug():
 
 @pytest.fixture
 def get_achievements():
-    def _get(participant_id, deleted=False):
+    def _get(participant_id, session_id=ids.SESSION_THIS_MONTH_OPEN, deleted=False):
         return list(
             ParticipantAchievements.objects.filter(
                 participant_id=participant_id,
-                session_id=ids.SESSION_THIS_MONTH_OPEN,
+                session_id=session_id,
                 deleted=deleted,
             ).values_list("achievement_id", flat=True)
         )

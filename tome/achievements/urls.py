@@ -8,6 +8,7 @@ from .views import (
     get_participant_round_achievements,
     get_all_commanders,
     fetch_and_insert_commanders,
+    upsert_earned_achievements,
 )
 
 urlpatterns = [
@@ -36,5 +37,10 @@ urlpatterns = [
         "fetch_new_commanders/",
         fetch_and_insert_commanders,
         name="fetch_new_commanders",
+    ),
+    path(
+        "upsert_earned_achievements/",
+        upsert_earned_achievements,
+        name="upsert_earned_achievements",
     ),
 ]
