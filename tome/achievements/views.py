@@ -425,11 +425,11 @@ def upsert_earned_achievements(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    point_value = (
-        Achievements.objects.filter(id=achievement_id)
-        .values_list("point_value", flat=True)
-        .first()
+    achievement = (
+        Achievements.objects.select_related("parent").filter(id=achievement_id).first()
     )
+    point_value = achievement.points
+
     session_id = (
         Rounds.objects.filter(id=round_id).values_list("session_id", flat=True).first()
     )

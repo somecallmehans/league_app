@@ -23,7 +23,7 @@ def group_parents_by_point_value(parent_dict):
 
 
 def calculate_total_points_for_month(sessions):
-    data = (
+    earned_achievements = (
         ParticipantAchievements.objects.filter(
             session_id__in=sessions,
             participant__deleted=False,
@@ -35,10 +35,17 @@ def calculate_total_points_for_month(sessions):
 
     by_participant = defaultdict(int)
     participant_info = set()
-    for d in data:
-        participant_info.add((d["participant_id"], d["participant__name"]))
-        by_participant[d["participant_id"]] += d["earned_points"]
 
+    for achievement in earned_achievements:
+        participant_info.add(
+            (achievement["participant_id"], achievement["participant__name"])
+        )
+        if (
+            achievement["participant_id"] is None
+            or achievement["earned_points"] is None
+        ):
+            breakpoint()
+        by_participant[achievement["participant_id"]] += achievement["earned_points"]
     return [
         {"id": p[0], "name": p[1], "total_points": by_participant[p[0]]}
         for p in participant_info

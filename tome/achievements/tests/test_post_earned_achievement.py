@@ -26,7 +26,7 @@ def build_participant_achievement() -> None:
 
 
 def test_post_delete_participant_achievement(
-    client, get_achievements, build_participant_achievement
+    client, build_participant_achievement
 ) -> None:
     """
     should: delete the given participant achievement
@@ -40,10 +40,22 @@ def test_post_delete_participant_achievement(
 
     assert res.status_code == status.HTTP_201_CREATED
 
-    assert len(get_achievements(ids.P1, deleted=True)) == 1
+    achievement = ParticipantAchievements.objects.filter(
+        id=PARTICIPANT_ACHIEVEMENT
+    ).first()
+
+    assert achievement == ParticipantAchievements(
+        id=PARTICIPANT_ACHIEVEMENT,
+        participant_id=ids.P1,
+        achievement_id=ids.ALL_BASICS,
+        session_id=ids.SESSION_THIS_MONTH_OPEN,
+        round_id=ids.R1_SESSION_THIS_MONTH_OPEN,
+        earned_points=15,
+        deleted=True,
+    )
 
 
-def test_post_new_participant_achievement(client, get_achievements) -> None:
+def test_post_new_participant_achievement(client) -> None:
     """
     should: insert a new participant achievement
     """
@@ -59,4 +71,18 @@ def test_post_new_participant_achievement(client, get_achievements) -> None:
 
     assert res.status_code == status.HTTP_201_CREATED
 
-    assert get_achievements(ids.P9, ids.SESSION_THIS_MONTH_CLOSED) == [ids.NO_CREATURES]
+    achievement = ParticipantAchievements.objects.filter(
+        participant_id=ids.P9,
+        achievement_id=ids.NO_CREATURES,
+        round_id=ids.R2_SESSION_THIS_MONTH_CLOSED,
+    ).first()
+
+    assert achievement == ParticipantAchievements(
+        id=1,
+        participant_id=ids.P9,
+        achievement_id=ids.NO_CREATURES,
+        round_id=ids.R2_SESSION_THIS_MONTH_CLOSED,
+        session_id=ids.SESSION_THIS_MONTH_CLOSED,
+        earned_points=4,
+        deleted=False,
+    )
