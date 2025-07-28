@@ -23,6 +23,7 @@ export default (builder) => ({
   }),
   getAchievementsForMonth: builder.query({
     query: (params) => `achievements_for_month/${params}/`,
+    providesTags: ["Earned"],
   }),
   getUniqueMonths: builder.query({
     query: () => "unique_months/",
