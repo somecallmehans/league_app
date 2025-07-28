@@ -54,14 +54,21 @@ export function SimpleSelect({
   isMulti,
 }) {
   return (
-    <Select
-      options={options}
-      placeholder={placeholder}
-      value={value}
-      className={`${classes}`}
-      onChange={onChange}
-      isMulti={isMulti}
-    />
+    <div className={`${classes}`}>
+      <Select
+        options={options}
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        isMulti={isMulti}
+        classNamePrefix="rs"
+        menuPortalTarget={document.body}
+        menuPosition="fixed"
+        styles={{
+          menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+        }}
+      />
+    </div>
   );
 }
 

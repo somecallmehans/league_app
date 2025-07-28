@@ -16,6 +16,8 @@ export default function Modal({
   actionTitle,
   closeTitle,
   closeModal,
+  body,
+  disableConfirm,
 }) {
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -49,7 +51,12 @@ export default function Modal({
                 >
                   {title}
                 </DialogTitle>
-                <StandardButton title={actionTitle} action={action} />
+                {body}
+                <StandardButton
+                  title={actionTitle}
+                  action={action}
+                  disabled={disableConfirm}
+                />
                 <StandardButton title={closeTitle} action={closeModal} />
               </DialogPanel>
             </TransitionChild>

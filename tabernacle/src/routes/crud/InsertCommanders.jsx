@@ -26,7 +26,7 @@ export default function Page() {
   };
 
   return (
-    <React.Fragment>
+    <>
       <div className="py-12 px-4 sm:px-8 md:px-16 lg:px-32 xl:px-64 text-center text-lg sm:text-xl">
         <p className="mb-4">
           Pressing the below will kick off a request to Scryfall to check if
@@ -61,6 +61,6 @@ export default function Page() {
         closeModal={() => setOpen(!open)}
         bodyText="This process cannot be stopped once started, do you wish to continue?"
       />
-    </React.Fragment>
+    </>
   );
 }
