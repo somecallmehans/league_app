@@ -59,8 +59,4 @@ export default (builder) => ({
     query: ({ participant_id }) => `get_all_rounds/${participant_id}/`,
     providesTags: ["Rounds"],
   }),
-  getParticipantPods: builder.query({
-    query: (participant_id) =>
-      `get_participant_recent_pods/${participant_id}/`,
-  }),
 });

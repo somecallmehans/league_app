@@ -84,7 +84,6 @@ export const {
   useGetCommandersQuery,
   useGetRoundParticipantsQuery,
   useGetAllRoundsQuery,
-  useGetParticipantPodsQuery,
 
   // POSTS
   usePostCreateSessionMutation,
