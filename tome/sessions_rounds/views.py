@@ -14,11 +14,9 @@ from rest_framework.decorators import (
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Prefetch
 
 from .models import Sessions, Rounds, Pods, PodsParticipants
 from users.models import ParticipantAchievements, Participants
-from achievements.models import WinningCommanders
 
 from .serializers import SessionSerializer, PodsParticipantsSerializer
 from achievements.serializers import WinningCommandersSerializer
@@ -339,7 +337,7 @@ def get_rounds_by_month(_, mm_yy):
         formatted_date = round["created_at"].strftime("%-m/%-d")
         round_dict[formatted_date].append(round)
 
-    return Response(round_dict)
+    return Response(round_dict, status=status.HTTP_200_OK)
 
 
 @api_view([GET])
@@ -371,80 +369,3 @@ def get_all_rounds(_, participant_id=None):
     for r in rounds:
         r["created_at"] = r["created_at"].strftime("%-m/%-d/%Y")
     return Response(rounds)
-
-
-@api_view([GET])
-def get_participant_recent_pods(_, participant_id):
-    """
-    Get pods for the given participant for all of the rounds they were apart of
-    this month.
-
-    """
-
-    today = datetime.today()
-    mm_yy = today.strftime("%m-%y")
-
-    participant = Participants.objects.filter(id=participant_id, deleted=False).first()
-
-    if not participant:
-        return Response(
-            {"message": "Participant does not exist"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    participant_pods = (
-        Pods.objects.filter(
-            deleted=False,
-            rounds__session__month_year=mm_yy,
-            podsparticipants__participants=participant,
-        )
-        .select_related("rounds")
-        .prefetch_related(
-            Prefetch(
-                "podsparticipants_set",
-                queryset=PodsParticipants.objects.select_related("participants"),
-            )
-        )
-    )
-
-    winners = WinningCommanders.objects.filter(
-        pods_id__in=[p.id for p in participant_pods], deleted=False
-    ).values("pods_id", "participants_id", "name")
-
-    winners_dict = {w["pods_id"]: w for w in winners}
-
-    out = defaultdict(list)
-    for pod in participant_pods:
-        pod_id = pod.id
-        winner = winners_dict.get(pod_id)
-        occurred = pod.rounds.created_at.strftime("%-m/%-d/%Y")
-
-        participants = pod.podsparticipants_set.all()
-
-        out[occurred].append(
-            {
-                "id": pod_id,
-                "round_number": pod.rounds.round_number,
-                "commander_name": (
-                    winner["name"] if winner else "Commander Not Reported"
-                ),
-                "participants": [
-                    {
-                        "id": p.participants.id,
-                        "name": p.participants.name,
-                        "winner": (
-                            True
-                            if winner and winner["participants_id"] == p.participants.id
-                            else False
-                        ),
-                    }
-                    for p in participants
-                ],
-            }
-        )
-
-    sorted_output = sorted(
-        out.items(), key=lambda x: datetime.strptime(x[0], "%m/%d/%Y")
-    )
-
-    return Response(sorted_output)
