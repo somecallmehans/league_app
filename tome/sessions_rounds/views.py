@@ -18,6 +18,7 @@ from django.db.models import Prefetch
 
 from .models import Sessions, Rounds, Pods, PodsParticipants
 from users.models import ParticipantAchievements, Participants
+from achievements.models import WinningCommanders
 
 from .serializers import SessionSerializer, PodsParticipantsSerializer
 from achievements.serializers import WinningCommandersSerializer
@@ -406,22 +407,42 @@ def get_participant_recent_pods(_, participant_id):
         )
     )
 
-    out = []
+    winners = WinningCommanders.objects.filter(
+        pods_id__in=[p.id for p in participant_pods], deleted=False
+    ).values("pods_id", "participants_id", "name")
+
+    winners_dict = {w["pods_id"]: w for w in winners}
+
+    out = defaultdict(list)
     for pod in participant_pods:
         pod_id = pod.id
+        winner = winners_dict[pod_id]
+        occurred = pod.rounds.created_at.strftime("%-m/%-d/%Y")
 
         participants = pod.podsparticipants_set.all()
 
-        out.append(
+        out[occurred].append(
             {
                 "id": pod_id,
-                "occurred": pod.rounds.created_at.strftime("%-m/%-d/%Y"),
                 "round_number": pod.rounds.round_number,
+                "commander_name": winner["name"],
                 "participants": [
-                    {"id": p.participants.id, "name": p.participants.name}
+                    {
+                        "id": p.participants.id,
+                        "name": p.participants.name,
+                        "winner": (
+                            True
+                            if winner["participants_id"] == p.participants.id
+                            else False
+                        ),
+                    }
                     for p in participants
                 ],
             }
         )
 
-    return Response(sorted(out, key=lambda k: (k["occurred"], k["round_number"])))
+    sorted_output = sorted(
+        out.items(), key=lambda x: datetime.strptime(x[0], "%m/%d/%Y")
+    )
+
+    return Response(sorted_output)

@@ -6,6 +6,7 @@ from datetime import datetime
 from django.urls import reverse
 from rest_framework import status
 
+from achievements.models import WinningCommanders
 from sessions_rounds.models import Pods, PodsParticipants, Rounds, Sessions
 from utils.test_helpers import get_ids
 
@@ -17,6 +18,13 @@ PODS_DICT = {
     "2": [ids.P5, ids.P6, ids.P1],
     "3": [ids.P1, ids.P2, ids.P3, ids.P4, ids.P5],
 }
+
+WINNERS_LIST = [
+    ("END IN DRAW", None),
+    ("Stangg, Echo Warrior", ids.P1),
+    ("END IN DRAW", None),
+    ("Yarus, Roar of the Old Gods", ids.P5),
+]
 
 EXTRA_SESSION = 45
 EXTRA_ROUND = 55
@@ -46,6 +54,12 @@ def build_pods():
         ]
     )
     for idx, pod in enumerate(pods):
+        WinningCommanders.objects.create(
+            name=WINNERS_LIST[idx][0],
+            pods=pod,
+            participants_id=WINNERS_LIST[idx][1],
+            colors_id=ids.GRUUL,
+        )
         PodsParticipants.objects.bulk_create(
             PodsParticipants(pods=pod, participants_id=pid)
             for pid in PODS_DICT[str(idx)]
@@ -64,39 +78,49 @@ def test_get_participant_recent_pods(client, build_pods) -> None:
     parsed_res = res.json()
 
     expected = [
-        {
-            "id": 4,
-            "occurred": "11/18/2024",
-            "round_number": 1,
-            "participants": [
-                {"id": 901, "name": "Charlie Smith"},
-                {"id": 902, "name": "Trenna Thain"},
-                {"id": 903, "name": "Fern Penvarden"},
-                {"id": 904, "name": "Nikita Heape"},
-                {"id": 905, "name": "Bevon Goldster"},
+        [
+            "11/3/2024",
+            [
+                {
+                    "id": 2,
+                    "commander_name": "Stangg, Echo Warrior",
+                    "round_number": 1,
+                    "participants": [
+                        {"id": ids.P1, "name": "Charlie Smith", "winner": True},
+                        {"id": ids.P3, "name": "Fern Penvarden", "winner": False},
+                        {"id": ids.P4, "name": "Nikita Heape", "winner": False},
+                        {"id": ids.P10, "name": "Thom Horn", "winner": False},
+                    ],
+                },
+                {
+                    "id": 3,
+                    "commander_name": "END IN DRAW",
+                    "round_number": 2,
+                    "participants": [
+                        {"id": ids.P1, "name": "Charlie Smith", "winner": False},
+                        {"id": ids.P5, "name": "Bevon Goldster", "winner": False},
+                        {"id": ids.P6, "name": "Jeffrey Blackwood", "winner": False},
+                    ],
+                },
             ],
-        },
-        {
-            "id": 2,
-            "occurred": "11/3/2024",
-            "round_number": 1,
-            "participants": [
-                {"id": 901, "name": "Charlie Smith"},
-                {"id": 903, "name": "Fern Penvarden"},
-                {"id": 904, "name": "Nikita Heape"},
-                {"id": 910, "name": "Thom Horn"},
+        ],
+        [
+            "11/18/2024",
+            [
+                {
+                    "id": 4,
+                    "commander_name": "Yarus, Roar of the Old Gods",
+                    "round_number": 1,
+                    "participants": [
+                        {"id": ids.P1, "name": "Charlie Smith", "winner": False},
+                        {"id": ids.P2, "name": "Trenna Thain", "winner": False},
+                        {"id": ids.P3, "name": "Fern Penvarden", "winner": False},
+                        {"id": ids.P4, "name": "Nikita Heape", "winner": False},
+                        {"id": ids.P5, "name": "Bevon Goldster", "winner": True},
+                    ],
+                }
             ],
-        },
-        {
-            "id": 3,
-            "occurred": "11/3/2024",
-            "round_number": 2,
-            "participants": [
-                {"id": 901, "name": "Charlie Smith"},
-                {"id": 905, "name": "Bevon Goldster"},
-                {"id": 906, "name": "Jeffrey Blackwood"},
-            ],
-        },
+        ],
     ]
 
     assert res.status_code == status.HTTP_200_OK

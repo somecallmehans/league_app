@@ -17,7 +17,7 @@ from .views import (
 
 urlpatterns = [
     path(
-        "get_participant_recent_pods/<int:participant_id>",
+        "get_participant_recent_pods/<int:participant_id>/",
         get_participant_recent_pods,
         name="get_participant_recent_pods",
     ),
