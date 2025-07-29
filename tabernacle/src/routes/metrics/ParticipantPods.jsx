@@ -1,16 +1,16 @@
 import React from "react";
 
-const PodRow = ({ participant_id, occurred, data }) => (
+const PodRow = ({ participant_id, occurred, rounds }) => (
   <div className="flex items-center justify-between py-2">
-    <div className="flex flex-col">
+    <div className="flex flex-col w-full">
       <span className="flex justify-start font-medium">{occurred}</span>
-      <div className="flex flex-wrap gap-4 justify-start my-2">
-        {data.map(({ id, round_number, participants, commander_name }) => (
+      <div className="flex flex-col gap-4 my-2">
+        {rounds.map(({ id, round_number, participants, commander_name }) => (
           <div
             key={id}
-            className="rounded border bg-white p-3 shadow-sm space-y-1 grow"
+            className="rounded border bg-white p-3 shadow-sm space-y-1"
           >
-            <div className="text-sm text-left font-medium text-gray-500">
+            <div className="text-md text-left font-medium text-gray-500 mb-2">
               Round {round_number} - {commander_name}
             </div>
             <div className="flex flex-wrap gap-2">
@@ -38,11 +38,11 @@ const PodRow = ({ participant_id, occurred, data }) => (
 );
 
 export default function Page({ pods, participant_id }) {
-  return pods.map(([occurred, data]) => (
+  return pods.map(([occurred, rounds]) => (
     <PodRow
       participant_id={participant_id}
       occurred={occurred}
-      data={data}
+      rounds={rounds}
       key={occurred}
     />
   ));
