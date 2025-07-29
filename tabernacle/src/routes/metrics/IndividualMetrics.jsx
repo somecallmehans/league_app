@@ -3,10 +3,14 @@ import { useParams, useNavigate } from "react-router-dom";
 
 import LoadingSpinner from "../../components/LoadingSpinner";
 import PageTitle from "../../components/PageTitle";
-import { useGetIndividualMetricsQuery } from "../../api/apiSlice";
+import {
+  useGetIndividualMetricsQuery,
+  useGetParticipantPodsQuery,
+} from "../../api/apiSlice";
 import { MetricWrapper, MetricBlock } from "./MetricsContainer";
 import StandardButton from "../../components/Button";
 import LineChart from "./PointsByMonthLineChart";
+import ParticipantPods from "./ParticipantPods";
 
 export default function InvdividualMetrics() {
   const { participant_id } = useParams();
@@ -14,8 +18,12 @@ export default function InvdividualMetrics() {
 
   const { data: metrics, isLoading: metricsLoading } =
     useGetIndividualMetricsQuery(participant_id, { skip: !participant_id });
+  const { data: pods, isLoading: podsLoading } = useGetParticipantPodsQuery(
+    participant_id,
+    { skip: !participant_id }
+  );
 
-  if (metricsLoading) {
+  if (metricsLoading || podsLoading) {
     return <LoadingSpinner />;
   }
 
@@ -46,8 +54,11 @@ export default function InvdividualMetrics() {
         <MetricWrapper title="Unique Achievements Earned">
           <MetricBlock data={metrics} mainKey="unique_achievements" />
         </MetricWrapper>
-        <LineChart data={metrics.session_points} />
       </div>
+      <MetricWrapper title="Recent Pods" classes="my-4">
+        <ParticipantPods pods={pods} participant_id={participant_id} />
+      </MetricWrapper>
+      <LineChart data={metrics.session_points} />
     </div>
   );
 }
