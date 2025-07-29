@@ -416,7 +416,7 @@ def get_participant_recent_pods(_, participant_id):
     out = defaultdict(list)
     for pod in participant_pods:
         pod_id = pod.id
-        winner = winners_dict[pod_id]
+        winner = winners_dict.get(pod_id)
         occurred = pod.rounds.created_at.strftime("%-m/%-d/%Y")
 
         participants = pod.podsparticipants_set.all()
@@ -425,14 +425,16 @@ def get_participant_recent_pods(_, participant_id):
             {
                 "id": pod_id,
                 "round_number": pod.rounds.round_number,
-                "commander_name": winner["name"],
+                "commander_name": (
+                    winner["name"] if winner else "Commander Not Reported"
+                ),
                 "participants": [
                     {
                         "id": p.participants.id,
                         "name": p.participants.name,
                         "winner": (
                             True
-                            if winner["participants_id"] == p.participants.id
+                            if winner and winner["participants_id"] == p.participants.id
                             else False
                         ),
                     }
