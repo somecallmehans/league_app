@@ -14,6 +14,7 @@ from rest_framework.decorators import (
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Prefetch
 
 from .models import Sessions, Rounds, Pods, PodsParticipants
 from users.models import ParticipantAchievements, Participants
@@ -337,7 +338,7 @@ def get_rounds_by_month(_, mm_yy):
         formatted_date = round["created_at"].strftime("%-m/%-d")
         round_dict[formatted_date].append(round)
 
-    return Response(round_dict, status=status.HTTP_200_OK)
+    return Response(round_dict)
 
 
 @api_view([GET])
@@ -369,3 +370,58 @@ def get_all_rounds(_, participant_id=None):
     for r in rounds:
         r["created_at"] = r["created_at"].strftime("%-m/%-d/%Y")
     return Response(rounds)
+
+
+@api_view([GET])
+def get_participant_recent_pods(_, participant_id):
+    """
+    Get pods for the given participant for all of the rounds they were apart of
+    this month.
+
+    """
+
+    today = datetime.today()
+    mm_yy = today.strftime("%m-%y")
+
+    participant = Participants.objects.filter(id=participant_id, deleted=False).first()
+
+    if not participant:
+        return Response(
+            {"message": "Participant does not exist"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    participant_pods = (
+        Pods.objects.filter(
+            deleted=False,
+            rounds__session__month_year=mm_yy,
+            podsparticipants__participants=participant,
+        )
+        .select_related("rounds")
+        .prefetch_related(
+            Prefetch(
+                "podsparticipants_set",
+                queryset=PodsParticipants.objects.select_related("participants"),
+            )
+        )
+    )
+
+    out = []
+    for pod in participant_pods:
+        pod_id = pod.id
+
+        participants = pod.podsparticipants_set.all()
+
+        out.append(
+            {
+                "id": pod_id,
+                "occurred": pod.rounds.created_at.strftime("%-m/%-d/%Y"),
+                "round_number": pod.rounds.round_number,
+                "participants": [
+                    {"id": p.participants.id, "name": p.participants.name}
+                    for p in participants
+                ],
+            }
+        )
+
+    return Response(sorted(out, key=lambda k: (k["occurred"], k["round_number"])))
