@@ -48,6 +48,7 @@ def mock_today():
     with (
         mock.patch("users.models.datetime", MockDateTime),
         mock.patch("achievements.views.datetime", MockDateTime),
+        mock.patch("sessions_rounds.views.datetime", MockDateTime),
     ):
         yield
 
