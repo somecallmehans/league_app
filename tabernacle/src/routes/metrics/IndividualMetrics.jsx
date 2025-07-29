@@ -27,8 +27,6 @@ export default function InvdividualMetrics() {
     return <LoadingSpinner />;
   }
 
-  console.log(pods);
-
   return (
     <div className="p-4 md:p-8">
       <div className="flex">
@@ -57,7 +55,7 @@ export default function InvdividualMetrics() {
           <MetricBlock data={metrics} mainKey="unique_achievements" />
         </MetricWrapper>
       </div>
-      {pods && pods.length > 0 && (
+      {pods?.length > 0 && (
         <MetricWrapper title="Recent Pods" classes="my-4">
           <ParticipantPods pods={pods} participant_id={participant_id} />
         </MetricWrapper>
