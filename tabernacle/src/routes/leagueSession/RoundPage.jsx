@@ -1,15 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
 import { Link, useLocation } from "react-router-dom";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, FormProvider } from "react-hook-form";
 
-import {
-  useGetParticipantsQuery,
-  useGetPodsQuery,
-  usePostBeginRoundMutation,
-  usePostCloseRoundMutation,
-  usePostRerollPodsMutation,
-} from "../../api/apiSlice";
+import { useGetPodsQuery, usePostRerollPodsMutation } from "../../api/apiSlice";
+
+import { useRouteParticipants } from "../../hooks";
+import { podCalculator } from "../../helpers/helpers";
+import { getLobbyKey } from "../../helpers/formHelpers";
 
 import PageTitle from "../../components/PageTitle";
 import StandardButton from "../../components/Button";
@@ -133,7 +131,7 @@ function Pods({
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-4 sm:px-6 pb-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-4 sm:px-6 pb-8 mt-4">
       {podKeys.map((pod_id, index) => {
         const { participants, submitted, id, winner_info } = pods[pod_id];
         return (
@@ -194,119 +192,23 @@ const CheckedInRow = ({ participant, checkNumber, removeParticipant, idx }) => (
   </div>
 );
 
-const podCalculator = (len) => {
-  let threePods = 0;
-  let fourPods = 0;
-  let fivePods = 0;
-
-  if (len <= 2) {
-    return "Not enough players to begin round";
-  }
-
-  while (len > 0) {
-    if ((len - 5) % 4 === 0 || len === 5) {
-      fivePods += 1;
-      len -= 5;
-    } else if (len % 4 === 0 || len === 7 || len - 4 >= 6) {
-      fourPods += 1;
-      len -= 4;
-    } else {
-      threePods += 1;
-      len -= 3;
-    }
-  }
-
-  return `${fivePods} Five Pods, ${fourPods} Four Pods, ${threePods} Three Pods`;
-};
-
-function RoundLobby({ roundId, sessionId, previousRoundId }) {
-  const [postBeginRound] = usePostBeginRoundMutation();
-  const [isLocked, setIsLocked] = useState(false);
+function RoundLobby({ roundId, sessionId, previousRoundId, control }) {
+  const {
+    filtered,
+    selected,
+    submitForm,
+    addParticipant,
+    removeParticipant,
+    loading,
+  } = useRouteParticipants(roundId, sessionId, previousRoundId);
   const [isOpen, setIsOpen] = useState(false);
-  const { data: previousPodsData, isLoading: isLoadingPods } = useGetPodsQuery(
-    previousRoundId,
-    {
-      skip: !previousRoundId,
-    }
-  );
-  const { data: participantsData, isLoading } = useGetParticipantsQuery();
-  const { control, setValue, watch, reset } = useForm({
-    defaultValues: {
-      participants: [],
-    },
-  });
 
-  useEffect(() => {
-    if (!isLoadingPods && previousPodsData) {
-      const previousRoundParticipants = Object.values(previousPodsData).flatMap(
-        ({ participants }) => Object.values(participants)
-      );
-
-      reset({
-        participants: previousRoundParticipants.map((p) => ({
-          value: p?.participant_id,
-          label: p?.name,
-        })),
-      });
-    }
-  }, [previousPodsData, isLoadingPods, reset]);
-
-  const selectedParticipants = watch("participants");
-
-  if (isLoading) {
+  if (loading) {
     return <LoadingSpinner />;
   }
 
-  const filteredData = participantsData
-    .filter(
-      (largeItem) =>
-        !selectedParticipants.some(
-          (smallItem) => smallItem.label === largeItem.name
-        )
-    )
-    .map(({ id, name }) => ({ value: id, label: name }));
-
-  const submitForm = async () => {
-    try {
-      setIsLocked(true);
-      const normalizedParticipants = selectedParticipants.map((p) => ({
-        name: p?.label,
-        id: p?.value,
-      }));
-      await postBeginRound({
-        round: roundId,
-        session: sessionId,
-        participants: normalizedParticipants,
-      }).unwrap();
-    } catch (err) {
-      console.error("Failed to begin round: ", err);
-      setIsLocked(false);
-    }
-  };
-
-  const addParticipant = (participant) => {
-    if (participant) {
-      const updatedParticipants = [
-        ...selectedParticipants,
-        {
-          label: participant.label,
-          value: participant.value,
-        },
-      ];
-      setValue("participants", updatedParticipants);
-    }
-  };
-
-  const removeParticipant = (index) => {
-    const updatedParticipants = [
-      ...selectedParticipants.slice(0, index),
-      ...selectedParticipants.slice(index + 1),
-    ];
-    setValue("participants", updatedParticipants);
-  };
-
   return (
-    <div>
+    <div className="mt-4">
       <form className="flex w-full justify-center gap-2 md:gap-4">
         <Controller
           control={control}
@@ -316,7 +218,7 @@ function RoundLobby({ roundId, sessionId, previousRoundId }) {
               className="grow mr-2"
               {...field}
               isClearable
-              options={filteredData}
+              options={filtered}
               onChange={(selectedOption) => addParticipant(selectedOption)}
               onCreateOption={(inputValue) =>
                 addParticipant({ value: undefined, label: inputValue })
@@ -327,7 +229,7 @@ function RoundLobby({ roundId, sessionId, previousRoundId }) {
           )}
         />
         <StandardButton
-          disabled={isLocked || [1, 2].includes(selectedParticipants.length)}
+          disabled={[1, 2].includes(selected.length)}
           action={() => setIsOpen(true)}
           type="button"
           title="Submit"
@@ -335,16 +237,13 @@ function RoundLobby({ roundId, sessionId, previousRoundId }) {
       </form>
       <div className="mt-4 text-xl flex flex-col items-center text-center">
         <span className="align-center">
-          Checked In Players:{" "}
-          {selectedParticipants.length === 0 ? 0 : selectedParticipants.length}
+          Checked In Players: {selected.length === 0 ? 0 : selected.length}
         </span>
-        <span className="text-sm">
-          {podCalculator(selectedParticipants.length)}
-        </span>
+        <span className="text-sm">{podCalculator(selected.length)}</span>
       </div>
-      {selectedParticipants.length > 0 && (
+      {selected.length > 0 && (
         <div className="mt-2 w-full mx-auto">
-          {selectedParticipants.map((participant, index) => (
+          {selected.map((participant, index) => (
             <CheckedInRow
               key={participant?.value}
               participant={participant}
@@ -360,9 +259,36 @@ function RoundLobby({ roundId, sessionId, previousRoundId }) {
         title="Begin Round?"
         confirmAction={() => submitForm()}
         closeModal={() => setIsOpen(!isOpen)}
-        disableSubmit={isLocked}
       />
     </div>
+  );
+}
+
+function RoundLobbyFormWrapper({ roundId, sessionId, previousRoundId }) {
+  const [showConfirm, setShowConfirm] = useState(false);
+  const methods = useForm({ defaultValues: { participants: [] } });
+  const { control, reset } = methods;
+
+  return (
+    <FormProvider {...methods}>
+      <StandardButton title="Clear" action={() => setShowConfirm(true)} />
+      <RoundLobby
+        roundId={roundId}
+        sessionId={sessionId}
+        previousRoundId={previousRoundId}
+        control={control}
+      />
+      <ConfirmModal
+        isOpen={showConfirm}
+        title="Clear lobby?"
+        confirmAction={() => {
+          reset({ participants: [] });
+          localStorage.removeItem(getLobbyKey(roundId));
+          setShowConfirm(false);
+        }}
+        closeModal={() => setShowConfirm(!showConfirm)}
+      />
+    </FormProvider>
   );
 }
 
@@ -399,30 +325,57 @@ function FocusedRound({ pods = {}, sessionId, roundId }) {
   );
 }
 
-export default function RoundPage() {
-  const [postCloseRound] = usePostCloseRoundMutation();
-  const [postRerollPods] = usePostRerollPodsMutation();
-  const [modalOpen, setModalOpen] = useState(false);
-  const location = useLocation();
-  const { roundNumber, date, sessionId, roundId, completed, previousRoundId } =
-    location.state;
+function RoundDisplay({
+  roundId,
+  previousRoundId,
+  sessionId,
+  completed,
+  setModalOpen,
+}) {
+  const { data: pods, isLoading: podsLoading } = useGetPodsQuery(roundId);
 
-  const { data, isLoading } = useGetPodsQuery(roundId);
-
-  if (isLoading) {
+  if (podsLoading) {
     return <LoadingSpinner />;
   }
 
-  const handleCloseRound = async () => {
-    try {
-      await postCloseRound({
-        round: { id: roundId, round_number: roundNumber },
-        session: sessionId,
-      }).unwrap();
-    } catch (error) {
-      console.error("Failed to close round: ", error);
-    }
-  };
+  const showFocusedRound = pods && Object?.keys(pods)?.length > 0;
+
+  const somePodsSubmitted =
+    pods && Object.values(pods)?.some(({ submitted }) => submitted);
+
+  if (showFocusedRound) {
+    return (
+      <>
+        <StandardButton
+          title="Update Pods"
+          action={() => setModalOpen(true)}
+          disabled={somePodsSubmitted}
+        />
+        <FocusedRound
+          sessionId={sessionId}
+          roundId={roundId}
+          completed={completed}
+          pods={pods}
+        />
+      </>
+    );
+  }
+
+  return (
+    <RoundLobbyFormWrapper
+      sessionId={sessionId}
+      roundId={roundId}
+      previousRoundId={previousRoundId}
+    />
+  );
+}
+
+export default function RoundPage() {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [postRerollPods] = usePostRerollPodsMutation();
+
+  const location = useLocation();
+  const { roundNumber, date, roundId } = location.state;
 
   const handleModalSubmit = async (participants) => {
     try {
@@ -436,51 +389,13 @@ export default function RoundPage() {
     }
   };
 
-  const allPodsSubmitted =
-    data && Object.values(data)?.every(({ submitted }) => submitted);
-
-  const somePodsSubmitted =
-    data && Object.values(data)?.some(({ submitted }) => submitted);
-
   return (
     <div className="bg-white p-4 mb-4 h-full">
       <PageTitle title={`Round ${roundNumber} for ${date}`} />
       <Link to={"/league-session"}>
         <StandardButton title="Back" />
       </Link>
-
-      {data && Object?.keys(data)?.length > 0 && (
-        <Link to={"/league-session"}>
-          <StandardButton
-            title="End Round"
-            action={() => handleCloseRound()}
-            disabled={allPodsSubmitted && completed}
-          />
-        </Link>
-      )}
-      <StandardButton
-        title="Update Pods"
-        action={() => setModalOpen(true)}
-        disabled={somePodsSubmitted}
-      />
-
-      <div className="mt-4">
-        {!completed && data && Object.keys(data).length === 0 ? (
-          <RoundLobby
-            sessionId={sessionId}
-            roundId={roundId}
-            previousRoundId={previousRoundId}
-          />
-        ) : (
-          <FocusedRound
-            sessionId={sessionId}
-            roundId={roundId}
-            completed={completed}
-            pods={data}
-          />
-        )}
-      </div>
-
+      <RoundDisplay {...location.state} setModalOpen={setModalOpen} />
       <RerollPodsModal
         isOpen={modalOpen}
         confirmAction={(participants) => handleModalSubmit(participants)}

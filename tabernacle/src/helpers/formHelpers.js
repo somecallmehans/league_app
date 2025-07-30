@@ -418,3 +418,5 @@ export function formatUpdate(
 
   return out;
 }
+
+export const getLobbyKey = (roundId) => `roundLobby_participants_${roundId}`;
