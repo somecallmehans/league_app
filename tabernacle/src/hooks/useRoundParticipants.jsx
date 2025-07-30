@@ -67,7 +67,6 @@ export default function useRouteParticipants(
     if (selected.length > 0) {
       localStorage.setItem(getLobbyKey(roundId), JSON.stringify(selected));
     } else {
-      console.log("removing storage");
       localStorage.removeItem(getLobbyKey(roundId));
     }
   }, [selected, hasHydrated, roundId]);
@@ -98,7 +97,6 @@ export default function useRouteParticipants(
           value: participant.value,
         },
       ];
-      console.log(updatedParticipants);
       setValue("participants", updatedParticipants);
     }
   };
