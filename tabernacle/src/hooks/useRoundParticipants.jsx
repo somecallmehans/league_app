@@ -28,15 +28,14 @@ export default function useRouteParticipants(
 
   const selected = watch("participants");
 
-  const previous = useMemo(() => {
-    if (!previousPods) return [];
-    return Object.values(previousPods).flatMap(({ participants }) =>
-      Object.values(participants).map((p) => ({
-        value: p?.participant_id,
-        label: p?.name,
-      }))
-    );
-  }, [previousPods]);
+  const previous = !previousPods
+    ? []
+    : Object.values(previousPods).flatMap(({ participants }) =>
+        Object.values(participants).map((p) => ({
+          value: p?.participant_id,
+          label: p?.name,
+        }))
+      );
 
   useEffect(() => {
     // Try restoring from localStorage first
@@ -54,13 +53,13 @@ export default function useRouteParticipants(
       }
     }
 
-    if (previous.length) {
+    if (previous.length > 0) {
       reset({ participants: previous });
       localStorage.setItem(getLobbyKey(roundId), JSON.stringify(previous));
     }
 
     setHasHydrated(true);
-  }, [roundId]);
+  }, [previousPods, roundId]);
 
   useEffect(() => {
     if (!hasHydrated) return;
