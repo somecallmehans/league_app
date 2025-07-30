@@ -266,10 +266,17 @@ function RoundLobby({ roundId, sessionId, previousRoundId, control }) {
 
 function RoundLobbyFormWrapper({ roundId, sessionId, previousRoundId }) {
   const methods = useForm({ defaultValues: { participants: [] } });
-  const { control } = methods;
+  const { control, reset } = methods;
 
   return (
     <FormProvider {...methods}>
+      <StandardButton
+        title="Clear"
+        action={() => {
+          reset({ participants: [] });
+          localStorage.removeItem(getLobbyKey(roundId));
+        }}
+      />
       <RoundLobby
         roundId={roundId}
         sessionId={sessionId}
@@ -381,10 +388,7 @@ export default function RoundPage() {
     <div className="bg-white p-4 mb-4 h-full">
       <PageTitle title={`Round ${roundNumber} for ${date}`} />
       <Link to={"/league-session"}>
-        <StandardButton
-          title="Back"
-          action={() => localStorage.removeItem(getLobbyKey(roundId))}
-        />
+        <StandardButton title="Back" />
       </Link>
       <RoundDisplay {...location.state} setModalOpen={setModalOpen} />
       <RerollPodsModal
