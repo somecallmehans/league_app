@@ -265,23 +265,28 @@ function RoundLobby({ roundId, sessionId, previousRoundId, control }) {
 }
 
 function RoundLobbyFormWrapper({ roundId, sessionId, previousRoundId }) {
+  const [showConfirm, setShowConfirm] = useState(false);
   const methods = useForm({ defaultValues: { participants: [] } });
   const { control, reset } = methods;
 
   return (
     <FormProvider {...methods}>
-      <StandardButton
-        title="Clear"
-        action={() => {
-          reset({ participants: [] });
-          localStorage.removeItem(getLobbyKey(roundId));
-        }}
-      />
+      <StandardButton title="Clear" action={() => setShowConfirm(true)} />
       <RoundLobby
         roundId={roundId}
         sessionId={sessionId}
         previousRoundId={previousRoundId}
         control={control}
+      />
+      <ConfirmModal
+        isOpen={showConfirm}
+        title="Clear lobby?"
+        confirmAction={() => {
+          reset({ participants: [] });
+          localStorage.removeItem(getLobbyKey(roundId));
+          setShowConfirm(false);
+        }}
+        closeModal={() => setShowConfirm(!showConfirm)}
       />
     </FormProvider>
   );
