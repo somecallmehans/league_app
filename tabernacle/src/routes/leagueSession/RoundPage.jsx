@@ -1,14 +1,11 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState } from "react";
 
 import { Link, useLocation } from "react-router-dom";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, FormProvider } from "react-hook-form";
 
-import {
-  useGetParticipantsQuery,
-  useGetPodsQuery,
-  usePostBeginRoundMutation,
-  usePostRerollPodsMutation,
-} from "../../api/apiSlice";
+import { useGetPodsQuery, usePostRerollPodsMutation } from "../../api/apiSlice";
+
+import { useRouteParticipants } from "../../hooks";
 
 import PageTitle from "../../components/PageTitle";
 import StandardButton from "../../components/Button";
@@ -19,8 +16,6 @@ import ConfirmModal from "../../components/Modals/ConfirmModal";
 import RerollPodsModal from "../../components/Modals/RerollPodsModal";
 import PointsModal from "./PointsModal";
 import ColorGrid from "../../components/ColorGrid";
-
-const getLocalStorageKey = (roundId) => `roundLobby_participants_${roundId}`;
 
 const PodSquare = ({
   participant_id,
@@ -220,128 +215,18 @@ const podCalculator = (len) => {
   return `${fivePods} Five Pods, ${fourPods} Four Pods, ${threePods} Three Pods`;
 };
 
-function RoundLobby({ roundId, sessionId, previousRoundId }) {
-  const LOCAL_STORAGE_KEY = getLocalStorageKey(roundId);
-
-  const [postBeginRound] = usePostBeginRoundMutation();
+function RoundLobby({ roundId, sessionId, previousRoundId, control }) {
+  const {
+    filtered,
+    selected,
+    submitForm,
+    addParticipant,
+    removeParticipant,
+    loading,
+  } = useRouteParticipants(roundId, sessionId, previousRoundId);
   const [isOpen, setIsOpen] = useState(false);
-  const { data: previousPods, isLoading: podsLoading } = useGetPodsQuery(
-    previousRoundId,
-    {
-      skip: !previousRoundId,
-    }
-  );
-  const { data: participants, isLoading: participantsLoading } =
-    useGetParticipantsQuery();
 
-  const { control, setValue, watch, reset } = useForm({
-    defaultValues: {
-      participants: [],
-    },
-  });
-
-  const selectedParticipants = watch("participants");
-
-  const previousParticipants = useMemo(() => {
-    if (!previousPods) return [];
-
-    return Object.values(previousPods)
-      .flatMap(({ participants }) => Object.values(participants))
-      .map((p) => ({
-        value: p?.participant_id,
-        label: p?.name,
-      }));
-  }, [previousPods]);
-
-  const filteredParticipants = useMemo(() => {
-    if (!participants) return [];
-
-    return participants
-      .filter(
-        (participant) =>
-          !selectedParticipants.some(
-            (_participant) => _participant.label === participant.name
-          )
-      )
-      .map(({ id, name }) => ({ value: id, label: name }));
-  }, [participants, selectedParticipants]);
-
-  useEffect(() => {
-    // This useEffect is essentially responsible for loading our existing participants from the
-    // prior round or localstorage into our form state if they exist
-    const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          console.log(parsed);
-          reset({ participants: parsed });
-          return;
-        }
-      } catch (e) {
-        console.error("Failed to parse localStorage data: ", e);
-      }
-    }
-
-    if (previousParticipants) {
-      reset({ participants: previousParticipants });
-      localStorage.setItem(
-        LOCAL_STORAGE_KEY,
-        JSON.stringify(previousParticipants)
-      );
-    }
-  }, [previousPods, reset]);
-
-  useEffect(() => {
-    if (selectedParticipants.length > 0) {
-      localStorage.setItem(
-        LOCAL_STORAGE_KEY,
-        JSON.stringify(selectedParticipants)
-      );
-    } else {
-      localStorage.removeItem(LOCAL_STORAGE_KEY);
-    }
-  }, [selectedParticipants]);
-
-  const submitForm = async () => {
-    try {
-      const normalizedParticipants = selectedParticipants.map((p) => ({
-        name: p?.label,
-        id: p?.value,
-      }));
-      await postBeginRound({
-        round: roundId,
-        session: sessionId,
-        participants: normalizedParticipants,
-      }).unwrap();
-      localStorage.removeItem(LOCAL_STORAGE_KEY);
-    } catch (err) {
-      console.error("Failed to begin round: ", err);
-    }
-  };
-
-  const addParticipant = (participant) => {
-    if (participant) {
-      const updatedParticipants = [
-        ...selectedParticipants,
-        {
-          label: participant.label,
-          value: participant.value,
-        },
-      ];
-      setValue("participants", updatedParticipants);
-    }
-  };
-
-  const removeParticipant = (index) => {
-    const updatedParticipants = [
-      ...selectedParticipants.slice(0, index),
-      ...selectedParticipants.slice(index + 1),
-    ];
-    setValue("participants", updatedParticipants);
-  };
-
-  if (participantsLoading || podsLoading) {
+  if (loading) {
     return <LoadingSpinner />;
   }
 
@@ -356,7 +241,7 @@ function RoundLobby({ roundId, sessionId, previousRoundId }) {
               className="grow mr-2"
               {...field}
               isClearable
-              options={filteredParticipants}
+              options={filtered}
               onChange={(selectedOption) => addParticipant(selectedOption)}
               onCreateOption={(inputValue) =>
                 addParticipant({ value: undefined, label: inputValue })
@@ -367,7 +252,7 @@ function RoundLobby({ roundId, sessionId, previousRoundId }) {
           )}
         />
         <StandardButton
-          disabled={[1, 2].includes(selectedParticipants.length)}
+          disabled={[1, 2].includes(selected.length)}
           action={() => setIsOpen(true)}
           type="button"
           title="Submit"
@@ -375,16 +260,13 @@ function RoundLobby({ roundId, sessionId, previousRoundId }) {
       </form>
       <div className="mt-4 text-xl flex flex-col items-center text-center">
         <span className="align-center">
-          Checked In Players:{" "}
-          {selectedParticipants.length === 0 ? 0 : selectedParticipants.length}
+          Checked In Players: {selected.length === 0 ? 0 : selected.length}
         </span>
-        <span className="text-sm">
-          {podCalculator(selectedParticipants.length)}
-        </span>
+        <span className="text-sm">{podCalculator(selected.length)}</span>
       </div>
-      {selectedParticipants.length > 0 && (
+      {selected.length > 0 && (
         <div className="mt-2 w-full mx-auto">
-          {selectedParticipants.map((participant, index) => (
+          {selected.map((participant, index) => (
             <CheckedInRow
               key={participant?.value}
               participant={participant}
@@ -402,6 +284,22 @@ function RoundLobby({ roundId, sessionId, previousRoundId }) {
         closeModal={() => setIsOpen(!isOpen)}
       />
     </div>
+  );
+}
+
+function RoundLobbyFormWrapper({ roundId, sessionId, previousRoundId }) {
+  const methods = useForm({ defaultValues: { participants: [] } });
+  const { control } = methods;
+
+  return (
+    <FormProvider {...methods}>
+      <RoundLobby
+        roundId={roundId}
+        sessionId={sessionId}
+        previousRoundId={previousRoundId}
+        control={control}
+      />
+    </FormProvider>
   );
 }
 
@@ -451,12 +349,12 @@ function RoundDisplay({
     return <LoadingSpinner />;
   }
 
-  const showInFocus = pods && Object?.keys(pods)?.length > 0;
+  const showFocusedRound = pods && Object?.keys(pods)?.length > 0;
 
   const somePodsSubmitted =
     pods && Object.values(pods)?.some(({ submitted }) => submitted);
 
-  if (showInFocus) {
+  if (showFocusedRound) {
     return (
       <>
         <StandardButton
@@ -475,7 +373,7 @@ function RoundDisplay({
   }
 
   return (
-    <RoundLobby
+    <RoundLobbyFormWrapper
       sessionId={sessionId}
       roundId={roundId}
       previousRoundId={previousRoundId}
@@ -506,10 +404,7 @@ export default function RoundPage() {
     <div className="bg-white p-4 mb-4 h-full">
       <PageTitle title={`Round ${roundNumber} for ${date}`} />
       <Link to={"/league-session"}>
-        <StandardButton
-          title="Back"
-          onClick={() => localStorage.removeItem(getLocalStorageKey(roundId))}
-        />
+        <StandardButton title="Back" />
       </Link>
       <RoundDisplay {...location.state} setModalOpen={setModalOpen} />
       <RerollPodsModal

@@ -13,7 +13,7 @@ const PodRow = ({ participant_id, occurred, rounds }) => (
             <div className="text-md text-left font-medium text-gray-500 mb-2">
               Round {round_number} - {commander_name}
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 ">
               {participants.map(({ id, name, winner }) => (
                 <span
                   key={id}
@@ -21,7 +21,7 @@ const PodRow = ({ participant_id, occurred, rounds }) => (
                     winner ? "bg-yellow-400" : "bg-slate-200"
                   } py-1 px-2 rounded text-sm ${
                     +participant_id === id
-                      ? "underline decoration-solid font-bold"
+                      ? "font-bold border border-black border-solid"
                       : ""
                   }`}
                 >
