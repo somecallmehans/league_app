@@ -71,7 +71,10 @@ export default function Page() {
   const { data: participants, isLoading: participantsLoading } =
     useGetParticipantsQuery();
 
-  const [filteredData, Component, FilterList] = useSearch(participants || []);
+  const [filteredData, Component, FilterList] = useSearch(
+    participants || [],
+    "Filter by Name"
+  );
   const [postUpsertParticipant] = usePostUpsertParticipantMutation();
 
   const sortedData = [...filteredData].sort((a, b) =>

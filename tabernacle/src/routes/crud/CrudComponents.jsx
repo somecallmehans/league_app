@@ -52,6 +52,7 @@ export function SimpleSelect({
   classes,
   onChange,
   isMulti,
+  isClearable,
 }) {
   return (
     <div className={`${classes}`}>
@@ -67,6 +68,7 @@ export function SimpleSelect({
         styles={{
           menuPortal: (base) => ({ ...base, zIndex: 9999 }),
         }}
+        isClearable={isClearable}
       />
     </div>
   );

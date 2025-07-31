@@ -2,10 +2,10 @@ import React, { useState } from "react";
 
 import { Input } from "@headlessui/react";
 
-const SearchComponent = ({ setSearchTerm }) => (
+export const SearchComponent = ({ setSearchTerm, placeholder, classes }) => (
   <Input
-    placeholder="Filter participants by name"
-    className="py-1.5 w-full md:w-1/2 px-1 rounded bg-zinc-100 border border-slate-400"
+    placeholder={placeholder}
+    className={`bg-white py-1.5 w-full md:w-1/2 px-1 rounded  border border-zinc-300 ${classes}`}
     onChange={(e) => setSearchTerm(e.target.value)}
   />
 );
@@ -22,7 +22,7 @@ const FilterList = ({ data, listKey, classes, Component, componentProps }) => {
   ));
 };
 
-export default function useSearch(data) {
+export default function useSearch(data, placeholder) {
   const [searchTerm, setSearchTerm] = useState();
 
   const filteredData = !searchTerm
@@ -33,7 +33,13 @@ export default function useSearch(data) {
 
   return [
     filteredData,
-    () => <SearchComponent key="key" setSearchTerm={setSearchTerm} />,
+    () => (
+      <SearchComponent
+        key="key"
+        setSearchTerm={setSearchTerm}
+        placeholder={placeholder}
+      />
+    ),
     FilterList,
   ];
 }

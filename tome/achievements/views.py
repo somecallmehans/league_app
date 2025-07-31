@@ -80,6 +80,9 @@ def get_achievements_with_restrictions(_):
             parent_map[achievement["parent_id"]]["children"].append(achievement)
     grouped = group_parents_by_point_value(parent_map)
     lookup = {a["id"]: a for a in achievements}
+    points_set = {
+        a["point_value"] for a in achievements if a["point_value"] is not None
+    }
     parents_with_kids = [
         p["id"] for p in achievements if parent_map[p["id"]]["children"]
     ]
@@ -90,6 +93,7 @@ def get_achievements_with_restrictions(_):
             "data": achievements,
             "parents": parents_with_kids,
             "lookup": lookup,
+            "points_set": points_set,
         },
     )
 
