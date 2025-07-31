@@ -28,7 +28,6 @@ jobs:
       - name: Install dependencies
         run: | 
           pip install -r tome/requirements.txt
-          pip install -e tome/
 
       - name: Run unit tests
         run: python -m pytest --import-mode=append tests/
