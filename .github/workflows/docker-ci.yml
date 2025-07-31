@@ -1,4 +1,4 @@
-name: Dockerized Django Tests
+name: Django Tests
 
 on:
   push:
@@ -14,9 +14,11 @@ jobs:
       postgres:
         image: postgres:14
         env:
-          POSTGRES_DB: league_test
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
+          DB_NAME: league_test        
+          DB_USER: postgres           
+          DB_PASSWORD: postgres       
+          DB_HOST: localhost          
+          DB_PORT: 5432
         ports:
           - 5432:5432
         options: >-
