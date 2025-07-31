@@ -1,10 +1,42 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 
 import { useGetAchievementsQuery } from "../../api/apiSlice";
 
 import LoadingSpinner from "../../components/LoadingSpinner";
 import PageTitle from "../../components/PageTitle";
 import { SimpleSelect } from "../crud/CrudComponents";
+
+const useAchievementSearch = (achievements) => {
+  // This is a special version of the search since we need to search
+  // on a nested list.
+  const [searchTerm, setSearchTerm] = useState();
+
+  if (!achievements) return { filteredData: [], setSearchTerm };
+  const { data, lookup } = achievements;
+
+  if (!searchTerm) {
+    return { filteredData: data, setSearchTerm };
+  }
+
+  const out = [];
+  data.forEach((achievement) => {
+    console.log(achievement);
+    if (
+      JSON.stringify(achievement)
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
+    ) {
+      out.append(achievement);
+      if (achievement?.parent_id) {
+        out.append(lookup[achievement?.parent_id]);
+      }
+    }
+  });
+
+  console.log(out);
+
+  return { filteredData: out, setSearchTerm };
+};
 
 const Achievement = ({ name, achievementChildren, restrictions }) => {
   const [toggle, setToggle] = useState();
@@ -62,23 +94,58 @@ const Achievement = ({ name, achievementChildren, restrictions }) => {
   );
 };
 
-export default function AchievementsPage() {
-  const [filteredValues, setFilteredValues] = useState([]);
-  const { data, isLoading } = useGetAchievementsQuery();
+const associateParentsChildren = (achievements) => {
+  if (!achievements) return [];
+  const lookup = new Map();
+  const roots = [];
 
-  if (isLoading) {
+  for (const temp of achievements) {
+    const achievement = { ...temp, children: [] };
+    lookup.set(achievement.id, achievement);
+  }
+
+  for (const temp of achievements) {
+    const achievement = lookup.get(temp.id); // use the cloned one
+    if (temp.parent_id) {
+      const parent = lookup.get(temp.parent_id);
+      if (parent) {
+        parent.children.push(achievement);
+      }
+    } else {
+      roots.push(achievement);
+    }
+  }
+
+  return roots;
+};
+
+export default function AchievementsPage() {
+  const { data: achievements, isLoading: achievementsLoading } =
+    useGetAchievementsQuery();
+
+  const { filteredData, setSearchTerm } = useAchievementSearch(achievements);
+
+  const associatedList = useMemo(
+    () => associateParentsChildren(filteredData),
+    [achievements, filteredData]
+  );
+
+  // const filterAchievements = (key) =>
+  //   !filteredValues.length
+  //     ? true
+  //     : filteredValues.length && filteredValues.includes(key);
+
+  // const handleFilterChange = (val) => {
+  //   setFilteredValues(val.map(({ value }) => value));
+  // };
+
+  if (achievementsLoading) {
     return <LoadingSpinner />;
   }
 
-  const filterAchievements = (key) =>
-    !filteredValues.length
-      ? true
-      : filteredValues.length && filteredValues.includes(key);
-
-  const handleFilterChange = (val) => {
-    setFilteredValues(val.map(({ value }) => value));
-  };
-  const achievementKeys = Object.keys(data?.map) || [];
+  const sortedData = [...associatedList].sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
 
   return (
     <div className="p-4 md:p-8">
@@ -86,17 +153,18 @@ export default function AchievementsPage() {
       <div className="mb-6">
         <SimpleSelect
           placeholder="Filter By Point Value"
-          options={achievementKeys.map((v) => ({ label: v, value: v }))}
-          onChange={handleFilterChange}
-          isMulti
+          // options={achievementKeys.map((v) => ({ label: v, value: v }))}
+          // onChange={handleFilterChange}
+          // isMulti
         />
       </div>
-      {achievementKeys.filter(filterAchievements).map((x) => (
-        <div key={x} className="p-2">
-          <div className="font-bold text-xl md:text-2xl text-gray-800 border-b border-gray-400 pb-2 mb-4">
+
+      {/* {achievementKeys.filter(filterAchievements).map((x) => (
+        <div key={x} className="p-2"> */}
+      {/* <div className="font-bold text-xl md:text-2xl text-gray-800 border-b border-gray-400 pb-2 mb-4">
             {x} Points
-          </div>
-          {data.map[x]?.map(
+          </div> */}
+      {/* {achievements.map[x]?.map(
             ({ id, name, children: achievementChildren, restrictions }) => (
               <Achievement
                 key={id}
@@ -105,9 +173,9 @@ export default function AchievementsPage() {
                 restrictions={restrictions}
               />
             )
-          )}
-        </div>
-      ))}
+          )} */}
+      {/* </div>
+      ))} */}
     </div>
   );
 }
