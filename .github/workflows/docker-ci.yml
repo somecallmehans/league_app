@@ -2,37 +2,33 @@ name: Dockerized Django Tests
 
 on:
   push:
-    branches: ["**"]
+    branches: [main, development]
+  pull_request:
+    branches: [main, development]
 
 jobs:
-  test:
+  build:
+    strategy:
+      matrix:
+        python-version: [3.9.6]
     runs-on: ubuntu-latest
-
-    env:
-      DB_NAME: league_db
-      DB_USER: postgres
-      DB_PASSWORD: test123
-      DB_HOST: db
-      DB_PORT: 5432
-      DJANGO_SECRET_KEY: dummy-secret-for-tests
-      DEBUG: false
 
     steps:
       - name: Check out code
         uses: actions/checkout@v4
+      
+      - name: Switch to Current Branch
+        run: git checkout ${{ env.BRANCH }}
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
-        run: pip install -r tome/requirements.txt
+        run: | 
+          pip install -r tome/requirements.txt
+          pip install -e
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Install Docker Compose
-        run: |
-          sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.2/docker-compose-linux-x86_64" -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
-          docker-compose version
-
-      - name: Run Docker Compose tests
-        run: |
-          docker-compose -f docker-compose.yml up --abort-on-container-exit --build
+      - name: Run unit tests
+        run: python -m pytest --import-mode=append tests/
