@@ -9,11 +9,18 @@ import LoadingSpinner from "../../components/LoadingSpinner";
 import PageTitle from "../../components/PageTitle";
 import { SimpleSelect } from "../crud/CrudComponents";
 
-const placeBg = (idx) => {
-  if (idx === 0) return "bg-yellow-300 text-black font-semibold";
-  if (idx === 1) return "bg-gray-300 text-black font-semibold";
-  if (idx === 2) return "bg-orange-300 text-black font-semibold";
-  return "bg-white text-gray-700";
+const zebraStripe = (idx) => {
+  if (idx % 2 === 0) {
+    return "bg-gray-50";
+  }
+  return "bg-white";
+};
+
+const placeBadge = (idx) => {
+  if (idx === 0) return <span className="text-xl md:text-2xl">🥇</span>;
+  if (idx === 1) return <span className="text-xl md:text-2xl">🥈</span>;
+  if (idx === 2) return <span className="text-xl md:text-2xl">🥉</span>;
+  return <span>{idx + 1}</span>;
 };
 
 const LeaderboardGrid = ({ leaderboard }) => {
@@ -27,24 +34,26 @@ const LeaderboardGrid = ({ leaderboard }) => {
   const navigate = useNavigate();
 
   return (
-    <div className="border border-gray-300 rounded-lg shadow-md overflow-hidden">
-      <div className="grid grid-cols-5 bg-gray-100 text-center font-medium text-gray-800 py-2 border-b">
-        <div className="col-span-1">Place</div>
-        <div className="col-span-2">Name</div>
-        <div className="col-span-2">Points</div>
+    <div className="border border-gray-300 rounded-lg shadow-lg overflow-hidden">
+      <div className="grid grid-cols-5 px-4 bg-gray-100 text-center font-medium text-gray-800 py-2 border-b">
+        <div className="col-span-1 font-extrabold text-md md:text-lg">
+          Place
+        </div>
+        <div className="col-span-2 font-extrabold text-md md:text-lg">Name</div>
+        <div className="col-span-2 font-extrabold text-md md:text-lg">
+          Points
+        </div>
       </div>
       {leaderboard.map(({ id, total_points, name }, idx) => (
         <div
           key={id}
-          className={`grid grid-cols-5 py-3 px-4 text-center ${placeBg(idx)}`}
+          onClick={() => navigate(`/metrics/${id}/`)}
+          className={`grid grid-cols-5 py-3 px-4 text-center  ${zebraStripe(
+            idx
+          )} hover:bg-sky-50 transition-colors duration-200 hover:text-sky-500 text-sm md:text-lg`}
         >
-          <div className="col-span-1">{idx + 1}</div>
-          <div
-            className="col-span-2 hover:text-sky-500"
-            onClick={() => navigate(`/metrics/${id}/`)}
-          >
-            {name}
-          </div>
+          <div className="col-span-1">{placeBadge(idx)}</div>
+          <div className="col-span-2">{name}</div>
           <div className="col-span-2">{total_points}</div>
         </div>
       ))}
