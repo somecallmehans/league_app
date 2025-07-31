@@ -2,11 +2,20 @@ import React from "react";
 
 import Tooltip from "../../components/Tooltip";
 
-const CodeOfConduct = () => (
-  <section className="bg-white bg-opacity-10 backdrop-blur-md rounded-lg p-6 mb-8 shadow-lg">
-    <h2 className="text-2xl font-bold text-blue-600 mb-4">
-      Be Excellent to Each Other
+const HomeSection = ({ title, children }) => (
+  <section className="bg-white bg-opacity-10 backdrop-blur-md rounded-lg p-6 mb-4 shadow-lg border">
+    <h2
+      className="text-2xl font-bold text-blue-600 mb-4"
+      style={{ textShadow: "2px 2px 4px rgba(0, 0, 0, 0.1)" }}
+    >
+      {title}
     </h2>
+    {children}
+  </section>
+);
+
+const CodeOfConduct = () => (
+  <HomeSection title="Be Excellent to Each Other">
     <p className="leading-relaxed mt-4">
       League participants are required to be kind and respectful to all other
       league participants at all times. Bigotry in any form will not be
@@ -17,7 +26,7 @@ const CodeOfConduct = () => (
       of cleanliness. Mimic’s Market sells artisanal soaps if you would like to
       go above and beyond in this regard!
     </p>
-  </section>
+  </HomeSection>
 );
 
 const SuddenDeathContent = () => (
@@ -29,9 +38,8 @@ const SuddenDeathContent = () => (
   </div>
 );
 
-const ScheduleSection = () => (
-  <section className="bg-white bg-opacity-10 backdrop-blur-md rounded-lg p-6 mb-8 shadow-lg">
-    <h2 className="text-2xl font-bold text-blue-600 mb-4">League Schedule</h2>
+const LeagueSchedule = () => (
+  <HomeSection title="League Schedule">
     <p className="leading-relaxed">
       Each league begins on the first Sunday of the month, repeats weekly, and
       concludes on the month’s final Sunday.
@@ -53,15 +61,12 @@ const ScheduleSection = () => (
         Sudden Death Rules Apply After 90 Minutes
       </div>
     </Tooltip>
-  </section>
+  </HomeSection>
 );
 
-const DescriptionSection = () => (
-  <section className="bg-white bg-opacity-10 backdrop-blur-md rounded-lg p-6 mb-8 shadow-lg">
-    <h2 className="text-xl sm:text-2xl font-bold text-blue-600 mb-4">
-      What is Commander League?
-    </h2>
-    <p className="leading-relaxed text-sm sm:text-base">
+const Description = () => (
+  <HomeSection title="What is Commander League?">
+    <p className="leading-relaxed text-sm sm:text-base ">
       During each month’s league, players earn points by winning official games
       with decks that meet criteria for “achievements.” The more restrictive the
       criteria, the more points an achievement is worth. Essentially, Commander
@@ -77,18 +82,21 @@ const DescriptionSection = () => (
         points.
       </span>
     </p>
-  </section>
+  </HomeSection>
 );
 
 const HomeHeader = () => (
   <header className="text-center mb-4">
-    <h1 className="text-3xl sm:text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-b from-blue-600 to-blue-200 py-2">
+    <h1
+      className="text-3xl sm:text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-b from-blue-600 to-blue-400 py-2"
+      style={{ textShadow: "2px 2px 4px rgba(0, 0, 0, 0.2)" }}
+    >
       Greetings Elder Dragons
     </h1>
     <p className="text-xl font-bold mt-4">Welcome to Commander League!</p>
     <p className="text-sm mt-2">
-      A unique play environment for advanced “Elder Dragon Highlander” games of
-      Magic: The Gathering!
+      A unique play environment for “Elder Dragon Highlander” games of Magic:
+      The Gathering!
     </p>
   </header>
 );
@@ -98,8 +106,8 @@ export default function Home() {
     <div className="min-h-screen text-black px-4 sm:px-8 py-4">
       <div className="max-w-4xl mx-auto">
         <HomeHeader />
-        <DescriptionSection />
-        <ScheduleSection />
+        <Description />
+        <LeagueSchedule />
         <CodeOfConduct />
       </div>
     </div>
