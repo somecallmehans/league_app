@@ -14,18 +14,22 @@ jobs:
       postgres:
         image: postgres:14
         env:
-          DB_NAME: league_test        
-          DB_USER: postgres           
-          DB_PASSWORD: postgres       
-          DB_HOST: localhost          
-          DB_PORT: 5432
-        ports:
-          - 5432:5432
+          POSTGRES_DB: league_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres     
         options: >-
           --health-cmd="pg_isready"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
+          
+    env:
+      DB_NAME: league_test
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_TEST_NAME: test_league_test
 
     steps:
       - name: Check out code
