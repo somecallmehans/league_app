@@ -129,7 +129,7 @@ const RoundDateBlock = ({ data: { date, total, round_number } }) => (
 
 export const MetricWrapper = ({ title, classes, children }) => (
   <div
-    className={`${classes} bg-gray-100 border border-gray-300 rounded-md w-full h-full p-4 flex flex-col text-center justify-between rounded-lg shadow-lg`}
+    className={`${classes} bg-white border border-gray-300 rounded-md w-full h-full p-4 flex flex-col text-center justify-between rounded-lg shadow-lg`}
   >
     <div className="text-lg md:text-xl text-xl font-bold">{title}</div>
     {children}

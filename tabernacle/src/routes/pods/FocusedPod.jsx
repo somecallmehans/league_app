@@ -16,16 +16,30 @@ const PointsBlock = ({ children }) => (
 const PodSquare = ({ participants, handleOnClick, winnerInfo, submitted }) => {
   const navigate = useNavigate();
 
+  const isWinner = (participant_id) =>
+    winnerInfo?.participants?.id === participant_id;
+
+  const setColSize = (idx) =>
+    [3, 5].includes(participants.length) && participants.length === idx + 1;
+
   return participants.map(
     ({ name, participant_id, round_points, total_points }, index) => (
       <div
         key={participant_id}
-        className={`p-4 sm:p-6 border border-blue-300 grid grid-cols-1 overflow-y-auto text-center ${
-          participants.length === 3 && index === 2 ? "sm:col-span-2" : ""
+        className={`p-4 sm:p-6 border grid grid-cols-1 overflow-y-auto text-center ${
+          setColSize(index) ? "sm:col-span-2" : ""
         }`}
       >
         <div onClick={() => navigate(`/metrics/${participant_id}/`)}>
-          <span className="hover:text-sky-400 text-lg md:text-2xl">{name}</span>
+          <span className="hover:text-sky-400 text-lg md:text-2xl">
+            {isWinner(participant_id) && (
+              <i className="fa-solid fa-crown text-md pr-2 text-yellow-600" />
+            )}
+            {name}
+            {isWinner(participant_id) && (
+              <i className="fa-solid fa-crown text-md pl-2 text-yellow-600" />
+            )}
+          </span>
         </div>
         <div className="flex justify-center gap-2">
           <PointsBlock>{round_points} Round</PointsBlock> /{" "}
@@ -33,7 +47,7 @@ const PodSquare = ({ participants, handleOnClick, winnerInfo, submitted }) => {
         </div>
         <ColorGrid
           submitted={submitted}
-          show={winnerInfo?.participants?.id === participant_id}
+          show={isWinner(participant_id)}
           colors={winnerInfo?.colors?.name}
           containerClasses="mt-2"
           action={() =>
@@ -73,7 +87,7 @@ const PodContainer = ({ pods, handleOnClick }) => {
             <div className="flex items-end justify-center content-center text-xl md:text-3xl mb-2">
               <div className="mr-4">Pod {index + 1}</div>
             </div>
-            <div className="shadow-lg border border-blue-300 grid grid-cols-1 sm:grid-cols-2 overflow-y-auto">
+            <div className="shadow-lg border  grid grid-cols-1 sm:grid-cols-2 overflow-y-auto shadow-md">
               <PodSquare
                 participants={participants}
                 index={index}
@@ -136,8 +150,11 @@ export default function () {
         </Link>
         <PageTitle title={`Round ${roundNumber} for ${date}`} />
       </div>
+      <div className="text-xs md:text-sm font-light text-gray-800 italic w-full md:w-1/2 mb-2">
+        Click a player&apos;s name to view their stats, or the icon below it to
+        see the achievements they earned this round.
+      </div>
       <PodContainer pods={pods} handleOnClick={handleOnClick} />
-
       <PointsModal
         isOpen={modalOpen}
         closeModal={() => handleClose()}

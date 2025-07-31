@@ -206,6 +206,11 @@ export default function AchievementsPage() {
   return (
     <div className="p-4 md:p-8">
       <PageTitle title="Achievements" />
+      <div className="text-xs md:text-sm font-light text-gray-800 italic w-full md:w-1/2 mb-2">
+        Use the filters below to sort by point value, name, or both. For
+        achievements with special restrictions or external references, click the
+        chevron in the row to view details or navigate to Moxfield.
+      </div>
       <div className="mb-6">
         <div className="flex flex-col md:flex-row gap-2">
           <SimpleSelect

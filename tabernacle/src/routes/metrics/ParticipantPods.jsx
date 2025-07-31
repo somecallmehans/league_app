@@ -8,7 +8,7 @@ const PodRow = ({ participant_id, occurred, rounds }) => (
         {rounds.map(({ id, round_number, participants, commander_name }) => (
           <div
             key={id}
-            className="rounded border bg-white p-3 shadow-sm space-y-1"
+            className="rounded border bg-white p-3 shadow-md space-y-1"
           >
             <div className="text-md text-left font-medium text-gray-500 mb-2">
               Round {round_number} - {commander_name}
