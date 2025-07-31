@@ -30,4 +30,5 @@ jobs:
           pip install -r tome/requirements.txt
 
       - name: Run unit tests
+        working-directory: tome
         run: python -m pytest --import-mode=append tests/
