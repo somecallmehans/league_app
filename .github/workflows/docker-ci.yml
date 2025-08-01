@@ -54,6 +54,10 @@ jobs:
             sleep 1
           done
 
+      - name: Print Postgres logs
+        if: always()
+        run: docker logs $(docker ps -aqf "ancestor=postgres:14.10")
+
       - name: Run unit tests
         working-directory: tome
         run: python -m pytest --import-mode=append
