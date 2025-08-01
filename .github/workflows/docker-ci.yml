@@ -28,12 +28,28 @@ jobs:
       DB_USER: postgres
       DB_PASSWORD: postgres
       DB_HOST: localhost
-      DB_PORT: 5432
       DB_TEST_NAME: test_league_test
+      DB_PORT: 5432
 
     steps:
+
       - name: Check out code
         uses: actions/checkout@v4
+
+      - name: Check DB environment vars
+        run: |
+          echo "DB_USER=$DB_USER"
+          echo "DB_NAME=$DB_NAME"
+          echo "DB_PASSWORD=$DB_PASSWORD"
+          echo "DB_HOST=$DB_HOST"
+          echo "DB_PORT=$DB_PORT"
+        env:
+          DB_NAME: ${{ env.DB_NAME }}
+          DB_USER: ${{ env.DB_USER }}
+          DB_PASSWORD: ${{ env.DB_PASSWORD }}
+          DB_HOST: ${{ env.DB_HOST }}
+          DB_PORT: ${{ env.DB_PORT }}
+
       
       - name: Switch to Current Branch
         run: git checkout ${{ env.BRANCH }}
@@ -54,9 +70,6 @@ jobs:
             sleep 1
           done
 
-      - name: Print Postgres logs
-        if: always()
-        run: docker logs $(docker ps -aqf "ancestor=postgres:14.10")
 
       - name: Run unit tests
         working-directory: tome
