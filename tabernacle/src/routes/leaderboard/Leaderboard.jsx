@@ -10,6 +10,12 @@ import PageTitle from "../../components/PageTitle";
 import { SimpleSelect } from "../crud/CrudComponents";
 import { handleNavClick } from "../../helpers/helpers";
 
+const badgeMap = {
+  0: "🥇",
+  1: "🥈",
+  2: "🥉",
+};
+
 const zebraStripe = (idx) => {
   if (idx % 2 === 0) {
     return "bg-gray-50";
@@ -18,9 +24,9 @@ const zebraStripe = (idx) => {
 };
 
 const placeBadge = (idx) => {
-  if (idx === 0) return <span className="text-xl md:text-2xl">🥇</span>;
-  if (idx === 1) return <span className="text-xl md:text-2xl">🥈</span>;
-  if (idx === 2) return <span className="text-xl md:text-2xl">🥉</span>;
+  if (badgeMap[idx]) {
+    return <span className="text-xl md:text-2xl">{badgeMap[idx]}</span>;
+  }
   return <span>{idx + 1}</span>;
 };
 
