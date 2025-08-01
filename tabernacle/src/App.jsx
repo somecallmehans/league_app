@@ -15,8 +15,11 @@ import Pods from "./routes/pods/Pods";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+import { usePageTracking } from "./hooks";
+
 function App() {
   const [loggedIn, setLoggedIn] = useState(!!auth.getToken());
+  usePageTracking();
 
   return (
     <>
