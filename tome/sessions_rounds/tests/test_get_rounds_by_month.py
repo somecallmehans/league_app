@@ -22,11 +22,11 @@ def test_get_rounds_by_month(client) -> None:
 
 
 def test_get_rounds_by_month_not_found(client) -> None:
-    """Should: fail if we send a month for which no rounds exist"""
+    """Should: return an empty obj we send a month for which no rounds exist"""
 
     url = reverse("rounds_by_month", kwargs={"mm_yy": "11-94"})
 
     res = client.get(url)
 
-    assert res.status_code == status.HTTP_400_BAD_REQUEST
-    assert res.data["message"] == "Rounds do not exist for that month"
+    assert res.status_code == status.HTTP_200_OK
+    assert res.data == {}
