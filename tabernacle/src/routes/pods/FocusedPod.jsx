@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { useGetPodsQuery } from "../../api/apiSlice";
+import { handleNavClick } from "../../helpers/helpers";
 
 import PageTitle from "../../components/PageTitle";
 import StandardButton from "../../components/Button";
@@ -30,7 +31,12 @@ const PodSquare = ({ participants, handleOnClick, winnerInfo, submitted }) => {
           setColSize(index) ? "sm:col-span-2" : ""
         }`}
       >
-        <div onClick={() => navigate(`/metrics/${participant_id}/`)}>
+        <div
+          onClick={() => {
+            handleNavClick(`individual_metrics_${participant_id}`);
+            navigate(`/metrics/${participant_id}/`);
+          }}
+        >
           <span className="hover:text-sky-400 text-lg md:text-2xl">
             {isWinner(participant_id) && (
               <i className="fa-solid fa-crown text-md pr-2 text-yellow-600" />

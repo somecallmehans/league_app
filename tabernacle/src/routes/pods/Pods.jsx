@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Route, Routes, Link, useLocation } from "react-router-dom";
 
+import { handleNavClick } from "../../helpers/helpers";
+
 import PageTitle from "../../components/PageTitle";
 import LoadingSpinner from "../../components/LoadingSpinner";
 
@@ -43,6 +45,7 @@ const RoundDisplay = ({ info, dateKey, selectedMonth }) => {
             <div
               className="bg-sky-300 hover:bg-sky-200 drop-shadow-md text-center rounded-md
                      py-4 px-6 sm:py-6 sm:px-12 md:py-8 md:px-32 lg:py-10 lg:px-42 text-lg md:text-2xl"
+              onClick={() => handleNavClick(`round_${id}`)}
             >
               Round {round_number}
             </div>

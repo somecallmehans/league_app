@@ -8,6 +8,7 @@ import { monthMap, monthStr } from "../../helpers/dateHelpers";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import PageTitle from "../../components/PageTitle";
 import { SimpleSelect } from "../crud/CrudComponents";
+import { handleNavClick } from "../../helpers/helpers";
 
 const zebraStripe = (idx) => {
   if (idx % 2 === 0) {
@@ -47,7 +48,10 @@ const LeaderboardGrid = ({ leaderboard }) => {
       {leaderboard.map(({ id, total_points, name }, idx) => (
         <div
           key={id}
-          onClick={() => navigate(`/metrics/${id}/`)}
+          onClick={() => {
+            handleNavClick(`individual_metrics_${id}`);
+            navigate(`/metrics/${id}/`);
+          }}
           className={`grid grid-cols-5 py-3 px-4 text-center  ${zebraStripe(
             idx
           )} hover:bg-sky-50 transition-colors duration-200 hover:text-sky-500 text-sm md:text-lg`}

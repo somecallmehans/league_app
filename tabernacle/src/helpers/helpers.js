@@ -22,3 +22,9 @@ export const podCalculator = (len) => {
 
   return `${fivePods} Five Pods, ${fourPods} Four Pods, ${threePods} Three Pods`;
 };
+
+export const handleNavClick = (label) => {
+  window.gtag("event", "nav_click", {
+    link_text: label,
+  });
+};
