@@ -5,7 +5,7 @@ from .serializers import PodsParticipantsSerializer
 from users.models import Participants, ParticipantAchievements
 from users.serializers import ParticipantsSerializer
 from achievements.models import Achievements
-from sessions_rounds.models import Pods, PodsParticipants
+from sessions_rounds.models import Pods, PodsParticipants, Rounds, Sessions
 
 PARTICIPATION_ACHIEVEMENT = "participation"
 
@@ -96,6 +96,23 @@ def get_participants_total_scores(mm_yy):
     ).data
     participants_with_points = [p for p in participants if p["total_points"] != 0]
     return participants_with_points.sort(key=lambda x: x["total_points"], reverse=True)
+
+
+def handle_close_round(round_id):
+    """
+    If all pods in the round are submitted, mark the round as completed.
+    If it's Round 2, also close the session.
+    """
+    round = Rounds.objects.filter(id=round_id).first()
+
+    if not Pods.objects.filter(rounds=round, submitted=False).exists():
+        round.completed = True
+        round.save()
+
+        if round.round_number == 2:
+            session = Sessions.objects.filter(id=round.session_id).first()
+            session.closed = True
+            session.save()
 
 
 class RoundInformationService:

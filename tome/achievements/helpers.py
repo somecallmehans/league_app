@@ -40,11 +40,6 @@ def calculate_total_points_for_month(sessions):
         participant_info.add(
             (achievement["participant_id"], achievement["participant__name"])
         )
-        if (
-            achievement["participant_id"] is None
-            or achievement["earned_points"] is None
-        ):
-            breakpoint()
         by_participant[achievement["participant_id"]] += achievement["earned_points"]
     return [
         {"id": p[0], "name": p[1], "total_points": by_participant[p[0]]}

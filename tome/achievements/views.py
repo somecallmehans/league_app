@@ -19,6 +19,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .models import Achievements, Colors, Restrictions
+
 from users.models import ParticipantAchievements
 
 from sessions_rounds.models import Pods, Sessions, PodsParticipants, Rounds
@@ -33,6 +34,7 @@ from achievements.helpers import (
     fetch_current_commanders,
     normalize_color_identity,
 )
+from sessions_rounds.helpers import handle_close_round
 
 GET = "GET"
 POST = "POST"
@@ -301,6 +303,8 @@ def upsert_participant_achievements_v2(request):
         if not pod.submitted:
             pod.submitted = True
             pod.save()
+
+        handle_close_round(pod.rounds.id)
 
     return Response({"message": "success"}, status=status.HTTP_201_CREATED)
 
