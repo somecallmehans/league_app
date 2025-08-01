@@ -329,10 +329,7 @@ def get_rounds_by_month(_, mm_yy):
     )
 
     if not rounds.exists():
-        return Response(
-            {"message": "Rounds do not exist for that month"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        return Response({})
 
     round_dict = defaultdict(list)
     for round in rounds:

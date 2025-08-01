@@ -72,6 +72,7 @@ function Page() {
   if (monthsLoading || roundsLoading) {
     return <LoadingSpinner />;
   }
+  console.log(rounds);
   return (
     <div className="p-4 md:p-8">
       <PageTitle
@@ -102,22 +103,23 @@ function Page() {
           defaultValue={{ label: selectedMonth, value: selectedMonth }}
         />
       </div>
-      {Object.keys(rounds)
-        .sort(dateSort)
-        .map((round) => {
-          const dateKey = round;
-          const roundInfo = rounds[round];
-          return (
-            <div className="flex flex-col" key={round}>
-              <div className="text-3xl font-bold my-2">{dateKey}</div>
-              <RoundDisplay
-                info={roundInfo}
-                dateKey={dateKey}
-                selectedMonth={selectedMonth}
-              />
-            </div>
-          );
-        })}
+      {rounds &&
+        Object.keys(rounds)
+          .sort(dateSort)
+          .map((round) => {
+            const dateKey = round;
+            const roundInfo = rounds[round];
+            return (
+              <div className="flex flex-col" key={round}>
+                <div className="text-3xl font-bold my-2">{dateKey}</div>
+                <RoundDisplay
+                  info={roundInfo}
+                  dateKey={dateKey}
+                  selectedMonth={selectedMonth}
+                />
+              </div>
+            );
+          })}
     </div>
   );
 }
