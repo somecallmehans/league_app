@@ -63,12 +63,6 @@ jobs:
         run: | 
           pip install -r tome/requirements.txt
 
-      - name: Wait for Postgres to be ready
-        run: |
-          until pg_isready -h postgres -p 5432 -U postgres; do
-            echo "Waiting for postgres..."
-            sleep 1
-          done
 
 
       - name: Run unit tests
