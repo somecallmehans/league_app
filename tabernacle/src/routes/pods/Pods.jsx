@@ -52,6 +52,32 @@ const RoundDisplay = ({ info, dateKey, selectedMonth }) => {
   );
 };
 
+const RoundList = ({ rounds, selectedMonth }) => {
+  if (!rounds || Object.keys(rounds).length === 0) {
+    return (
+      <div className="text-center text-gray-600 py-8">
+        <p>No data available for this league month.</p>
+      </div>
+    );
+  }
+  return Object.keys(rounds)
+    .sort(dateSort)
+    .map((round) => {
+      const dateKey = round;
+      const roundInfo = rounds[round];
+      return (
+        <div className="flex flex-col" key={round}>
+          <div className="text-3xl font-bold my-2">{dateKey}</div>
+          <RoundDisplay
+            info={roundInfo}
+            dateKey={dateKey}
+            selectedMonth={selectedMonth}
+          />
+        </div>
+      );
+    });
+};
+
 function Page() {
   const location = useLocation();
   const d = new Date();
@@ -69,10 +95,12 @@ function Page() {
     { skip: !selectedMonth }
   );
 
-  if (monthsLoading || roundsLoading) {
+  const loading = monthsLoading || roundsLoading;
+
+  if (loading) {
     return <LoadingSpinner />;
   }
-  console.log(rounds);
+
   return (
     <div className="p-4 md:p-8">
       <PageTitle
@@ -103,23 +131,7 @@ function Page() {
           defaultValue={{ label: selectedMonth, value: selectedMonth }}
         />
       </div>
-      {rounds &&
-        Object.keys(rounds)
-          .sort(dateSort)
-          .map((round) => {
-            const dateKey = round;
-            const roundInfo = rounds[round];
-            return (
-              <div className="flex flex-col" key={round}>
-                <div className="text-3xl font-bold my-2">{dateKey}</div>
-                <RoundDisplay
-                  info={roundInfo}
-                  dateKey={dateKey}
-                  selectedMonth={selectedMonth}
-                />
-              </div>
-            );
-          })}
+      <RoundList rounds={rounds} selectedMonth={selectedMonth} />
     </div>
   );
 }
