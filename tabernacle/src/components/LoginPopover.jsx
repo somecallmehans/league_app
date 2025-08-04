@@ -31,7 +31,7 @@ export default function LoginPopover({ loggedIn, setLoggedIn }) {
   return !loggedIn ? (
     <Popover className="relative">
       <PopoverButton className="self-end mr-2 rounded bg-sky-600 py-2 px-4 text-sm text-white data-[hover]:bg-sky-500 data-[active]:bg-sky-700">
-        Login
+        Admin Login
       </PopoverButton>
       <Transition
         enter="transition duration-100 ease-out"
