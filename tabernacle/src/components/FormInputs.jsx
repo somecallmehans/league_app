@@ -2,7 +2,7 @@ import React, { forwardRef } from "react";
 import { Controller } from "react-hook-form";
 
 import Select from "react-select";
-import { Checkbox, Input, Label, Field } from "@headlessui/react";
+import { Checkbox, Input, Label, Field, Textarea } from "@headlessui/react";
 
 const customStyles = {
   option: (styles, { isDisabled }) => {
@@ -245,6 +245,36 @@ export const TextInput = ({
           type={type}
           disabled={disabled}
           autoComplete="off"
+        />
+      )}
+    />
+  );
+};
+
+export const TextAreaField = ({
+  name,
+  placeholder,
+  classes = "",
+  register,
+  control,
+  defaultValue = "",
+  disabled,
+  rows = 3,
+}) => {
+  return (
+    <Controller
+      name={name}
+      control={control}
+      register={register}
+      defaultValue={defaultValue}
+      render={({ field }) => (
+        <Textarea
+          {...field}
+          placeholder={placeholder}
+          className={`${classes} `}
+          disabled={disabled}
+          autoComplete="off"
+          rows={rows}
         />
       )}
     />
