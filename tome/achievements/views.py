@@ -233,18 +233,20 @@ def upsert_achievements(request):
             deleted=body.get("deleted", False),
             point_value=body.get("point_value"),
         )
-        Achievements.objects.bulk_create(
-            [Achievements(**a, parent_id=achievement.id) for a in children]
-        )
-
-        new_restrictions = Restrictions.objects.bulk_create(
-            [Restrictions(**r) for r in restrictions]
-        )
-
-        AchievementsRestrictions.objects.bulk_create(
-            AchievementsRestrictions(restrictions=rid, achievements_id=achievement.id)
-            for rid in new_restrictions
-        )
+        if children is not None:
+            Achievements.objects.bulk_create(
+                [Achievements(**a, parent_id=achievement.id) for a in children]
+            )
+        if restrictions is not None:
+            new_restrictions = Restrictions.objects.bulk_create(
+                [Restrictions(**r) for r in restrictions]
+            )
+            AchievementsRestrictions.objects.bulk_create(
+                AchievementsRestrictions(
+                    restrictions=rid, achievements_id=achievement.id
+                )
+                for rid in new_restrictions
+            )
 
     serialized = AchievementsSerializer(achievement).data
     return Response(serialized, status=status.HTTP_201_CREATED)
