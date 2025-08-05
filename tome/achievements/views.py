@@ -4,8 +4,9 @@ from datetime import datetime
 from collections import defaultdict
 
 from django.db import transaction
-from django.db.models import Q, F, Value
+from django.db.models import Q, F, Value, Prefetch
 from django.contrib.postgres.aggregates import ArrayAgg
+
 from django.db.models.functions import Concat, Coalesce
 
 from rest_framework import status
@@ -24,7 +25,12 @@ from users.models import ParticipantAchievements
 
 from sessions_rounds.models import Pods, Sessions, PodsParticipants, Rounds
 from .serializers import AchievementsSerializer, ColorsSerializer, CommandersSerializer
-from achievements.models import Achievements, WinningCommanders, Commanders
+from achievements.models import (
+    Achievements,
+    WinningCommanders,
+    Commanders,
+    AchievementsRestrictions,
+)
 
 from achievements.helpers import (
     calculate_total_points_for_month,
@@ -38,6 +44,29 @@ from sessions_rounds.helpers import handle_close_round
 
 GET = "GET"
 POST = "POST"
+
+
+@api_view([GET])
+def get_achievements_with_restrictions_v2(_):
+    """Get achievements with their restrictions but do it much cleaner than the original endpoint."""
+
+    achievements = (
+        Achievements.objects.filter(deleted=False)
+        .annotate(
+            db_full_name=Coalesce(
+                Concat(F("parent__name"), Value(" "), F("name")), F("name")
+            )
+        )
+        .prefetch_related(
+            Prefetch(
+                "restrictions",
+                queryset=Restrictions.objects.filter(deleted=False),
+            )
+        )
+        .order_by(F("parent_id").desc(nulls_last=None))
+    )
+
+    return Response(AchievementsSerializer(achievements, many=True).data)
 
 
 @api_view([GET])
@@ -175,15 +204,46 @@ def upsert_achievements(request):
             achievement.deleted = body["deleted"]
         if "point_value" in body:
             achievement.point_value = body["point_value"]
-        if "parent_id" in body:
-            achievement.parent_id = body["parent_id"]
+        if "restrictions" in body:
+            new_restrictions = []
+            for r in body["restrictions"]:
+                if r.get("id") is None:
+                    new_restrictions.append(Restrictions(**r))
+            if new_restrictions is not None:
+                created = Restrictions.objects.bulk_create(new_restrictions)
+                AchievementsRestrictions.objects.bulk_create(
+                    AchievementsRestrictions(restrictions=rid, achievements_id=id)
+                    for rid in created
+                )
+
+        if "achievements" in body:
+            new_achievements = []
+            for a in body["achievements"]:
+                if a.get("id") is None:
+                    new_achievements.append(Achievements(**{**a, "parent_id": id}))
+            if new_achievements is not None:
+                Achievements.objects.bulk_create(new_achievements)
+
         achievement.save()
     else:
+        restrictions = body.get("restrictions")
+        children = body.get("achievements")
         achievement = Achievements.objects.create(
             name=name,
             deleted=body.get("deleted", False),
             point_value=body.get("point_value"),
-            parent_id=body.get("parent_id"),
+        )
+        Achievements.objects.bulk_create(
+            [Achievements(**a, parent_id=achievement.id) for a in children]
+        )
+
+        new_restrictions = Restrictions.objects.bulk_create(
+            [Restrictions(**r) for r in restrictions]
+        )
+
+        AchievementsRestrictions.objects.bulk_create(
+            AchievementsRestrictions(restrictions=rid, achievements_id=achievement.id)
+            for rid in new_restrictions
         )
 
     serialized = AchievementsSerializer(achievement).data

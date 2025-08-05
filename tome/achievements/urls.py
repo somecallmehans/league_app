@@ -9,6 +9,7 @@ from .views import (
     get_all_commanders,
     fetch_and_insert_commanders,
     upsert_earned_achievements,
+    get_achievements_with_restrictions_v2,
 )
 
 urlpatterns = [
@@ -30,6 +31,11 @@ urlpatterns = [
         "achievements_restrictions/",
         get_achievements_with_restrictions,
         name="achievements_restrictions_list",
+    ),
+    path(
+        "get_achievements/",
+        get_achievements_with_restrictions_v2,
+        name="get_achievements",
     ),
     path("colors/", get_colors, name="colors"),
     path("commanders/", get_all_commanders, name="commanders"),

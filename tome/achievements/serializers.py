@@ -13,9 +13,11 @@ class RestrictionSerializer(serializers.ModelSerializer):
 class AchievementsSerializer(serializers.ModelSerializer):
     restrictions = RestrictionSerializer(many=True, read_only=True)
     parent = serializers.SerializerMethodField()
+    parent_id = serializers.IntegerField(read_only=True)
     points = serializers.IntegerField(read_only=True)
     full_name = serializers.CharField(read_only=True)
     deleted = serializers.BooleanField(read_only=True)
+    full_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Achievements
@@ -24,6 +26,7 @@ class AchievementsSerializer(serializers.ModelSerializer):
             "name",
             "point_value",
             "parent",
+            "parent_id",
             "restrictions",
             "slug",
             "points",
@@ -35,6 +38,9 @@ class AchievementsSerializer(serializers.ModelSerializer):
         if obj.parent is not None:
             return AchievementsSerializer(obj.parent).data
         return None
+
+    def get_full_name(self, obj):
+        return obj.full_name
 
 
 class ColorsSerializer(serializers.ModelSerializer):
