@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   useGetAchievementsQuery,
   usePostUpsertAchievementsMutation,
@@ -9,8 +9,12 @@ import StandardButton from "../../components/Button";
 import { TextInput } from "../../components/FormInputs";
 import { EditButtons } from "./CrudComponents";
 import LoadingSpinner from "../../components/LoadingSpinner";
+import { associateParentsChildren } from "../achievements/Achievements";
 
 const formName = "achievementForm";
+
+const chopName = (name) =>
+  name.length > 50 ? `${name.substring(0, 50)}...` : name;
 
 const AchievementRow = ({
   id,
@@ -139,6 +143,17 @@ const AchievementRow = ({
   );
 };
 
+const AchievementCard = ({ name, point_value }) => {
+  return (
+    <div className="bg-white rounded border border-solid p-3 shadow-md">
+      <div className="text-sm text-gray-400">
+        {point_value} Point{point_value === 1 ? "" : "s"}
+      </div>
+      {chopName(name)}
+    </div>
+  );
+};
+
 export default function Page() {
   const [showCreate, setShowCreate] = useState();
   const { data: achievements, isLoading: achievementsLoading } =
@@ -150,6 +165,14 @@ export default function Page() {
     return <LoadingSpinner />;
   }
 
+  const { data } = achievements;
+
+  const associated = useMemo(() => {
+    if (!data) return [];
+
+    return associateParentsChildren(data);
+  }, [data]);
+
   return (
     <div className="p-4">
       <div className="mb-2">
@@ -158,7 +181,12 @@ export default function Page() {
           action={() => setShowCreate(!showCreate)}
         />
       </div>
-      {showCreate && (
+      <div className="grid md:grid-cols-4 gap-4">
+        {associated.map((achievement) => (
+          <AchievementCard key={achievement.id} {...achievement} />
+        ))}
+      </div>
+      {/* {showCreate && (
         <AchievementRow
           name=""
           point_value=""
@@ -188,7 +216,7 @@ export default function Page() {
             />
           )
         );
-      })}
+      })} */}
     </div>
   );
 }
