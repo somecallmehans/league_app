@@ -110,7 +110,7 @@ function LeagueManagementPage() {
 
   return (
     <div className="p-4 max-w-4xl mx-auto">
-      <PageTitle title="League Season Management" />
+      <PageTitle title="Round Manager" />
       <div className="mb-4">
         <StandardButton title="Start New" action={() => setIsOpen(!isOpen)} />
       </div>

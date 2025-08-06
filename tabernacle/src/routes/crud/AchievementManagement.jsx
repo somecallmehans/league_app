@@ -14,9 +14,6 @@ import ConfirmModal from "../../components/Modals/ConfirmModal";
 
 const formName = "achievementForm";
 
-const chopName = (name) =>
-  name.length > 50 ? `${name.substring(0, 50)}...` : name;
-
 const AchievementForm = ({
   id,
   name,
@@ -216,12 +213,12 @@ const AchievementCard = (props) => {
     <>
       <div
         onClick={() => setOpen(!open)}
-        className="bg-white rounded border border-solid p-3 shadow-md hover:border-sky-400"
+        className="bg-white rounded border border-solid p-3 shadow-md hover:border-sky-400 md:min-h-24"
       >
         <div className="text-sm text-gray-500">
           {point_value} Point{point_value === 1 ? "" : "s"}
         </div>
-        {chopName(name)}
+        <div className="line-clamp-2">{name}</div>
       </div>
       <ConfirmModal
         isOpen={showModal}
@@ -289,8 +286,14 @@ export default function Page() {
   return (
     <div className="p-4">
       <div className="mb-2">
+        <div className="text-sm text-gray-500 italic md:w-3/4 mb-1">
+          Achievements below are grouped by point value. You may click an
+          achievement to edit any of its attributes, or click create to make a
+          new one.
+        </div>
+
         <StandardButton
-          title={showCreate ? "Cancel Create" : "Create New"}
+          title={showCreate ? "Cancel" : "Create"}
           action={() => setShowCreate(!showCreate)}
         />
       </div>
