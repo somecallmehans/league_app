@@ -4,7 +4,7 @@ import { Dialog, Transition } from "@headlessui/react";
 export default function Drawer({ isOpen, onClose, title, children }) {
   return (
     <Transition.Root show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
+      <Dialog as="div" className="relative z-40" onClose={onClose}>
         <div className="fixed inset-0 overflow-hidden">
           <div className="absolute inset-0 overflow-hidden">
             <div className="fixed inset-y-0 right-0 max-w-full flex">
