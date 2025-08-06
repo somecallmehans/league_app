@@ -17,7 +17,7 @@ export default function Drawer({ isOpen, onClose, title, children }) {
                 leaveFrom="translate-x-0"
                 leaveTo="translate-x-full"
               >
-                <Dialog.Panel className="w-full sm:w-[700px] bg-zinc-50 shadow-xl">
+                <Dialog.Panel className="w-[315px] sm:w-[700px] bg-zinc-50 shadow-xl">
                   <div className="flex items-center justify-between px-4 py-4 border-b">
                     <div className="text-lg font-medium text-gray-900">
                       {title}
