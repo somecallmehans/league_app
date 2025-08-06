@@ -54,11 +54,8 @@ def get_achievements_with_restrictions_v2(_):
 
     achievements = (
         Achievements.objects.filter(deleted=False)
-        .annotate(
-            db_full_name=Coalesce(
-                Concat(F("parent__name"), Value(" "), F("name")), F("name")
-            )
-        )
+        .select_related("parent")
+        .only("id", "name", "slug", "point_value", "parent_id", "deleted")
         .prefetch_related(
             Prefetch(
                 "restrictions",

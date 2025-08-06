@@ -267,10 +267,19 @@ export default function Page() {
   const { data: achievements, isLoading: achievementsLoading } =
     useGetAchievementsListQuery();
 
-  const associated = useMemo(() => {
+  const groupedAchievements = useMemo(() => {
     if (!achievements) return [];
 
-    return associateParentsChildren(achievements);
+    const associated = associateParentsChildren(achievements);
+    const groups = {};
+    for (const achievement of associated) {
+      const points = achievement.point_value ?? 0;
+      if (!groups[points]) {
+        groups[points] = [];
+      }
+      groups[points].push(achievement);
+    }
+    return groups;
   }, [achievements]);
 
   if (achievementsLoading) {
@@ -285,11 +294,15 @@ export default function Page() {
           action={() => setShowCreate(!showCreate)}
         />
       </div>
-      <div className="grid md:grid-cols-4 gap-4">
-        {associated.map((achievement) => (
-          <AchievementCard key={achievement.id} {...achievement} />
-        ))}
-      </div>
+      {Object.keys(groupedAchievements).map((key) => (
+        <div key={key} className="my-4">
+          <div className="grid md:grid-cols-4 gap-4">
+            {groupedAchievements[key].map((achievement) => (
+              <AchievementCard key={achievement.id} {...achievement} />
+            ))}
+          </div>
+        </div>
+      ))}
       <Drawer
         isOpen={showCreate}
         onClose={() => setShowCreate(false)}
