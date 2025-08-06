@@ -219,6 +219,8 @@ def handle_upsert_restrictions(restrictions, achievement):
     # Generally will only be updating a handful of objects at a time so
     # do this in a loop is fine.
     for r in update:
+        if Restrictions.objects.filter(id=r["id"], deleted=True).exists():
+            continue
         Restrictions.objects.filter(id=r["id"]).update(
             name=r.get("name", ""),
             url=r.get("url", ""),
@@ -250,3 +252,18 @@ def handle_upsert_child_achievements(achievements, parent):
             point_value=achievement.get("point_value"),
             deleted=achievement.get("deleted", False),
         )
+
+
+def cascade_soft_delete(achievement):
+    """Soft delete associated achievements and restrictions for a parent that is deleted"""
+    achievement_id = achievement.id
+
+    Achievements.objects.filter(parent_id=achievement_id).update(deleted=True)
+
+    parent_restriction_ids = list(
+        AchievementsRestrictions.objects.filter(
+            achievements_id=achievement_id
+        ).values_list("restrictions_id", flat=True)
+    )
+
+    Restrictions.objects.filter(id__in=parent_restriction_ids).update(deleted=True)

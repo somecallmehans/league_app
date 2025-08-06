@@ -29,7 +29,6 @@ from achievements.models import (
     Achievements,
     WinningCommanders,
     Commanders,
-    AchievementsRestrictions,
 )
 
 from achievements.helpers import (
@@ -41,6 +40,7 @@ from achievements.helpers import (
     normalize_color_identity,
     handle_upsert_child_achievements,
     handle_upsert_restrictions,
+    cascade_soft_delete,
 )
 from sessions_rounds.helpers import handle_close_round
 
@@ -104,7 +104,7 @@ def get_achievements_with_restrictions(_):
         achievement["restrictions"] = [
             restriction_lookup[r]
             for r in achievement["restrictions_list"]
-            if r is not None
+            if r is not None and r in restriction_lookup
         ]
         del achievement["restrictions_list"]
         if achievement["parent_id"] is None:
@@ -204,6 +204,8 @@ def upsert_achievements(request):
             achievement.name = name
         if "deleted" in body:
             achievement.deleted = body["deleted"]
+            if body["deleted"] == True:
+                cascade_soft_delete(achievement)
         if "point_value" in body:
             achievement.point_value = body["point_value"]
         if "restrictions" in body:
