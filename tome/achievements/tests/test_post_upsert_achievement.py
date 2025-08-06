@@ -15,7 +15,7 @@ def test_post_insert_achievement(client) -> None:
     """
 
     url = reverse("upsert_achievements")
-    body = {"name": NAME, "point_value": 10}
+    body = {"name": NAME, "point_value": 10, "restrictions": [], "achievements": []}
 
     res = client.post(url, body, format="json")
     parsed_res = res.json()
