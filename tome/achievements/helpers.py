@@ -248,7 +248,6 @@ def handle_upsert_child_achievements(achievements, parent):
     for achievement in update:
         Achievements.objects.filter(id=achievement["id"]).update(
             name=achievement.get("name", ""),
-            slug=achievement.get("slug", ""),
             point_value=achievement.get("point_value"),
             deleted=achievement.get("deleted", False),
         )
