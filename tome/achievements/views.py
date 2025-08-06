@@ -39,6 +39,8 @@ from achievements.helpers import (
     fetch_scryfall_data,
     fetch_current_commanders,
     normalize_color_identity,
+    handle_upsert_child_achievements,
+    handle_upsert_restrictions,
 )
 from sessions_rounds.helpers import handle_close_round
 
@@ -205,24 +207,9 @@ def upsert_achievements(request):
         if "point_value" in body:
             achievement.point_value = body["point_value"]
         if "restrictions" in body:
-            new_restrictions = []
-            for r in body["restrictions"]:
-                if r.get("id") is None:
-                    new_restrictions.append(Restrictions(**r))
-            if new_restrictions is not None:
-                created = Restrictions.objects.bulk_create(new_restrictions)
-                AchievementsRestrictions.objects.bulk_create(
-                    AchievementsRestrictions(restrictions=rid, achievements_id=id)
-                    for rid in created
-                )
-
+            handle_upsert_restrictions(body["restrictions"], achievement)
         if "achievements" in body:
-            new_achievements = []
-            for a in body["achievements"]:
-                if a.get("id") is None:
-                    new_achievements.append(Achievements(**{**a, "parent_id": id}))
-            if new_achievements is not None:
-                Achievements.objects.bulk_create(new_achievements)
+            handle_upsert_child_achievements(body["achievements"], achievement)
 
         achievement.save()
     else:
@@ -233,20 +220,8 @@ def upsert_achievements(request):
             deleted=body.get("deleted", False),
             point_value=body.get("point_value"),
         )
-        if children is not None:
-            Achievements.objects.bulk_create(
-                [Achievements(**a, parent_id=achievement.id) for a in children]
-            )
-        if restrictions is not None:
-            new_restrictions = Restrictions.objects.bulk_create(
-                [Restrictions(**r) for r in restrictions]
-            )
-            AchievementsRestrictions.objects.bulk_create(
-                AchievementsRestrictions(
-                    restrictions=rid, achievements_id=achievement.id
-                )
-                for rid in new_restrictions
-            )
+        handle_upsert_restrictions(restrictions, achievement)
+        handle_upsert_child_achievements(children, achievement)
 
     serialized = AchievementsSerializer(achievement).data
     return Response(serialized, status=status.HTTP_201_CREATED)
