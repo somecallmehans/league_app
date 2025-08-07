@@ -85,7 +85,7 @@ const AchievementForm = ({
       <div className="flex flex-col p-4">
         <TextAreaField
           name="name"
-          title={name}
+          title="Name"
           control={control}
           register={{ ...register("name") }}
           classes="text-sm grow  border rounded-lg p-2 mb-2 resize-none"
