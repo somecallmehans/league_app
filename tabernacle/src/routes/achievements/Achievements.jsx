@@ -151,7 +151,7 @@ const Achievement = ({
   );
 };
 
-const associateParentsChildren = (achievements) => {
+export const associateParentsChildren = (achievements) => {
   if (!achievements) return [];
   const lookup = new Map();
   const roots = [];

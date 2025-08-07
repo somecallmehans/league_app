@@ -4,19 +4,19 @@ import LoginPopover from "./LoginPopover";
 
 const navLinks = [
   { id: 1, name: "Home", to: "/", admin: false },
-  { id: 2, name: "About", to: "/info", admin: false },
+  { id: 2, name: "Info", to: "/info", admin: false },
   { id: 3, name: "Leaderboard", to: "/leaderboard", admin: false },
-  { id: 8, name: "Pod History", to: "/pods", admin: false },
+  { id: 8, name: "Match History", to: "/pods", admin: false },
   { id: 4, name: "Achievements", to: "/achievements", admin: false },
   {
     id: 7,
-    name: "League Stats",
+    name: "Stats",
     to: "/metrics",
   },
-  { id: 5, name: "Admin", to: "/management", admin: true },
+  { id: 5, name: "Admin Hub", to: "/management", admin: true },
   {
     id: 6,
-    name: "Manage League",
+    name: "Round Manager",
     to: "/league-session",
     admin: true,
   },

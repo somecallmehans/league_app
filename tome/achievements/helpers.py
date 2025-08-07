@@ -5,7 +5,12 @@ import time
 from collections import defaultdict
 from django.db.models import Q
 
-from achievements.models import Achievements, Commanders
+from achievements.models import (
+    Achievements,
+    Commanders,
+    Restrictions,
+    AchievementsRestrictions,
+)
 from users.models import ParticipantAchievements
 from users.serializers import ParticipantsSerializer
 from users.serializers import ParticipantsSerializer
@@ -186,3 +191,78 @@ def fetch_current_commanders():
 def normalize_color_identity(color_identity):
     """Convert API color list to a sorted, lowercase string matching DB symbols."""
     return "".join(sorted(color_identity)).lower() or "c"
+
+
+def handle_upsert_restrictions(restrictions, achievement):
+    """Handle inserting or updating given restrictions."""
+    if len(restrictions) < 1:
+        return
+
+    new = []
+    update = []
+
+    for r in restrictions:
+        if r.get("id") is None:
+            new.append(Restrictions(**r))
+            continue
+        update.append(r)
+
+    if new:
+        created = Restrictions.objects.bulk_create(new)
+        AchievementsRestrictions.objects.bulk_create(
+            [
+                AchievementsRestrictions(restrictions=r, achievements=achievement)
+                for r in created
+            ]
+        )
+
+    # Generally will only be updating a handful of objects at a time so
+    # do this in a loop is fine.
+    for r in update:
+        if Restrictions.objects.filter(id=r["id"], deleted=True).exists():
+            continue
+        Restrictions.objects.filter(id=r["id"]).update(
+            name=r.get("name", ""),
+            url=r.get("url", ""),
+            nested=r.get("nested", False),
+            deleted=r.get("deleted", False),
+        )
+
+
+def handle_upsert_child_achievements(achievements, parent):
+    """Handle inserting or updating given achievements."""
+    if len(achievements) < 1:
+        return
+    new = []
+    update = []
+
+    for achievement in achievements:
+        if achievement.get("id") is None:
+            new.append(Achievements(**{**achievement, "parent": parent}))
+        else:
+            update.append(achievement)
+
+    if new:
+        Achievements.objects.bulk_create(new)
+
+    for achievement in update:
+        Achievements.objects.filter(id=achievement["id"]).update(
+            name=achievement.get("name", ""),
+            point_value=achievement.get("point_value"),
+            deleted=achievement.get("deleted", False),
+        )
+
+
+def cascade_soft_delete(achievement):
+    """Soft delete associated achievements and restrictions for a parent that is deleted"""
+    achievement_id = achievement.id
+
+    Achievements.objects.filter(parent_id=achievement_id).update(deleted=True)
+
+    parent_restriction_ids = list(
+        AchievementsRestrictions.objects.filter(
+            achievements_id=achievement_id
+        ).values_list("restrictions_id", flat=True)
+    )
+
+    Restrictions.objects.filter(id__in=parent_restriction_ids).update(deleted=True)

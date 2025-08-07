@@ -4,8 +4,9 @@ from datetime import datetime
 from collections import defaultdict
 
 from django.db import transaction
-from django.db.models import Q, F, Value
+from django.db.models import Q, F, Value, Prefetch
 from django.contrib.postgres.aggregates import ArrayAgg
+
 from django.db.models.functions import Concat, Coalesce
 
 from rest_framework import status
@@ -24,7 +25,11 @@ from users.models import ParticipantAchievements
 
 from sessions_rounds.models import Pods, Sessions, PodsParticipants, Rounds
 from .serializers import AchievementsSerializer, ColorsSerializer, CommandersSerializer
-from achievements.models import Achievements, WinningCommanders, Commanders
+from achievements.models import (
+    Achievements,
+    WinningCommanders,
+    Commanders,
+)
 
 from achievements.helpers import (
     calculate_total_points_for_month,
@@ -33,11 +38,34 @@ from achievements.helpers import (
     fetch_scryfall_data,
     fetch_current_commanders,
     normalize_color_identity,
+    handle_upsert_child_achievements,
+    handle_upsert_restrictions,
+    cascade_soft_delete,
 )
 from sessions_rounds.helpers import handle_close_round
 
 GET = "GET"
 POST = "POST"
+
+
+@api_view([GET])
+def get_achievements_with_restrictions_v2(_):
+    """Get achievements with their restrictions but do it much cleaner than the original endpoint."""
+
+    achievements = (
+        Achievements.objects.filter(deleted=False)
+        .select_related("parent")
+        .only("id", "name", "slug", "point_value", "parent_id", "deleted")
+        .prefetch_related(
+            Prefetch(
+                "restrictions",
+                queryset=Restrictions.objects.filter(deleted=False),
+            )
+        )
+        .order_by(F("parent_id").desc(nulls_last=None))
+    )
+
+    return Response(AchievementsSerializer(achievements, many=True).data)
 
 
 @api_view([GET])
@@ -73,7 +101,7 @@ def get_achievements_with_restrictions(_):
         achievement["restrictions"] = [
             restriction_lookup[r]
             for r in achievement["restrictions_list"]
-            if r is not None
+            if r is not None and r in restriction_lookup
         ]
         del achievement["restrictions_list"]
         if achievement["parent_id"] is None:
@@ -173,18 +201,26 @@ def upsert_achievements(request):
             achievement.name = name
         if "deleted" in body:
             achievement.deleted = body["deleted"]
+            if body["deleted"] == True:
+                cascade_soft_delete(achievement)
         if "point_value" in body:
             achievement.point_value = body["point_value"]
-        if "parent_id" in body:
-            achievement.parent_id = body["parent_id"]
+        if "restrictions" in body:
+            handle_upsert_restrictions(body["restrictions"], achievement)
+        if "achievements" in body:
+            handle_upsert_child_achievements(body["achievements"], achievement)
+
         achievement.save()
     else:
+        restrictions = body.get("restrictions")
+        children = body.get("achievements")
         achievement = Achievements.objects.create(
             name=name,
             deleted=body.get("deleted", False),
             point_value=body.get("point_value"),
-            parent_id=body.get("parent_id"),
         )
+        handle_upsert_restrictions(restrictions, achievement)
+        handle_upsert_child_achievements(children, achievement)
 
     serialized = AchievementsSerializer(achievement).data
     return Response(serialized, status=status.HTTP_201_CREATED)

@@ -2,7 +2,7 @@ import React, { forwardRef } from "react";
 import { Controller } from "react-hook-form";
 
 import Select from "react-select";
-import { Checkbox, Input, Label, Field } from "@headlessui/react";
+import { Checkbox, Input, Label, Field, Textarea } from "@headlessui/react";
 
 const customStyles = {
   option: (styles, { isDisabled }) => {
@@ -223,6 +223,7 @@ export const CheckBoxInput = forwardRef(
 
 export const TextInput = ({
   name,
+  title,
   type,
   placeholder = "",
   classes = "",
@@ -230,6 +231,8 @@ export const TextInput = ({
   control,
   defaultValue = "",
   disabled,
+  rules,
+  errors,
 }) => {
   return (
     <Controller
@@ -237,15 +240,70 @@ export const TextInput = ({
       control={control}
       register={register}
       defaultValue={defaultValue}
+      rules={rules}
       render={({ field }) => (
-        <Input
-          {...field}
-          placeholder={placeholder}
-          className={`${classes} `}
-          type={type}
-          disabled={disabled}
-          autoComplete="off"
-        />
+        <>
+          <div>
+            {title && <label className="font-bold text-lg">{title}</label>}
+            {errors?.[name] && (
+              <span className="text-xs italic text-rose-400 ml-2">
+                {errors[name].message}
+              </span>
+            )}
+          </div>
+          <Input
+            {...field}
+            placeholder={placeholder}
+            className={`${classes} `}
+            type={type}
+            disabled={disabled}
+            autoComplete="off"
+          />
+        </>
+      )}
+    />
+  );
+};
+
+export const TextAreaField = ({
+  name,
+  title,
+  placeholder,
+  classes = "",
+  register,
+  control,
+  defaultValue = "",
+  disabled,
+  rows = 3,
+  rules,
+  errors,
+}) => {
+  return (
+    <Controller
+      name={name}
+      control={control}
+      register={register}
+      defaultValue={defaultValue}
+      rules={rules}
+      render={({ field }) => (
+        <>
+          <div>
+            {title && <label className="font-bold text-lg">{title}</label>}
+            {errors?.[name] && (
+              <span className="text-xs italic text-rose-400 ml-2">
+                {errors[name].message}
+              </span>
+            )}
+          </div>
+          <Textarea
+            {...field}
+            placeholder={placeholder}
+            className={`${classes} `}
+            disabled={disabled}
+            autoComplete="off"
+            rows={rows}
+          />
+        </>
       )}
     />
   );

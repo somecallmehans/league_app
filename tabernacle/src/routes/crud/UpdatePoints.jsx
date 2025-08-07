@@ -6,7 +6,6 @@ import {
   usePostUpsertParticipantAchievementMutation,
   useGetAchievementsQuery,
 } from "../../api/apiSlice";
-import PageTitle from "../../components/PageTitle";
 import StandardButton from "../../components/Button";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import Modal from "../../components/Modal";
@@ -100,8 +99,8 @@ const AchievementGrid = ({
 
   return (
     <div className="py-4">
-      <div className="flex justify-end mb-2">
-        <StandardButton title="Create" action={() => setIsOpen(true)} />
+      <div className="flex justify-start mb-2">
+        <StandardButton title="Add" action={() => setIsOpen(true)} />
       </div>
 
       <AchievementList earnedAchievements={earnedAchievements} />
@@ -167,8 +166,11 @@ export default function Page() {
   }
 
   return (
-    <div className="p-4 md:p-8 mx-auto">
-      <PageTitle title="Update Points" />
+    <div className="p-2 md:p-4 mx-auto">
+      <div className="text-sm text-gray-500 italic md:w-1/2 mb-1">
+        Select a player and then a round to add or remove new achievements for
+        them
+      </div>
       <div className="flex gap-2">
         <SimpleSelect
           placeholder="Select Participant"

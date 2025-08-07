@@ -3,6 +3,10 @@ export default (builder) => ({
     query: () => "achievements_restrictions/",
     providesTags: ["Achievements"],
   }),
+  getAchievementsList: builder.query({
+    query: () => "get_achievements/",
+    providesTags: ["Achievements"],
+  }),
   getAllSessions: builder.query({
     query: () => "all_sessions/",
     providesTags: ["Sessions"],
@@ -60,7 +64,6 @@ export default (builder) => ({
     providesTags: ["Rounds"],
   }),
   getParticipantPods: builder.query({
-    query: (participant_id) =>
-      `get_participant_recent_pods/${participant_id}/`,
+    query: (participant_id) => `get_participant_recent_pods/${participant_id}/`,
   }),
 });
