@@ -23,7 +23,12 @@ const AchievementForm = ({
   setOpen,
 }) => {
   const [postUpsertAchievements] = usePostUpsertAchievementsMutation();
-  const { control, register, handleSubmit } = useForm({
+  const {
+    control,
+    register,
+    handleSubmit,
+    formState: { isDirty, errors },
+  } = useForm({
     defaultValues: {
       name: name || "",
       point_value: point_value || "",
@@ -78,23 +83,32 @@ const AchievementForm = ({
       name={`${formName}_${id}`}
     >
       <div className="flex flex-col p-4">
-        <label className="font-bold text-lg">Name</label>
         <TextAreaField
           name="name"
+          title={name}
           control={control}
           register={{ ...register("name") }}
           classes="text-sm grow  border rounded-lg p-2 mb-2 resize-none"
           placeholder="Name"
           rows={2}
+          rules={{
+            validate: (value) => (!value ? "Name is required" : undefined),
+          }}
+          errors={errors}
         />
-        <label className="font-bold text-lg">Points</label>
         <TextInput
           name="point_value"
+          title="Points"
           type="number"
           control={control}
           register={{ ...register("point_value") }}
           classes="text-sm grow  border rounded-lg p-2  mb-2"
           placeholder="Point Value"
+          rules={{
+            validate: (value) =>
+              +value < 0 ? "Point value must be 0 or greater" : undefined,
+          }}
+          errors={errors}
         />
         <label className="font-bold text-lg">Info</label>
         <div className="flex flex-col  mb-2">
@@ -194,8 +208,9 @@ const AchievementForm = ({
       </div>
       <div className="sticky bottom-0 z-10">
         <button
+          disabled={!isDirty}
           type="submit"
-          className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
         >
           Save
         </button>
@@ -205,7 +220,7 @@ const AchievementForm = ({
 };
 
 const AchievementCard = (props) => {
-  const { name, point_value } = props;
+  const { name, point_value, slug } = props;
   const [open, setOpen] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [postUpsertAchievements] = usePostUpsertAchievementsMutation();
@@ -242,13 +257,15 @@ const AchievementCard = (props) => {
         title={
           <span>
             Edit Achievement{" "}
-            <button
-              type="button"
-              onClick={() => setShowModal(true)}
-              className="text-red-500 hover:text-red-300 ml-1"
-            >
-              <i className="fa fa-trash" />
-            </button>
+            {!slug && (
+              <button
+                type="button"
+                onClick={() => setShowModal(true)}
+                className="text-red-500 hover:text-red-300 ml-1"
+              >
+                <i className="fa fa-trash" />
+              </button>
+            )}
           </span>
         }
       >
@@ -260,6 +277,7 @@ const AchievementCard = (props) => {
 
 export default function Page() {
   const [showCreate, setShowCreate] = useState(false);
+  // TODO: Add search/filtering
 
   const { data: achievements, isLoading: achievementsLoading } =
     useGetAchievementsListQuery();
@@ -304,6 +322,7 @@ export default function Page() {
               <AchievementCard key={achievement.id} {...achievement} />
             ))}
           </div>
+          <hr className="h-px my-8 bg-gray-300 border-0"></hr>
         </div>
       ))}
       <Drawer

@@ -223,6 +223,7 @@ export const CheckBoxInput = forwardRef(
 
 export const TextInput = ({
   name,
+  title,
   type,
   placeholder = "",
   classes = "",
@@ -230,6 +231,8 @@ export const TextInput = ({
   control,
   defaultValue = "",
   disabled,
+  rules,
+  errors,
 }) => {
   return (
     <Controller
@@ -237,15 +240,27 @@ export const TextInput = ({
       control={control}
       register={register}
       defaultValue={defaultValue}
+      rules={rules}
       render={({ field }) => (
-        <Input
-          {...field}
-          placeholder={placeholder}
-          className={`${classes} `}
-          type={type}
-          disabled={disabled}
-          autoComplete="off"
-        />
+        <>
+          <div>
+            {title && <label className="font-bold text-lg">{title}</label>}
+            {errors?.[name] && (
+              <span className="text-xs italic text-rose-400 ml-2">
+                {console.log(errors)}
+                {errors[name].message}
+              </span>
+            )}
+          </div>
+          <Input
+            {...field}
+            placeholder={placeholder}
+            className={`${classes} `}
+            type={type}
+            disabled={disabled}
+            autoComplete="off"
+          />
+        </>
       )}
     />
   );
@@ -253,6 +268,7 @@ export const TextInput = ({
 
 export const TextAreaField = ({
   name,
+  title,
   placeholder,
   classes = "",
   register,
@@ -260,6 +276,8 @@ export const TextAreaField = ({
   defaultValue = "",
   disabled,
   rows = 3,
+  rules,
+  errors,
 }) => {
   return (
     <Controller
@@ -267,15 +285,26 @@ export const TextAreaField = ({
       control={control}
       register={register}
       defaultValue={defaultValue}
+      rules={rules}
       render={({ field }) => (
-        <Textarea
-          {...field}
-          placeholder={placeholder}
-          className={`${classes} `}
-          disabled={disabled}
-          autoComplete="off"
-          rows={rows}
-        />
+        <>
+          <div>
+            {title && <label className="font-bold text-lg">{title}</label>}
+            {errors?.[name] && (
+              <span className="text-xs italic text-rose-400 ml-2">
+                {errors[name].message}
+              </span>
+            )}
+          </div>
+          <Textarea
+            {...field}
+            placeholder={placeholder}
+            className={`${classes} `}
+            disabled={disabled}
+            autoComplete="off"
+            rows={rows}
+          />
+        </>
       )}
     />
   );
