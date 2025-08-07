@@ -247,7 +247,6 @@ export const TextInput = ({
             {title && <label className="font-bold text-lg">{title}</label>}
             {errors?.[name] && (
               <span className="text-xs italic text-rose-400 ml-2">
-                {console.log(errors)}
                 {errors[name].message}
               </span>
             )}
