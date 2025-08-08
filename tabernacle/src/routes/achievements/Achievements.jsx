@@ -1,9 +1,6 @@
-import React, { useState, useMemo } from "react";
-
-import {
-  useGetAchievementsListQuery,
-  useGetAchievementTypesQuery,
-} from "../../api/apiSlice";
+import React, { useState, useMemo, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { apiSlice, useGetAchievementsListQuery } from "../../api/apiSlice";
 
 import { hexToRgb } from "../../helpers/helpers";
 
@@ -13,14 +10,19 @@ import { SimpleSelect } from "../crud/CrudComponents";
 import { SearchComponent } from "../../hooks/useSearch";
 import Drawer from "../../components/Drawer";
 
-const useAchievementSearch = (achievements, achievementLookup, pointFilter) => {
+const useAchievementSearch = (
+  achievements,
+  achievementLookup,
+  pointFilter,
+  typeFilter
+) => {
   // This is a special version of the search since we need to search
   // on a nested list.
   const [searchTerm, setSearchTerm] = useState();
 
   if (!achievements) return { filteredData: [], setSearchTerm };
 
-  if (!searchTerm && !pointFilter) {
+  if (!searchTerm && !pointFilter && !typeFilter) {
     return { filteredData: achievements, setSearchTerm };
   }
 
@@ -35,6 +37,11 @@ const useAchievementSearch = (achievements, achievementLookup, pointFilter) => {
   const matchesSearch = (achievement) =>
     !searchTerm ||
     achievement.full_name.toLowerCase().includes(searchTerm.toLowerCase());
+
+  const matchesType = (achievement) =>
+    !typeFilter?.value ||
+    (achievementLookup[achievement.parent_id]?.type_id ??
+      achievement.type_id) === typeFilter?.value;
 
   const addAchievement = (achievement) => {
     if (!seen.has(achievement.id)) {
@@ -57,10 +64,15 @@ const useAchievementSearch = (achievements, achievementLookup, pointFilter) => {
       : achievementLookup[achievement.parent_id];
 
     // check the parent, since children don't have point_value
-    if (!matchesPoint(parent)) return;
+    if (!matchesPoint(parent) || !matchesType(achievement)) return;
 
     const isSearchMatch = matchesSearch(achievement);
-    if (isParent(achievement) && pointFilter && !searchTerm) {
+    if (
+      isParent(achievement) &&
+      pointFilter &&
+      !searchTerm &&
+      typeFilter?.value
+    ) {
       addAchievement(achievement);
       addAllChildren(achievement.id);
       return;
@@ -210,8 +222,10 @@ const AchievementCard = (props) => {
 };
 
 const TypeInfo = () => {
-  const { data: types } = useGetAchievementTypesQuery();
-  if (!types) return null;
+  const { data: types } = useSelector(
+    apiSlice.endpoints.getAchievementTypes.select(undefined)
+  );
+  if (!types || types.length === 0) return null;
 
   return (
     <div className="w-100 bg-white border shadow-md flex flex-col md:flex-row justify-between p-3 gap-4">
@@ -238,9 +252,19 @@ const TypeInfo = () => {
 };
 
 export default function AchievementsPage() {
+  const dispatch = useDispatch();
   const [pointFilter, setPointFilter] = useState();
+  const [typeFilter, setTypeFilter] = useState();
   const { data: achievements, isLoading: achievementsLoading } =
     useGetAchievementsListQuery();
+
+  const { data: types } = useSelector(
+    apiSlice.endpoints.getAchievementTypes.select(undefined)
+  );
+
+  useEffect(() => {
+    dispatch(apiSlice.endpoints.getAchievementTypes.initiate(undefined));
+  });
 
   const achievementLookup = useMemo(() => {
     if (!achievements) return {};
@@ -271,7 +295,8 @@ export default function AchievementsPage() {
   const { filteredData, setSearchTerm } = useAchievementSearch(
     achievements,
     achievementLookup,
-    pointFilter
+    pointFilter,
+    typeFilter
   );
 
   const groupedAchievements = useMemo(() => {
@@ -301,6 +326,14 @@ export default function AchievementsPage() {
     setPointFilter(obj.value);
   };
 
+  const handleTypeSelectClear = (obj) => {
+    if (!obj) {
+      setTypeFilter(null);
+      return;
+    }
+    setTypeFilter(obj);
+  };
+
   return (
     <div className="p-4 md:p-8">
       <PageTitle title="Achievements" />
@@ -323,6 +356,21 @@ export default function AchievementsPage() {
             isClearable
             onChange={handleSelectClear}
             classes="w-full md:w-1/6"
+          />
+          <SimpleSelect
+            placeholder="Type"
+            options={types.map((t) => ({
+              label: t.name,
+              value: t.id,
+            }))}
+            value={
+              typeFilter
+                ? { label: typeFilter.label, value: typeFilter.value }
+                : null
+            }
+            isClearable
+            onChange={handleTypeSelectClear}
+            classes="w-full md:w-1/3"
           />
           <SearchComponent
             setSearchTerm={setSearchTerm}
