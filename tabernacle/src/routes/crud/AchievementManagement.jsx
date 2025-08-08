@@ -15,7 +15,7 @@ import {
   Selector,
 } from "../../components/FormInputs";
 import LoadingSpinner from "../../components/LoadingSpinner";
-import { associateParentsChildren } from "../achievements/Achievements";
+import { associateParentsChildren } from "../../helpers/achievementHelpers";
 import Drawer from "../../components/Drawer";
 import ConfirmModal from "../../components/Modals/ConfirmModal";
 
