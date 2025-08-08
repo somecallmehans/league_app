@@ -14,6 +14,7 @@ class Restrictions(models.Model):
 class AchievementType(models.Model):
     name = models.CharField(max_length=255)
     hex_code = models.CharField(max_length=7)
+    description = models.TextField(null=True, blank=True, default=None)
 
     class Meta:
         db_table = "achievement_type"
