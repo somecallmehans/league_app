@@ -38,15 +38,23 @@ export default function Resources() {
     <div className="p-4 md:p-8 min-h-screen bg-gradient-to-b from-white to-slate-50">
       <PageTitle title="League Information" />
       <div className="bg-white shadow-md rounded-lg overflow-hidden p-4 mb-4">
-        <div className="text-2xl text-sky-600 mb-2">Resources</div>
+        <h2
+          className="text-2xl font-bold text-blue-600 mb-4"
+          style={{ textShadow: "2px 2px 4px rgba(0, 0, 0, 0.1)" }}
+        >
+          Resources
+        </h2>
         {resourceInfo.map((faq) => (
           <ResourceRow key={faq.id} {...faq} />
         ))}
       </div>
       <div className="bg-white shadow-md rounded-lg overflow-hidden p-4">
-        <div className="text-2xl text-sky-600 mb-2">
+        <h2
+          className="text-2xl font-bold text-blue-600 mb-4"
+          style={{ textShadow: "2px 2px 4px rgba(0, 0, 0, 0.1)" }}
+        >
           Frequently Asked Questions
-        </div>
+        </h2>
         {faqInfo.map((faq) => (
           <ResourceRow key={faq.id} {...faq} />
         ))}

@@ -1,5 +1,9 @@
 import React from "react";
 
+import { useMonthYear } from "../../hooks";
+import { useGetAchievementsForMonthQuery } from "../../api/apiSlice";
+import { LeaderboardGrid } from "../leaderboard/Leaderboard";
+
 import Tooltip from "../../components/Tooltip";
 
 const HomeSection = ({ title, children }) => (
@@ -101,11 +105,29 @@ const HomeHeader = () => (
   </header>
 );
 
+const HomeLeaderboard = () => {
+  const { selectedMonth } = useMonthYear();
+
+  const { data: achievementsForMonth } = useGetAchievementsForMonthQuery(
+    selectedMonth,
+    { skip: !selectedMonth }
+  );
+
+  if (!achievementsForMonth || achievementsForMonth.length == 0) return null;
+
+  return (
+    <div className="mb-4">
+      <LeaderboardGrid leaderboard={achievementsForMonth.slice(0, 5)} />
+    </div>
+  );
+};
+
 export default function Home() {
   return (
     <div className="min-h-screen text-black px-4 sm:px-8 py-4">
       <div className="max-w-4xl mx-auto">
         <HomeHeader />
+        <HomeLeaderboard />
         <Description />
         <LeagueSchedule />
         <CodeOfConduct />

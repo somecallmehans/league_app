@@ -31,7 +31,7 @@ const placeBadge = (idx) => {
   return <span>{idx + 1}</span>;
 };
 
-const LeaderboardGrid = ({ leaderboard }) => {
+export const LeaderboardGrid = ({ leaderboard }) => {
   if (!leaderboard || leaderboard.length === 0)
     return (
       <div className="text-center text-gray-600 py-8">
