@@ -215,6 +215,7 @@ export default function AchievementsPage() {
   const pointSet = useMemo(() => {
     if (!achievements) return [];
     const all_points = achievements
+      .filter((achievement) => achievement.point_value)
       .map((achievement) => {
         if (!achievement.point_value) {
           return;
@@ -247,7 +248,7 @@ export default function AchievementsPage() {
       groups[points].push(achievement);
     }
     return groups;
-  }, [achievements]);
+  }, [filteredData]);
 
   if (achievementsLoading) {
     return <LoadingSpinner />;
