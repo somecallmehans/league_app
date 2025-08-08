@@ -7,7 +7,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("achievements", "0011_alter_winningcommanders_colors_and_more"),
-        ("achievements", "0012_reconcile_commanders_table"),
+        ("achievements", "0013_reconcile_commanders_table"),
     ]
 
     operations = []
