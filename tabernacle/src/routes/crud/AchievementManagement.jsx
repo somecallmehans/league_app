@@ -8,7 +8,12 @@ import {
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
 
 import StandardButton from "../../components/Button";
-import { TextInput, TextAreaField } from "../../components/FormInputs";
+
+import {
+  TextInput,
+  TextAreaField,
+  Selector,
+} from "../../components/FormInputs";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { associateParentsChildren } from "../achievements/Achievements";
 import Drawer from "../../components/Drawer";
@@ -28,7 +33,7 @@ const AchievementForm = ({
   const { data: types } = useSelector(
     apiSlice.endpoints.getAchievementTypes.select(undefined)
   );
-  console.log(types);
+
   const {
     control,
     register,
@@ -102,20 +107,34 @@ const AchievementForm = ({
           }}
           errors={errors}
         />
-        <TextInput
-          name="point_value"
-          title="Points"
-          type="number"
-          control={control}
-          register={{ ...register("point_value") }}
-          classes="text-sm grow  border rounded-lg p-2  mb-2"
-          placeholder="Point Value"
-          rules={{
-            validate: (value) =>
-              +value < 0 ? "Point value must be 0 or greater" : undefined,
-          }}
-          errors={errors}
-        />
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <TextInput
+            name="point_value"
+            title="Points"
+            type="number"
+            control={control}
+            register={{ ...register("point_value") }}
+            classes="text-sm w-full sm:flex-1 border rounded-lg p-2 mb-2 sm:mb-0"
+            placeholder="Point Value"
+            rules={{
+              validate: (value) =>
+                +value < 0 ? "Point value must be 0 or greater" : undefined,
+            }}
+            errors={errors}
+            containerClasses="basis-3/4"
+          />
+          <Selector
+            name="type_id"
+            title="Type"
+            options={types}
+            control={control}
+            placeholder="Achievement Type"
+            classes="text-sm w-full sm:flex-1 mb-2 sm:mb-0"
+            getOptionLabel={(option) => option.name}
+            getOptionValue={(option) => option.id}
+            containerClasses="basis-1/4"
+          />
+        </div>
         <label className="font-bold text-lg">Info</label>
         <div className="flex flex-col  mb-2">
           {restrictionFields.map((field, index) => {

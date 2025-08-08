@@ -131,6 +131,7 @@ export const AchievementSelector = ({
 
 export const Selector = ({
   name,
+  title = "",
   options,
   control,
   placeholder = "",
@@ -142,6 +143,7 @@ export const Selector = ({
   getOptionValue,
   filterOption,
   rules,
+  containerClasses,
 }) => {
   return (
     <Controller
@@ -150,7 +152,12 @@ export const Selector = ({
       rules={rules}
       render={({ field, fieldState }) => {
         return (
-          <>
+          <div className={`flex flex-col ${containerClasses}`}>
+            {title ? (
+              <label className="font-bold text-lg">{title}</label>
+            ) : (
+              <div />
+            )}
             {fieldState.error && (
               <span className="text-red-500 text-xs">
                 {fieldState.error.message}
@@ -178,7 +185,7 @@ export const Selector = ({
               filterOption={filterOption}
               isOptionDisabled={(option) => option.disabled}
             />
-          </>
+          </div>
         );
       }}
     />
@@ -233,6 +240,7 @@ export const TextInput = ({
   disabled,
   rules,
   errors,
+  containerClasses,
 }) => {
   return (
     <Controller
@@ -242,9 +250,13 @@ export const TextInput = ({
       defaultValue={defaultValue}
       rules={rules}
       render={({ field }) => (
-        <>
+        <div className={`flex flex-col ${containerClasses}`}>
           <div>
-            {title && <label className="font-bold text-lg">{title}</label>}
+            {title ? (
+              <label className="font-bold text-lg">{title}</label>
+            ) : (
+              <div />
+            )}
             {errors?.[name] && (
               <span className="text-xs italic text-rose-400 ml-2">
                 {errors[name].message}
@@ -259,7 +271,7 @@ export const TextInput = ({
             disabled={disabled}
             autoComplete="off"
           />
-        </>
+        </div>
       )}
     />
   );
