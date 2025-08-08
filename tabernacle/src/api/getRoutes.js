@@ -66,4 +66,7 @@ export default (builder) => ({
   getParticipantPods: builder.query({
     query: (participant_id) => `get_participant_recent_pods/${participant_id}/`,
   }),
+  getAchievementTypes: builder.query({
+    query: () => "get_achievement_types/",
+  }),
 });

@@ -34,6 +34,8 @@ def test_post_insert_achievement(client) -> None:
         "points": 10,
         "full_name": "Brand new achievement",
         "deleted": False,
+        "type": None,
+        "type_id": None,
     }
 
     assert res.status_code == status.HTTP_201_CREATED
@@ -66,6 +68,8 @@ def test_post_update_achievement(client) -> None:
         "points": 1111,
         "full_name": "Win with no creatures except your commander",
         "deleted": True,
+        "type": None,
+        "type_id": None,
     }
     assert res.status_code == status.HTTP_201_CREATED
     assert updated.deleted == True
@@ -133,6 +137,8 @@ def test_post_insert_with_children(client) -> None:
         "points": 10,
         "full_name": "Brand new achievement",
         "deleted": False,
+        "type": None,
+        "type_id": None,
     }
 
     assert res.status_code == status.HTTP_201_CREATED
@@ -182,6 +188,8 @@ def test_post_update_with_children(client, build_children) -> None:
         "points": 1111,
         "full_name": "Win with no creatures except your commander",
         "deleted": True,
+        "type": None,
+        "type_id": None,
     }
     assert res.status_code == status.HTTP_201_CREATED
     assert parsed_res == expected
@@ -231,6 +239,8 @@ def test_post_insert_with_restrictions(client) -> None:
         "points": 10,
         "full_name": "Brand new achievement",
         "deleted": False,
+        "type": None,
+        "type_id": None,
     }
 
     assert res.status_code == status.HTTP_201_CREATED
@@ -292,6 +302,8 @@ def test_post_update_with_restrictions(client, build_restrictions) -> None:
         "points": 11,
         "full_name": "Win with 88 or more basic lands",
         "deleted": False,
+        "type": None,
+        "type_id": None,
     }
 
     assert res.status_code == status.HTTP_201_CREATED

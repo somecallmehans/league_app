@@ -1,5 +1,12 @@
 from rest_framework import serializers
-from .models import Achievements, Restrictions, Colors, WinningCommanders, Commanders
+from .models import (
+    Achievements,
+    Restrictions,
+    Colors,
+    WinningCommanders,
+    Commanders,
+    AchievementType,
+)
 from sessions_rounds.serializers import PodsSerializer
 from users.serializers import ParticipantsSerializer
 
@@ -10,10 +17,18 @@ class RestrictionSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "url", "nested"]
 
 
+class AchievementTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AchievementType
+        fields = ["id", "name", "hex_code"]
+
+
 class AchievementsSerializer(serializers.ModelSerializer):
     restrictions = RestrictionSerializer(many=True, read_only=True)
     parent = serializers.SerializerMethodField()
     parent_id = serializers.IntegerField(read_only=True)
+    type = serializers.SerializerMethodField()
+    type_id = serializers.IntegerField(read_only=True)
     points = serializers.IntegerField(read_only=True)
     full_name = serializers.CharField(read_only=True)
     deleted = serializers.BooleanField(read_only=True)
@@ -32,6 +47,8 @@ class AchievementsSerializer(serializers.ModelSerializer):
             "points",
             "full_name",
             "deleted",
+            "type",
+            "type_id",
         ]
 
     def get_parent(self, obj):
@@ -41,6 +58,11 @@ class AchievementsSerializer(serializers.ModelSerializer):
 
     def get_full_name(self, obj):
         return obj.full_name
+
+    def get_type(self, obj):
+        if obj.type:
+            return AchievementTypeSerializer(obj.type).data
+        return None
 
 
 class ColorsSerializer(serializers.ModelSerializer):

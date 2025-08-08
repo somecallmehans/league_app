@@ -161,8 +161,10 @@ const AchievementCard = (props) => {
     point_value,
     children: achievementChildren,
     restrictions,
+    type,
   } = props;
   const [open, setOpen] = useState(false);
+  const hex_code = type?.hex_code;
 
   const hasSubAchievements = achievementChildren.length > 0;
   const hasRestristictions = restrictions.length > 0;
@@ -173,13 +175,13 @@ const AchievementCard = (props) => {
     <>
       <div
         onClick={() => (hasAdditionalInformation ? setOpen(!open) : "")}
-        className={`relative bg-white rounded border border-solid p-3 shadow-md ${
+        className={`py-3 px-4 relative bg-white rounded border border-solid shadow-md ${
           hasAdditionalInformation ? "hover:border-sky-400" : ""
         } md:min-h-24`}
       >
         <div className="flex justify-between text-sm text-gray-500 mb-1">
           {point_value} Point{point_value === 1 ? "" : "s"}
-          <div className="flex gap-1">
+          <div className="flex gap-1 pt-1">
             {hasSubAchievements && <i className="fa-solid fa-layer-group" />}
             {hasRestristictions && <i className="fa-solid fa-circle-info" />}
           </div>
@@ -190,6 +192,10 @@ const AchievementCard = (props) => {
             <i className="fa-solid fa-angle-right text-sky-400" />
           </div>
         )}
+        <div
+          className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l"
+          style={{ backgroundColor: hex_code, opacity: "60%" }}
+        />
       </div>
       <Drawer isOpen={open} onClose={() => setOpen(false)} title={name}>
         <AchievementPanel {...props} />

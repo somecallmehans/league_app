@@ -11,12 +11,27 @@ class Restrictions(models.Model):
         db_table = "restrictions"
 
 
+class AchievementType(models.Model):
+    name = models.CharField(max_length=255)
+    hex_code = models.CharField(max_length=7)
+
+    class Meta:
+        db_table = "achievement_type"
+
+
 class Achievements(models.Model):
     name = models.CharField(max_length=255)
     point_value = models.IntegerField(null=True, blank=True)
     deleted = models.BooleanField(default=False)
     slug = models.SlugField(unique=True, null=True, blank=True)
     parent = models.ForeignKey("self", on_delete=models.CASCADE, null=True, blank=True)
+    type = models.ForeignKey(
+        AchievementType,
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="achievements",
+    )
 
     restrictions = models.ManyToManyField(
         "Restrictions", through="AchievementsRestrictions"
