@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Route, Routes, Link, useLocation } from "react-router-dom";
+import React from "react";
+import { Route, Routes, Link } from "react-router-dom";
 
 import { handleNavClick } from "../../helpers/helpers";
 
@@ -10,6 +10,7 @@ import {
   useGetUniqueMonthsQuery,
   useGetRoundsByMonthQuery,
 } from "../../api/apiSlice";
+import { useMonthYear } from "../../hooks";
 
 import { SimpleSelect } from "../crud/CrudComponents";
 import { monthMap, monthStr } from "../../helpers/dateHelpers";
@@ -82,16 +83,7 @@ const RoundList = ({ rounds, selectedMonth }) => {
 };
 
 function Page() {
-  const location = useLocation();
-  const d = new Date();
-  const month = d.getMonth() + 1;
-  const year = d.getFullYear().toString().substr(-2);
-  const defaultMonth = `${month < 10 ? "0" : ""}${month}-${year}`;
-
-  const [selectedMonth, setSelectedMonth] = useState(
-    location.state?.selectedMonth || defaultMonth
-  );
-
+  const { selectedMonth, setSelectedMonth, month, year } = useMonthYear();
   const { data: months, isLoading: monthsLoading } = useGetUniqueMonthsQuery();
   const { data: rounds, isLoading: roundsLoading } = useGetRoundsByMonthQuery(
     selectedMonth,

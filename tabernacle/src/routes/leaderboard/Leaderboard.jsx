@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import {
   useGetAchievementsForMonthQuery,
   useGetUniqueMonthsQuery,
 } from "../../api/apiSlice";
+import { useMonthYear } from "../../hooks";
 import { monthMap, monthStr } from "../../helpers/dateHelpers";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import PageTitle from "../../components/PageTitle";
@@ -72,12 +73,7 @@ const LeaderboardGrid = ({ leaderboard }) => {
 };
 
 export default function Leaderboard() {
-  const d = new Date();
-  const month = d.getMonth() + 1;
-  const year = d.getFullYear().toString().substr(-2);
-  const [selectedMonth, setSelectedMonth] = useState(
-    month && year ? `${month < 10 ? "0" : ""}${month}-${year}` : undefined
-  );
+  const { selectedMonth, setSelectedMonth, month, year } = useMonthYear();
 
   const { data: months, isLoading: monthsLoading } = useGetUniqueMonthsQuery();
   const { data: achievementsForMonth, isLoading: achievementsLoading } =
