@@ -1,22 +1,22 @@
 import React, { useState, useMemo } from "react";
 
-import { useGetAchievementsQuery } from "../../api/apiSlice";
+import { useGetAchievementsListQuery } from "../../api/apiSlice";
 
 import LoadingSpinner from "../../components/LoadingSpinner";
 import PageTitle from "../../components/PageTitle";
 import { SimpleSelect } from "../crud/CrudComponents";
 import { SearchComponent } from "../../hooks/useSearch";
+import Drawer from "../../components/Drawer";
 
-const useAchievementSearch = (achievements, pointFilter) => {
+const useAchievementSearch = (achievements, achievementLookup, pointFilter) => {
   // This is a special version of the search since we need to search
   // on a nested list.
   const [searchTerm, setSearchTerm] = useState();
 
   if (!achievements) return { filteredData: [], setSearchTerm };
-  const { data, lookup } = achievements;
 
   if (!searchTerm && !pointFilter) {
-    return { filteredData: data, setSearchTerm };
+    return { filteredData: achievements, setSearchTerm };
   }
 
   const out = [];
@@ -25,8 +25,8 @@ const useAchievementSearch = (achievements, pointFilter) => {
   const isParent = (achievement) => !achievement.parent_id;
   const matchesPoint = (achievement) =>
     !pointFilter ||
-    (lookup[achievement.parent_id]?.point_value ?? achievement.point_value) ===
-      pointFilter;
+    (achievementLookup[achievement.parent_id]?.point_value ??
+      achievement.point_value) === pointFilter;
   const matchesSearch = (achievement) =>
     !searchTerm ||
     achievement.full_name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -39,17 +39,17 @@ const useAchievementSearch = (achievements, pointFilter) => {
   };
 
   const addAllChildren = (parentId) => {
-    data.forEach((child) => {
+    achievements.forEach((child) => {
       if (child.parent_id === parentId) {
         addAchievement(child);
       }
     });
   };
 
-  data.forEach((achievement) => {
+  achievements.forEach((achievement) => {
     const parent = isParent(achievement)
       ? achievement
-      : lookup[achievement.parent_id];
+      : achievementLookup[achievement.parent_id];
 
     // check the parent, since children don't have point_value
     if (!matchesPoint(parent)) return;
@@ -68,87 +68,6 @@ const useAchievementSearch = (achievements, pointFilter) => {
   });
 
   return { filteredData: out, setSearchTerm };
-};
-
-const Achievement = ({
-  name,
-  achievementChildren,
-  restrictions,
-  point_value,
-}) => {
-  const [toggle, setToggle] = useState();
-  const [showAll, setShowAll] = useState(false);
-
-  return (
-    <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 mb-4">
-      <div className="flex flex-col  sm:justify-between sm:items-start gap-2">
-        <button
-          onClick={() => setToggle(!toggle)}
-          className="text-left font-medium text-gray-500 text-sm"
-        >
-          {point_value} Point{point_value !== 1 ? "s" : ""}
-          {restrictions.length > 0 && (
-            <button
-              onClick={() => setToggle(!toggle)}
-              className="text-gray-500 hover:text-sky-500 self-start sm:self-center"
-              aria-label="Toggle restrictions"
-            >
-              <i
-                className={`fa-solid fa-chevron-right transition-transform duration-200 ml-2 ${
-                  toggle ? "rotate-90" : ""
-                }`}
-              />
-            </button>
-          )}
-        </button>
-        <span className="font-bold text-md">{name}</span>
-      </div>
-
-      {toggle && restrictions.length > 0 && (
-        <div className="mt-2 space-y-2">
-          {restrictions.map(({ id, name, url }) => (
-            <div
-              key={id}
-              className="sm:text-base italic text-gray-600 flex items-start"
-            >
-              <a
-                className={`${
-                  url ? "hover:text-sky-500 underline" : ""
-                } transition text-sm `}
-                href={url || undefined}
-                target={url ? "_blank" : undefined}
-                rel={url ? "noreferrer" : undefined}
-              >
-                {name}
-                {url && <i className="fa-solid fa-link ml-1 text-gray-400" />}
-              </a>
-            </div>
-          ))}
-        </div>
-      )}
-      {achievementChildren?.length > 0 && (
-        <div className="mt-4">
-          {achievementChildren
-            .slice(0, showAll ? achievementChildren.length : 4)
-            .map(({ id, name }) => (
-              <div key={id} className="ml-4 text-sm italic text-gray-500">
-                <i className="fa-solid fa-minus fa-list mr-2 text-sky-400" />
-                {name}
-              </div>
-            ))}
-
-          {achievementChildren.length > 4 && (
-            <button
-              onClick={() => setShowAll(!showAll)}
-              className="ml-4 mt-2 text-sm text-sky-500 hover:underline"
-            >
-              Show {showAll ? "Less" : "More"}...
-            </button>
-          )}
-        </div>
-      )}
-    </div>
-  );
 };
 
 export const associateParentsChildren = (achievements) => {
@@ -176,20 +95,159 @@ export const associateParentsChildren = (achievements) => {
   return roots.sort((a, b) => a.point_value - b.point_value);
 };
 
+const RestrictionsList = ({ restrictions }) => {
+  if (!restrictions.length > 0) return null;
+
+  return (
+    <div className="p-4">
+      <div className="text-lg font-bold">Achievement Info</div>
+      {restrictions.map(({ id, name, url }) => (
+        <div key={id} className="py-1 text-md text-gray-600 italic">
+          <a
+            className={`${url ? "hover:text-sky-500" : ""} transition text-md`}
+            href={url || undefined}
+            target={url ? "_blank" : undefined}
+            rel={url ? "noreferrer" : undefined}
+          >
+            {name}
+            {url && <i className="fa-solid fa-link ml-1 text-gray-400" />}
+          </a>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const ChildrenList = ({ achievements }) => {
+  if (!achievements.length > 0) return null;
+
+  return (
+    <div className="bg-white p-4">
+      <div className="border rounded-lg">
+        {[...achievements]
+          .sort((a, b) => a - b)
+          .map(({ id, name }) => (
+            <div
+              key={id}
+              className="flex items-center text-sm md:text-md border-b p-2"
+            >
+              {name}
+            </div>
+          ))}
+      </div>
+    </div>
+  );
+};
+
+const AchievementPanel = ({
+  point_value,
+  children: achievementChildren,
+  restrictions,
+}) => {
+  return (
+    <div className="flex flex-col h-full">
+      <div className="text-xl grow  p-4 font-bold">
+        {point_value} Point{point_value === 1 ? "" : "s"}
+      </div>
+      <RestrictionsList restrictions={restrictions} />
+      <ChildrenList achievements={achievementChildren} />
+    </div>
+  );
+};
+
+const AchievementCard = (props) => {
+  const {
+    name,
+    point_value,
+    children: achievementChildren,
+    restrictions,
+  } = props;
+  const [open, setOpen] = useState(false);
+
+  const hasSubAchievements = achievementChildren.length > 0;
+  const hasRestristictions = restrictions.length > 0;
+
+  const hasAdditionalInformation = hasSubAchievements || hasRestristictions;
+
+  return (
+    <>
+      <div
+        onClick={() => (hasAdditionalInformation ? setOpen(!open) : "")}
+        className={`relative bg-white rounded border border-solid p-3 shadow-md ${
+          hasAdditionalInformation ? "hover:border-sky-400" : ""
+        } md:min-h-24`}
+      >
+        <div className="flex justify-between text-sm text-gray-500 mb-1">
+          {point_value} Point{point_value === 1 ? "" : "s"}
+          <div className="flex gap-1">
+            {hasSubAchievements && <i className="fa-solid fa-layer-group" />}
+            {hasRestristictions && <i className="fa-solid fa-circle-info" />}
+          </div>
+        </div>
+        <div>{name}</div>
+        {hasAdditionalInformation && (
+          <div className="absolute bottom-2 right-2">
+            <i className="fa-solid fa-angle-right text-sky-400" />
+          </div>
+        )}
+      </div>
+      <Drawer isOpen={open} onClose={() => setOpen(false)} title={name}>
+        <AchievementPanel {...props} />
+      </Drawer>
+    </>
+  );
+};
+
 export default function AchievementsPage() {
   const [pointFilter, setPointFilter] = useState();
   const { data: achievements, isLoading: achievementsLoading } =
-    useGetAchievementsQuery();
+    useGetAchievementsListQuery();
 
+  const achievementLookup = useMemo(() => {
+    if (!achievements) return {};
+
+    return achievements.reduce((acc, achievement) => {
+      acc[achievement.id] = achievement;
+      return acc;
+    }, {});
+  }, [achievements]);
+
+  const pointSet = useMemo(() => {
+    if (!achievements) return [];
+    const all_points = achievements
+      .map((achievement) => {
+        if (!achievement.point_value) {
+          return;
+        }
+        return achievement.point_value;
+      })
+      .sort((a, b) => a - b);
+    const points = new Set(all_points);
+    return [...points];
+  }, [achievements]);
+
+  // Doing this the un-ideal way to start. Eventually/soon filtering will
+  // be handled by the backend to support more complex filtering.
   const { filteredData, setSearchTerm } = useAchievementSearch(
     achievements,
+    achievementLookup,
     pointFilter
   );
 
-  const associatedList = useMemo(
-    () => associateParentsChildren(filteredData),
-    [achievements, filteredData]
-  );
+  const groupedAchievements = useMemo(() => {
+    if (!achievements) return [];
+
+    const associated = associateParentsChildren(filteredData);
+    const groups = {};
+    for (const achievement of associated) {
+      const points = achievement.point_value ?? 0;
+      if (!groups[points]) {
+        groups[points] = [];
+      }
+      groups[points].push(achievement);
+    }
+    return groups;
+  }, [achievements]);
 
   if (achievementsLoading) {
     return <LoadingSpinner />;
@@ -208,14 +266,15 @@ export default function AchievementsPage() {
       <PageTitle title="Achievements" />
       <div className="text-xs md:text-sm font-light text-gray-800 italic w-full md:w-1/2 mb-2">
         Use the filters below to sort by point value, name, or both. For
-        achievements with special restrictions or external references, click the
-        chevron in the row to view details or navigate to Moxfield.
+        achievements with special notes, external references, or
+        sub-achievements (i.e. the scaleable achievements or anything that
+        requires X or more), click a tile to view more
       </div>
       <div className="mb-6">
         <div className="flex flex-col md:flex-row gap-2">
           <SimpleSelect
             placeholder="Point Value"
-            options={achievements?.points_set.map((v) => ({
+            options={pointSet.map((v) => ({
               label: v,
               value: v,
             }))}
@@ -233,23 +292,16 @@ export default function AchievementsPage() {
           />
         </div>
       </div>
-      {associatedList.map(
-        ({
-          id,
-          name,
-          children: achievementChildren,
-          restrictions,
-          point_value,
-        }) => (
-          <Achievement
-            key={id}
-            name={name}
-            achievementChildren={achievementChildren}
-            restrictions={restrictions}
-            point_value={point_value}
-          />
-        )
-      )}
+      {Object.keys(groupedAchievements).map((key) => (
+        <div key={key} className="my-4">
+          <div className="grid md:grid-cols-4 gap-4">
+            {groupedAchievements[key].map((achievement) => (
+              <AchievementCard key={achievement.id} {...achievement} />
+            ))}
+          </div>
+          <hr className="h-px my-8 bg-gray-300 border-0"></hr>
+        </div>
+      ))}
     </div>
   );
 }
