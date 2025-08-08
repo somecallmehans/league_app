@@ -217,6 +217,8 @@ def upsert_achievements(request):
                 cascade_soft_delete(achievement)
         if "point_value" in body:
             achievement.point_value = body["point_value"]
+        if "type_id" in body:
+            achievement.type_id = body["type_id"]
         if "restrictions" in body:
             handle_upsert_restrictions(body["restrictions"], achievement)
         if "achievements" in body:
@@ -230,6 +232,7 @@ def upsert_achievements(request):
             name=name,
             deleted=body.get("deleted", False),
             point_value=body.get("point_value"),
+            type_id=body.get("type_id"),
         )
         handle_upsert_restrictions(restrictions, achievement)
         handle_upsert_child_achievements(children, achievement)

@@ -27,6 +27,7 @@ const AchievementForm = ({
   point_value,
   children: achievementChildren,
   restrictions,
+  type,
   setOpen,
 }) => {
   const [postUpsertAchievements] = usePostUpsertAchievementsMutation();
@@ -45,6 +46,7 @@ const AchievementForm = ({
       point_value: point_value || "",
       restrictions: restrictions || [],
       achievements: achievementChildren || [],
+      type: type || [],
     },
   });
 
@@ -82,6 +84,7 @@ const AchievementForm = ({
         setOpen(false);
         const cleaned = {
           ...values,
+          type_id: values.type.id,
           restrictions: values.restrictions?.filter(
             (r) => !r.deleted || r.id != null
           ),
@@ -121,10 +124,10 @@ const AchievementForm = ({
                 +value < 0 ? "Point value must be 0 or greater" : undefined,
             }}
             errors={errors}
-            containerClasses="basis-3/4"
+            containerClasses="basis-1/2"
           />
           <Selector
-            name="type_id"
+            name="type"
             title="Type"
             options={types}
             control={control}
@@ -132,7 +135,7 @@ const AchievementForm = ({
             classes="text-sm w-full sm:flex-1 mb-2 sm:mb-0"
             getOptionLabel={(option) => option.name}
             getOptionValue={(option) => option.id}
-            containerClasses="basis-1/4"
+            containerClasses="basis-1/2"
           />
         </div>
         <label className="font-bold text-lg">Info</label>
