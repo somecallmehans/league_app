@@ -55,7 +55,7 @@ def get_achievements_with_restrictions_v2(_):
     achievements = (
         Achievements.objects.filter(deleted=False)
         .select_related("parent")
-        .only("id", "name", "slug", "point_value", "parent_id", "deleted")
+        .only("id", "name", "slug", "point_value", "parent_id", "deleted", "type")
         .prefetch_related(
             Prefetch(
                 "restrictions",
@@ -64,7 +64,6 @@ def get_achievements_with_restrictions_v2(_):
         )
         .order_by(F("parent_id").desc(nulls_last=None))
     )
-
     return Response(AchievementsSerializer(achievements, many=True).data)
 
 

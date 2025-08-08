@@ -13,7 +13,7 @@ class Restrictions(models.Model):
 
 class AchievementType(models.Model):
     name = models.CharField(max_length=255)
-    hex_code = models.BinaryField()
+    hex_code = models.CharField(max_length=7)
 
     class Meta:
         db_table = "achievement_type"

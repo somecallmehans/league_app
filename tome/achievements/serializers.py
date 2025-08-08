@@ -13,6 +13,8 @@ class RestrictionSerializer(serializers.ModelSerializer):
 class AchievementsSerializer(serializers.ModelSerializer):
     restrictions = RestrictionSerializer(many=True, read_only=True)
     parent = serializers.SerializerMethodField()
+    type_name = serializers.SerializerMethodField()
+    type_color = serializers.SerializerMethodField()
     parent_id = serializers.IntegerField(read_only=True)
     points = serializers.IntegerField(read_only=True)
     full_name = serializers.CharField(read_only=True)
@@ -32,6 +34,8 @@ class AchievementsSerializer(serializers.ModelSerializer):
             "points",
             "full_name",
             "deleted",
+            "type_name",
+            "type_color",
         ]
 
     def get_parent(self, obj):
@@ -41,6 +45,16 @@ class AchievementsSerializer(serializers.ModelSerializer):
 
     def get_full_name(self, obj):
         return obj.full_name
+
+    def get_type_name(self, obj):
+        if obj.type:
+            return obj.type.name
+        return None
+
+    def get_type_color(self, obj):
+        if obj.type:
+            return obj.type.hex_code
+        return None
 
 
 class ColorsSerializer(serializers.ModelSerializer):
