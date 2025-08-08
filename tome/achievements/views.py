@@ -19,12 +19,17 @@ from rest_framework.decorators import (
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from .models import Achievements, Colors, Restrictions
+from .models import Achievements, Colors, Restrictions, AchievementType
 
 from users.models import ParticipantAchievements
 
 from sessions_rounds.models import Pods, Sessions, PodsParticipants, Rounds
-from .serializers import AchievementsSerializer, ColorsSerializer, CommandersSerializer
+from .serializers import (
+    AchievementsSerializer,
+    ColorsSerializer,
+    CommandersSerializer,
+    AchievementTypeSerializer,
+)
 from achievements.models import (
     Achievements,
     WinningCommanders,
@@ -65,6 +70,14 @@ def get_achievements_with_restrictions_v2(_):
         .order_by(F("parent_id").desc(nulls_last=None))
     )
     return Response(AchievementsSerializer(achievements, many=True).data)
+
+
+@api_view([GET])
+def get_achievement_types(_):
+    """Get all of the current achievement types."""
+
+    types = AchievementType.objects.all()
+    return Response(AchievementTypeSerializer(types, many=True).data)
 
 
 @api_view([GET])

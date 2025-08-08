@@ -10,6 +10,7 @@ from .views import (
     fetch_and_insert_commanders,
     upsert_earned_achievements,
     get_achievements_with_restrictions_v2,
+    get_achievement_types,
 )
 
 urlpatterns = [
@@ -49,4 +50,5 @@ urlpatterns = [
         upsert_earned_achievements,
         name="upsert_earned_achievements",
     ),
+    path("get_achievement_types/", get_achievement_types, name="get_achievement_types"),
 ]

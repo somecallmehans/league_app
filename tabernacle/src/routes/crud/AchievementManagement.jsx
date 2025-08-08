@@ -1,7 +1,9 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import {
   useGetAchievementsListQuery,
   usePostUpsertAchievementsMutation,
+  apiSlice,
 } from "../../api/apiSlice";
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
 
@@ -23,6 +25,10 @@ const AchievementForm = ({
   setOpen,
 }) => {
   const [postUpsertAchievements] = usePostUpsertAchievementsMutation();
+  const { data: types } = useSelector(
+    apiSlice.endpoints.getAchievementTypes.select(undefined)
+  );
+  console.log(types);
   const {
     control,
     register,
@@ -276,8 +282,13 @@ const AchievementCard = (props) => {
 };
 
 export default function Page() {
+  const dispatch = useDispatch();
   const [showCreate, setShowCreate] = useState(false);
   // TODO: Add search/filtering
+
+  useEffect(() => {
+    dispatch(apiSlice.endpoints.getAchievementTypes.initiate(undefined));
+  });
 
   const { data: achievements, isLoading: achievementsLoading } =
     useGetAchievementsListQuery();

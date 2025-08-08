@@ -1,5 +1,12 @@
 from rest_framework import serializers
-from .models import Achievements, Restrictions, Colors, WinningCommanders, Commanders
+from .models import (
+    Achievements,
+    Restrictions,
+    Colors,
+    WinningCommanders,
+    Commanders,
+    AchievementType,
+)
 from sessions_rounds.serializers import PodsSerializer
 from users.serializers import ParticipantsSerializer
 
@@ -87,3 +94,9 @@ class CommandersSerializer(serializers.ModelSerializer):
     class Meta:
         model = Commanders
         fields = ["id", "name", "colors_id", "has_partner", "is_background"]
+
+
+class AchievementTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AchievementType
+        fields = ["id", "name", "hex_code"]

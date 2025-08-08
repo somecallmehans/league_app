@@ -86,6 +86,7 @@ export const {
   useGetAllRoundsQuery,
   useGetParticipantPodsQuery,
   useGetAchievementsListQuery,
+  useGetAchievementTypesQuery,
 
   // POSTS
   usePostCreateSessionMutation,
