@@ -1,6 +1,9 @@
 import React, { useState, useMemo } from "react";
 
-import { useGetAchievementsListQuery } from "../../api/apiSlice";
+import {
+  useGetAchievementsListQuery,
+  useGetAchievementTypesQuery,
+} from "../../api/apiSlice";
 
 import LoadingSpinner from "../../components/LoadingSpinner";
 import PageTitle from "../../components/PageTitle";
@@ -204,6 +207,26 @@ const AchievementCard = (props) => {
   );
 };
 
+const TypeInfo = () => {
+  const { data: types } = useGetAchievementTypesQuery();
+  if (!types) return null;
+
+  return (
+    <div className="w-100 bg-white border shadow-md flex justify-between p-4">
+      <div className="flex flex-col basis-1/4">
+        <div>Achievement Types</div>
+        <div>
+          These are the various types of achievements that are earnable during a
+          regular league season.
+        </div>
+      </div>
+      {types.map((t) => (
+        <div key={t.id}>{t.name}</div>
+      ))}
+    </div>
+  );
+};
+
 export default function AchievementsPage() {
   const [pointFilter, setPointFilter] = useState();
   const { data: achievements, isLoading: achievementsLoading } =
@@ -298,6 +321,7 @@ export default function AchievementsPage() {
           />
         </div>
       </div>
+      <TypeInfo />
       {Object.keys(groupedAchievements).map((key) => (
         <div key={key} className="my-4">
           <div className="grid md:grid-cols-4 gap-4">
