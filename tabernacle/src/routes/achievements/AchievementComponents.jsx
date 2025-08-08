@@ -129,7 +129,7 @@ export const TypeInfo = () => {
         const rgbString = `rgb(${rgbVal.r}, ${rgbVal.g}, ${rgbVal.b}, 0.4)`;
 
         return (
-          <div key={id} className={`basis-1/${types.length}`}>
+          <div key={id} className="flex-1 min-w-0">
             <div
               className="text-center rounded mb-1"
               style={{
