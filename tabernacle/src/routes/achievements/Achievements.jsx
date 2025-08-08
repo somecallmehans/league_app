@@ -266,10 +266,9 @@ export default function AchievementsPage() {
     <div className="p-4 md:p-8">
       <PageTitle title="Achievements" />
       <div className="text-xs md:text-sm font-light text-gray-800 italic w-full md:w-1/2 mb-2">
-        Use the filters below to sort by point value, name, or both. For
-        achievements with special notes, external references, or
-        sub-achievements (i.e. the scaleable achievements or anything that
-        requires X or more), click a tile to view more
+        Use the filters below to sort by point value, name, or both. If an
+        achievement has special notes, external links, or nested achievements
+        (like scalable or “X or more”), click its tile to see the full details.
       </div>
       <div className="mb-6">
         <div className="flex flex-col md:flex-row gap-2">
