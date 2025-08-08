@@ -4,7 +4,8 @@ from datetime import datetime
 from collections import defaultdict
 
 from django.db import transaction
-from django.db.models import Q, F, Value, Prefetch
+from django.db.models import Q, F, Value, Prefetch, CharField, IntegerField, Case, When
+
 from django.contrib.postgres.aggregates import ArrayAgg
 
 from django.db.models.functions import Concat, Coalesce
@@ -26,6 +27,7 @@ from users.models import ParticipantAchievements
 from sessions_rounds.models import Pods, Sessions, PodsParticipants, Rounds
 from .serializers import (
     AchievementsSerializer,
+    AchievementSerializerV2,
     ColorsSerializer,
     CommandersSerializer,
     AchievementTypeSerializer,
@@ -59,17 +61,47 @@ def get_achievements_with_restrictions_v2(_):
 
     achievements = (
         Achievements.objects.filter(deleted=False)
-        .select_related("parent")
-        .only("id", "name", "slug", "point_value", "parent_id", "deleted", "type")
+        .select_related("parent", "type")
+        .annotate(
+            points_anno=Coalesce(
+                F("parent__point_value"), F("point_value"), output_field=IntegerField()
+            ),
+            full_name_anno=Case(
+                When(
+                    parent__isnull=False,
+                    then=Concat(F("parent__name"), Value(" "), F("name")),
+                ),
+                default=F("name"),
+                output_field=CharField(),
+            ),
+        )
+        .only(
+            "id",
+            "name",
+            "slug",
+            "point_value",
+            "parent_id",
+            "deleted",
+            "type_id",
+            "parent__id",
+            "parent__name",
+            "parent__point_value",
+            "type__id",
+            "type__name",
+            "type__hex_code",
+            "type__description",
+        )
         .prefetch_related(
             Prefetch(
                 "restrictions",
-                queryset=Restrictions.objects.filter(deleted=False),
+                queryset=Restrictions.objects.filter(deleted=False).only(
+                    "id", "name", "url"
+                ),
             )
         )
         .order_by(F("parent_id").desc(nulls_last=None))
     )
-    return Response(AchievementsSerializer(achievements, many=True).data)
+    return Response(AchievementSerializerV2(achievements, many=True).data)
 
 
 @api_view([GET])

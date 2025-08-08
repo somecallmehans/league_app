@@ -23,6 +23,51 @@ class AchievementTypeSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "hex_code", "description"]
 
 
+class ParentMiniSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Achievements
+        fields = ("id", "name", "point_value")
+
+
+class AchievementTypeMiniSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AchievementType
+        fields = ("id", "name", "description", "hex_code")
+
+
+class RestrictionMiniSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Restrictions
+        fields = ("id", "name", "url")
+
+
+class AchievementSerializerV2(serializers.ModelSerializer):
+    restrictions = RestrictionMiniSerializer(many=True, read_only=True)
+    parent = ParentMiniSerializer(read_only=True)
+    parent_id = serializers.IntegerField(read_only=True)
+    type = AchievementTypeMiniSerializer(read_only=True)
+    type_id = serializers.IntegerField(read_only=True)
+    points = serializers.IntegerField(source="points_anno", read_only=True)
+    full_name = serializers.CharField(source="full_name_anno", read_only=True)
+
+    class Meta:
+        model = Achievements
+        fields = [
+            "id",
+            "name",
+            "point_value",
+            "parent",
+            "parent_id",
+            "restrictions",
+            "slug",
+            "points",
+            "full_name",
+            "deleted",
+            "type",
+            "type_id",
+        ]
+
+
 class AchievementsSerializer(serializers.ModelSerializer):
     restrictions = RestrictionSerializer(many=True, read_only=True)
     parent = serializers.SerializerMethodField()
