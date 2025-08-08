@@ -117,6 +117,12 @@ const HomeLeaderboard = () => {
 
   return (
     <div className="mb-4">
+      <div
+        className="text-xl sm:text-2xl font-bold text-blue-600 mb-1 text-center"
+        style={{ textShadow: "2px 2px 4px rgba(0, 0, 0, 0.1)" }}
+      >
+        Current Leaders
+      </div>
       <LeaderboardGrid leaderboard={achievementsForMonth.slice(0, 5)} />
     </div>
   );
