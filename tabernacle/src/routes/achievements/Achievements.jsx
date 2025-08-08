@@ -5,6 +5,8 @@ import {
   useGetAchievementTypesQuery,
 } from "../../api/apiSlice";
 
+import { hexToRgb } from "../../helpers/helpers";
+
 import LoadingSpinner from "../../components/LoadingSpinner";
 import PageTitle from "../../components/PageTitle";
 import { SimpleSelect } from "../crud/CrudComponents";
@@ -212,17 +214,25 @@ const TypeInfo = () => {
   if (!types) return null;
 
   return (
-    <div className="w-100 bg-white border shadow-md flex justify-between p-4">
-      <div className="flex flex-col basis-1/4">
-        <div>Achievement Types</div>
-        <div>
-          These are the various types of achievements that are earnable during a
-          regular league season.
-        </div>
-      </div>
-      {types.map((t) => (
-        <div key={t.id}>{t.name}</div>
-      ))}
+    <div className="w-100 bg-white border shadow-md flex flex-col md:flex-row justify-between p-3 gap-4">
+      {types.map(({ id, name, hex_code, description }) => {
+        const rgbVal = hexToRgb(hex_code);
+        const rgbString = `rgb(${rgbVal.r}, ${rgbVal.g}, ${rgbVal.b}, 0.4)`;
+
+        return (
+          <div key={id} className={`basis-1/${types.length}`}>
+            <div
+              className="text-center rounded mb-1"
+              style={{
+                backgroundColor: rgbString,
+              }}
+            >
+              {name}
+            </div>
+            <div className="text-xs">{description}</div>
+          </div>
+        );
+      })}
     </div>
   );
 };
