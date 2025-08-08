@@ -122,14 +122,14 @@ const ChildrenList = ({ achievements }) => {
   if (!achievements.length > 0) return null;
 
   return (
-    <div className="bg-white p-4">
-      <div className="border rounded-lg">
+    <div className="p-4">
+      <div className="rounded-lg">
         {[...achievements]
           .sort((a, b) => a - b)
           .map(({ id, name }) => (
             <div
               key={id}
-              className="flex items-center text-sm md:text-md border-b p-2"
+              className="bg-white flex items-center text-sm md:text-md rounded-lg mb-1 border p-2"
             >
               {name}
             </div>
