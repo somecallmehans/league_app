@@ -20,7 +20,7 @@ class RestrictionSerializer(serializers.ModelSerializer):
 class AchievementTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = AchievementType
-        fields = ["id", "name", "hex_code"]
+        fields = ["id", "name", "hex_code", "description"]
 
 
 class AchievementsSerializer(serializers.ModelSerializer):
