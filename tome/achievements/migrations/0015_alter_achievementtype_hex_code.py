@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("achievements", "0013_seed_achievement_types"),
+        ("achievements", "0014_seed_achievement_types"),
     ]
 
     operations = [
