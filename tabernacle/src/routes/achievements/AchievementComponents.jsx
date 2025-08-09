@@ -116,14 +116,20 @@ export const AchievementCard = (props) => {
   );
 };
 
-export const TypeInfo = () => {
+export const TypeInfo = ({ showInfo }) => {
   const { data: types } = useSelector(
     apiSlice.endpoints.getAchievementTypes.select(undefined)
   );
   if (!types || types.length === 0) return null;
 
   return (
-    <div className="w-100 bg-white border shadow-md flex flex-col md:flex-row justify-between p-3 gap-4">
+    <div
+      className={` transition-all ease-in-out duration-200 overflow-hidden ${
+        showInfo
+          ? "opacity-100 max-h-50 bg-white border shadow-md flex flex-col md:flex-row justify-between p-3 gap-4"
+          : "opacity-0 max-h-0"
+      } `}
+    >
       {types.map(({ id, name, hex_code, description }) => {
         const rgbVal = hexToRgb(hex_code);
         const rgbString = `rgb(${rgbVal.r}, ${rgbVal.g}, ${rgbVal.b}, 0.4)`;

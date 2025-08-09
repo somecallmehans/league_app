@@ -20,5 +20,5 @@ export const associateParentsChildren = (achievements) => {
     }
   }
 
-  return roots.sort((a, b) => a.point_value - b.point_value);
+  return roots;
 };

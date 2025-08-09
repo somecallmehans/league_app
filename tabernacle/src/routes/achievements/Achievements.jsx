@@ -4,68 +4,120 @@ import { apiSlice, useGetAchievementsListQuery } from "../../api/apiSlice";
 import { useAchievementSearch } from "../../hooks";
 import { associateParentsChildren } from "../../helpers/achievementHelpers";
 
+import { Input } from "@headlessui/react";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import PageTitle from "../../components/PageTitle";
 import { AchievementCard, TypeInfo } from "./AchievementComponents";
 import { SimpleSelect } from "../crud/CrudComponents";
-import { SearchComponent } from "../../hooks/useSearch";
+
+const SearchFilter = ({ setSearchTerm, placeholder, classes }) => (
+  <Input
+    placeholder={placeholder}
+    className={`text-gray-600 bg-white py-1.5 w-full sm:w-2/3 px-1 rounded  border border-zinc-300 ${classes}`}
+    onChange={(e) => setSearchTerm(e.target.value)}
+  />
+);
+
+const TypeSelectFilter = ({ typeFilter, setTypeFilter }) => {
+  const { data: types } = useSelector(
+    apiSlice.endpoints.getAchievementTypes.select(undefined)
+  );
+
+  return (
+    <SimpleSelect
+      placeholder="Type"
+      options={(types ?? []).map((t) => ({ label: t.name, value: t.id }))}
+      value={
+        typeFilter ? { label: typeFilter.label, value: typeFilter.value } : null
+      }
+      isClearable
+      onChange={(obj) => setTypeFilter(obj || null)}
+      classes="bg-white h-9 text-xs [&>div]:h-9 [&>div]:min-h-0  md:w-1/3 text-gray-600 "
+    />
+  );
+};
+
+const SortPoints = ({ sort, setSort }) => (
+  <button
+    className="bg-white border border-zinc-300 rounded text-xs h-9 px-2 flex items-center justify-center sm:w-1/6 text-gray-600"
+    onClick={() => setSort(!sort)}
+    aria-label={`Sort by points ${sort ? "ascending" : "descending"}`}
+  >
+    <span className="mr-1 text-gray-400">Points</span>
+    <span
+      className={`inline-block transition-transform ${
+        sort ? "rotate-180" : ""
+      }`}
+    >
+      <i className="fa-solid fa-sort-up text-gray-400" />
+    </span>
+  </button>
+);
+
+const ShowHideInfo = ({ showInfo, setShowInfo }) => (
+  <button
+    className="bg-white sm:w-1/6 border border-zinc-300 rounded text-xs h-9 px-2 flex items-center justify-center text-gray-400"
+    onClick={() => setShowInfo(!showInfo)}
+    aria-label="Show or hide achievement type info"
+  >
+    {showInfo ? "Hide Info" : "Show Info"}
+    <i className={`fa-solid ml-1 fa-eye${showInfo ? "-slash" : ""}`} />
+  </button>
+);
 
 const AchievementFilters = ({
   typeFilter,
   setSearchTerm,
   setTypeFilter,
-  sort,
   setSort,
+  sort,
+  showInfo,
+  setShowInfo,
 }) => {
-  const { data: types } = useSelector(
-    apiSlice.endpoints.getAchievementTypes.select(undefined)
-  );
-
-  const handleTypeSelectClear = (obj) => {
-    if (!obj) {
-      setTypeFilter(null);
-      return;
-    }
-    setTypeFilter(obj);
-  };
   return (
-    <div className="mb-6">
-      <div className="flex flex-col md:flex-row gap-2">
-        <button
-          className="bg-white border border-gray-300 p-2 text-gray-400 md:w-1/6 rounded-lg"
-          onClick={() => setSort(!sort)}
-        >
-          Sort Points{" "}
-          <i className={`fa-solid fa-arrow-${sort ? "down" : "up"}`} />
-        </button>
-        <SimpleSelect
-          placeholder="Type"
-          options={types.map((t) => ({
-            label: t.name,
-            value: t.id,
-          }))}
-          value={
-            typeFilter
-              ? { label: typeFilter.label, value: typeFilter.value }
-              : null
-          }
-          isClearable
-          onChange={handleTypeSelectClear}
-          classes="w-full md:w-1/3"
+    <>
+      {/* Mobile layout */}
+      <div className="fixed sm:hidden bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/70 border-t shadow-lg p-2 pb-[calc(env(safe-area-inset-bottom,0)+0.5rem)]">
+        <div className="grid grid-cols-3 gap-2 items-center">
+          <SortPoints sort={sort} setSort={setSort} />
+          <TypeSelectFilter
+            setTypeFilter={setTypeFilter}
+            typeFilter={typeFilter}
+          />
+
+          <ShowHideInfo showInfo={showInfo} setShowInfo={setShowInfo} />
+          <div className="col-span-3">
+            <SearchFilter
+              setSearchTerm={setSearchTerm}
+              placeholder="Search by name…"
+              classes="w-full h-10 text-sm"
+            />
+          </div>
+        </div>
+      </div>
+      {/* Desktop layout */}
+      <div className="hidden sm:block sm:mb-4 sm:flex sm:gap-2">
+        <TypeSelectFilter
+          setTypeFilter={setTypeFilter}
+          typeFilter={typeFilter}
         />
-        <SearchComponent
+        <SearchFilter
           setSearchTerm={setSearchTerm}
-          placeholder="Search By Name"
+          placeholder="Filter By Name"
           classes="grow"
         />
+        <SortPoints sort={sort} setSort={setSort} />
+        <ShowHideInfo showInfo={showInfo} setShowInfo={setShowInfo} />
       </div>
-    </div>
+    </>
   );
 };
 
 export default function AchievementsPage() {
   const dispatch = useDispatch();
   const [sort, setSort] = useState();
+  const [showInfo, setShowInfo] = useState(true);
+
   const [typeFilter, setTypeFilter] = useState();
   const { data: achievements, isLoading: achievementsLoading } =
     useGetAchievementsListQuery();
@@ -91,20 +143,26 @@ export default function AchievementsPage() {
     typeFilter
   );
 
-  const groupedAchievements = useMemo(() => {
-    if (!achievements) return [];
+  const { groups, orderedKeys } = useMemo(() => {
+    if (!filteredData) return {};
 
     const associated = associateParentsChildren(filteredData);
-    const groups = {};
-    for (const achievement of associated) {
-      const points = achievement.point_value ?? 0;
-      if (!groups[points]) {
-        groups[points] = [];
+    const sorted = [...associated].sort((a, b) =>
+      sort ? b.point_value - a.point_value : a.point_value - b.point_value
+    );
+
+    const obj = {};
+    const keys = [];
+    for (const achievement of sorted) {
+      const points = achievement.point_value;
+      if (!obj[points]) {
+        obj[points] = [];
+        keys.push(points);
       }
-      groups[points].push(achievement);
+      obj[points].push(achievement);
     }
-    return groups;
-  }, [filteredData]);
+    return { groups: obj, orderedKeys: keys };
+  }, [filteredData, sort]);
 
   if (achievementsLoading) {
     return <LoadingSpinner />;
@@ -125,12 +183,14 @@ export default function AchievementsPage() {
         setTypeFilter={setTypeFilter}
         sort={sort}
         setSort={setSort}
+        showInfo={showInfo}
+        setShowInfo={setShowInfo}
       />
-      <TypeInfo />
-      {Object.keys(groupedAchievements).map((key) => (
+      <TypeInfo showInfo={showInfo} />
+      {orderedKeys.map((key) => (
         <div key={key} className="my-4">
           <div className="grid md:grid-cols-4 gap-4">
-            {groupedAchievements[key].map((achievement) => (
+            {groups[key].map((achievement) => (
               <AchievementCard key={achievement.id} {...achievement} />
             ))}
           </div>
