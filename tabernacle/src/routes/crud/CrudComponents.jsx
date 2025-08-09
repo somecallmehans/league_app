@@ -53,7 +53,10 @@ export function SimpleSelect({
   onChange,
   isMulti,
   isClearable,
+  menuPlacement = "bottom",
 }) {
+  const portalTarget =
+    typeof window !== "undefined" ? document.body : undefined;
   return (
     <div className={`${classes}`}>
       <Select
@@ -63,9 +66,37 @@ export function SimpleSelect({
         onChange={onChange}
         isMulti={isMulti}
         classNamePrefix="rs"
-        menuPortalTarget={document.body}
+        menuPortalTarget={portalTarget}
         menuPosition="fixed"
+        menuPlacement={menuPlacement}
+        menuShouldScrollIntoView={false}
         styles={{
+          control: (base, state) => ({
+            ...base,
+            fontSize: 16,
+            minHeight: 36,
+            height: 36,
+            borderColor: state.isFocused ? base.borderColor : base.borderColor,
+          }),
+          valueContainer: (base) => ({
+            ...base,
+            height: 36,
+            padding: "0 8px",
+          }),
+          input: (base) => ({
+            ...base,
+            fontSize: 16,
+            margin: 0,
+            padding: 0,
+          }),
+          indicatorsContainer: (base) => ({
+            ...base,
+            height: 36,
+          }),
+          menu: (base) => ({
+            ...base,
+            fontSize: 16,
+          }),
           menuPortal: (base) => ({ ...base, zIndex: 9999 }),
         }}
         isClearable={isClearable}

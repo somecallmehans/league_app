@@ -33,6 +33,7 @@ const TypeSelectFilter = ({ typeFilter, setTypeFilter }) => {
       isClearable
       onChange={(obj) => setTypeFilter(obj || null)}
       classes="bg-white h-9 text-base [&>div]:h-9 [&>div]:min-h-0  md:w-1/3 text-gray-600 "
+      menuPlacement="top"
     />
   );
 };
