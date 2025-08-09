@@ -11,23 +11,15 @@ import { SimpleSelect } from "../crud/CrudComponents";
 import { SearchComponent } from "../../hooks/useSearch";
 
 const AchievementFilters = ({
-  pointSet,
-  pointFilter,
   typeFilter,
   setSearchTerm,
-  setPointFilter,
   setTypeFilter,
+  sort,
+  setSort,
 }) => {
   const { data: types } = useSelector(
     apiSlice.endpoints.getAchievementTypes.select(undefined)
   );
-  const handlePointSelectClear = (obj) => {
-    if (!obj) {
-      setPointFilter(null);
-      return;
-    }
-    setPointFilter(obj.value);
-  };
 
   const handleTypeSelectClear = (obj) => {
     if (!obj) {
@@ -39,19 +31,13 @@ const AchievementFilters = ({
   return (
     <div className="mb-6">
       <div className="flex flex-col md:flex-row gap-2">
-        <SimpleSelect
-          placeholder="Point Value"
-          options={pointSet.map((v) => ({
-            label: v,
-            value: v,
-          }))}
-          value={
-            pointFilter ? { label: pointFilter, value: pointFilter } : null
-          }
-          isClearable
-          onChange={handlePointSelectClear}
-          classes="w-full md:w-1/6"
-        />
+        <button
+          className="bg-white border border-gray-300 p-2 text-gray-400 md:w-1/6 rounded-lg"
+          onClick={() => setSort(!sort)}
+        >
+          Sort Points{" "}
+          <i className={`fa-solid fa-arrow-${sort ? "down" : "up"}`} />
+        </button>
         <SimpleSelect
           placeholder="Type"
           options={types.map((t) => ({
@@ -79,7 +65,7 @@ const AchievementFilters = ({
 
 export default function AchievementsPage() {
   const dispatch = useDispatch();
-  const [pointFilter, setPointFilter] = useState();
+  const [sort, setSort] = useState();
   const [typeFilter, setTypeFilter] = useState();
   const { data: achievements, isLoading: achievementsLoading } =
     useGetAchievementsListQuery();
@@ -97,27 +83,11 @@ export default function AchievementsPage() {
     }, {});
   }, [achievements]);
 
-  const pointSet = useMemo(() => {
-    if (!achievements) return [];
-    const all_points = achievements
-      .filter((achievement) => achievement.point_value)
-      .map((achievement) => {
-        if (!achievement.point_value) {
-          return;
-        }
-        return achievement.point_value;
-      })
-      .sort((a, b) => a - b);
-    const points = new Set(all_points);
-    return [...points];
-  }, [achievements]);
-
   // Doing this the un-ideal way to start. Eventually/soon filtering will
   // be handled by the backend to support more complex filtering.
   const { filteredData, setSearchTerm } = useAchievementSearch(
     achievements,
     achievementLookup,
-    pointFilter,
     typeFilter
   );
 
@@ -150,12 +120,11 @@ export default function AchievementsPage() {
       </div>
 
       <AchievementFilters
-        pointSet={pointSet}
-        pointFilter={pointFilter}
         typeFilter={typeFilter}
         setSearchTerm={setSearchTerm}
-        setPointFilter={setPointFilter}
         setTypeFilter={setTypeFilter}
+        sort={sort}
+        setSort={setSort}
       />
       <TypeInfo />
       {Object.keys(groupedAchievements).map((key) => (
