@@ -90,7 +90,7 @@ const AchievementFilters = ({
             <SearchFilter
               setSearchTerm={setSearchTerm}
               placeholder="Search by name…"
-              classes="w-full h-10 text-sm"
+              classes="w-full h-10 text-base"
             />
           </div>
         </div>
