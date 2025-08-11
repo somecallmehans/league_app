@@ -68,24 +68,21 @@ class MetricsCalculator:
 
     def build_most_earned(self, achievements):
         try:
-            achievement_map = defaultdict(lambda: {"name": "", "count": 0})
-            for earned in achievements:
-                slug = earned.get("achievement__slug")
+            # achievement_map = defaultdict(lambda: {"name": "", "count": 0})
+            most_earned = Counter()
+            for achievement in achievements:
+                slug = achievement.get("achievement__slug")
                 if slug is not None:
                     continue
+
                 name = calculate_full_name(
-                    earned["achievement__name"], earned["achievement__parent__name"]
+                    achievement["achievement__name"],
+                    achievement["achievement__parent__name"],
                 )
 
-                achievement_map[name]["name"] = name
-                achievement_map[name]["count"] += 1
+                most_earned[name] += 1
 
-            max_earned = max(
-                (am["count"] for am in achievement_map.values()), default=0
-            )
-            self.metrics["most_earned"] = [
-                ea for ea in achievement_map.values() if ea["count"] == max_earned
-            ]
+            self.metrics["most_earned"] = dict(Counter(most_earned).most_common(5))
 
         except Exception as e:
             print(f"Error building most earned: {e}")
@@ -140,23 +137,42 @@ class MetricsCalculator:
         except Exception as e:
             print(f"Error building top 5: {e}")
 
-    def highest_attendence_and_overall_points(self, achievements):
+    def snack_leaders(self, achievements):
         try:
-            highest_round = Counter()
-            points_by_participant = Counter()
+            leaders = Counter()
             for achievement in achievements:
-                points_by_participant[achievement["participant__name"]] += achievement[
-                    "earned_points"
-                ]
-                if achievement["achievement__slug"] == "participation":
-                    highest_round[achievement["round_id"]] += 1
-            round = max(highest_round, key=highest_round.get)
-            round_obj = Rounds.objects.get(id=round)
-            self.metrics["highest_attendence"] = {
-                "date": round_obj.created_at,
-                "total": highest_round[round],
-                "round_number": round_obj.round_number,
-            }
+                if (
+                    achievement["achievement__slug"] == "best-snack"
+                    or achievement["achievement__slug"] == "bring-snack"
+                ):
+                    name = achievement["participant__name"]
+                    points = achievement["earned_points"]
+                    leaders[name] += points
+
+            self.metrics["snack_leaders"] = dict(Counter(leaders).most_common(5))
+        except Exception as e:
+            print(f"Error building snack leaders: ", {e})
+
+    def highest_attendence_and_overall_points(self, achievements):
+        # We decided higest attendence wasn't helpful so removing for now.
+        try:
+            # highest_round = Counter()
+            points_by_participant = Counter()
+
+            for achievement in achievements:
+                name = achievement["participant__name"]
+                points = achievement["earned_points"]
+                points_by_participant[name] += points
+                # if achievement["achievement__slug"] == "participation":
+                #     highest_round[achievement["round_id"]] += 1
+            # round = max(highest_round, key=highest_round.get)
+            # round_obj = Rounds.objects.get(id=round)
+            # self.metrics["highest_attendence"] = {
+            #     "date": round_obj.created_at,
+            #     "total": highest_round[round],
+            #     "round_number": round_obj.round_number,
+            # }
+
             self.metrics["overall_points"] = dict(
                 Counter(points_by_participant).most_common(5)[1:]
             )
@@ -197,6 +213,7 @@ class MetricsCalculator:
         self.build_big_earner()
         self.days_since_last_draw()
         self.build_achievement_chart(achievements)
+        self.snack_leaders(achievements)
 
         return self.metrics
 

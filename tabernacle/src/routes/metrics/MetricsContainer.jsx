@@ -3,7 +3,6 @@ import { Routes, Route } from "react-router-dom";
 
 import { useGetMetricsQuery } from "../../api/apiSlice";
 import LoadingSpinner from "../../components/LoadingSpinner";
-import { formatDateString } from "../../helpers/dateHelpers";
 
 import PageTitle from "../../components/PageTitle";
 import ColorBarChart from "./ColorBarChart";
@@ -116,16 +115,17 @@ const MetricBlockWithCycle = ({ data, subtitle, subtitleKey, smallText }) => {
   );
 };
 
-const RoundDateBlock = ({ data: { date, total, round_number } }) => (
-  <React.Fragment>
-    <div className="text-xl md:text-2xl font-extrabold font-extrabold text-center flex flex-grow items-center justify-center">
-      Round {round_number} {formatDateString(date)}
-    </div>
-    <div className="text-slate-500 text-lg md:text-xl font-extrabold font-extrabold text-center flex flex-grow items-center justify-center">
-      {total} Participants
-    </div>
-  </React.Fragment>
-);
+// Not used right now but might be useful in the future
+// const RoundDateBlock = ({ data: { date, total, round_number } }) => (
+//   <React.Fragment>
+//     <div className="text-xl md:text-2xl font-extrabold font-extrabold text-center flex flex-grow items-center justify-center">
+//       Round {round_number} {formatDateString(date)}
+//     </div>
+//     <div className="text-slate-500 text-lg md:text-xl font-extrabold font-extrabold text-center flex flex-grow items-center justify-center">
+//       {total} Participants
+//     </div>
+//   </React.Fragment>
+// );
 
 export const MetricWrapper = ({ title, classes, children }) => (
   <div
@@ -136,13 +136,13 @@ export const MetricWrapper = ({ title, classes, children }) => (
   </div>
 );
 
-const TopFiveList = ({ data, list, script, mod = 1 }) =>
+const TopFiveList = ({ data, list, script, mod = 1, truncate }) =>
   list.map((name, idx) => (
     <div
       key={idx}
       className="flex items-center justify-between gap-4 text-sm sm:text-base border-b border-gray-200 py-2"
     >
-      <span className="truncate">
+      <span className={`${truncate ? "truncate" : "wrap"} text-left`}>
         {/* We have a different metric for the "top" so we use mod to make sure the list looks right */}
         {idx + mod}. {name}
       </span>
@@ -153,11 +153,24 @@ const TopFiveList = ({ data, list, script, mod = 1 }) =>
   ));
 
 function Page() {
-  const { data, isLoading } = useGetMetricsQuery();
+  const { data: metrics, isLoading: metricsLoading } = useGetMetricsQuery();
 
-  if (isLoading) {
+  if (metricsLoading || !metrics) {
     return <LoadingSpinner />;
   }
+
+  const {
+    big_earner,
+    big_winners,
+    overall_points,
+    top_winners,
+    most_earned,
+    common_commanders,
+    snack_leaders,
+    last_draw,
+    color_pie,
+    achievement_chart,
+  } = metrics;
 
   return (
     <div className="p-4 md:p-8 mx-auto">
@@ -165,7 +178,7 @@ function Page() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <MetricWrapper title="Most Earned Points">
           <MetricBlock
-            data={data?.big_earner}
+            data={big_earner}
             mainKey="participant__name"
             subtitleKey="total_points"
           />
@@ -173,15 +186,15 @@ function Page() {
 
         <MetricWrapper title="Most Match Wins">
           <MetricBlockWithCycle
-            data={data?.big_winners}
+            data={big_winners}
             subtitle="Wins"
             subtitleKey="wins"
           />
         </MetricWrapper>
         <MetricWrapper title="Overall Earned">
           <TopFiveList
-            data={data?.overall_points}
-            list={Object.keys(data?.overall_points)}
+            data={overall_points}
+            list={Object.keys(overall_points)}
             script="Points"
             mod={2}
           />
@@ -189,51 +202,54 @@ function Page() {
 
         <MetricWrapper title="Top Match Wins">
           <TopFiveList
-            data={data?.top_winners}
-            list={Object.keys(data?.top_winners)}
+            data={top_winners}
+            list={Object.keys(top_winners)}
             script="Wins"
             mod={2}
           />
         </MetricWrapper>
 
-        <MetricWrapper title="Most Earned Deckbuilding Achievement">
-          <MetricBlockWithCycle
-            data={data?.most_earned}
-            subtitle="Times"
-            subtitleKey="count"
-            smallText
+        <MetricWrapper title="All Time Snack Leaders">
+          <TopFiveList
+            data={snack_leaders}
+            list={Object.keys(snack_leaders)}
+            script="Points"
           />
         </MetricWrapper>
-
         <MetricWrapper title="Top Commanders">
           <TopFiveList
-            data={data?.common_commanders}
-            list={Object.keys(data?.common_commanders)}
+            data={common_commanders}
+            list={Object.keys(common_commanders)}
             script="Wins"
           />
         </MetricWrapper>
 
-        <MetricWrapper title="Highest Attendence">
-          <RoundDateBlock data={data?.highest_attendence} />
+        <MetricWrapper
+          title="Most Earned Deckbuilding Achievements"
+          classes="col-span-full"
+        >
+          <TopFiveList data={most_earned} list={Object.keys(most_earned)} />
         </MetricWrapper>
 
+        {/* 
+        <MetricWrapper title="Highest Attendence">
+          <RoundDateBlock data={data?.highest_attendence} />
+        </MetricWrapper> */}
+
         <MetricWrapper title="Days Since Last Draw">
-          <MetricBlock data={data?.last_draw} mainKey="days" />
+          <MetricBlock data={last_draw} mainKey="days" />
         </MetricWrapper>
         <MetricWrapper
           title="All Time Color Wins"
           classes="col-span-1 sm:col-span-2 max-h-[24rem] md:max-h-[36rem] md:pb-12"
         >
-          <ColorBarChart colorPie={data?.color_pie} />
+          <ColorBarChart colorPie={color_pie} />
         </MetricWrapper>
         <MetricWrapper
           title={<AchievementBarTitle />}
           classes="col-span-1 sm:col-span-2 max-h-[24rem] md:max-h-[36rem] md:pb-12"
         >
-          <AchievementBarChart
-            data={data?.achievement_chart}
-            colorMap={colorMap}
-          />
+          <AchievementBarChart data={achievement_chart} colorMap={colorMap} />
         </MetricWrapper>
       </div>
     </div>
