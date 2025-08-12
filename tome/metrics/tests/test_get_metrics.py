@@ -13,7 +13,7 @@ def test_get_metrics_league_wide() -> None:
 
     assert metrics["color_pie"] == {"rg": 2, "wub": 1}
     assert metrics["big_winners"] == [{"name": "Charlie Smith", "wins": 2}]
-    assert metrics["most_earned"] == [{"name": "Kill the table", "count": 2}]
+    assert metrics["most_earned"] == {"Kill the table": 2}
     assert metrics["common_commanders"] == {
         "Stangg, Echo Warrior": 1,
         "Yarus, Roar of the Old Gods": 1,
