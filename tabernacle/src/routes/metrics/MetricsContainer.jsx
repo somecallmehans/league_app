@@ -127,14 +127,30 @@ const MetricBlockWithCycle = ({ data, subtitle, subtitleKey, smallText }) => {
 //   </React.Fragment>
 // );
 
-export const MetricWrapper = ({ title, classes, children }) => (
+export const MetricWrapper = ({
+  title,
+  classes,
+  children,
+  leftIcon,
+  rightIcon,
+}) => (
   <div
     className={`${classes} bg-white border border-gray-300 rounded-md w-full h-full p-4 flex flex-col text-center justify-between rounded-lg shadow-lg`}
   >
-    <div className="text-lg md:text-xl text-xl font-bold">{title}</div>
+    <div className="text-lg md:text-xl text-xl font-bold flex text-center justify-center gap-2">
+      <div>{leftIcon}</div>
+      {title}
+      <div>{rightIcon}</div>
+    </div>
     {children}
   </div>
 );
+
+const badgeMap = {
+  1: "🥇",
+  2: "🥈",
+  3: "🥉",
+};
 
 const TopFiveList = ({ data, list, script, mod = 1, truncate }) =>
   list.map((name, idx) => (
@@ -144,7 +160,7 @@ const TopFiveList = ({ data, list, script, mod = 1, truncate }) =>
     >
       <span className={`${truncate ? "truncate" : "wrap"} text-left`}>
         {/* We have a different metric for the "top" so we use mod to make sure the list looks right */}
-        {idx + mod}. {name}
+        {badgeMap[idx + mod] ? badgeMap[idx + mod] : idx + mod}. {name}
       </span>
       <span className="font-medium">
         {data[name]} {script}
@@ -167,7 +183,7 @@ function Page() {
     most_earned,
     common_commanders,
     snack_leaders,
-    last_draw,
+    //last_draw,
     color_pie,
     achievement_chart,
     most_draws,
@@ -180,7 +196,11 @@ function Page() {
     <div className="p-4 md:p-8 mx-auto">
       <PageTitle title="League Stats" />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <MetricWrapper title="Most Earned Points">
+        <MetricWrapper
+          title="Most Earned Points"
+          leftIcon={<i className="fa-solid fa-trophy text-yellow-500" />}
+          rightIcon={<i className="fa-solid fa-trophy text-yellow-500" />}
+        >
           <MetricBlock
             data={big_earner}
             mainKey="participant__name"
@@ -188,14 +208,22 @@ function Page() {
           />
         </MetricWrapper>
 
-        <MetricWrapper title="Most Match Wins">
+        <MetricWrapper
+          title="Most Match Wins"
+          leftIcon={<i className="fa-solid fa-trophy text-yellow-500" />}
+          rightIcon={<i className="fa-solid fa-trophy text-yellow-500" />}
+        >
           <MetricBlockWithCycle
             data={big_winners}
             subtitle="Wins"
             subtitleKey="wins"
           />
         </MetricWrapper>
-        <MetricWrapper title="Overall Earned">
+        <MetricWrapper
+          title="Overall Earned"
+          leftIcon={<i className="fa-solid fa-star text-yellow-500" />}
+          rightIcon={<i className="fa-solid fa-star text-yellow-500" />}
+        >
           <TopFiveList
             data={overall_points}
             list={Object.keys(overall_points)}
@@ -204,7 +232,11 @@ function Page() {
           />
         </MetricWrapper>
 
-        <MetricWrapper title="Top Match Wins">
+        <MetricWrapper
+          title="Top Match Wins"
+          leftIcon={<i className="fa-solid fa-medal text-yellow-500" />}
+          rightIcon={<i className="fa-solid fa-medal text-yellow-500" />}
+        >
           <TopFiveList
             data={top_winners}
             list={Object.keys(top_winners)}
@@ -213,14 +245,22 @@ function Page() {
           />
         </MetricWrapper>
 
-        <MetricWrapper title="All Time Snack Leaders">
+        <MetricWrapper
+          title="All Time Snack Leaders"
+          leftIcon={<i className="fa-solid fa-cookie-bite text-amber-500" />}
+          rightIcon={<i className="fa-solid fa-cookie-bite text-amber-500" />}
+        >
           <TopFiveList
             data={snack_leaders}
             list={Object.keys(snack_leaders)}
             script="Points"
           />
         </MetricWrapper>
-        <MetricWrapper title="Top Commanders">
+        <MetricWrapper
+          title="Top Commanders"
+          leftIcon={<i className="fa-solid fa-crown text-purple-500" />}
+          rightIcon={<i className="fa-solid fa-crown text-purple-500" />}
+        >
           <TopFiveList
             data={common_commanders}
             list={Object.keys(common_commanders)}
@@ -231,6 +271,8 @@ function Page() {
         <MetricWrapper
           title="Most Earned Deckbuilding Achievements"
           classes="col-span-full"
+          leftIcon={<i className="fa-solid fa-hammer text-stone-500" />}
+          rightIcon={<i className="fa-solid fa-hammer text-stone-500" />}
         >
           <TopFiveList data={most_earned} list={Object.keys(most_earned)} />
         </MetricWrapper>
@@ -240,18 +282,30 @@ function Page() {
           <RoundDateBlock data={data?.highest_attendence} />
         </MetricWrapper> */}
 
-        <MetricWrapper title="Most Draws">
+        <MetricWrapper
+          title="Most Draws"
+          leftIcon={<i className="fa-solid fa-handshake text-blue-500" />}
+          rightIcon={<i className="fa-solid fa-handshake text-red-500" />}
+        >
           <TopFiveList data={most_draws} list={Object.keys(most_draws)} />
         </MetricWrapper>
 
-        <MetricWrapper title="Most Knockouts (Without Winning)">
+        <MetricWrapper
+          title="Most Knockouts (Without Winning)"
+          leftIcon={<i className="fa-solid fa-skull-crossbones text-black" />}
+          rightIcon={<i className="fa-solid fa-skull-crossbones text-black" />}
+        >
           <TopFiveList
             data={most_knockouts}
             list={Object.keys(most_knockouts)}
           />
         </MetricWrapper>
 
-        <MetricWrapper title="Most Wins While Going Last">
+        <MetricWrapper
+          title="Most Wins While Going Last"
+          leftIcon={<i className="fa-solid fa-clock text-orange-400" />}
+          rightIcon={<i className="fa-solid fa-clock text-orange-400" />}
+        >
           <TopFiveList
             data={most_last_wins}
             list={Object.keys(most_last_wins)}
@@ -259,7 +313,11 @@ function Page() {
           />
         </MetricWrapper>
 
-        <MetricWrapper title="Most Points Earned in a Round">
+        <MetricWrapper
+          title="Most Points Earned in a Round"
+          leftIcon={<i className="fa-solid fa-burger text-amber-600" />}
+          rightIcon={<i className="fa-solid fa-burger text-amber-600" />}
+        >
           <TopFiveList
             data={biggest_burger}
             list={Object.keys(biggest_burger)}
@@ -267,9 +325,9 @@ function Page() {
           />
         </MetricWrapper>
 
-        <MetricWrapper title="Days Since Last Draw">
+        {/* <MetricWrapper title="Days Since Last Draw">
           <MetricBlock data={last_draw} mainKey="days" />
-        </MetricWrapper>
+        </MetricWrapper> */}
 
         <MetricWrapper
           title="All Time Color Wins"
