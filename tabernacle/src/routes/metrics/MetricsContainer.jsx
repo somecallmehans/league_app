@@ -170,6 +170,9 @@ function Page() {
     last_draw,
     color_pie,
     achievement_chart,
+    most_draws,
+    most_knockouts,
+    most_last_wins,
   } = metrics;
 
   return (
@@ -236,9 +239,28 @@ function Page() {
           <RoundDateBlock data={data?.highest_attendence} />
         </MetricWrapper> */}
 
+        <MetricWrapper title="Most Draws">
+          <TopFiveList data={most_draws} list={Object.keys(most_draws)} />
+        </MetricWrapper>
+
+        <MetricWrapper title="Most Knockouts (Without Winning)">
+          <TopFiveList
+            data={most_knockouts}
+            list={Object.keys(most_knockouts)}
+          />
+        </MetricWrapper>
+
+        <MetricWrapper title="Most Wins While Going Last">
+          <TopFiveList
+            data={most_last_wins}
+            list={Object.keys(most_last_wins)}
+          />
+        </MetricWrapper>
+
         <MetricWrapper title="Days Since Last Draw">
           <MetricBlock data={last_draw} mainKey="days" />
         </MetricWrapper>
+
         <MetricWrapper
           title="All Time Color Wins"
           classes="col-span-1 sm:col-span-2 max-h-[24rem] md:max-h-[36rem] md:pb-12"
