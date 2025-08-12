@@ -1,9 +1,9 @@
-from collections import defaultdict, Counter
+from collections import defaultdict, Counter, OrderedDict
 from django.db.models import Sum
 from django.utils.timezone import now, make_aware
 
 from achievements.models import WinningCommanders
-from sessions_rounds.models import PodsParticipants, Sessions, Rounds
+from sessions_rounds.models import PodsParticipants, Sessions
 from users.models import ParticipantAchievements, Participants
 
 
@@ -143,13 +143,22 @@ class MetricsCalculator:
         most_draws = Counter()
         most_knockouts = Counter()
         most_last_wins = Counter()
+        biggest_burger = defaultdict(Counter)
+        round_meta = {}
 
         for achievement in achievements:
             player_name = achievement["participant__name"]
             points = achievement["earned_points"]
             slug = achievement.get("achievement__slug")
+            rnd = str(achievement["round_id"])
+
+            round_meta[rnd] = (
+                achievement["round__round_number"],
+                achievement["round__created_at"],
+            )
 
             points_by_participant[player_name] += points
+            biggest_burger[rnd][player_name] += points
 
             if slug == "best-snack" or slug == "bring-snack":
                 snack_leaders[player_name] += points
@@ -163,6 +172,30 @@ class MetricsCalculator:
             if slug == "last-in-order":
                 most_last_wins[player_name] += 1
 
+        winners_by_round = []
+        for rid, counter in biggest_burger.items():
+            if not counter:
+                continue
+            player, pts = counter.most_common(1)[0]
+            rnum, rdate = round_meta[rid]
+            winners_by_round.append(
+                {
+                    "round_id": rid,
+                    "player": player,
+                    "points": pts,
+                    "round_number": rnum,
+                    "round_date": rdate,
+                }
+            )
+        top5 = sorted(winners_by_round, key=lambda x: x["points"], reverse=True)[:5]
+
+        burger_display = OrderedDict()
+        for w in top5:
+            dt = w["round_date"]
+            when = dt.strftime("%b %d, %Y") if hasattr(dt, "strftime") else str(dt)
+            key = f'{w["player"]}, Round {w["round_number"]} on {when}'
+            burger_display[key] = w["points"]
+
         self.metrics["snack_leaders"] = dict(Counter(snack_leaders).most_common(5))
         self.metrics["overall_points"] = dict(
             Counter(points_by_participant).most_common(5)[1:]
@@ -170,6 +203,7 @@ class MetricsCalculator:
         self.metrics["most_draws"] = dict(Counter(most_draws).most_common(5))
         self.metrics["most_knockouts"] = dict(Counter(most_knockouts).most_common(5))
         self.metrics["most_last_wins"] = dict(Counter(most_last_wins).most_common(5))
+        self.metrics["biggest_burger"] = burger_display
 
     def build_metrics(self):
         try:
@@ -181,7 +215,7 @@ class MetricsCalculator:
             )
             achievements = list(
                 ParticipantAchievements.objects.filter(deleted=False)
-                .select_related("achievement", "participant")
+                .select_related("achievement", "participant", "round")
                 .values(
                     "earned_points",
                     "round_id",
@@ -191,6 +225,8 @@ class MetricsCalculator:
                     "achievement__point_value",
                     "achievement__parent__name",
                     "participant__name",
+                    "round__round_number",
+                    "round__created_at",
                 )
             )
 

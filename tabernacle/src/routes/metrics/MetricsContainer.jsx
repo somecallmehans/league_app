@@ -173,6 +173,7 @@ function Page() {
     most_draws,
     most_knockouts,
     most_last_wins,
+    biggest_burger,
   } = metrics;
 
   return (
@@ -254,6 +255,15 @@ function Page() {
           <TopFiveList
             data={most_last_wins}
             list={Object.keys(most_last_wins)}
+            script="Wins"
+          />
+        </MetricWrapper>
+
+        <MetricWrapper title="Most Points Earned in a Round">
+          <TopFiveList
+            data={biggest_burger}
+            list={Object.keys(biggest_burger)}
+            script="Points"
           />
         </MetricWrapper>
 
