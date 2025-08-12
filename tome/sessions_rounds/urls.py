@@ -22,6 +22,11 @@ urlpatterns = [
         name="get_participant_recent_pods",
     ),
     path(
+        "get_participant_recent_pods/<int:participant_id>/<str:mm_yy>/",
+        get_participant_recent_pods,
+        name="get_participant_recent_pods",
+    ),
+    path(
         "sessions_by_date/<str:mm_yy>/",
         sessions_and_rounds_by_date,
         name="sessions-and-rounds-by-date",

@@ -371,15 +371,16 @@ def get_all_rounds(_, participant_id=None):
 
 
 @api_view([GET])
-def get_participant_recent_pods(_, participant_id):
+def get_participant_recent_pods(_, participant_id, mm_yy=None):
     """
     Get pods for the given participant for all of the rounds they were apart of
     this month.
 
     """
 
-    today = datetime.today()
-    mm_yy = today.strftime("%m-%y")
+    if not mm_yy:
+        today = datetime.today()
+        mm_yy = today.strftime("%m-%y")
 
     participant = Participants.objects.filter(id=participant_id, deleted=False).first()
 

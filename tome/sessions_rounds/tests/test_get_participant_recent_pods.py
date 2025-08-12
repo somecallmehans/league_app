@@ -152,3 +152,115 @@ def test_get_participants_recent_pods_fail(client) -> None:
     res = client.get(url)
 
     assert res.status_code == status.HTTP_400_BAD_REQUEST
+
+
+SESSION_LAST_MONTH = 33
+ROUND_LAST_MONTH = 44
+
+
+@pytest.fixture(scope="function")
+def build_pods_last_month():
+    """Build our pod state"""
+    session = Sessions.objects.create(
+        id=SESSION_LAST_MONTH, month_year="10-24", created_at=""
+    )
+    round = Rounds.objects.create(
+        id=ROUND_LAST_MONTH,
+        session_id=SESSION_LAST_MONTH,
+        round_number=1,
+        created_at="",
+    )
+    session.created_at = datetime(2024, 10, 18, 0, 0, 0, tzinfo=pytz.UTC)
+    round.created_at = datetime(2024, 10, 18, 0, 0, 0, tzinfo=pytz.UTC)
+    session.save(update_fields=["created_at"])
+    round.save(update_fields=["created_at"])
+
+    pods = Pods.objects.bulk_create(
+        Pods(rounds_id=rid)
+        for rid in [
+            ids.R2_SESSION_LAST_MONTH,
+            ROUND_LAST_MONTH,
+        ]
+    )
+    for idx, pod in enumerate(pods):
+        WinningCommanders.objects.create(
+            name=WINNERS_LIST[idx][0],
+            pods=pod,
+            participants_id=WINNERS_LIST[idx][1],
+            colors_id=ids.GRUUL,
+        )
+        PodsParticipants.objects.bulk_create(
+            PodsParticipants(pods=pod, participants_id=pid)
+            for pid in PODS_DICT[str(idx)]
+        )
+
+
+def test_get_recent_pods_last_month(client, build_pods_last_month) -> None:
+    """
+    should: get all of the pods for a given participant they appear in for the given month
+    """
+
+    url = reverse(
+        "get_participant_recent_pods",
+        kwargs={"participant_id": ids.P1, "mm_yy": "10-24"},
+    )
+    res = client.get(url)
+
+    parsed_res = res.json()
+
+    expected = [
+        [
+            "10/18/2024",
+            [
+                {
+                    "id": 2,
+                    "commander_name": "Stangg, Echo Warrior",
+                    "round_number": 1,
+                    "participants": [
+                        {"id": ids.P1, "name": "Charlie Smith", "winner": True},
+                        {"id": ids.P3, "name": "Fern Penvarden", "winner": False},
+                        {"id": ids.P4, "name": "Nikita Heape", "winner": False},
+                        {"id": ids.P10, "name": "Thom Horn", "winner": False},
+                    ],
+                },
+            ],
+        ],
+        [
+            "10/28/2024",
+            [
+                {
+                    "commander_name": "END IN DRAW",
+                    "id": 1,
+                    "participants": [
+                        {
+                            "id": 901,
+                            "name": "Charlie Smith",
+                            "winner": False,
+                        },
+                        {
+                            "id": 904,
+                            "name": "Bevon Goldster",
+                            "name": "Nikita Heape",
+                            "winner": False,
+                        },
+                        {
+                            "id": 907,
+                            "name": "Amanda Tinnin",
+                            "winner": False,
+                        },
+                        {
+                            "id": 909,
+                            "name": "Jeffrey Blackwood",
+                            "name": "Fran Brek",
+                            "winner": False,
+                        },
+                    ],
+                    "round_number": 2,
+                },
+            ],
+        ],
+    ]
+
+    assert res.status_code == status.HTTP_200_OK
+
+    assert parsed_res == expected
