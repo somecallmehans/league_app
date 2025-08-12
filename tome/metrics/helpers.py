@@ -137,47 +137,39 @@ class MetricsCalculator:
         except Exception as e:
             print(f"Error building top 5: {e}")
 
-    def snack_leaders(self, achievements):
-        try:
-            leaders = Counter()
-            for achievement in achievements:
-                if (
-                    achievement["achievement__slug"] == "best-snack"
-                    or achievement["achievement__slug"] == "bring-snack"
-                ):
-                    name = achievement["participant__name"]
-                    points = achievement["earned_points"]
-                    leaders[name] += points
+    def build_top_fives(self, achievements):
+        snack_leaders = Counter()
+        points_by_participant = Counter()
+        most_draws = Counter()
+        most_knockouts = Counter()
+        most_last_wins = Counter()
 
-            self.metrics["snack_leaders"] = dict(Counter(leaders).most_common(5))
-        except Exception as e:
-            print(f"Error building snack leaders: ", {e})
+        for achievement in achievements:
+            player_name = achievement["participant__name"]
+            points = achievement["earned_points"]
+            slug = achievement.get("achievement__slug")
 
-    def highest_attendence_and_overall_points(self, achievements):
-        # We decided higest attendence wasn't helpful so removing for now.
-        try:
-            # highest_round = Counter()
-            points_by_participant = Counter()
+            points_by_participant[player_name] += points
 
-            for achievement in achievements:
-                name = achievement["participant__name"]
-                points = achievement["earned_points"]
-                points_by_participant[name] += points
-                # if achievement["achievement__slug"] == "participation":
-                #     highest_round[achievement["round_id"]] += 1
-            # round = max(highest_round, key=highest_round.get)
-            # round_obj = Rounds.objects.get(id=round)
-            # self.metrics["highest_attendence"] = {
-            #     "date": round_obj.created_at,
-            #     "total": highest_round[round],
-            #     "round_number": round_obj.round_number,
-            # }
+            if slug == "best-snack" or slug == "bring-snack":
+                snack_leaders[player_name] += points
 
-            self.metrics["overall_points"] = dict(
-                Counter(points_by_participant).most_common(5)[1:]
-            )
-        except Exception as e:
-            print(f"Error building highest attendence: {e}")
+            if slug == "end-draw":
+                most_draws[player_name] += 1
+
+            if slug == "knock-out":
+                most_knockouts[player_name] += 1
+
+            if slug == "last-in-order":
+                most_last_wins[player_name] += 1
+
+        self.metrics["snack_leaders"] = dict(Counter(snack_leaders).most_common(5))
+        self.metrics["overall_points"] = dict(
+            Counter(points_by_participant).most_common(5)[1:]
+        )
+        self.metrics["most_draws"] = dict(Counter(most_draws).most_common(5))
+        self.metrics["most_knockouts"] = dict(Counter(most_knockouts).most_common(5))
+        self.metrics["most_last_wins"] = dict(Counter(most_last_wins).most_common(5))
 
     def build_metrics(self):
         try:
@@ -209,11 +201,10 @@ class MetricsCalculator:
         self.build_big_winner(winners)
         self.build_most_earned(achievements)
         self.top_five_commanders(winners)
-        self.highest_attendence_and_overall_points(achievements)
         self.build_big_earner()
         self.days_since_last_draw()
         self.build_achievement_chart(achievements)
-        self.snack_leaders(achievements)
+        self.build_top_fives(achievements)
 
         return self.metrics
 
