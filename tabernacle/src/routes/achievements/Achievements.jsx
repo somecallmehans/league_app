@@ -116,7 +116,7 @@ const AchievementFilters = ({
 
 export default function AchievementsPage() {
   const dispatch = useDispatch();
-  const [sort, setSort] = useState();
+  const [sort, setSort] = useState(true);
   const [showInfo, setShowInfo] = useState(true);
 
   const [typeFilter, setTypeFilter] = useState();
