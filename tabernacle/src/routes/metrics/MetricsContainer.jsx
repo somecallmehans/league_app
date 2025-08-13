@@ -291,7 +291,7 @@ function Page() {
         </MetricWrapper>
 
         <MetricWrapper
-          title="Most Knockouts (Without Winning)"
+          title="Knockouts In Non-Wins"
           leftIcon={<i className="fa-solid fa-skull-crossbones text-black" />}
           rightIcon={<i className="fa-solid fa-skull-crossbones text-black" />}
         >
