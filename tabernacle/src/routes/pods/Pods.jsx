@@ -25,38 +25,90 @@ function dateSort(a, b) {
   return parseDate(b) - parseDate(a);
 }
 
-const RoundDisplay = ({ info, dateKey, selectedMonth }) => {
+const roundTimes = {
+  1: "1:30 PM",
+  2: "3:30 PM",
+};
+
+const RoundDisplay = ({ roundInfo, dateKey }) => {
   return (
-    <div className="flex flex-wrap w-full justify-around p-4 bg-white drop-shadow-md">
-      {[...info]
+    <div className="flex flex-wrap w-full justify-around p-4 drop-shadow-md">
+      {[...roundInfo]
         .sort((a, b) => {
           return a.round_number - b.round_number;
         })
-        .map(({ id, round_number }) => (
-          <Link
-            key={id}
-            to={`${id}`}
-            state={{
-              roundId: id,
-              roundNumber: round_number,
-              date: dateKey,
-              selectedMonth,
-            }}
-          >
+        .map(({ id, round_number, completed, started }) => {
+          let iconText = "fa-regular fa-circle-check";
+          let buttonColor = "bg-emerald-500";
+          if (!completed && !started) {
+            iconText = "fa-regular fa-hourglass";
+            buttonColor = "bg-slate-400";
+          } else if (started && !completed) {
+            iconText = "fa-solid fa-clock";
+            buttonColor = "bg-yellow-500";
+          }
+          return (
             <div
-              className="bg-sky-300 hover:bg-sky-200 drop-shadow-md text-center rounded-md
-                     py-4 px-6 sm:py-6 sm:px-12 md:py-8 md:px-32 lg:py-10 lg:px-42 text-lg md:text-2xl"
-              onClick={() => handleNavClick(`round_${id}`)}
+              key={id}
+              className="flex flex-col items-center justify-center text-center"
             >
-              Round {round_number}
+              <Link
+                key={id}
+                to={`${!completed && !started ? "#" : "id"}`}
+                state={{
+                  roundId: id,
+                  roundNumber: round_number,
+                  date: dateKey,
+                }}
+                disabled={!completed && !started}
+              >
+                <div
+                  className={`${buttonColor} text-white drop-shadow-md  rounded-md
+                    px-2 py-4 sm:px-8 sm:py-8 text-lg md:text-3xl`}
+                  onClick={() => handleNavClick(`round_${id}`)}
+                >
+                  <i
+                    className={`${iconText} text-base md:text-xl lg:text-2xl mr-2`}
+                  />
+                  Round {round_number}
+                </div>
+              </Link>
+              <div className="text-center sm:text-xl">
+                {roundTimes[round_number]}
+              </div>
             </div>
-          </Link>
-        ))}
+          );
+        })}
     </div>
   );
 };
 
-const RoundList = ({ rounds, selectedMonth }) => {
+const SessionPill = ({ roundInfo, dateKey }) => {
+  const dater = roundInfo[0].created_at;
+  const d = new Date(dater);
+
+  const dayOfWeek = d.toLocaleDateString("en-US", { weekday: "short" });
+  const month = d.toLocaleDateString("en-US", { month: "short" });
+  const day = d.getDate();
+
+  console.log(dayOfWeek, month, day);
+  return (
+    <div className="flex flex-col mb-8">
+      <div className="border rounded-lg w-full  sm:h-48 flex">
+        <div className="bg-orange-600 text-white text-center  rounded-l-lg basis-1/4 p-8 font-bold flex flex-col">
+          <div className="text-lg">{dayOfWeek}</div>
+          <div className="text-xl sm:text-2xl">{month}</div>
+          <div className="text-3xl sm:text-6xl">{day}</div>
+        </div>
+        <div className="bg-white w-full rounded-r-lg flex justify-around">
+          <RoundDisplay roundInfo={roundInfo} dateKey={dateKey} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const RoundList = ({ rounds }) => {
   if (!rounds || Object.keys(rounds).length === 0) {
     return (
       <div className="text-center text-gray-600 py-8">
@@ -67,18 +119,8 @@ const RoundList = ({ rounds, selectedMonth }) => {
   return Object.keys(rounds)
     .sort(dateSort)
     .map((round) => {
-      const dateKey = round;
       const roundInfo = rounds[round];
-      return (
-        <div className="flex flex-col" key={round}>
-          <div className="text-3xl font-bold my-2">{dateKey}</div>
-          <RoundDisplay
-            info={roundInfo}
-            dateKey={dateKey}
-            selectedMonth={selectedMonth}
-          />
-        </div>
-      );
+      return <SessionPill key={round} roundInfo={roundInfo} dateKey={round} />;
     });
 };
 
