@@ -41,10 +41,10 @@ const RoundDisplay = ({ roundInfo, dateKey }) => {
           let iconText = "fa-regular fa-circle-check";
           let buttonColor = "bg-emerald-500";
           if (!completed && !started) {
-            iconText = "fa-regular fa-hourglass";
+            iconText = "fa-regular fa-circle-stop";
             buttonColor = "bg-slate-400";
           } else if (started && !completed) {
-            iconText = "fa-solid fa-clock";
+            iconText = "fa-solid fa-circle-exclamation";
             buttonColor = "bg-yellow-500";
           }
           return (
