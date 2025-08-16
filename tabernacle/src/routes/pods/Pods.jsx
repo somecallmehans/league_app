@@ -93,14 +93,14 @@ const SessionPill = ({ roundInfo, dateKey }) => {
 
   console.log(dayOfWeek, month, day);
   return (
-    <div className="flex flex-col mb-8">
+    <div className="flex flex-col mb-8 ">
       <div className="border rounded-lg w-full  sm:h-48 flex">
-        <div className="bg-orange-600 text-white text-center  rounded-l-lg basis-1/4 p-8 font-bold flex flex-col">
+        <div className="bg-white text-black border border-gray-200 text-center  rounded-l-lg basis-1/4 p-8 font-bold flex flex-col">
           <div className="text-lg">{dayOfWeek}</div>
           <div className="text-xl sm:text-2xl">{month}</div>
           <div className="text-3xl sm:text-6xl">{day}</div>
         </div>
-        <div className="bg-white w-full rounded-r-lg flex justify-around">
+        <div className="bg-white w-full border border-gray-200 rounded-r-lg flex justify-around">
           <RoundDisplay roundInfo={roundInfo} dateKey={dateKey} />
         </div>
       </div>

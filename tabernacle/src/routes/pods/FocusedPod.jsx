@@ -11,7 +11,7 @@ import PointsModal from "../leagueSession/PointsModal";
 import ColorGrid from "../../components/ColorGrid";
 
 const PointsBlock = ({ children }) => (
-  <span className="text-sm md:text-md font-light">{children}</span>
+  <span className="text-sm md:text-base font-light">{children}</span>
 );
 
 const PodSquare = ({ participants, handleOnClick, winnerInfo, submitted }) => {
@@ -39,11 +39,11 @@ const PodSquare = ({ participants, handleOnClick, winnerInfo, submitted }) => {
         >
           <span className="hover:text-sky-400 text-lg md:text-2xl">
             {isWinner(participant_id) && (
-              <i className="fa-solid fa-crown text-md pr-2 text-yellow-600" />
+              <i className="fa-solid fa-crown text-base pr-2 text-yellow-600" />
             )}
             {name}
             {isWinner(participant_id) && (
-              <i className="fa-solid fa-crown text-md pl-2 text-yellow-600" />
+              <i className="fa-solid fa-crown text-base pl-2 text-yellow-600" />
             )}
           </span>
         </div>

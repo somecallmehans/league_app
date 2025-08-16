@@ -42,7 +42,7 @@ const ParticipantRow = ({
     <form
       onSubmit={handleSubmit(handleEdit)}
       name={formName}
-      className="flex justify-between mb-2 px-4 text-md md:text-lg border-b border-slate-400"
+      className="flex justify-between mb-2 px-4 text-base md:text-lg border-b border-slate-400"
     >
       <TextInput
         name="participantName"
