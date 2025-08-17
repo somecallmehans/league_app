@@ -91,7 +91,6 @@ const SessionPill = ({ roundInfo, dateKey }) => {
   const month = d.toLocaleDateString("en-US", { month: "short" });
   const day = d.getDate();
 
-  console.log(dayOfWeek, month, day);
   return (
     <div className="flex flex-col mb-8 ">
       <div className="border rounded-lg w-full  sm:h-48 flex">

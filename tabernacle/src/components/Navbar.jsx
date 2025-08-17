@@ -130,7 +130,6 @@ function MobileDisclosure({ link, close, isActive }) {
               >
                 {link.children.map((child) => (
                   <div key={child.id} className="pl-6">
-                    {console.log(child, isActive(child.to))}
                     <NavLink
                       to={child.to}
                       onClick={close}
