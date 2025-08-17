@@ -202,6 +202,7 @@ function RoundLobby({ roundId, sessionId, previousRoundId, control }) {
     loading,
   } = useRouteParticipants(roundId, sessionId, previousRoundId);
   const [isOpen, setIsOpen] = useState(false);
+  const [lockForm, setLockForm] = useState();
 
   if (loading) {
     return <LoadingSpinner />;
@@ -257,8 +258,12 @@ function RoundLobby({ roundId, sessionId, previousRoundId, control }) {
       <ConfirmModal
         isOpen={isOpen}
         title="Begin Round?"
-        confirmAction={() => submitForm()}
+        confirmAction={() => {
+          setLockForm(true);
+          submitForm();
+        }}
         closeModal={() => setIsOpen(!isOpen)}
+        disableSubmit={lockForm}
       />
     </div>
   );
