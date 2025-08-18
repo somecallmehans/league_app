@@ -108,8 +108,8 @@ function MobileDisclosure({ link, close, isActive }) {
         <div className="text-left">
           <Disclosure.Button className="flex w-full items-center justify-end rounded-xl py-3 text-2xl font-medium text-slate-100">
             <i
-              className={`fa-solid fa-chevron-left mr-2 text-base transition-transform ${
-                open ? "-rotate-90" : ""
+              className={`fa-solid  mr-2 text-base transition-transform ${
+                open ? "-rotate-180 fa-minus" : "fa-plus"
               }`}
             />
             <span>{link.name}</span>

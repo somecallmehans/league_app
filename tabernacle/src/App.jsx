@@ -12,6 +12,7 @@ import LeagueRouter from "./routes/leagueSession/LeagueSession";
 import ManagementContainer from "./routes/crud/ManagementContainer";
 import Metrics from "./routes/metrics/MetricsContainer";
 import Pods from "./routes/pods/Pods";
+import HallofFame from "./routes/halloffame/HallofFame";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -29,6 +30,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/info" element={<Resources />} />
         <Route path="/leaderboard" element={<LeaderBoard />} />
+        <Route path="/hall-of-fame" element={<HallofFame />} />
         <Route path="/achievements" element={<AchievementsPage />} />
         <Route path="/metrics/*" element={<Metrics />} />
         <Route
