@@ -48,6 +48,7 @@ from achievements.helpers import (
     handle_upsert_child_achievements,
     handle_upsert_restrictions,
     cascade_soft_delete,
+    calculate_monthly_winners,
 )
 from sessions_rounds.helpers import handle_close_round
 
@@ -185,13 +186,25 @@ def get_achievements_by_participant_month(_, mm_yy=None):
     if mm_yy == "new" or mm_yy == None:
         mm_yy = today.strftime("%m-%y")
 
-    session_ids = Sessions.objects.filter(month_year=mm_yy).values_list("id", flat=True)
+    session_ids = Sessions.objects.filter(month_year=mm_yy, deleted=False).values_list(
+        "id", flat=True
+    )
 
     res = calculate_total_points_for_month(session_ids)
 
     res.sort(key=lambda x: x["total_points"], reverse=True)
 
     return Response(res)
+
+
+@api_view([GET])
+def get_league_monthly_winners(_):
+    """
+    For each month, retrieve the top point earner for the given month + related commander info.
+    """
+    today = datetime.today()
+    mm_yy = today.strftime("%m-%y")
+    return Response(calculate_monthly_winners(mm_yy=mm_yy))
 
 
 @api_view([GET])
