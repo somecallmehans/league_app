@@ -4,7 +4,18 @@ from datetime import datetime
 from collections import defaultdict
 
 from django.db import transaction
-from django.db.models import Q, F, Value, Prefetch, CharField, IntegerField, Case, When
+from django.db.models import (
+    Q,
+    F,
+    Value,
+    Prefetch,
+    CharField,
+    IntegerField,
+    Case,
+    When,
+    Max,
+    Sum,
+)
 
 from django.contrib.postgres.aggregates import ArrayAgg
 
@@ -205,6 +216,78 @@ def get_league_monthly_winners(_):
     today = datetime.today()
     mm_yy = today.strftime("%m-%y")
     return Response(calculate_monthly_winners(mm_yy=mm_yy))
+
+
+@api_view([GET])
+def get_league_monthly_winner_info(_, mm_yy, participant_id):
+    """
+    For the provided month/participant, retrieve any relevant info
+    about their participation in that month (points earned, commanders for the rounds
+    they won, etc etc)
+    """
+    # Get the rounds for the given month
+    rounds = {
+        r["id"]: r
+        for r in Rounds.objects.filter(session__month_year=mm_yy, deleted=False).values(
+            "id", "round_number", "created_at"
+        )
+    }
+
+    # Get the rounds and pods that the player appeared in
+    played_round_ids = set(
+        PodsParticipants.objects.filter(
+            participants_id=participant_id, pods__rounds_id__in=list(rounds.keys())
+        ).values_list("pods__rounds_id", flat=True)
+    )
+
+    # Get the number of points they earned per round they appeared in
+    points_by_round = {
+        row["round_id"]: row["total_points"]
+        for row in (
+            ParticipantAchievements.objects.filter(
+                participant_id=participant_id,
+                round_id__in=played_round_ids,
+                deleted=False,
+            )
+            .values("round_id")
+            .annotate(total_points=Coalesce(Sum("earned_points"), 0))
+        )
+    }
+
+    # Get the commanders for the given player in each round, regardless of if they
+    # won or not. If nothing gets returned its assumed they lost
+    commanders_by_round = {
+        row["pods__rounds_id"]: row["cmd_name"]
+        for row in (
+            WinningCommanders.objects.filter(
+                deleted=False,
+                participants_id=participant_id,
+                pods__rounds_id__in=list(rounds.keys()),
+            )
+            .values("pods__rounds_id")
+            .annotate(cmd_name=Max("name"))
+        )
+    }
+
+    all_rel_rounds = sorted(played_round_ids.union(points_by_round.keys()))
+
+    rounds_payload = []
+
+    for rid in all_rel_rounds:
+        rounds_payload.append(
+            {
+                **rounds.get(rid),
+                "total_points": int(points_by_round.get(rid, 0) or 0),
+                "commander": commanders_by_round.get(rid),
+            }
+        )
+
+    return Response(
+        {
+            "participant_id": participant_id,
+            "rounds": rounds_payload,
+        }
+    )
 
 
 @api_view([GET])

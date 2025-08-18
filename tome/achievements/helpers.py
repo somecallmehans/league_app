@@ -16,7 +16,7 @@ from achievements.models import (
 )
 from users.models import ParticipantAchievements
 from users.serializers import ParticipantsSerializer
-from sessions_rounds.models import Sessions
+
 from sessions_rounds.serializers import RoundsSerializer
 
 
