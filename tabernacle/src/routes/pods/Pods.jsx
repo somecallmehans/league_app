@@ -54,7 +54,7 @@ const RoundDisplay = ({ roundInfo, dateKey }) => {
             >
               <Link
                 key={id}
-                to={`${!completed && !started ? "#" : "id"}`}
+                to={`${!completed && !started ? "#" : id}`}
                 state={{
                   roundId: id,
                   roundNumber: round_number,
