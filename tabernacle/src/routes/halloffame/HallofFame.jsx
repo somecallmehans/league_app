@@ -6,15 +6,21 @@ import { useGetLeagueWinnersQuery } from "../../api/apiSlice";
 import { formatMonthYear } from "../../helpers/dateHelpers";
 
 import PageTitle from "../../components/PageTitle";
+import FocusedWinner from "./FocusedWinner";
 
 const HallofFamePill = ({
+  isFirst,
   participant_name,
   session__month_year,
   total_points,
 }) => {
   return (
-    <div className="border rounded-lg bg-white flex flex-col text-center shadow-md">
-      <div className="text-2xl border py-4 flex justify-center items-center">
+    <div
+      className={`${
+        isFirst ? "col-span-full" : ""
+      } border  rounded-lg bg-white flex flex-col text-center shadow-md`}
+    >
+      <div className="text-2xl border-b  py-4 flex justify-center items-center">
         <i className="fa-solid fa-trophy mr-2 text-yellow-400" />
         <div className="font-bold"> {formatMonthYear(session__month_year)}</div>
         <i className="fa-solid fa-trophy ml-2 text-yellow-400" />
@@ -34,14 +40,18 @@ const HallofFamePill = ({
 function HallofFameContainer() {
   const { data: winners, isLoading: winnersLoading } =
     useGetLeagueWinnersQuery();
-  console.log(winners);
+
   if (winnersLoading) return null;
   return (
     <div className="p-4 md:p-8 mx-auto">
       <PageTitle title="Hall of Fame" />
       <div className="grid gap-4 md:grid-cols-2">
-        {winners.map((winner) => (
-          <HallofFamePill key={winner.session__month_year} {...winner} />
+        {winners.map((winner, idx) => (
+          <HallofFamePill
+            key={winner.session__month_year}
+            {...winner}
+            isFirst={idx === 0}
+          />
         ))}
       </div>
     </div>
@@ -52,7 +62,7 @@ export default function HOFRouter() {
   return (
     <Routes>
       <Route path="/" element={<HallofFameContainer />} />
-      <Route path="/:mm_yy" element={<div />} />
+      <Route path="/:mm_yy" element={<FocusedWinner />} />
     </Routes>
   );
 }
