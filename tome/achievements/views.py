@@ -62,9 +62,12 @@ from achievements.helpers import (
     calculate_monthly_winners,
 )
 from sessions_rounds.helpers import handle_close_round
+from services.scryfall_client import ScryfallClientRequest
 
 GET = "GET"
 POST = "POST"
+
+scryfall_request = ScryfallClientRequest()
 
 
 @api_view([GET])
@@ -269,16 +272,22 @@ def get_league_monthly_winner_info(_, mm_yy, participant_id):
         )
     }
 
+    commander_images_by_raw = scryfall_request.get_commander_image_urls(
+        commander_names=commanders_by_round.values()
+    )
+
     all_rel_rounds = sorted(played_round_ids.union(points_by_round.keys()))
 
     rounds_payload = []
 
     for rid in all_rel_rounds:
+        raw_name = commanders_by_round.get(rid)
         rounds_payload.append(
             {
                 **rounds.get(rid),
                 "total_points": int(points_by_round.get(rid, 0) or 0),
-                "commander": commanders_by_round.get(rid),
+                "commander": raw_name,
+                "commander_img": commander_images_by_raw.get(raw_name, []),
             }
         )
 
