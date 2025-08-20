@@ -30,12 +30,7 @@ const roundTimes = {
   2: "3:30 PM",
 };
 
-const RoundDisplay = ({
-  roundInfo,
-  dateKey,
-  selectedMonth,
-  renderRoundLink,
-}) => {
+const RoundDisplay = ({ roundInfo, dateKey, renderRoundLink }) => {
   return (
     <div className="flex flex-wrap w-full justify-around p-4 drop-shadow-md">
       {[...roundInfo]
@@ -60,11 +55,7 @@ const RoundDisplay = ({
             >
               <Link
                 key={id}
-                to={renderRoundLink(id, {
-                  roundId: id,
-                  roundNumber: round_number,
-                  date: selectedMonth,
-                })}
+                to={renderRoundLink(id)}
                 state={{
                   roundId: id,
                   roundNumber: round_number,
@@ -203,10 +194,9 @@ function Page() {
       <RoundList
         rounds={rounds}
         selectedMonth={selectedMonth}
-        renderRoundLink={(roundId, state) => ({
+        renderRoundLink={(roundId) => ({
           pathname: `/pods/${roundId}`,
           search: `?m=${selectedMonth}`,
-          state,
         })}
       />
     </div>
