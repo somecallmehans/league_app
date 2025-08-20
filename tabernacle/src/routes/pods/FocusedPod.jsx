@@ -114,6 +114,8 @@ export default function () {
   const [selected, setSelected] = useState();
 
   const location = useLocation();
+  const search = location.search;
+
   const { roundId, roundNumber, date } = location.state;
 
   const { data: pods, isLoading: podsLoading } = useGetPodsQuery(roundId, {
@@ -151,7 +153,12 @@ export default function () {
   return (
     <div className="bg-white p-4 mb-4 h-full">
       <div className="flex">
-        <Link to={"/pods"}>
+        <Link
+          to={{
+            pathname: "/pods",
+            search,
+          }}
+        >
           <StandardButton title="Back" />
         </Link>
         <PageTitle title={`Round ${roundNumber} for ${date}`} />
