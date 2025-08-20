@@ -263,6 +263,39 @@ export const faqInfo = [
   },
   {
     id: 8,
+    title: "Fan Content Policy",
+    Component: () => (
+      <div className="py-2">
+        <p className="mb-2">
+          All images and related card data are provided via{" "}
+          <a
+            className="text-sky-500 hover:text-sky-300"
+            href="https://scryfall.com/docs/api"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Scryfall&apos;s public API
+          </a>
+          . Scryfall does not endorse Commander League.
+        </p>
+        <p className="mb-2">
+          The information on this site is provided free of charge in accordance
+          with the{" "}
+          <a
+            className="text-sky-500 hover:text-sky-300"
+            href="https://company.wizards.com/en/legal/fancontentpolicy"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Wizards of the Coast Fan Content Policy
+          </a>
+          .
+        </p>
+      </div>
+    ),
+  },
+  {
+    id: 9,
     title: "About This Site",
     Component: () => (
       <div className="py-2">
