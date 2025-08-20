@@ -9,7 +9,7 @@ import Tooltip from "../../components/Tooltip";
 const HomeSection = ({ title, children }) => (
   <section className="bg-white bg-opacity-10 backdrop-blur-md rounded-lg p-6 mb-4 shadow-lg border">
     <h2
-      className="text-2xl font-bold text-blue-600 mb-4"
+      className="text-2xl font-bold text-sky-500 mb-4"
       style={{ textShadow: "2px 2px 4px rgba(0, 0, 0, 0.1)" }}
     >
       {title}
@@ -50,10 +50,10 @@ const LeagueSchedule = () => (
     </p>
     <ul className="list-disc pl-5 mt-4">
       <li>
-        <b className="text-blue-600">Round One:</b> 1:30 PM
+        <b className="text-sky-500">Round One:</b> 1:30 PM
       </li>
       <li>
-        <b className="text-blue-600">Round Two:</b> 3:30 PM
+        <b className="text-sky-500">Round Two:</b> 3:30 PM
       </li>
     </ul>
     <p className="leading-relaxed mt-4">
@@ -61,7 +61,7 @@ const LeagueSchedule = () => (
       are ranked by league standings.
     </p>
     <Tooltip content={<SuddenDeathContent />} direction="top">
-      <div className="bg-blue-400 text-black text-center py-2 mt-4 rounded-lg font-bold">
+      <div className="text-sky-400 text-black text-center py-2 mt-4 rounded-lg font-bold">
         Sudden Death Rules Apply After 90 Minutes
       </div>
     </Tooltip>
@@ -92,7 +92,7 @@ const Description = () => (
 const HomeHeader = () => (
   <header className="text-center mb-4">
     <h1
-      className="text-3xl sm:text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-b from-blue-600 to-blue-400 py-2"
+      className="text-3xl sm:text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-b from-sky-600 to-sky-400 py-2"
       style={{ textShadow: "2px 2px 4px rgba(0, 0, 0, 0.2)" }}
     >
       Greetings Elder Dragons
@@ -118,7 +118,7 @@ const HomeLeaderboard = () => {
   return (
     <div className="mb-4">
       <div
-        className="text-xl sm:text-2xl font-bold text-blue-600 mb-1 text-center"
+        className="text-xl sm:text-2xl font-bold text-sky-500 mb-1 text-center"
         style={{ textShadow: "2px 2px 4px rgba(0, 0, 0, 0.1)" }}
       >
         Current Leaders
