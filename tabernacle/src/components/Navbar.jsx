@@ -14,17 +14,17 @@ const navLinks = [
   },
   {
     id: 3,
-    name: "Rankings",
+    name: "Standings",
     admin: false,
     icon: "fa-solid fa-ranking-star",
     children: [
       { id: "3a", name: "Leaderboard", to: "/leaderboard" },
-      { id: "3b", name: "Hall of Fame", to: "/hall-of-fame" },
+      { id: "3b", name: "Champions", to: "/champions" },
     ],
   },
   {
     id: 8,
-    name: "History",
+    name: "Pairings",
     to: "/pods",
     admin: false,
     icon: "fa-solid fa-landmark",

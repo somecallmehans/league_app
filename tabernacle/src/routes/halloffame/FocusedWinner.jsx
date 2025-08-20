@@ -141,7 +141,7 @@ export default function FocusedWinner() {
   return (
     <div className="p-4">
       <div className="flex">
-        <Link to={"/hall-of-fame"}>
+        <Link to={"/champions"}>
           <StandardButton title="Back" />
         </Link>
         <PageTitle title={`${mm_yy} Champion, ${participant_name}`} />

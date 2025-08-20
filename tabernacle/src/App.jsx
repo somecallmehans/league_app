@@ -30,7 +30,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/info" element={<Resources />} />
         <Route path="/leaderboard" element={<LeaderBoard />} />
-        <Route path="/hall-of-fame/*" element={<HallofFame />} />
+        <Route path="/champions/*" element={<HallofFame />} />
         <Route path="/achievements" element={<AchievementsPage />} />
         <Route path="/metrics/*" element={<Metrics />} />
         <Route
