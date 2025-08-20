@@ -148,15 +148,17 @@ class ScryfallClientRequest:
         return out
 
     @staticmethod
-    def primary_image_url(card: Dict[str, Any]) -> Optional[str]:
+    def primary_image_url(card: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Picks a usable image URL, handling MDFCs."""
         iu = card.get("image_uris")
+        artist = card.get("artist")
+
         if iu:
-            return iu.get("art_crop")
-        faces = card.get("card_faces") or []
-        if faces and faces[0].get("image_uris"):
-            iu0 = faces[0]["image_uris"]
-            return iu0.get("normal") or iu0.get("large") or iu0.get("png")
+            return {"url": iu.get("art_crop"), "artist": artist}
+        # faces = card.get("card_faces") or []
+        # if faces and faces[0].get("image_uris"):
+        #     iu0 = faces[0]["image_uris"]
+        #     return iu0.get("normal") or iu0.get("large") or iu0.get("png")
         return None
 
     def get_commander_card_payloads_by_raw(
