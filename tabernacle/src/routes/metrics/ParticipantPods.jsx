@@ -10,7 +10,7 @@ const PodRow = ({ participant_id, occurred, rounds }) => (
             key={id}
             className="rounded border bg-white p-3 shadow-md space-y-1"
           >
-            <div className="text-md text-left font-medium text-gray-500 mb-2">
+            <div className="text-base text-left font-medium text-gray-500 mb-2">
               Round {round_number} - {commander_name}
             </div>
             <div className="flex flex-wrap gap-2 ">

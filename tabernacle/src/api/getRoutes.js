@@ -69,4 +69,11 @@ export default (builder) => ({
   getAchievementTypes: builder.query({
     query: () => "get_achievement_types/",
   }),
+  getLeagueWinners: builder.query({
+    query: () => "get_league_winners/",
+  }),
+  getLeagueWinner: builder.query({
+    query: ({ mm_yy, participant_id }) =>
+      `get_league_winner/${mm_yy}/${participant_id}/`,
+  }),
 });

@@ -11,13 +11,13 @@ const ResourceRow = ({ title, Component }) => {
         onClick={() => setToggle(!toggle)}
         className="flex justify-between items-center cursor-pointer group"
       >
-        <h3 className="text-lg font-medium text-slate-800 group-hover:text-blue-500 transition duration-200">
+        <h3 className="text-lg font-medium text-slate-800 group-hover:text-sky-500 transition duration-200">
           {title}
         </h3>
         <i
           className={`fa fa-chevron-${
             toggle ? "down" : "right"
-          } mr-2 text-slate-500 group-hover:text-blue-400 transition duration-200`}
+          } mr-2 text-slate-500 group-hover:text-sky-400 transition duration-200`}
         />
       </div>
       <div
@@ -39,7 +39,7 @@ export default function Resources() {
       <PageTitle title="League Information" />
       <div className="bg-white shadow-md rounded-lg overflow-hidden p-4 mb-4">
         <h2
-          className="text-2xl font-bold text-blue-600 mb-4"
+          className="text-2xl font-bold text-sky-500 mb-4"
           style={{ textShadow: "2px 2px 4px rgba(0, 0, 0, 0.1)" }}
         >
           Resources
@@ -50,7 +50,7 @@ export default function Resources() {
       </div>
       <div className="bg-white shadow-md rounded-lg overflow-hidden p-4">
         <h2
-          className="text-2xl font-bold text-blue-600 mb-4"
+          className="text-2xl font-bold text-sky-500 mb-4"
           style={{ textShadow: "2px 2px 4px rgba(0, 0, 0, 0.1)" }}
         >
           Frequently Asked Questions

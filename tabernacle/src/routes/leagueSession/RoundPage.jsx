@@ -40,8 +40,8 @@ const PodSquare = ({
     >
       <span className="text-xl md:text-xl font-semibold">{name}</span>
       <div className="flex justify-center gap-2">
-        <span className="text-sm md:text-md">{round_points} Round</span> /
-        <span className="text-sm md:text-md">{total_points} Month</span>
+        <span className="text-sm md:text-base">{round_points} Round</span> /
+        <span className="text-sm md:text-base">{total_points} Month</span>
       </div>
       <ColorGrid
         submitted={submitted}

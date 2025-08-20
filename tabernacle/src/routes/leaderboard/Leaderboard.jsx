@@ -44,11 +44,13 @@ export const LeaderboardGrid = ({ leaderboard }) => {
   return (
     <div className="border border-gray-300 rounded-lg shadow-lg overflow-hidden">
       <div className="grid grid-cols-5 px-4 bg-gray-100 text-center font-medium text-gray-800 py-2 border-b">
-        <div className="col-span-1 font-extrabold text-md md:text-lg">
+        <div className="col-span-1 font-extrabold text-base md:text-lg">
           Place
         </div>
-        <div className="col-span-2 font-extrabold text-md md:text-lg">Name</div>
-        <div className="col-span-2 font-extrabold text-md md:text-lg">
+        <div className="col-span-2 font-extrabold text-base md:text-lg">
+          Name
+        </div>
+        <div className="col-span-2 font-extrabold text-base md:text-lg">
           Points
         </div>
       </div>

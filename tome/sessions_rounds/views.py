@@ -14,7 +14,7 @@ from rest_framework.decorators import (
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Exists, OuterRef, Q
 
 from .models import Sessions, Rounds, Pods, PodsParticipants
 from users.models import ParticipantAchievements, Participants
@@ -325,7 +325,18 @@ def get_rounds_by_month(_, mm_yy):
             session__month_year=mm_yy, session__deleted=False, deleted=False
         )
         .select_related("session")
-        .values("session__id", "id", "round_number", "created_at")
+        .annotate(
+            started=Exists(Pods.objects.filter(rounds=OuterRef("pk"), deleted=False))
+        )
+        .values(
+            "session__id",
+            "session__closed",
+            "id",
+            "round_number",
+            "created_at",
+            "completed",
+            "started",
+        )
     )
 
     if not rounds.exists():

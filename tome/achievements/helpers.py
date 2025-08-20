@@ -3,7 +3,10 @@ import json
 import time
 
 from collections import defaultdict
-from django.db.models import Q
+from django.db.models import Q, F, Sum, Max, Window, IntegerField, Value
+from django.db.models.functions import Coalesce, Substr, Cast
+from django.db.models.expressions import OrderBy
+from django.db.models.functions import Rank
 
 from achievements.models import (
     Achievements,
@@ -13,7 +16,7 @@ from achievements.models import (
 )
 from users.models import ParticipantAchievements
 from users.serializers import ParticipantsSerializer
-from users.serializers import ParticipantsSerializer
+
 from sessions_rounds.serializers import RoundsSerializer
 
 
@@ -32,6 +35,7 @@ def calculate_total_points_for_month(sessions):
         ParticipantAchievements.objects.filter(
             session_id__in=sessions,
             participant__deleted=False,
+            session__deleted=False,
             deleted=False,
         )
         .select_related("participant")
@@ -50,6 +54,50 @@ def calculate_total_points_for_month(sessions):
         {"id": p[0], "name": p[1], "total_points": by_participant[p[0]]}
         for p in participant_info
     ]
+
+
+def calculate_monthly_winners(mm_yy: str):
+    pa_qs = (
+        ParticipantAchievements.objects.filter(
+            participant__deleted=False,
+            session__deleted=False,
+            deleted=False,
+        )
+        .exclude(session__month_year=mm_yy)
+        .select_related("session")
+    )
+    base = pa_qs.values("session__month_year", "participant_id").annotate(
+        participant_name=Max("participant__name"),
+        total_points=Coalesce(Sum("earned_points"), 0),
+    )
+
+    ranked = (
+        base.annotate(
+            rnk=Window(
+                expression=Rank(),
+                partition_by=[F("session__month_year")],
+                order_by=[
+                    OrderBy(F("total_points"), descending=True),
+                ],
+            ),
+        )
+        .filter(rnk=1)
+        .values(
+            "session__month_year",
+            "participant_id",
+            "participant_name",
+            "total_points",
+        )
+        .order_by("session__month_year")
+    )
+
+    sorted = ranked.annotate(
+        month_i=Cast(Substr("session__month_year", 1, 2), IntegerField()),
+        year_i=Cast(Substr("session__month_year", 4, 2), IntegerField()),
+        year_full=Value(2000) + F("year_i"),
+    ).order_by("-year_full", "-month_i")
+
+    return list(sorted)
 
 
 def all_participant_achievements_for_month(session):

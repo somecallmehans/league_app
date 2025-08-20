@@ -25,38 +25,100 @@ function dateSort(a, b) {
   return parseDate(b) - parseDate(a);
 }
 
-const RoundDisplay = ({ info, dateKey, selectedMonth }) => {
+const roundTimes = {
+  1: "1:30 PM",
+  2: "3:30 PM",
+};
+
+const RoundDisplay = ({ roundInfo, dateKey, renderRoundLink }) => {
   return (
-    <div className="flex flex-wrap w-full justify-around p-4 bg-white drop-shadow-md">
-      {[...info]
+    <div className="flex flex-wrap w-full justify-around p-4 drop-shadow-md">
+      {[...roundInfo]
         .sort((a, b) => {
           return a.round_number - b.round_number;
         })
-        .map(({ id, round_number }) => (
-          <Link
-            key={id}
-            to={`${id}`}
-            state={{
-              roundId: id,
-              roundNumber: round_number,
-              date: dateKey,
-              selectedMonth,
-            }}
-          >
+        .map(({ id, round_number, completed, started }) => {
+          let iconText = "fa-regular fa-circle-check";
+          let buttonColor = "bg-emerald-500";
+          if (!completed && !started) {
+            iconText = "fa-regular fa-circle-stop";
+            buttonColor = "bg-slate-400";
+          } else if (started && !completed) {
+            iconText = "fa-solid fa-circle-exclamation";
+            buttonColor = "bg-yellow-500";
+          }
+
+          return (
             <div
-              className="bg-sky-300 hover:bg-sky-200 drop-shadow-md text-center rounded-md
-                     py-4 px-6 sm:py-6 sm:px-12 md:py-8 md:px-32 lg:py-10 lg:px-42 text-lg md:text-2xl"
-              onClick={() => handleNavClick(`round_${id}`)}
+              key={id}
+              className="flex flex-col items-center justify-center text-center"
             >
-              Round {round_number}
+              <Link
+                key={id}
+                to={renderRoundLink(id)}
+                state={{
+                  roundId: id,
+                  roundNumber: round_number,
+                  date: dateKey,
+                }}
+                disabled={!completed && !started}
+              >
+                <div
+                  className={`${buttonColor} text-white drop-shadow-md  rounded-md
+                    px-2 py-4 sm:px-8 sm:py-8 text-lg md:text-3xl`}
+                  onClick={() => handleNavClick(`round_${id}`)}
+                >
+                  <i
+                    className={`${iconText} text-base md:text-xl lg:text-2xl mr-2`}
+                  />
+                  Round {round_number}
+                </div>
+              </Link>
+              <div className="text-center sm:text-xl">
+                {roundTimes[round_number]}
+              </div>
             </div>
-          </Link>
-        ))}
+          );
+        })}
     </div>
   );
 };
 
-const RoundList = ({ rounds, selectedMonth }) => {
+const SessionPill = ({
+  roundInfo,
+  dateKey,
+  selectedMonth,
+  renderRoundLink,
+}) => {
+  const dater = roundInfo[0].created_at;
+  const d = new Date(dater);
+
+  const dayOfWeek = d.toLocaleDateString("en-US", { weekday: "short" });
+  const month = d.toLocaleDateString("en-US", { month: "short" });
+  const day = d.getDate();
+
+  return (
+    <div className="flex flex-col mb-8">
+      <div className="border rounded-lg w-full  sm:h-48 flex">
+        <div className="bg-white text-black border border-gray-200 text-center  rounded-l-lg basis-1/4 p-8 font-bold flex flex-col">
+          <div className="text-lg">{dayOfWeek}</div>
+          <div className="text-xl sm:text-2xl">{month}</div>
+          <div className="text-3xl sm:text-6xl">{day}</div>
+        </div>
+        <div className="bg-white w-full border border-gray-200 rounded-r-lg flex justify-around">
+          <RoundDisplay
+            roundInfo={roundInfo}
+            dateKey={dateKey}
+            selectedMonth={selectedMonth}
+            renderRoundLink={renderRoundLink}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const RoundList = ({ rounds, selectedMonth, renderRoundLink }) => {
   if (!rounds || Object.keys(rounds).length === 0) {
     return (
       <div className="text-center text-gray-600 py-8">
@@ -67,17 +129,15 @@ const RoundList = ({ rounds, selectedMonth }) => {
   return Object.keys(rounds)
     .sort(dateSort)
     .map((round) => {
-      const dateKey = round;
       const roundInfo = rounds[round];
       return (
-        <div className="flex flex-col" key={round}>
-          <div className="text-3xl font-bold my-2">{dateKey}</div>
-          <RoundDisplay
-            info={roundInfo}
-            dateKey={dateKey}
-            selectedMonth={selectedMonth}
-          />
-        </div>
+        <SessionPill
+          key={round}
+          roundInfo={roundInfo}
+          dateKey={round}
+          selectedMonth={selectedMonth}
+          renderRoundLink={renderRoundLink}
+        />
       );
     });
 };
@@ -96,6 +156,22 @@ function Page() {
     return <LoadingSpinner />;
   }
 
+  const options = [...months]
+    ?.sort((a, b) => {
+      const [monthA, yearA] = a.split("-").map(Number);
+      const [monthB, yearB] = b.split("-").map(Number);
+
+      return yearB - yearA || monthB - monthA;
+    })
+    ?.map((month) => ({
+      label: monthStr(month),
+      value: month,
+    }));
+
+  const value = selectedMonth
+    ? { label: monthStr(selectedMonth), value: selectedMonth }
+    : null;
+
   return (
     <div className="p-4 md:p-8">
       <PageTitle
@@ -108,25 +184,21 @@ function Page() {
       <div className="mb-6">
         <SimpleSelect
           placeholder="Select League Month"
-          options={[...months]
-            ?.sort((a, b) => {
-              const [monthA, yearA] = a.split("-").map(Number);
-              const [monthB, yearB] = b.split("-").map(Number);
-
-              return yearB - yearA || monthB - monthA;
-            })
-            ?.map((month) => ({
-              label: monthStr(month),
-              value: month,
-            }))}
+          options={options}
           classes="md:w-1/2 mb-4"
-          onChange={(obj) => {
-            setSelectedMonth(obj.value);
-          }}
-          defaultValue={{ label: selectedMonth, value: selectedMonth }}
+          value={value}
+          onChange={(obj) => setSelectedMonth(obj.value)}
+          isClearable={false}
         />
       </div>
-      <RoundList rounds={rounds} selectedMonth={selectedMonth} />
+      <RoundList
+        rounds={rounds}
+        selectedMonth={selectedMonth}
+        renderRoundLink={(roundId) => ({
+          pathname: `/pods/${roundId}`,
+          search: `?m=${selectedMonth}`,
+        })}
+      />
     </div>
   );
 }

@@ -14,9 +14,11 @@ export const RestrictionsList = ({ restrictions }) => {
     <div className="p-4">
       <div className="text-lg font-bold">Achievement Info</div>
       {restrictions.map(({ id, name, url }) => (
-        <div key={id} className="py-1 text-md text-gray-600 italic">
+        <div key={id} className="py-1 text-base text-gray-600 italic">
           <a
-            className={`${url ? "hover:text-sky-500" : ""} transition text-md`}
+            className={`${
+              url ? "hover:text-sky-500" : ""
+            } transition text-base`}
             href={url || undefined}
             target={url ? "_blank" : undefined}
             rel={url ? "noreferrer" : undefined}
@@ -41,7 +43,7 @@ export const ChildrenList = ({ achievements }) => {
           .map(({ id, name }) => (
             <div
               key={id}
-              className="bg-white flex items-center text-sm md:text-md rounded-lg mb-1 border p-2"
+              className="bg-white flex items-center text-sm md:text-base rounded-lg mb-1 border p-2"
             >
               {name}
             </div>
