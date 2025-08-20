@@ -16,28 +16,31 @@ const HallofFamePill = ({
   total_points,
 }) => {
   return (
-    <div
-      className={`${
-        isFirst ? "col-span-full" : ""
-      } border  rounded-lg bg-white flex flex-col text-center shadow-md`}
+    <Link
+      key={session__month_year}
+      to={`${session__month_year}/${participant_id}`}
+      state={{
+        participant_name,
+      }}
+      className={`${isFirst ? "col-span-full" : ""}`}
     >
-      <div className="text-2xl border-b  py-4 flex justify-center items-center">
-        <i className="fa-solid fa-trophy mr-2 text-yellow-400" />
-        <div className="font-bold"> {formatMonthYear(session__month_year)}</div>
-        <i className="fa-solid fa-trophy ml-2 text-yellow-400" />
-      </div>
+      <div className="border  rounded-lg bg-white flex flex-col text-center shadow-md hover:border  hover:border-sky-500">
+        <div className="text-2xl border-b  py-4 flex justify-center items-center">
+          <i className="fa-solid fa-trophy mr-2 text-yellow-400" />
+          <div className="font-bold">
+            {" "}
+            {formatMonthYear(session__month_year)}
+          </div>
+          <i className="fa-solid fa-trophy ml-2 text-yellow-400" />
+        </div>
 
-      <div className="text-4xl  p-2 ">{participant_name}</div>
-      <div className="text-xl text-gray-400">{total_points} Points</div>
-      <div className="text-right p-2 hover:text-sky-500">
-        <Link
-          key={session__month_year}
-          to={`${session__month_year}/${participant_id}`}
-        >
-          <i className="fa-solid fa-arrow-up-right-from-square " />
-        </Link>
+        <div className="text-4xl  p-2 ">{participant_name}</div>
+        <div className="text-xl text-gray-400">{total_points} Points</div>
+        <div className="text-right p-2">
+          <i className="fa-solid fa-arrow-up-right-from-square text-sky-500" />
+        </div>
       </div>
-    </div>
+    </Link>
   );
 };
 

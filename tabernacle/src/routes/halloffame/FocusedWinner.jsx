@@ -1,13 +1,23 @@
 import React from "react";
 
-import { useParams } from "react-router-dom";
+import { Link, useParams, useLocation } from "react-router-dom";
 
 import { formatDateString } from "../../helpers/dateHelpers";
 import { useGetLeagueWinnerQuery } from "../../api/apiSlice";
 import PageTitle from "../../components/PageTitle";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import StandardButton from "../../components/Button";
 
 const CommanderImage = ({ imgs }) => {
+  if (imgs.length === 0) {
+    return (
+      <div className="col-span-2 flex bg-slate-100 rounded-l-lg justify-center items-center">
+        <i className="fa-solid fa-trophy text-8xl text-slate-400" />
+      </div>
+    );
+  }
   const [img1, img2] = imgs;
+
   return (
     <div className="col-span-2 overflow-hidden rounded-l-lg">
       <div className="grid grid-cols-2 h-full w-full">
@@ -72,7 +82,9 @@ const RoundPill = ({
         {commander ? (
           <CommanderImage imgs={commander_img.slice(0, 2)} />
         ) : (
-          <div className="col-span-2 bg-slate-100 rounded-l-lg" />
+          <div className="col-span-2 flex bg-slate-100 rounded-l-lg justify-center items-center">
+            <i className="fa-solid fa-skull text-8xl text-slate-400" />
+          </div>
         )}
         <PillContent
           date={formatDateString(created_at)}
@@ -87,20 +99,25 @@ const RoundPill = ({
 
 export default function FocusedWinner() {
   const { mm_yy, participant_id } = useParams();
+  const location = useLocation();
+  const { participant_name } = location.state;
   const { data: winner, isLoading: winnerLoading } = useGetLeagueWinnerQuery({
     mm_yy,
     participant_id,
   });
 
-  if (winnerLoading) return null;
+  if (winnerLoading) return <LoadingSpinner />;
 
   const { rounds } = winner;
 
-  console.log(rounds);
-
   return (
-    <div className="p-4 md:p-8">
-      <PageTitle title={`${mm_yy} Champion`} />
+    <div className="p-4">
+      <div className="flex">
+        <Link to={"/hall-of-fame"}>
+          <StandardButton title="Back" />
+        </Link>
+        <PageTitle title={`${mm_yy} Champion, ${participant_name}`} />
+      </div>
       <div className="grid sm:grid-cols-2 gap-2">
         {rounds.map((round) => (
           <RoundPill key={round.id} {...round} />
