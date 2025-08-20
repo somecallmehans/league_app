@@ -88,6 +88,7 @@ export const {
   useGetAchievementsListQuery,
   useGetAchievementTypesQuery,
   useGetLeagueWinnersQuery,
+  useGetLeagueWinnerQuery,
 
   // POSTS
   usePostCreateSessionMutation,

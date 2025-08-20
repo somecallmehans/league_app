@@ -10,6 +10,7 @@ import FocusedWinner from "./FocusedWinner";
 
 const HallofFamePill = ({
   isFirst,
+  participant_id,
   participant_name,
   session__month_year,
   total_points,
@@ -29,7 +30,10 @@ const HallofFamePill = ({
       <div className="text-4xl  p-2 ">{participant_name}</div>
       <div className="text-xl text-gray-400">{total_points} Points</div>
       <div className="text-right p-2 hover:text-sky-500">
-        <Link key={session__month_year} to={session__month_year}>
+        <Link
+          key={session__month_year}
+          to={`${session__month_year}/${participant_id}`}
+        >
           <i className="fa-solid fa-arrow-up-right-from-square " />
         </Link>
       </div>
@@ -62,7 +66,7 @@ export default function HOFRouter() {
   return (
     <Routes>
       <Route path="/" element={<HallofFameContainer />} />
-      <Route path="/:mm_yy" element={<FocusedWinner />} />
+      <Route path="/:mm_yy/:participant_id" element={<FocusedWinner />} />
     </Routes>
   );
 }

@@ -92,7 +92,7 @@ const SessionPill = ({ roundInfo, dateKey }) => {
   const day = d.getDate();
 
   return (
-    <div className="flex flex-col mb-8 ">
+    <div className="flex flex-col mb-8">
       <div className="border rounded-lg w-full  sm:h-48 flex">
         <div className="bg-white text-black border border-gray-200 text-center  rounded-l-lg basis-1/4 p-8 font-bold flex flex-col">
           <div className="text-lg">{dayOfWeek}</div>
