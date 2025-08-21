@@ -1,7 +1,14 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
-const Tooltip = ({ delay, direction, content, children }) => {
-  let timeout;
+interface TooltipProps {
+  delay?: number;
+  direction?: "top" | "bottom" | "left" | "right";
+  content: React.ReactNode;
+  children: React.ReactNode;
+}
+
+const Tooltip = ({ delay, direction = "top", content, children }: TooltipProps) => {
+  let timeout: NodeJS.Timeout | undefined;
   const [active, setActive] = useState(false);
 
   const showTip = () => {
@@ -11,7 +18,7 @@ const Tooltip = ({ delay, direction, content, children }) => {
   };
 
   const hideTip = () => {
-    clearInterval(timeout);
+    clearTimeout(timeout);
     setActive(false);
   };
 
@@ -23,7 +30,7 @@ const Tooltip = ({ delay, direction, content, children }) => {
     >
       {children}
       {active && (
-        <div className={`Tooltip-Tip ${direction || "top"}`}>{content}</div>
+        <div className={`Tooltip-Tip ${direction}`}>{content}</div>
       )}
     </div>
   );

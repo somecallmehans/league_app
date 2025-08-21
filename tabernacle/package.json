@@ -4,10 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "npm run clean && vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "clean": "rm -rf node_modules/.vite .vite dist build .eslintcache tsconfig.tsbuildinfo"
   },
   "dependencies": {
     "@headlessui/react": "^0.0.0-insiders.5ca68a9",
