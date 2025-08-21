@@ -24,7 +24,6 @@ export default function ColorGrid({
   if (!submitted) {
     return;
   }
-  console.log(typeof colors, containerClasses, action, noHover);
   if (!show) {
     return (
       <div onClick={action}>

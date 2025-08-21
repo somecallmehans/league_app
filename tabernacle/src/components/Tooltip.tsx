@@ -8,7 +8,7 @@ interface TooltipProps {
 }
 
 const Tooltip = ({ delay, direction = "top", content, children }: TooltipProps) => {
-  let timeout: NodeJS.Timeout | undefined;
+  let timeout: ReturnType<typeof setTimeout> | undefined;
   const [active, setActive] = useState(false);
 
   const showTip = () => {
