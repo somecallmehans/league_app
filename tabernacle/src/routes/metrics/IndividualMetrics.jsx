@@ -27,11 +27,18 @@ export default function InvdividualMetrics() {
     return <LoadingSpinner />;
   }
 
+  const fallback = "/leaderboard";
+  const onBack = () => {
+    const canGoBack = window.history.state?.idx > 0;
+    if (canGoBack) navigation(-1);
+    else navigation(fallback, { replace: true });
+  };
+
   return (
     <div className="p-4 md:p-8">
       <div className="flex">
         <span>
-          <StandardButton action={() => navigation(-1)} title="Back" />
+          <StandardButton action={() => onBack()} title="Back" />
         </span>
         <PageTitle title={metrics.participant_name} />
       </div>
