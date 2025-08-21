@@ -6,7 +6,6 @@ import ParticipantPage from "./ParticipantMangement";
 import AchievementPage from "./AchievementManagement";
 import InsertCommanderPage from "./InsertCommanders";
 import UpdatePoints from "./UpdatePoints";
-import { useGetAchievementsQuery } from "../../api/apiSlice";
 import LoadingSpinner from "../../components/LoadingSpinner";
 
 const ReusableTab = ({ name }) => (
@@ -51,12 +50,6 @@ const CrudTabPanel = () => {
 };
 
 export default function ManagementPage() {
-  const { isLoading: achievementsLoading } = useGetAchievementsQuery();
-
-  if (achievementsLoading) {
-    return <LoadingSpinner />;
-  }
-
   return (
     <div className="p-4">
       <PageTitle title="League Management" />

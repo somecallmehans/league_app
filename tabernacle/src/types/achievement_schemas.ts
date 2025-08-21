@@ -67,5 +67,12 @@ export const AchievementSchema: z.ZodType<Achievement> = z.lazy(() =>
 
 export const AchievementListResponseSchema = z.array(AchievementSchema);
 
-export type AchievementListResponse = z.infer<typeof AchievementListResponseSchema>;
+export const AchievementObjectResponseSchema = z.object({
+    map: z.record(z.number(), z.array(AchievementSchema)), 
+    data: z.array(AchievementSchema), 
+    lookup: z.record(z.number(), AchievementSchema), 
+    parents: z.array(z.number()), 
+    points_set: z.array(z.number())})
 
+export type AchievementListResponse = z.infer<typeof AchievementListResponseSchema>;
+export type AchievementObjectResponse = z.infer<typeof AchievementObjectResponseSchema>;
