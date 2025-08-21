@@ -40,19 +40,23 @@ const Round = ({
 };
 
 function LeagueSession() {
-  const { data, isLoading } = useGetAllSessionsQuery();
+  const { data: sessions, isLoading: sessionsLoading } =
+    useGetAllSessionsQuery();
 
-  if (isLoading) {
+  if (sessionsLoading) {
     return <LoadingSpinner />;
   }
-  return Object.keys(data).map((month_year) => {
-    const sessions = data[month_year];
+
+  const sessionKeys = Object.keys(sessions);
+
+  return sessionKeys.map((month_year) => {
+    const sessionList = sessions[month_year];
     return (
       <div className="bg-white p-4 mb-4 rounded shadow-sm" key={month_year}>
         <div className="text-lg md:text-2xl mb-2 underline">
           {formatMonthYear(month_year)} Season
         </div>
-        {sessions.map(({ id, created_at, rounds }) => {
+        {sessionList.map(({ id, created_at, rounds }) => {
           const roundOne = rounds.find(
             ({ round_number }) => round_number === 1
           );

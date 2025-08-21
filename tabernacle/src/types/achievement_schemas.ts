@@ -1,4 +1,4 @@
-import { boolean, z } from "zod";
+import { z } from "zod";
 
 export const AchievementTypeSchema = z.object({
     id: z.number(),

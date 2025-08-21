@@ -2,6 +2,7 @@ import type { ApiBuilder } from "./baseApiTypes";
 import { safeParseWithFallback } from "../types/parse"
 import { ColorsResponseSchema, type ColorsResponse} from "../types/color_schemas";
 import { AchievementListResponseSchema, AchievementObjectResponseSchema,  type AchievementListResponse, type AchievementObjectResponse } from "../types/achievement_schemas"
+import { SessionObjectResponseSchema, type SessionObjectResponse} from "../types/session_schemas"
 
 type Id = number | string;
 
@@ -16,9 +17,10 @@ export default (builder: ApiBuilder) => ({
     providesTags: ["Achievements"],
     transformResponse: (raw: unknown) => safeParseWithFallback(AchievementListResponseSchema, raw, [])
   }),
-  getAllSessions: builder.query<unknown, void>({
+  getAllSessions: builder.query<SessionObjectResponse, void>({
     query: () => "all_sessions/",
     providesTags: ["Sessions"],
+    transformResponse: (raw: unknown) => safeParseWithFallback(SessionObjectResponseSchema, raw, {})
   }),
   getAllColors: builder.query<ColorsResponse, void>({
     query: () => "colors/",
