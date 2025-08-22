@@ -4,6 +4,7 @@ import { ColorsResponseSchema, type ColorsResponse} from "../types/color_schemas
 import { AchievementListResponseSchema, AchievementObjectResponseSchema,  type AchievementListResponse, type AchievementObjectResponse } from "../types/achievement_schemas"
 import { SessionObjectResponseSchema, type SessionObjectResponse} from "../types/session_schemas"
 import { ParticipantListResponseSchema, type ParticipantListResponse } from "../types/participant_schemas";
+import { PodObjectResponseSchema, type PodObjectResponse } from "../types/pod_schemas";
 
 type Id = number | string;
 
@@ -37,9 +38,10 @@ export default (builder: ApiBuilder) => ({
     providesTags: ["Participants"],
     transformResponse: (raw: unknown) => safeParseWithFallback(ParticipantListResponseSchema, raw, [])
   }),
-  getPods: builder.query<unknown, Id>({
+  getPods: builder.query<PodObjectResponse, Id>({
     query: (roundId) => `pods/${roundId}/`,
     providesTags: ["Pods"],
+    transformResponse: (raw: unknown) => safeParseWithFallback(PodObjectResponseSchema, raw, {})
   }),
   getAchievementsForMonth: builder.query<unknown, string>({
     query: (mm_yy) => `achievements_for_month/${mm_yy}/`,

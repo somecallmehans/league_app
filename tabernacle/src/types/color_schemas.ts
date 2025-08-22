@@ -1,11 +1,11 @@
-import { boolean, z } from "zod";
+import { z } from "zod";
 
-// Colors
 export const ColorSchema = z.object({
     id: z.number(),
     name: z.string(),
     symbol: z.string(),
-    symbol_length: z.number().int().min(0).max(5)
+    symbol_length: z.number().int().min(0).max(5),
+    slug: z.string().nullable()
 })
 
 export type Color = z.infer<typeof ColorSchema>;
