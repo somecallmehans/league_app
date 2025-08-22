@@ -2,7 +2,7 @@ import type { ApiBuilder } from "./baseApiTypes";
 import { safeParseWithFallback } from "../types/parse"
 import { ColorsResponseSchema, type ColorsResponse} from "../types/color_schemas";
 import { AchievementListResponseSchema, AchievementObjectResponseSchema,  type AchievementListResponse, type AchievementObjectResponse } from "../types/achievement_schemas"
-import { SessionObjectResponseSchema, type SessionObjectResponse} from "../types/session_schemas"
+import { SessionObjectResponseSchema, type SessionObjectResponse, MonthListResponseSchema, type MonthListResponse} from "../types/session_schemas"
 import { ParticipantListResponseSchema, type ParticipantListResponse } from "../types/participant_schemas";
 import { PodObjectResponseSchema, type PodObjectResponse } from "../types/pod_schemas";
 
@@ -43,12 +43,16 @@ export default (builder: ApiBuilder) => ({
     providesTags: ["Pods"],
     transformResponse: (raw: unknown) => safeParseWithFallback(PodObjectResponseSchema, raw, {})
   }),
-  getAchievementsForMonth: builder.query<unknown, string>({
+  // TODO: Endpoint name is confusing as this returns a list of participants. Also
+  // unsure why this is providing an Earned tag?
+  getAchievementsForMonth: builder.query<ParticipantListResponse, string>({
     query: (mm_yy) => `achievements_for_month/${mm_yy}/`,
     providesTags: ["Earned"],
+    transformResponse: (raw: unknown) => safeParseWithFallback(ParticipantListResponseSchema, raw, [])
   }),
-  getUniqueMonths: builder.query<unknown, void>({
+  getUniqueMonths: builder.query<MonthListResponse, void>({
     query: () => "unique_months/",
+    transformResponse: (raw: unknown) => safeParseWithFallback(MonthListResponseSchema, raw, [])
   }),
   getMetrics: builder.query<unknown, void>({
     query: () => "metrics/",

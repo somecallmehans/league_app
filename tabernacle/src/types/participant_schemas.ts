@@ -17,5 +17,4 @@ export const PodParticipantSchema = z.object({
     participant_id: z.number(),
     name: z.string(),
     total_points: z.number(),
-    round_points: z.number().optional(),
 })

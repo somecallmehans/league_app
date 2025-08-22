@@ -16,3 +16,9 @@ export const SessionObjectResponseSchema = z.record(z.string(),
   );
 
 export type SessionObjectResponse = z.infer<typeof SessionObjectResponseSchema>;
+
+export const MonthSchema = z.string()
+export type Month = z.infer<typeof MonthSchema>
+
+export const MonthListResponseSchema = z.array(MonthSchema)
+export type MonthListResponse = z.infer<typeof MonthListResponseSchema>

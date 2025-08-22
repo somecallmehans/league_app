@@ -3,7 +3,6 @@ import { ColorSchema } from "./color_schemas"
 import { ParticipantSchema, PodParticipantSchema } from "./participant_schemas"
 
 
-
 const StubPodSchema = z.object({
     id: z.number(),
     submitted: z.boolean()
