@@ -3,6 +3,7 @@ import { safeParseWithFallback } from "../types/parse"
 import { ColorsResponseSchema, type ColorsResponse} from "../types/color_schemas";
 import { AchievementListResponseSchema, AchievementObjectResponseSchema,  type AchievementListResponse, type AchievementObjectResponse } from "../types/achievement_schemas"
 import { SessionObjectResponseSchema, type SessionObjectResponse} from "../types/session_schemas"
+import { ParticipantListResponseSchema, type ParticipantListResponse } from "../types/participant_schemas";
 
 type Id = number | string;
 
@@ -31,12 +32,10 @@ export default (builder: ApiBuilder) => ({
         symbolObj: {},
       }),
   }),
-  getSessionByDate: builder.query<unknown, string>({
-    query: (mm_yy) => `sessions/${mm_yy}/`,
-  }),
-  getParticipants: builder.query<unknown, void>({
+  getParticipants: builder.query<ParticipantListResponse, void>({
     query: () => "participants/",
     providesTags: ["Participants"],
+    transformResponse: (raw: unknown) => safeParseWithFallback(ParticipantListResponseSchema, raw, [])
   }),
   getPods: builder.query<unknown, Id>({
     query: (roundId) => `pods/${roundId}/`,
