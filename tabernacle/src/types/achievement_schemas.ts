@@ -1,78 +1,108 @@
 import { z } from "zod";
+import { WinnerSchema } from "./pod_schemas";
 
 export const AchievementTypeSchema = z.object({
-    id: z.number(),
-    name: z.string(),
-    description: z.string(),
-    hex_code: z.string()
-})
+  id: z.number(),
+  name: z.string(),
+  description: z.string(),
+  hex_code: z.string(),
+});
 
 export interface ParentAchievement {
-    id: number;
-    name: string;
-    point_value: number;
+  id: number;
+  name: string;
+  point_value: number;
 }
 
 export const ParentAchievementSchema = z.object({
-    id: z.number(),
-    name: z.string(),
-    point_value: z.number()
-})
+  id: z.number(),
+  name: z.string(),
+  point_value: z.number(),
+});
 
 export interface Restrictions {
-    id: number;
-    name: string;
-    url: string | null;
+  id: number;
+  name: string;
+  url: string | null;
 }
 
 export const RestrictionsSchema = z.object({
-    id: z.number(),
-    name: z.string(),
-    url: z.string().nullable()
-})
+  id: z.number(),
+  name: z.string(),
+  url: z.string().nullable(),
+});
 
-export const AchievementRestrictionsSchema = z.array(RestrictionsSchema)
+export const AchievementRestrictionsSchema = z.array(RestrictionsSchema);
 
 export interface Achievement {
-    id: number;
-    name: string;
-    full_name: string | null;
-    deleted: boolean;
-    slug: string | null;
-    points: number | null;
-    point_value: number | null;
-    type: z.infer<typeof AchievementTypeSchema> | null;
-    type_id: number | null;
-    parent: z.infer<typeof ParentAchievementSchema> | null;
-    parent_id: number | null;
-    restrictions: z.infer<typeof AchievementRestrictionsSchema> | null;
+  id: number;
+  name?: string | null;
+  full_name?: string | null;
+  deleted?: boolean | null;
+  slug?: string | null;
+  points?: number | null;
+  point_value?: number | null;
+  type?: z.infer<typeof AchievementTypeSchema> | null;
+  type_id?: number | null;
+  parent?: z.infer<typeof ParentAchievementSchema> | null;
+  parent_id?: number | null;
+  restrictions?: z.infer<typeof AchievementRestrictionsSchema> | null;
 }
 
 export const AchievementSchema: z.ZodType<Achievement> = z.lazy(() =>
-    z.object({
-      id: z.number(),
-      name: z.string(),
-      full_name: z.string().nullable(),
-      deleted: z.boolean(),
-      parent_id: z.number().nullable(),
-      slug: z.string().nullable(),
-      points: z.number().nullable(),
-      point_value: z.number().nullable(),
-      type: AchievementTypeSchema.nullable(),
-      type_id: z.number().nullable(),
-      parent: ParentAchievementSchema.nullable(),
-      restrictions: AchievementRestrictionsSchema.nullable()
-    })
-  );
+  z.object({
+    id: z.number(),
+    name: z.string().nullish(),
+    full_name: z.string().nullish(),
+    deleted: z.boolean().nullish(),
+    parent_id: z.number().nullish(),
+    slug: z.string().nullish(),
+    points: z.number().nullish(),
+    point_value: z.number().nullish(),
+    type: AchievementTypeSchema.nullish(),
+    type_id: z.number().nullish(),
+    parent: ParentAchievementSchema.nullish(),
+    restrictions: AchievementRestrictionsSchema.nullish(),
+  })
+);
 
 export const AchievementListResponseSchema = z.array(AchievementSchema);
 
 export const AchievementObjectResponseSchema = z.object({
-    map: z.record(z.number(), z.array(AchievementSchema)), 
-    data: z.array(AchievementSchema), 
-    lookup: z.record(z.number(), AchievementSchema), 
-    parents: z.array(z.number()), 
-    points_set: z.array(z.number())})
+  map: z.record(z.string(), z.array(AchievementSchema)),
+  data: z.array(AchievementSchema),
+  lookup: z.record(z.string(), AchievementSchema),
+  parents: z.array(z.number()),
+  points_set: z.array(z.number()),
+});
 
-export type AchievementListResponse = z.infer<typeof AchievementListResponseSchema>;
-export type AchievementObjectResponse = z.infer<typeof AchievementObjectResponseSchema>;
+export type AchievementListResponse = z.infer<
+  typeof AchievementListResponseSchema
+>;
+export type AchievementObjectResponse = z.infer<
+  typeof AchievementObjectResponseSchema
+>;
+
+// special version of the achievement schema that has a bunch
+// of extra stuff on it. Technically "earned" aka ParticipantAchievement
+export const PodAchievementSchema = z.object({
+  achievement_id: z.number(),
+  achievement_name: z.string(),
+  deleted: z.boolean(),
+  earned_points: z.number(),
+  id: z.number(),
+  participant_id: z.number(),
+  participant_name: z.string(),
+  points: z.number(),
+  slug: z.string().nullable(),
+});
+
+export const PodAchievementResponseSchema = z.object({
+  pod_achievements: z.array(PodAchievementSchema).default([]),
+  winning_commander: WinnerSchema.nullable().default(null),
+});
+export type PodAchievementResponse = z.infer<
+  typeof PodAchievementResponseSchema
+>;
+export const EMPTY_PODACHIEVEMENT: PodAchievementResponse =
+  PodAchievementResponseSchema.parse({});

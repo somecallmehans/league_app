@@ -7,6 +7,9 @@ import {
 import {
   AchievementListResponseSchema,
   AchievementObjectResponseSchema,
+  PodAchievementResponse,
+  PodAchievementResponseSchema,
+  EMPTY_PODACHIEVEMENT,
   type AchievementListResponse,
   type AchievementObjectResponse,
 } from "../types/achievement_schemas";
@@ -96,11 +99,17 @@ export default (builder: ApiBuilder) => ({
     transformResponse: (raw: unknown) =>
       safeParseWithFallback(MetricSchema, raw, EMPTY_METRIC),
   }),
-  getPodsAchievements: builder.query<unknown, { pod: Id }>({
+  getPodsAchievements: builder.query<PodAchievementResponse, { pod: Id }>({
     query: ({ pod }) => `pods_achievements/${pod}/`,
     providesTags: (result, error, { pod }) => [
       { type: "PodsAchievements", id: `$${pod}` },
     ],
+    transformResponse: (raw: unknown) =>
+      safeParseWithFallback(
+        PodAchievementResponseSchema,
+        raw,
+        EMPTY_PODACHIEVEMENT
+      ),
   }),
   getAchievementRound: builder.query<
     unknown,
