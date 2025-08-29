@@ -34,6 +34,10 @@ import {
   EMPTY_METRIC,
   type Metric,
 } from "../types/metric_schemas";
+import {
+  MonthRoundObjectResponseSchema,
+  type MonthRoundObjectResponse,
+} from "../types/round_schemas";
 
 type Id = number | string;
 
@@ -123,8 +127,10 @@ export default (builder: ApiBuilder) => ({
     transformResponse: (raw: unknown) =>
       safeParseWithFallback(EarnedAchievementStubListResponseSchema, raw, []),
   }),
-  getRoundsByMonth: builder.query<unknown, string>({
+  getRoundsByMonth: builder.query<MonthRoundObjectResponse, string>({
     query: (mm_yy) => `rounds_by_month/${mm_yy}/`,
+    transformResponse: (raw: unknown) =>
+      safeParseWithFallback(MonthRoundObjectResponseSchema, raw, {}),
   }),
   getIndividualMetrics: builder.query<unknown, Id>({
     query: (id) => `metrics/${id}/`,
