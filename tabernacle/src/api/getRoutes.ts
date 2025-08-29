@@ -41,6 +41,10 @@ import {
   MonthRoundObjectResponseSchema,
   type MonthRoundObjectResponse,
 } from "../types/round_schemas";
+import {
+  CommanderObjectResponseSchema,
+  type CommanderObjectResponse,
+} from "../types/commander_schemas";
 
 type Id = number | string;
 
@@ -144,8 +148,14 @@ export default (builder: ApiBuilder) => ({
         EMPTY_INDIVIDUAL_METRIC
       ),
   }),
-  getCommanders: builder.query({
+  getCommanders: builder.query<CommanderObjectResponse, void>({
     query: () => "commanders/",
+    transformResponse: (raw: unknown) =>
+      safeParseWithFallback(CommanderObjectResponseSchema, raw, {
+        commander_lookup: {},
+        commanders: [],
+        partners: [],
+      }),
   }),
   getRoundParticipants: builder.query<unknown, Id>({
     query: (round) => `round_participants/${round}/`,
