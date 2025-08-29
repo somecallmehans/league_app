@@ -32,7 +32,10 @@ import {
 import {
   MetricSchema,
   EMPTY_METRIC,
+  IndividualMetricResponseSchema,
+  EMPTY_INDIVIDUAL_METRIC,
   type Metric,
+  type IndividualMetricResponse,
 } from "../types/metric_schemas";
 import {
   MonthRoundObjectResponseSchema,
@@ -132,8 +135,14 @@ export default (builder: ApiBuilder) => ({
     transformResponse: (raw: unknown) =>
       safeParseWithFallback(MonthRoundObjectResponseSchema, raw, {}),
   }),
-  getIndividualMetrics: builder.query<unknown, Id>({
+  getIndividualMetrics: builder.query<IndividualMetricResponse, Id>({
     query: (id) => `metrics/${id}/`,
+    transformResponse: (raw: unknown) =>
+      safeParseWithFallback(
+        IndividualMetricResponseSchema,
+        raw,
+        EMPTY_INDIVIDUAL_METRIC
+      ),
   }),
   getCommanders: builder.query({
     query: () => "commanders/",

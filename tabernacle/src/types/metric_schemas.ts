@@ -40,3 +40,26 @@ export const MetricSchema = z.object({
 export type Metric = z.infer<typeof MetricSchema>;
 
 export const EMPTY_METRIC: Metric = MetricSchema.parse({});
+
+const SessionPoints = z.object({
+  session: z.number(),
+  points: z.number(),
+});
+
+export const IndividualMetricResponseSchema = z.object({
+  participant_name: z.string().optional(),
+  avg_win_points: z.number().optional(),
+  win_number: z.number().optional(),
+  attendance: z.number().optional(),
+  lifetime_points: z.number().optional(),
+  participant_since: z.string().optional(),
+  unique_achievements: z.number().optional(),
+  session_points: z.record(z.string(), z.array(SessionPoints)).optional(),
+});
+
+export type IndividualMetricResponse = z.infer<
+  typeof IndividualMetricResponseSchema
+>;
+
+export const EMPTY_INDIVIDUAL_METRIC: IndividualMetricResponse =
+  IndividualMetricResponseSchema.parse({});
