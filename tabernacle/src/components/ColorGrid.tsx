@@ -1,8 +1,7 @@
 import type { MouseEventHandler } from "react";
-import { imgs, type ColorKey} from "../../public/images";
+import { imgs, type ColorKey } from "../../public/images";
 
 const isColorKey = (v: string): v is ColorKey => v in imgs;
-
 
 interface ColorGridProps {
   show: boolean;
@@ -36,7 +35,7 @@ export default function ColorGrid({
     );
   }
 
-  const keys = colors.split(" ").filter(isColorKey); 
+  const keys = colors.split(" ").filter(isColorKey);
 
   return (
     <div
