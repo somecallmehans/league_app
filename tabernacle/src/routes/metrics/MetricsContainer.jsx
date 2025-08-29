@@ -46,19 +46,21 @@ const AchievementBarTitle = () => (
   </React.Fragment>
 );
 
-export const MetricBlock = ({ data, mainKey, subtitleKey, suffix = "" }) => (
-  <React.Fragment>
-    <div className="text-3xl md:text-4xl font-extrabold font-extrabold text-center flex flex-grow items-center justify-center">
-      {data?.[mainKey]}
-      {suffix}
-    </div>
-    {subtitleKey && (
-      <div className="text-slate-500 text-lg md:text-xl font-extrabold font-extrabold text-center flex flex-grow items-center justify-center">
-        {data?.[subtitleKey]} Points
+export const MetricBlock = ({ data, mainKey, subtitleKey, suffix = "" }) => {
+  return (
+    <React.Fragment>
+      <div className="text-3xl md:text-4xl font-extrabold font-extrabold text-center flex flex-grow items-center justify-center">
+        {data?.[mainKey]}
+        {suffix}
       </div>
-    )}
-  </React.Fragment>
-);
+      {subtitleKey && (
+        <div className="text-slate-500 text-lg md:text-xl font-extrabold font-extrabold text-center flex flex-grow items-center justify-center">
+          {data?.[subtitleKey]} Points
+        </div>
+      )}
+    </React.Fragment>
+  );
+};
 
 const MetricBlockWithCycle = ({ data, subtitle, subtitleKey, smallText }) => {
   const [idx, setIdx] = useState(0);
@@ -78,6 +80,10 @@ const MetricBlockWithCycle = ({ data, subtitle, subtitleKey, smallText }) => {
       setIdx(idx - 1);
     }
   };
+
+  if (!data.length) {
+    return null;
+  }
 
   return (
     <React.Fragment>
@@ -183,7 +189,6 @@ function Page() {
     most_earned,
     common_commanders,
     snack_leaders,
-    //last_draw,
     color_pie,
     achievement_chart,
     most_draws,
