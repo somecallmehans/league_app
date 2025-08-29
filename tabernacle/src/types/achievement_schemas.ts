@@ -106,3 +106,16 @@ export type PodAchievementResponse = z.infer<
 >;
 export const EMPTY_PODACHIEVEMENT: PodAchievementResponse =
   PodAchievementResponseSchema.parse({});
+
+export const EarnedAchievementStubSchema = z.object({
+  id: z.number(),
+  full_name: z.string(),
+  earned_points: z.number(),
+});
+export const EarnedAchievementStubListResponseSchema = z
+  .array(EarnedAchievementStubSchema)
+  .default([]);
+
+export type EarnedAchievementSubListResponse = z.infer<
+  typeof EarnedAchievementStubListResponseSchema
+>;

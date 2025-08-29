@@ -10,8 +10,10 @@ import {
   PodAchievementResponse,
   PodAchievementResponseSchema,
   EMPTY_PODACHIEVEMENT,
+  EarnedAchievementStubListResponseSchema,
   type AchievementListResponse,
   type AchievementObjectResponse,
+  type EarnedAchievementSubListResponse,
 } from "../types/achievement_schemas";
 import {
   SessionObjectResponseSchema,
@@ -112,12 +114,14 @@ export default (builder: ApiBuilder) => ({
       ),
   }),
   getAchievementRound: builder.query<
-    unknown,
+    EarnedAchievementSubListResponse,
     { participant_id: Id; round_id: Id }
   >({
     query: ({ participant_id, round_id }) =>
       `get_participant_round_achievements/${participant_id}/${round_id}/`,
     providesTags: ["Earned"],
+    transformResponse: (raw: unknown) =>
+      safeParseWithFallback(EarnedAchievementStubListResponseSchema, raw, []),
   }),
   getRoundsByMonth: builder.query<unknown, string>({
     query: (mm_yy) => `rounds_by_month/${mm_yy}/`,
