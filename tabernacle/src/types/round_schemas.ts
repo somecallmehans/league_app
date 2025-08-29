@@ -3,8 +3,9 @@ import { z } from "zod";
 export const RoundSchema = z.object({
   id: z.number(),
   round_number: z.union([z.literal(1), z.literal(2)]),
-  deleted: z.boolean(),
-  completed: z.boolean(),
+  deleted: z.boolean().optional(),
+  completed: z.boolean().optional(),
+  created_at: z.string().optional(),
 });
 export type Round = z.infer<typeof RoundSchema>;
 
@@ -25,3 +26,6 @@ export const MonthRoundObjectResponseSchema = z.record(
 export type MonthRoundObjectResponse = z.infer<
   typeof MonthRoundObjectResponseSchema
 >;
+
+export const RoundListSchema = z.array(RoundSchema);
+export type RoundList = z.infer<typeof RoundListSchema>;

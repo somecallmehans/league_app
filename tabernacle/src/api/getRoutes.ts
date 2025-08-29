@@ -39,7 +39,9 @@ import {
 } from "../types/metric_schemas";
 import {
   MonthRoundObjectResponseSchema,
+  RoundListSchema,
   type MonthRoundObjectResponse,
+  type RoundList,
 } from "../types/round_schemas";
 import {
   CommanderObjectResponseSchema,
@@ -157,13 +159,17 @@ export default (builder: ApiBuilder) => ({
         partners: [],
       }),
   }),
-  getRoundParticipants: builder.query<unknown, Id>({
+  getRoundParticipants: builder.query<ParticipantListResponse, Id>({
     query: (round) => `round_participants/${round}/`,
     providesTags: ["Participants"],
+    transformResponse: (raw: unknown) =>
+      safeParseWithFallback(ParticipantListResponseSchema, raw, []),
   }),
-  getAllRounds: builder.query<unknown, { participant_id: Id }>({
+  getAllRounds: builder.query<RoundList, { participant_id: Id }>({
     query: ({ participant_id }) => `get_all_rounds/${participant_id}/`,
     providesTags: ["Rounds"],
+    transformResponse: (raw: unknown) =>
+      safeParseWithFallback(RoundListSchema, raw, []),
   }),
   getParticipantPods: builder.query<unknown, Id>({
     query: (participant_id) => `get_participant_recent_pods/${participant_id}/`,
