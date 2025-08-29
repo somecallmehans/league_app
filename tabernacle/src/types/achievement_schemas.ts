@@ -8,6 +8,11 @@ export const AchievementTypeSchema = z.object({
   hex_code: z.string(),
 });
 
+export const AchievementTypeListResponseSchema = z.array(AchievementTypeSchema);
+export type AchievementTypeListResponse = z.infer<
+  typeof AchievementTypeListResponseSchema
+>;
+
 export interface ParentAchievement {
   id: number;
   name: string;

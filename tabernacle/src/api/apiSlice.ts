@@ -18,7 +18,6 @@ const baseQuery = fetchBaseQuery({
   },
 });
 
-
 const baseQueryWithReauth: BaseBQ = async (args, api, extraOptions) => {
   let result = await baseQuery(args, api, extraOptions);
 
@@ -47,10 +46,13 @@ const baseQueryWithReauth: BaseBQ = async (args, api, extraOptions) => {
   if (result?.error) {
     let msg = "Unknown error";
 
-    if ("error" in result.error){
+    if ("error" in result.error) {
       msg = result.error.error;
     } else {
-      msg = typeof result.error.data === "string" ? result.error.data : JSON.stringify(result.error.data);
+      msg =
+        typeof result.error.data === "string"
+          ? result.error.data
+          : JSON.stringify(result.error.data);
     }
     toast.error(`Error while performing request: ${msg}`);
   }
@@ -96,7 +98,9 @@ export const {
   useGetAllRoundsQuery,
   useGetParticipantPodsQuery,
   useGetAchievementsListQuery,
-  useGetAchievementTypesQuery,
+  // Not currently in use but will be needed
+  // when we add the crud for this
+  // useGetAchievementTypesQuery,
   useGetLeagueWinnersQuery,
   useGetLeagueWinnerQuery,
 

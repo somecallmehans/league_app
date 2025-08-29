@@ -11,9 +11,11 @@ import {
   PodAchievementResponseSchema,
   EMPTY_PODACHIEVEMENT,
   EarnedAchievementStubListResponseSchema,
+  AchievementTypeListResponseSchema,
   type AchievementListResponse,
   type AchievementObjectResponse,
   type EarnedAchievementSubListResponse,
+  type AchievementTypeListResponse,
 } from "../types/achievement_schemas";
 import {
   SessionObjectResponseSchema,
@@ -23,11 +25,17 @@ import {
 } from "../types/session_schemas";
 import {
   ParticipantListResponseSchema,
+  LeagueWinnerListSchema,
+  WinnerRoundInfoResponseSchema,
   type ParticipantListResponse,
+  type LeagueWinnerList,
+  type WinnerRoundInfoResponse,
 } from "../types/participant_schemas";
 import {
   PodObjectResponseSchema,
+  PodsDateResponseSchema,
   type PodObjectResponse,
+  type PodsDateResponse,
 } from "../types/pod_schemas";
 import {
   MetricSchema,
@@ -171,20 +179,31 @@ export default (builder: ApiBuilder) => ({
     transformResponse: (raw: unknown) =>
       safeParseWithFallback(RoundListSchema, raw, []),
   }),
-  getParticipantPods: builder.query<unknown, Id>({
+  getParticipantPods: builder.query<PodsDateResponse, Id>({
     query: (participant_id) => `get_participant_recent_pods/${participant_id}/`,
+    transformResponse: (raw: unknown) =>
+      safeParseWithFallback(PodsDateResponseSchema, raw, []),
   }),
-  getAchievementTypes: builder.query<unknown, void>({
+  getAchievementTypes: builder.query<AchievementTypeListResponse, void>({
     query: () => "get_achievement_types/",
+    transformResponse: (raw: unknown) =>
+      safeParseWithFallback(AchievementTypeListResponseSchema, raw, []),
   }),
-  getLeagueWinners: builder.query<unknown, void>({
+  getLeagueWinners: builder.query<LeagueWinnerList, void>({
     query: () => "get_league_winners/",
+    transformResponse: (raw: unknown) =>
+      safeParseWithFallback(LeagueWinnerListSchema, raw, []),
   }),
   getLeagueWinner: builder.query<
-    unknown,
+    WinnerRoundInfoResponse,
     { mm_yy: string; participant_id: Id }
   >({
     query: ({ mm_yy, participant_id }) =>
       `get_league_winner/${mm_yy}/${participant_id}/`,
+    transformResponse: (raw: unknown) =>
+      safeParseWithFallback(WinnerRoundInfoResponseSchema, raw, {
+        participant_id: -1,
+        rounds: [],
+      }),
   }),
 });
