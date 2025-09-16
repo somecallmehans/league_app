@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { WinnerSchema } from "./pod_schemas";
+import {
+  WinnerSchema,
+  UpsertEarnedWinnerInfoSchema,
+  UpsertEarnedWinInfoSchema,
+} from "./pod_schemas";
 
 export const AchievementTypeSchema = z.object({
   id: z.number(),
@@ -154,3 +158,49 @@ export const EMPTY_ACHIEVEMENT_RESPONSE: UpsertAchievementResponse = {
   type_id: undefined,
 };
 export type UpsertAchievementRequest = Achievement;
+
+const UpsertEarnedAchievementSchema = z
+  .object({
+    slug: z.string().optional(),
+    achievement_id: z.number().optional(),
+    participant_id: z.number(),
+    round_id: z.number(),
+    session_id: z.number(),
+  })
+  .refine((v) => v.slug !== undefined || v.achievement_id !== undefined, {
+    message: "Provide either slug or achievement_id",
+  });
+
+export const UpsertEarnedRequestSchema = z.object({
+  new: z.array(UpsertEarnedAchievementSchema),
+  update: z.array(UpsertEarnedAchievementSchema),
+  winnerInfo: UpsertEarnedWinnerInfoSchema,
+  winInfo: UpsertEarnedWinInfoSchema,
+});
+
+export type UpsertEarnedRequest = z.infer<typeof UpsertEarnedRequestSchema>;
+
+export const UpsertEarnedSuccessSchema = z.object({
+  message: z.literal("success"),
+});
+
+export const UpsertEarnedErrorSchema = z.object({
+  error: z.string(),
+});
+
+export const UpsertEarnedResponseSchema = z.union([
+  UpsertEarnedSuccessSchema,
+  UpsertEarnedErrorSchema,
+]);
+
+export type UpsertEarnedResponse = z.infer<typeof UpsertEarnedResponseSchema>;
+
+export const UpsertPartcipantAchievementRequestSchema = z.object({
+  participant_id: z.number(),
+  achievement_id: z.number(),
+  round_id: z.number(),
+});
+
+export type UpsertParticipantAchievementRequest = z.infer<
+  typeof UpsertPartcipantAchievementRequestSchema
+>;

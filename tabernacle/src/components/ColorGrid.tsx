@@ -5,7 +5,7 @@ const isColorKey = (v: string): v is ColorKey => v in imgs;
 
 interface ColorGridProps {
   show: boolean;
-  colors: string;
+  colors?: string;
   containerClasses: string;
   submitted: boolean;
   action?: MouseEventHandler<HTMLDivElement>;
@@ -35,7 +35,7 @@ export default function ColorGrid({
     );
   }
 
-  const keys = colors.split(" ").filter(isColorKey);
+  const keys = colors?.split(" ").filter(isColorKey);
 
   return (
     <div
@@ -44,7 +44,7 @@ export default function ColorGrid({
         noHover ? "" : "clickable-icon"
       } ${containerClasses}`}
     >
-      {keys.map((c, idx) => (
+      {keys?.map((c, idx) => (
         <img key={idx} className="w-4 h-4 md:w-6 md:h-6" src={imgs[c]} />
       ))}
     </div>

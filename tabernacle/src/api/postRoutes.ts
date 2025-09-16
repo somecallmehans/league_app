@@ -1,4 +1,3 @@
-import { z } from "zod";
 import { ApiBuilder } from "./baseApiTypes";
 
 import { safeParseWithFallback } from "../types/parse";
@@ -24,9 +23,17 @@ import {
 import {
   UpsertAchievementResponseSchema,
   EMPTY_ACHIEVEMENT_RESPONSE,
+  UpsertEarnedRequest,
+  UpsertEarnedResponse,
   type UpsertAchievementResponse,
   type UpsertAchievementRequest,
+  type UpsertParticipantAchievementRequest,
 } from "../types/achievement_schemas";
+import {
+  RerollPodsResponseSchema,
+  type RerollPodsResponse,
+  type RerollPodsRequest,
+} from "../types/pod_schemas";
 
 export default (builder: ApiBuilder) => ({
   postCreateSession: builder.mutation<CreateSessionResponse, void>({
@@ -84,24 +91,25 @@ export default (builder: ApiBuilder) => ({
       ),
     invalidatesTags: ["Achievements"],
   }),
-  postUpsertEarnedV2: builder.mutation({
+  postUpsertEarnedV2: builder.mutation<
+    UpsertEarnedResponse,
+    UpsertEarnedRequest
+  >({
     query: (body) => ({
       url: "upsert_earned_v2/",
       method: "POST",
       body: body,
     }),
-    invalidatesTags: (result, error, body) => [
-      // { type: "PodsAchievements", id: `${body.round_id}-${body.pod_id}` },
-      "Pods",
-      "Earned",
-    ],
+    invalidatesTags: ["Pods", "Earned"],
   }),
-  postRerollPods: builder.mutation({
+  postRerollPods: builder.mutation<RerollPodsResponse, RerollPodsRequest>({
     query: (body) => ({
       url: "reroll_pods/",
       method: "POST",
       body: body,
     }),
+    transformResponse: (raw: unknown) =>
+      safeParseWithFallback(RerollPodsResponseSchema, raw, []),
     invalidatesTags: ["Pods", "Participants"],
   }),
   postInsertCommanders: builder.mutation<string, void>({
@@ -110,7 +118,10 @@ export default (builder: ApiBuilder) => ({
       method: "POST",
     }),
   }),
-  postUpsertParticipantAchievement: builder.mutation({
+  postUpsertParticipantAchievement: builder.mutation<
+    void,
+    UpsertParticipantAchievementRequest
+  >({
     query: (body) => ({
       url: "upsert_earned_achievements/",
       method: "POST",

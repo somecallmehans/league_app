@@ -41,3 +41,42 @@ export const PodStubSchema = z.object({
 const PodsDateResponseTuple = z.tuple([z.string(), z.array(PodStubSchema)]);
 export const PodsDateResponseSchema = z.array(PodsDateResponseTuple);
 export type PodsDateResponse = z.infer<typeof PodsDateResponseSchema>;
+
+export const UpsertEarnedWinnerInfoSchema = z.object({
+  participant_id: z.number().nullable(),
+  color_id: z.number().nullable(),
+  commander_name: z.string(),
+  pod_id: z.number(),
+  session_id: z.number().optional(),
+  addtl_info: z.object(z.unknown()).optional(),
+});
+
+export const UpsertEarnedWinInfoSchema = z.object({
+  participant_id: z.number().optional(),
+  slug: z.string().optional(),
+  // TODO: When a round is a draw, we omit the top 2 keys but then ALWAYS
+  // send deleted=True. This usually just no-ops on the backend, since existence
+  // of a draw precludes a win record but might be worth cleaning up anyway.
+  deleted: z.boolean().optional(),
+});
+
+const RerollParticipantSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  isNew: z.boolean().optional(),
+  total_points: z.number().optional(),
+});
+
+export const RerollPodsRequestSchema = z.object({
+  round: z.number(),
+  participants: z.array(RerollParticipantSchema),
+});
+
+export const RerollPodsResponseSchema = z.array(
+  PodParticipantSchema.extend({
+    pods: StubPodSchema,
+  })
+);
+
+export type RerollPodsResponse = z.infer<typeof RerollPodsResponseSchema>;
+export type RerollPodsRequest = z.infer<typeof RerollPodsRequestSchema>;
