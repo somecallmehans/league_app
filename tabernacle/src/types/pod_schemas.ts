@@ -6,7 +6,7 @@ import {
   RoundParticipantStubSchema,
 } from "./participant_schemas";
 
-const StubPodSchema = z.object({
+export const StubPodSchema = z.object({
   id: z.number(),
   submitted: z.boolean(),
 });

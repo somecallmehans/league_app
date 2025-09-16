@@ -8,6 +8,14 @@ export const AchievementTypeSchema = z.object({
   hex_code: z.string(),
 });
 
+type AchievementType = z.infer<typeof AchievementTypeSchema>;
+const EMPTY_TYPE: AchievementType = {
+  id: -1,
+  name: "",
+  description: "",
+  hex_code: "",
+};
+
 export const AchievementTypeListResponseSchema = z.array(AchievementTypeSchema);
 export type AchievementTypeListResponse = z.infer<
   typeof AchievementTypeListResponseSchema
@@ -32,7 +40,7 @@ export interface Restrictions {
 }
 
 export const RestrictionsSchema = z.object({
-  id: z.number(),
+  id: z.number().optional(),
   name: z.string(),
   url: z.string().nullable(),
 });
@@ -124,3 +132,25 @@ export const EarnedAchievementStubListResponseSchema = z
 export type EarnedAchievementSubListResponse = z.infer<
   typeof EarnedAchievementStubListResponseSchema
 >;
+
+// POST
+export const UpsertAchievementResponseSchema = z.object({
+  name: z.string(),
+  point_value: z.number(),
+  restrictions: z.array(RestrictionsSchema),
+  achievements: z.array(z.object({ name: z.string() })),
+  type: AchievementTypeSchema,
+  type_id: z.number().optional(),
+});
+export type UpsertAchievementResponse = z.infer<
+  typeof UpsertAchievementResponseSchema
+>;
+export const EMPTY_ACHIEVEMENT_RESPONSE: UpsertAchievementResponse = {
+  name: "",
+  point_value: 0,
+  restrictions: [],
+  achievements: [],
+  type: EMPTY_TYPE,
+  type_id: undefined,
+};
+export type UpsertAchievementRequest = Achievement;

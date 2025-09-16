@@ -107,7 +107,6 @@ export const {
   // POSTS
   usePostCreateSessionMutation,
   usePostBeginRoundMutation,
-  usePostCloseRoundMutation,
   usePostUpsertParticipantMutation,
   usePostUpsertAchievementsMutation,
   usePostUpsertEarnedV2Mutation,
