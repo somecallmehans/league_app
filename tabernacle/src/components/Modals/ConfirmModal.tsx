@@ -9,6 +9,15 @@ import {
   TransitionChild,
 } from "@headlessui/react";
 
+interface ConfirmModalProps {
+  isOpen: boolean;
+  title: string;
+  bodyText: string;
+  confirmAction: () => void;
+  closeModal: () => void;
+  disableSubmit?: boolean;
+}
+
 export default function ({
   isOpen,
   title,
@@ -16,7 +25,7 @@ export default function ({
   confirmAction,
   closeModal,
   disableSubmit,
-}) {
+}: ConfirmModalProps) {
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={closeModal}>
