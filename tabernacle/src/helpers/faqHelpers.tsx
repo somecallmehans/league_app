@@ -1,6 +1,12 @@
-import React from "react";
+import { type ReactNode } from "react";
 
-export const resourceInfo = [
+type ResourceInfo = {
+  id: number;
+  title: string;
+  Component: () => ReactNode;
+};
+
+export const resourceInfo: ResourceInfo[] = [
   {
     id: 1,
     title: "Shared Decklists",

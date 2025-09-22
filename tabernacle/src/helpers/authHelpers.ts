@@ -3,7 +3,7 @@ import { jwtDecode } from "jwt-decode";
 export const getTokenRaw = () => localStorage.getItem("access_token");
 
 const auth = {
-  setToken: (access, refresh) => {
+  setToken: (access: string, refresh: string): void => {
     localStorage.setItem("access_token", access);
     localStorage.setItem("refresh_token", refresh);
   },

@@ -133,8 +133,10 @@ export const TypeInfo = ({ showInfo }) => {
       } `}
     >
       {types.map(({ id, name, hex_code, description }) => {
-        const rgbVal = hexToRgb(hex_code);
-        const rgbString = `rgb(${rgbVal.r}, ${rgbVal.g}, ${rgbVal.b}, 0.4)`;
+        const rgbVal = hex_code ? hexToRgb(hex_code) : null;
+        const rgbString = rgbVal
+          ? `rgba(${rgbVal.r}, ${rgbVal.g}, ${rgbVal.b}, 0.4)`
+          : undefined;
 
         return (
           <div key={id} className="flex-1 min-w-0">
