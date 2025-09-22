@@ -1,4 +1,4 @@
-import React, { Fragment } from "react";
+import { Fragment, type ReactNode } from "react";
 
 import {
   Dialog,
@@ -9,6 +9,17 @@ import {
 } from "@headlessui/react";
 import StandardButton from "./Button";
 
+interface ModalProps {
+  isOpen: boolean;
+  title: ReactNode;
+  action: () => void;
+  actionTitle: string;
+  closeTitle: string;
+  closeModal: () => void;
+  disableConfirm?: boolean;
+  body?: ReactNode;
+}
+
 export default function Modal({
   isOpen,
   title,
@@ -18,7 +29,7 @@ export default function Modal({
   closeModal,
   body,
   disableConfirm,
-}) {
+}: ModalProps) {
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={closeModal}>
