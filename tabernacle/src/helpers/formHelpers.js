@@ -342,9 +342,7 @@ export function formatUpdate(
     commander_name: commanderName,
     pod_id: podId,
     session_id: sessionId,
-    addtl_info: {
-      commander_color_id_1: newValues["winner-commander"]?.color_id,
-    },
+    addtl_info: {},
   };
 
   // handle winner achievements that are bool centric

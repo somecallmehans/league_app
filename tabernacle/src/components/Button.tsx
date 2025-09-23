@@ -1,13 +1,26 @@
-import React from "react";
 
 import { Button } from "@headlessui/react";
+import type { ComponentProps, MouseEventHandler, ReactNode } from "react";
+
+type ButtonBaseProps = Omit<
+  ComponentProps<typeof Button>,
+  "onClick" | "type" | "disabled" | "children" | "className"
+>;
+
+export type StandardButtonProps = ButtonBaseProps & {
+  title: ReactNode;
+  action?: MouseEventHandler<HTMLButtonElement>;
+  disabled?: boolean;
+  type?: "button" | "submit" | "reset";
+  className?: string;
+};
 
 export default function StandardButton({
   title,
   action,
   disabled,
   type = "button",
-}) {
+}: StandardButtonProps) {
   return (
     <Button
       onClick={action}

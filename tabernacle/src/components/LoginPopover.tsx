@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Popover,
   PopoverButton,
@@ -12,12 +12,17 @@ import {
 import { useLoginMutation } from "../api/apiSlice";
 import auth from "../helpers/authHelpers";
 
-export default function LoginPopover({ loggedIn, setLoggedIn }) {
-  const [username, setUsername] = useState();
-  const [password, setPassword] = useState();
+interface LoginPopOverProps {
+  loggedIn: boolean;
+  setLoggedIn: (arg0: boolean) => void;
+}
+
+export default function LoginPopover({ loggedIn, setLoggedIn }: LoginPopOverProps) {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [login] = useLoginMutation();
 
-  const handleLogin = async (e) => {
+  const handleLogin = async (e: React.ChangeEvent<any>) => {
     e.preventDefault();
     try {
       const result = await login({ username, password }).unwrap();

@@ -5,11 +5,13 @@ import red from "./R.svg";
 import green from "./G.svg";
 import colorless from "./C.svg";
 
-export default {
+export const imgs = {
   white,
   blue,
   black,
   red,
   green,
   colorless,
-};
+} as const;
+
+export type ColorKey = keyof typeof imgs; 

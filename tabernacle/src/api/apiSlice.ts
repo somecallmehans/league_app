@@ -5,6 +5,7 @@ import auth, { getTokenRaw } from "../helpers/authHelpers";
 import getRoutes from "./getRoutes";
 import postRoutes from "./postRoutes";
 import authRoutes from "./authRoutes";
+import { BaseBQ } from "./baseApiTypes";
 
 const baseQuery = fetchBaseQuery({
   baseUrl: import.meta.env.VITE_API_URL,
@@ -17,10 +18,10 @@ const baseQuery = fetchBaseQuery({
   },
 });
 
-const baseQueryWithReauth = async (args, api, extraOptions) => {
+const baseQueryWithReauth: BaseBQ = async (args, api, extraOptions) => {
   let result = await baseQuery(args, api, extraOptions);
 
-  if (result.error && result.error.status === 401) {
+  if (result.error?.status === 401) {
     const refreshResult = await baseQuery(
       {
         url: "api/token/refresh/",
@@ -31,8 +32,10 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
       extraOptions
     );
 
-    if (refreshResult.data) {
-      auth.setToken(refreshResult.data.access, auth.getRefreshToken());
+    const refreshData = refreshResult.data as { access?: string } | undefined;
+
+    if (refreshData) {
+      auth.setToken(refreshData.access, auth.getRefreshToken());
       result = await baseQuery(args, api, extraOptions);
     } else {
       auth.removeToken();
@@ -40,8 +43,18 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
     }
   }
 
-  if (result.error) {
-    toast.error(`Error while performing request: ${result?.error?.error}`);
+  if (result?.error) {
+    let msg = "Unknown error";
+
+    if ("error" in result.error) {
+      msg = result.error.error;
+    } else {
+      msg =
+        typeof result.error.data === "string"
+          ? result.error.data
+          : JSON.stringify(result.error.data);
+    }
+    toast.error(`Error while performing request: ${msg}`);
   }
 
   return result;
@@ -58,7 +71,7 @@ export const apiSlice = createApi({
     "Earned",
     "PodsAchievements",
     "Rounds",
-  ],
+  ] as const,
   endpoints: (builder) => ({
     ...getRoutes(builder),
     ...postRoutes(builder),
@@ -73,7 +86,6 @@ export const {
   useGetParticipantsQuery,
   useGetPodsQuery,
   useGetAllColorsQuery,
-  useGetSessionByDateQuery,
   useGetAchievementsForMonthQuery,
   useGetUniqueMonthsQuery,
   useGetMetricsQuery,
@@ -86,14 +98,15 @@ export const {
   useGetAllRoundsQuery,
   useGetParticipantPodsQuery,
   useGetAchievementsListQuery,
-  useGetAchievementTypesQuery,
+  // Not currently in use but will be needed
+  // when we add the crud for this
+  // useGetAchievementTypesQuery,
   useGetLeagueWinnersQuery,
   useGetLeagueWinnerQuery,
 
   // POSTS
   usePostCreateSessionMutation,
   usePostBeginRoundMutation,
-  usePostCloseRoundMutation,
   usePostUpsertParticipantMutation,
   usePostUpsertAchievementsMutation,
   usePostUpsertEarnedV2Mutation,

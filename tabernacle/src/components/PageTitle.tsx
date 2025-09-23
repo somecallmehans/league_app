@@ -1,6 +1,9 @@
-import React from "react";
 
-export default function PageTitle({ title }) {
+interface PageTitleProps{ 
+  title: string;
+}
+
+export default function PageTitle({ title }: PageTitleProps) {
   return (
     <div
       className="text-3xl sm:text-4xl mb-4 font-bold"

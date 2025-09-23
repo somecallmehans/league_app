@@ -2,63 +2,13 @@ import React, { useState, Fragment } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Menu, Transition, Disclosure } from "@headlessui/react";
 import LoginPopover from "./LoginPopover";
+import { navLinks, type Node, type NodeChild } from "../helpers/navTree";
 
-const navLinks = [
-  { id: 1, name: "Home", to: "/", admin: false, icon: "fa-solid fa-house" },
-  {
-    id: 2,
-    name: "Info",
-    to: "/info",
-    admin: false,
-    icon: "fa-solid fa-circle-info",
-  },
-  {
-    id: 3,
-    name: "Standings",
-    admin: false,
-    icon: "fa-solid fa-ranking-star",
-    children: [
-      { id: "3a", name: "Leaderboard", to: "/leaderboard" },
-      { id: "3b", name: "Champions", to: "/champions" },
-    ],
-  },
-  {
-    id: 8,
-    name: "Pairings",
-    to: "/pods",
-    admin: false,
-    icon: "fa-solid fa-landmark",
-  },
-  {
-    id: 4,
-    name: "Achievements",
-    to: "/achievements",
-    admin: false,
-    icon: "fa-solid fa-star",
-  },
-  {
-    id: 7,
-    name: "Stats",
-    to: "/metrics",
-    icon: "fa-solid fa-square-poll-vertical",
-  },
-  {
-    id: 5,
-    name: "Admin",
-    to: "/management",
-    admin: true,
-    icon: "fa-solid fa-list-check",
-  },
-  {
-    id: 6,
-    name: "Rounds",
-    to: "/league-session",
-    admin: true,
-    icon: "fa-solid fa-gamepad",
-  },
-];
+interface DesktopDropdownProps {
+  link: Node;
+}
 
-function DesktopDropdown({ link }) {
+function DesktopDropdown({ link }: DesktopDropdownProps) {
   return (
     <Menu as="div" className="relative">
       <Menu.Button
@@ -81,7 +31,7 @@ function DesktopDropdown({ link }) {
         leaveTo="opacity-0 translate-y-1"
       >
         <Menu.Items className="absolute left-1/2 -translate-x-1/2 mt-2 w-56 origin-top rounded-xl bg-slate-800 shadow-lg ring-1 ring-black/10 focus:outline-none py-2">
-          {link.children.map((child) => (
+          {link.children?.map((child: NodeChild) => (
             <Menu.Item key={child.id}>
               {({ active }) => (
                 <NavLink
@@ -101,7 +51,13 @@ function DesktopDropdown({ link }) {
   );
 }
 
-function MobileDisclosure({ link, close, isActive }) {
+interface MobileDisclosureProps {
+  link: Node;
+  close: () => void;
+  isActive: (arg0: string) => boolean;
+}
+
+function MobileDisclosure({ link, close, isActive }: MobileDisclosureProps) {
   return (
     <Disclosure>
       {({ open }) => (
@@ -128,7 +84,7 @@ function MobileDisclosure({ link, close, isActive }) {
                 className={`overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out
                         ${open ? "max-h-40 opacity-100" : "max-h-0 opacity-0"}`}
               >
-                {link.children.map((child) => (
+                {link.children?.map((child) => (
                   <div key={child.id} className="pl-6">
                     <NavLink
                       to={child.to}
@@ -150,12 +106,17 @@ function MobileDisclosure({ link, close, isActive }) {
   );
 }
 
-export default function Navbar({ loggedIn, setLoggedIn }) {
+interface NavbarProps {
+  loggedIn: boolean;
+  setLoggedIn: () => void;
+}
+
+export default function Navbar({ loggedIn, setLoggedIn }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { pathname } = useLocation();
   const filtered = navLinks.filter((l) => !l.admin || (l.admin && loggedIn));
 
-  const isActive = (to) => pathname === to;
+  const isActive = (to: string | undefined) => pathname === to;
   return (
     <nav className="text-slate-50 bg-slate-800">
       <div className="container mx-auto flex items-center justify-between p-4">
@@ -170,13 +131,7 @@ export default function Navbar({ loggedIn, setLoggedIn }) {
         <div className="hidden sm:flex sm:gap-4">
           {filtered.map((link) => {
             if (link.children?.length) {
-              return (
-                <DesktopDropdown
-                  key={link.id}
-                  link={link}
-                  isActive={isActive(link.to)}
-                />
-              );
+              return <DesktopDropdown key={link.id} link={link} />;
             }
             const { id, to, icon, name } = link;
             return (

@@ -1,6 +1,16 @@
-import React from "react";
+import type { MouseEventHandler } from "react";
+import { imgs, type ColorKey } from "../../public/images";
 
-import imgs from "../../public/images";
+const isColorKey = (v: string): v is ColorKey => v in imgs;
+
+interface ColorGridProps {
+  show: boolean;
+  colors?: string;
+  containerClasses: string;
+  submitted: boolean;
+  action?: MouseEventHandler<HTMLDivElement>;
+  noHover: boolean;
+}
 
 export default function ColorGrid({
   show,
@@ -9,7 +19,7 @@ export default function ColorGrid({
   submitted,
   action,
   noHover,
-}) {
+}: ColorGridProps) {
   if (!submitted) {
     return;
   }
@@ -25,6 +35,8 @@ export default function ColorGrid({
     );
   }
 
+  const keys = colors?.split(" ").filter(isColorKey);
+
   return (
     <div
       onClick={action}
@@ -32,7 +44,7 @@ export default function ColorGrid({
         noHover ? "" : "clickable-icon"
       } ${containerClasses}`}
     >
-      {colors?.split(" ")?.map((c, idx) => (
+      {keys?.map((c, idx) => (
         <img key={idx} className="w-4 h-4 md:w-6 md:h-6" src={imgs[c]} />
       ))}
     </div>

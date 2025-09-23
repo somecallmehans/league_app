@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-key */
-import React, { Fragment, useState, useEffect } from "react";
+import { Fragment, useState, useEffect, ReactNode } from "react";
 import CreatableSelect from "react-select/creatable";
 
 import StandardButton from "../Button";
@@ -15,18 +15,32 @@ import {
   useGetParticipantsQuery,
   useGetRoundParticipantsQuery,
 } from "../../api/apiSlice";
+import { type Participant } from "../../types/participant_schemas";
+import {
+  type SelectOption,
+  type SelectedParticipant,
+} from "../../types/form_schemas";
+
+interface HelpfulTextProps {
+  helpText: ReactNode;
+  warningText?: string;
+}
 
 const HelpfulText = ({
   helpText,
   warningText = "THIS IS A DESTRUCTIVE ACTION. IF CONFIRMED CURRENT PODS WILL BE BLOWN AWAY AND REMADE.",
-}) => (
+}: HelpfulTextProps) => (
   <div className="flex flex-col text-start border-l-2 m-1">
     <span className="text-xs m-1 pl-1 text-slate-500 italic">{helpText}</span>
     <span className="text-xs m-1 pl-1 text-red-500 italic">{warningText}</span>
   </div>
 );
 
-const HelpfulTextBlock = ({ roundNumber }) => {
+interface HelpfulTextBlockProps {
+  roundNumber: boolean;
+}
+
+const HelpfulTextBlock = ({ roundNumber }: HelpfulTextBlockProps) => {
   const helpText = roundNumber
     ? "Updating pods in round 1 will randomly shuffle all participants into new pods.\nNew players can be created and will be randomly shuffled into the round.\nIf you'd just like to reshuffle pods, click confirm."
     : "Updating pods in round 2 will sort participants by their total points this month.\nNew players can be created and will be sorted into the round.";
@@ -42,14 +56,22 @@ const HelpfulTextBlock = ({ roundNumber }) => {
   );
 };
 
+interface RerollPodsModalProps {
+  isOpen: boolean;
+  confirmAction: (arg0: SelectedParticipant[]) => void;
+  closeModal: () => void;
+  disableSubmit: boolean;
+  round: number;
+}
+
 export default function ({
   isOpen,
   confirmAction,
   closeModal,
   disableSubmit,
   round,
-}) {
-  const [selected, setSelected] = useState([]);
+}: RerollPodsModalProps) {
+  const [selected, setSelected] = useState<SelectedParticipant[]>([]);
 
   const { data: roundParticipants, isLoading: roundParticipantsLoading } =
     useGetRoundParticipantsQuery(round, { skip: !isOpen || !round });
@@ -74,7 +96,7 @@ export default function ({
     ({ id }) => !selectedIds.has(id)
   );
 
-  const addParticipant = (participant) => {
+  const addParticipant = (participant: SelectOption | null) => {
     if (!participant) return;
     const updated = [...selected];
     updated.unshift({
@@ -85,7 +107,7 @@ export default function ({
     setSelected(updated);
   };
 
-  const removeParticipant = (idx) => {
+  const removeParticipant = (idx: number) => {
     const updated = [...selected.slice(0, idx), ...selected.slice(idx + 1)];
     setSelected(updated);
   };
@@ -150,7 +172,7 @@ export default function ({
                       <div
                         key={id}
                         className={`${
-                          (removedParticipants?.length + idx) % 2 === 0
+                          (removedParticipants?.length || 0 + idx) % 2 === 0
                             ? "bg-slate-200"
                             : ""
                         } p-1 flex justify-between items-center`}
