@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "users",
     "achievements",
     "sessions_rounds",
+    "discord",
     "rest_framework",
     "rest_framework.authtoken",
     "corsheaders",
