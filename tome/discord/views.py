@@ -2,11 +2,13 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
+from utils.decorators import require_service_token
+
 from users.models import Participants
 
 GET = "GET"
 
-
+@require_service_token
 @api_view([GET])
 def mycode(_, discord_user_id):
     """Take in a users discord id, return their code."""
