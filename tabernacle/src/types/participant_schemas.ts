@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const ParticipantSchema = z.object({
-  id: z.number(),
+  id: z.number().optional(),
   name: z.string(),
   total_points: z.number().optional(),
   deleted: z.boolean().optional(),

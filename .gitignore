@@ -35,3 +35,9 @@ lerna-debug.log*
 /tabernacle/node_modules/
 /tabernacle/dist/
 /tabernacle/.env/
+
+# Bot-specific files
+/bot/.env/
+
+# Tome files
+/tome/.env/
