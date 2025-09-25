@@ -15,7 +15,7 @@ import {
 const textValidate = (val: string | undefined) => {
   if (!val) return "Code is required";
 
-  if (val.length > 6) return "Code is not greater than 6 characters";
+  if (val.length != 6) return "Code must be 6 characters";
 
   return undefined;
 };
@@ -33,6 +33,7 @@ interface SignInFormProps {
 type FormValues = {
   code: string;
   rounds: { r1: boolean; r2: boolean };
+  roundsGroup?: boolean;
 };
 
 const SignInForm = ({
@@ -45,12 +46,21 @@ const SignInForm = ({
     control,
     register,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     defaultValues: { code: "", rounds: { r1: false, r2: false } },
   });
 
-  const submit: SubmitHandler<FormValues> = async (values) => {
+  const submit: SubmitHandler<FormValues> = (values) => {
+    if (!values.rounds.r1 && !values.rounds.r2) {
+      setError("rounds", {
+        type: "manual",
+        message: "Select at least one round",
+      });
+      return;
+    }
+
     const [one, two] = ids;
     if (!one || !two) return;
 
@@ -58,7 +68,7 @@ const SignInForm = ({
     if (values.rounds.r1) rounds.push(one);
     if (values.rounds.r2) rounds.push(two);
 
-    await onSubmit?.({
+    onSubmit?.({
       code: values.code.trim().toUpperCase(),
       rounds,
     });
@@ -85,7 +95,6 @@ const SignInForm = ({
         <legend className="px-1 text-sm font-semibold text-slate-700">
           Rounds
         </legend>
-
         <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
           {/* Round 1 */}
           <Controller
@@ -149,6 +158,11 @@ const SignInForm = ({
             )}
           />
         </div>
+        {errors?.rounds && (
+          <span className="text-xs italic text-rose-400 ml-2">
+            {errors?.rounds?.message}
+          </span>
+        )}
       </fieldset>
 
       <div className="mt-2 flex justify-end gap-2 sm:justify-center">
@@ -206,7 +220,6 @@ export default function ({
               <DialogTitle as="h1" className="text-2xl font-semibold mb-2">
                 {title}
               </DialogTitle>
-              {/* <HelpfulTextBlock roundNumber={round % 2 !== 0} /> */}
               <SignInForm onSubmit={action} closeModal={closeModal} ids={ids} />
             </DialogPanel>
           </TransitionChild>

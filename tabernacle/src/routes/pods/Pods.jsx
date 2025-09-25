@@ -51,7 +51,7 @@ const SignInArea = ({ roundInfo }) => {
         <div className="text-center text-sm sm:text-base mt-2 text-gray-700">
           Enter your user code to sign in.
         </div>
-        <div className="text-center text-[8px] sm:text-xs text-gray-500 italic">
+        <div className="text-center text-[10px] sm:text-xs text-gray-500 italic">
           Use /link in Discord to connect your account, then /mycode to get your
           code.
         </div>
