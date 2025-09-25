@@ -31,6 +31,33 @@ const roundTimes = {
 };
 
 const RoundDisplay = ({ roundInfo, dateKey, renderRoundLink }) => {
+  const signInOpen = roundInfo.every(
+    ({ started, closed }) => !started && !closed
+  );
+
+  if (signInOpen) {
+    return (
+      <div className="flex flex-wrap justify-center p-4 drop-shadow-md">
+        <div className="flex flex-col items-center justify-center text-center">
+          <div
+            className={`bg-sky-400 text-white drop-shadow-md  rounded-md
+                    px-16 py-4 sm:px-24 sm:py-6 text-lg md:text-3xl`}
+          >
+            Sign In
+          </div>
+
+          <div className="text-center text-sm sm:text-base mt-2 text-gray-700">
+            Enter your user code to sign in.
+          </div>
+          <div className="text-center text-[8px] sm:text-xs text-gray-500 italic">
+            Use /link in Discord to connect your account, then /mycode to get
+            your code.
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-wrap w-full justify-around p-4 drop-shadow-md">
       {[...roundInfo]
