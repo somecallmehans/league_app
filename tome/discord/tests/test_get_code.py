@@ -1,5 +1,6 @@
 import pytest
 
+from rest_framework.test import APIClient
 from django.urls import reverse
 from rest_framework import status
 
@@ -10,8 +11,16 @@ from users.models import Participants
 def add_participant_with_code() -> None:
     """Add one participant with a code + id"""
     Participants.objects.create(
-        name="Cody Codeson", deleted=False, discord_user_id="1234567", code="AAAAAA"
+        name="Cody Codeson", deleted=False, discord_user_id="1234567", code="BBBBBB"
     )
+
+
+@pytest.fixture(scope="function")
+def client(settings):
+    settings.SERVICE_TOKEN = "test-token"
+    api = APIClient()
+    api.credentials(HTTP_AUTHORIZATION="X-SERVICE-TOKEN test-token")
+    return api
 
 
 @pytest.fixture(scope="function")
@@ -32,7 +41,7 @@ def test_get_code(client, add_participant_with_code) -> None:
     parsed_res = res.json()
 
     assert res.status_code == status.HTTP_200_OK
-    assert parsed_res["code"] == "AAAAAA"
+    assert parsed_res["code"] == "BBBBBB"
 
 
 def test_get_code_fail(client, add_participant_with_code_unlinked) -> None:
