@@ -129,4 +129,12 @@ export default (builder: ApiBuilder) => ({
     }),
     invalidatesTags: ["Earned"],
   }),
+  postSignup: builder.mutation<void, void>({
+    query: (body) => ({
+      url: "signup/",
+      method: "POST",
+      body: body,
+    }),
+    invalidatesTags: ["SignedIn"],
+  }),
 });

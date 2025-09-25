@@ -71,6 +71,7 @@ export const apiSlice = createApi({
     "Earned",
     "PodsAchievements",
     "Rounds",
+    "SignedIn",
   ] as const,
   endpoints: (builder) => ({
     ...getRoutes(builder),
@@ -113,6 +114,7 @@ export const {
   usePostRerollPodsMutation,
   usePostInsertCommandersMutation,
   usePostUpsertParticipantAchievementMutation,
+  usePostSignupMutation,
 
   // AUTH
   useLoginMutation,

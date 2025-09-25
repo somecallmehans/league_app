@@ -9,6 +9,7 @@ import LoadingSpinner from "../../components/LoadingSpinner";
 import {
   useGetUniqueMonthsQuery,
   useGetRoundsByMonthQuery,
+  usePostSignupMutation,
 } from "../../api/apiSlice";
 import { useMonthYear } from "../../hooks";
 
@@ -33,9 +34,14 @@ const roundTimes = {
 
 const SignInArea = ({ roundInfo }) => {
   const [showModal, setShowModal] = useState(false);
+  const [postSignup] = usePostSignupMutation();
   const ids = roundInfo.map(({ id }) => id);
-  const handleSubmit = (formVals) => {
-    console.log(formVals);
+  const handleSubmit = async (formVals) => {
+    try {
+      await postSignup(formVals);
+    } catch (error) {
+      console.error("Failed to sign in for round.", error);
+    }
   };
   return (
     <div className="flex flex-wrap justify-center p-4 drop-shadow-md">
@@ -59,7 +65,7 @@ const SignInArea = ({ roundInfo }) => {
       <SignInModal
         isOpen={showModal}
         closeModal={() => setShowModal(false)}
-        action={(vals) => handleSubmit(vals)}
+        action={handleSubmit}
         title="Round Sign In"
         actionTitle="Confirm"
         closeTitle="Cancel"

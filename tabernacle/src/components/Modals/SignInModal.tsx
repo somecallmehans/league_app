@@ -1,6 +1,6 @@
-import { Fragment, useState, ReactNode } from "react";
+import { Fragment, ReactNode } from "react";
 import { useForm, Controller, SubmitHandler } from "react-hook-form";
-import { TextInput, CheckBoxInput } from "../FormInputs";
+import { TextInput } from "../FormInputs";
 import { Checkbox } from "@headlessui/react";
 
 import StandardButton from "../Button";
@@ -52,7 +52,7 @@ const SignInForm = ({
     defaultValues: { code: "", rounds: { r1: false, r2: false } },
   });
 
-  const submit: SubmitHandler<FormValues> = (values) => {
+  const submit: SubmitHandler<FormValues> = async (values) => {
     if (!values.rounds.r1 && !values.rounds.r2) {
       setError("rounds", {
         type: "manual",
@@ -68,7 +68,7 @@ const SignInForm = ({
     if (values.rounds.r1) rounds.push(one);
     if (values.rounds.r2) rounds.push(two);
 
-    onSubmit?.({
+    await onSubmit?.({
       code: values.code.trim().toUpperCase(),
       rounds,
     });
