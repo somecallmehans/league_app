@@ -13,6 +13,7 @@ from .views import (
     get_round_participants,
     get_all_rounds,
     get_participant_recent_pods,
+    signup,
 )
 
 urlpatterns = [
@@ -53,6 +54,7 @@ urlpatterns = [
     path("unique_months/", get_unique_session_months, name="unique_months"),
     path("rounds_by_month/<str:mm_yy>/", get_rounds_by_month, name="rounds_by_month"),
     path("reroll_pods/", reroll_pods, name="reroll_pods"),
+    path("signup/", signup, name="signup"),
     re_path(r"^get_all_rounds/$", get_all_rounds, name="get_all_rounds"),
     re_path(
         r"^get_all_rounds/(?P<participant_id>\d+)/$",

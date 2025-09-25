@@ -42,3 +42,11 @@ class PodsParticipants(models.Model):
 
     class Meta:
         db_table = "pods_participants"
+
+
+class RoundSignups(models.Model):
+    participant = models.ForeignKey("users.Participants", on_delete=models.CASCADE)
+    round = models.ForeignKey(Rounds, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = "round_signups"
