@@ -14,9 +14,9 @@ from rest_framework.decorators import (
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Prefetch, Exists, OuterRef, Q
+from django.db.models import Prefetch, Exists, OuterRef
 
-from .models import Sessions, Rounds, Pods, PodsParticipants
+from .models import Sessions, Rounds, Pods, PodsParticipants, RoundSignups
 from users.models import ParticipantAchievements, Participants
 from achievements.models import WinningCommanders
 
@@ -457,3 +457,29 @@ def get_participant_recent_pods(_, participant_id, mm_yy=None):
     )
 
     return Response(sorted_output)
+
+
+@api_view([POST])
+def signup(request):
+    """Allows users to pre-signup for a round using their code that should be linked
+    to them via discord."""
+    body = json.loads(request.body.decode("utf-8"))
+    code: str = body.get("code")
+    rounds: list[int] = body.get("rounds")
+
+    pid = (
+        Participants.objects.filter(
+            code=code, deleted=False, discord_user_id__isnull=False
+        )
+        .values_list("id", flat=True)
+        .first()
+    )
+
+    if not pid:
+        return Response({"message": "No participant found for the given code."})
+
+    RoundSignups.objects.bulk_create(
+        RoundSignups(participant_id=pid, round_id=rid) for rid in rounds
+    )
+
+    return Response(status=status.HTTP_201_CREATED)
