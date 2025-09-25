@@ -478,6 +478,13 @@ def signup(request):
     if not pid:
         return Response({"message": "No participant found for the given code."})
 
+    has_signed_in = RoundSignups.objects.filter(
+        participant_id=pid, round_id__in=rounds
+    ).exists()
+
+    if has_signed_in:
+        return Response({"message": "User has already signed in for these rounds."})
+
     RoundSignups.objects.bulk_create(
         RoundSignups(participant_id=pid, round_id=rid) for rid in rounds
     )

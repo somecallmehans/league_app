@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Route, Routes, Link } from "react-router-dom";
 
 import { handleNavClick } from "../../helpers/helpers";
@@ -15,6 +15,7 @@ import { useMonthYear } from "../../hooks";
 import { SimpleSelect } from "../crud/CrudComponents";
 import { monthMap, monthStr } from "../../helpers/dateHelpers";
 import FocusedPod from "./FocusedPod";
+import SignInModal from "../../components/Modals/SignInModal";
 
 function dateSort(a, b) {
   const parseDate = (str) => {
@@ -30,32 +31,51 @@ const roundTimes = {
   2: "3:30 PM",
 };
 
+const SignInArea = ({ roundInfo }) => {
+  const [showModal, setShowModal] = useState(false);
+  const ids = roundInfo.map(({ id }) => id);
+  const handleSubmit = (formVals) => {
+    console.log(formVals);
+  };
+  return (
+    <div className="flex flex-wrap justify-center p-4 drop-shadow-md">
+      <div className="flex flex-col items-center justify-center text-center">
+        <div
+          className={`bg-sky-400 text-white drop-shadow-md  rounded-md
+              px-16 py-4 sm:px-24 sm:py-6 text-lg md:text-3xl`}
+          onClick={() => setShowModal(true)}
+        >
+          Sign In
+        </div>
+
+        <div className="text-center text-sm sm:text-base mt-2 text-gray-700">
+          Enter your user code to sign in.
+        </div>
+        <div className="text-center text-[8px] sm:text-xs text-gray-500 italic">
+          Use /link in Discord to connect your account, then /mycode to get your
+          code.
+        </div>
+      </div>
+      <SignInModal
+        isOpen={showModal}
+        closeModal={() => setShowModal(false)}
+        action={(vals) => handleSubmit(vals)}
+        title="Round Sign In"
+        actionTitle="Confirm"
+        closeTitle="Cancel"
+        ids={ids}
+      />
+    </div>
+  );
+};
+
 const RoundDisplay = ({ roundInfo, dateKey, renderRoundLink }) => {
   const signInOpen = roundInfo.every(
     ({ started, closed }) => !started && !closed
   );
 
   if (signInOpen) {
-    return (
-      <div className="flex flex-wrap justify-center p-4 drop-shadow-md">
-        <div className="flex flex-col items-center justify-center text-center">
-          <div
-            className={`bg-sky-400 text-white drop-shadow-md  rounded-md
-                    px-16 py-4 sm:px-24 sm:py-6 text-lg md:text-3xl`}
-          >
-            Sign In
-          </div>
-
-          <div className="text-center text-sm sm:text-base mt-2 text-gray-700">
-            Enter your user code to sign in.
-          </div>
-          <div className="text-center text-[8px] sm:text-xs text-gray-500 italic">
-            Use /link in Discord to connect your account, then /mycode to get
-            your code.
-          </div>
-        </div>
-      </div>
-    );
+    return <SignInArea roundInfo={roundInfo} />;
   }
 
   return (
