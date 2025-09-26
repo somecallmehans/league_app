@@ -104,6 +104,7 @@ export const {
   // useGetAchievementTypesQuery,
   useGetLeagueWinnersQuery,
   useGetLeagueWinnerQuery,
+  useGetSigninsQuery,
 
   // POSTS
   usePostCreateSessionMutation,

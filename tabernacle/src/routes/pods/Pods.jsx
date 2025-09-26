@@ -11,6 +11,7 @@ import {
   useGetUniqueMonthsQuery,
   useGetRoundsByMonthQuery,
   usePostSignupMutation,
+  useGetSigninsQuery,
 } from "../../api/apiSlice";
 import { useMonthYear } from "../../hooks";
 
@@ -18,6 +19,7 @@ import { SimpleSelect } from "../crud/CrudComponents";
 import { monthMap, monthStr } from "../../helpers/dateHelpers";
 import FocusedPod from "./FocusedPod";
 import SignInModal from "../../components/Modals/SignInModal";
+import InfoModal from "../../components/InfoModal";
 
 function dateSort(a, b) {
   const parseDate = (str) => {
@@ -33,10 +35,19 @@ const roundTimes = {
   2: "3:30 PM",
 };
 
+const roundDisplay = (id) => (id % 2 === 0 ? "3:30PM" : "1:30PM");
+
 const SignInArea = ({ roundInfo }) => {
-  const [showModal, setShowModal] = useState(false);
-  const [postSignup] = usePostSignupMutation();
   const ids = roundInfo.map(({ id }) => id);
+  const [showModal, setShowModal] = useState(false);
+  const [showParticipants, setShowParticipants] = useState([]);
+  const { data: signIns, isLoading: signInsLoading } = useGetSigninsQuery({
+    round_one: ids[0],
+    round_two: ids[1],
+  });
+
+  const [postSignup] = usePostSignupMutation();
+
   const handleSubmit = async (formVals) => {
     try {
       const res = await postSignup(formVals);
@@ -47,23 +58,41 @@ const SignInArea = ({ roundInfo }) => {
       console.error("Failed to sign in for round.", error);
     }
   };
+  if (signInsLoading) {
+    return null;
+  }
   return (
     <div className="flex flex-wrap justify-center p-4 drop-shadow-md">
-      <div className="flex flex-col items-center justify-center text-center">
+      <div className="flex flex-col gap-2 items-center justify-center text-center">
+        <div className="text-center text-[8px] sm:text-xs text-gray-500 italic">
+          Use /link in Discord to connect your account, then /mycode to get your
+          code.
+        </div>
+        <div className="text-center text-[6px] sm:text-xs text-gray-500 italic">
+          You may also check-in in-store as long as there are open spots.
+        </div>
         <div
-          className={`bg-sky-400 text-white drop-shadow-md  rounded-md
-              px-16 py-4 sm:px-24 sm:py-6 text-lg md:text-3xl`}
+          className="bg-sky-400 hover:bg-sky-300 text-white drop-shadow-md  rounded-md
+              px-16 py-4 sm:px-24  text-lg md:text-3xl"
           onClick={() => setShowModal(true)}
         >
           Sign In
         </div>
 
-        <div className="text-center text-sm sm:text-base mt-2 text-gray-700">
-          Enter your user code to sign in.
-        </div>
-        <div className="text-center text-[10px] sm:text-xs text-gray-500 italic">
-          Use /link in Discord to connect your account, then /mycode to get your
-          code.
+        <div className="flex gap-4 text-center text-xs sm:text-sm drop-shadow-md">
+          {ids.map((id) => {
+            const count = signIns[id]["count"];
+            const participants = signIns[id]["participants"];
+            return (
+              <div
+                className="border  hover:border-sky-500 p-2 rounded-lg"
+                onClick={() => setShowParticipants(participants)}
+              >
+                {roundDisplay(id)} Players:{" "}
+                <span className="font-bold">{count}/24</span>
+              </div>
+            );
+          })}
         </div>
       </div>
       <SignInModal
@@ -74,6 +103,20 @@ const SignInArea = ({ roundInfo }) => {
         actionTitle="Confirm"
         closeTitle="Cancel"
         ids={ids}
+      />
+      <InfoModal
+        isOpen={showParticipants.length > 0}
+        closeModal={() => setShowParticipants([])}
+        title="Signed In Participants"
+        body={
+          <div className="grid grid-cols-2 gap-y-1 px-8">
+            {showParticipants.map(({ name }) => (
+              <div key={name} className="text-sm">
+                {name}
+              </div>
+            ))}
+          </div>
+        }
       />
     </div>
   );
@@ -97,12 +140,11 @@ const RoundDisplay = ({ roundInfo, dateKey, renderRoundLink }) => {
         .map(({ id, round_number, completed, started }) => {
           let iconText = "fa-regular fa-circle-check";
           let buttonColor = "bg-emerald-500";
-          if (!completed && !started) {
-            iconText = "fa-regular fa-circle-stop";
-            buttonColor = "bg-slate-400";
-          } else if (started && !completed) {
+          let hoverColor = "bg-emerald-400";
+          if (started && !completed) {
             iconText = "fa-solid fa-circle-exclamation";
             buttonColor = "bg-yellow-500";
+            hoverColor = "bg-yellow-400";
           }
 
           return (
@@ -121,7 +163,7 @@ const RoundDisplay = ({ roundInfo, dateKey, renderRoundLink }) => {
                 disabled={!completed && !started}
               >
                 <div
-                  className={`${buttonColor} text-white drop-shadow-md  rounded-md
+                  className={`${buttonColor} hover:${hoverColor} text-white drop-shadow-md  rounded-md
                     px-2 py-4 sm:px-8 sm:py-8 text-lg md:text-3xl`}
                   onClick={() => handleNavClick(`round_${id}`)}
                 >

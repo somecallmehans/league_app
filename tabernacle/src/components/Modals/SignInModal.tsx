@@ -122,7 +122,7 @@ const SignInForm = ({
                     />
                   </svg>
                 </Checkbox>
-                <span className="text-sm text-slate-800">Round 1</span>
+                <span className="text-sm text-slate-800">Round 1, 1:30PM</span>
               </label>
             )}
           />
@@ -153,7 +153,7 @@ const SignInForm = ({
                     />
                   </svg>
                 </Checkbox>
-                <span className="text-sm text-slate-800">Round 2</span>
+                <span className="text-sm text-slate-800">Round 2, 3:30PM</span>
               </label>
             )}
           />
