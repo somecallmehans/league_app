@@ -483,10 +483,48 @@ def signup(request):
     ).exists()
 
     if has_signed_in:
-        return Response({"message": "User has already signed in for these rounds."})
+        return Response({"message": "User has already signed in."})
 
     RoundSignups.objects.bulk_create(
         RoundSignups(participant_id=pid, round_id=rid) for rid in rounds
     )
 
-    return Response(status=status.HTTP_201_CREATED)
+    return Response({"message": "Successfully added"}, status=status.HTTP_201_CREATED)
+
+
+@api_view([GET])
+def signin_counts(request):
+    """Return a count and 2 lists of currently signed in users."""
+    round_one = request.query_params.get("round_one")
+    round_two = request.query_params.get("round_two")
+
+    if not round_one and not round_two:
+        return Response(
+            {"message": "At least one round required"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    query = (
+        RoundSignups.objects.filter(round_id__in=[round_one, round_two])
+        .select_related("participant")
+        .values("participant_id", "participant__name", "round_id")
+    )
+
+    out = {
+        round_one: {"participants": [], "count": 0},
+        round_two: {"participants": [], "count": 0},
+    }
+
+    for q in query:
+        if q["round_id"] == int(round_one):
+            out[round_one]["participants"].append(
+                {"id": q["participant_id"], "name": q["participant__name"]}
+            )
+            out[round_one]["count"] += 1
+        else:
+            out[round_two]["participants"].append(
+                {"id": q["participant_id"], "name": q["participant__name"]}
+            )
+            out[round_two]["count"] += 1
+
+    return Response(out)
