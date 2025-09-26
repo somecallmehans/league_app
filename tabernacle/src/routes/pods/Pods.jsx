@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Route, Routes, Link } from "react-router-dom";
+import { toast } from "react-toastify";
 
 import { handleNavClick } from "../../helpers/helpers";
 
@@ -38,8 +39,11 @@ const SignInArea = ({ roundInfo }) => {
   const ids = roundInfo.map(({ id }) => id);
   const handleSubmit = async (formVals) => {
     try {
-      await postSignup(formVals);
+      const res = await postSignup(formVals);
+      setShowModal(false);
+      toast.success(res.data.message);
     } catch (error) {
+      setShowModal(false);
       console.error("Failed to sign in for round.", error);
     }
   };
