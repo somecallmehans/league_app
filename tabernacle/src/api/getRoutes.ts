@@ -48,8 +48,10 @@ import {
 import {
   MonthRoundObjectResponseSchema,
   RoundListSchema,
+  SignInResponseSchema,
   type MonthRoundObjectResponse,
   type RoundList,
+  type SignInResponse,
 } from "../types/round_schemas";
 import {
   CommanderObjectResponseSchema,
@@ -205,5 +207,12 @@ export default (builder: ApiBuilder) => ({
         participant_id: -1,
         rounds: [],
       }),
+  }),
+  getSignins: builder.query<SignInResponse, { round_one: Id; round_two: Id }>({
+    query: ({ round_one, round_two }) =>
+      `signin_counts?round_one=${round_one}&round_two=${round_two}/`,
+    transformResponse: (raw: unknown) =>
+      safeParseWithFallback(SignInResponseSchema, raw, {}),
+    providesTags: ["SignedIn"],
   }),
 });

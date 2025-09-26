@@ -33,6 +33,15 @@ export type MonthRoundObjectResponse = z.infer<
 export const RoundListSchema = z.array(RoundSchema);
 export type RoundList = z.infer<typeof RoundListSchema>;
 
+export const SignInResponseSchema = z.record(
+  z.string(),
+  z.object({
+    participants: z.array(z.object({ id: z.number(), name: z.string() })),
+    count: z.number(),
+  })
+);
+export type SignInResponse = z.infer<typeof SignInResponseSchema>;
+
 // POST types
 export const BeginRoundRequestSchema = z.object({
   round: z.number(),
