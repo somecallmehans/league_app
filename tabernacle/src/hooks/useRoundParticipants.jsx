@@ -11,31 +11,16 @@ import {
 
 export default function useRouteParticipants(
   roundId,
-  sessionId,
-  previousRoundId
+  sessionId
 ) {
   const [hasHydrated, setHasHydrated] = useState(false);
   const [postBeginRound] = usePostBeginRoundMutation();
-  const { data: previousPods, isLoading: podsLoading } = useGetPodsQuery(
-    previousRoundId,
-    {
-      skip: !previousRoundId,
-    }
-  );
   const { data: participants, isLoading: participantsLoading } =
     useGetParticipantsQuery();
   const { watch, setValue, reset } = useFormContext();
 
   const selected = watch("participants");
-
-  const previous = !previousPods
-    ? []
-    : Object.values(previousPods).flatMap(({ participants }) =>
-        Object.values(participants).map((p) => ({
-          value: p?.participant_id,
-          label: p?.name,
-        }))
-      );
+  console.log("init state", selected);
 
   useEffect(() => {
     // Try restoring from localStorage first
@@ -53,13 +38,8 @@ export default function useRouteParticipants(
       }
     }
 
-    if (previous.length > 0) {
-      reset({ participants: previous });
-      localStorage.setItem(getLobbyKey(roundId), JSON.stringify(previous));
-    }
-
     setHasHydrated(true);
-  }, [previousPods, roundId]);
+  }, [roundId]);
 
   useEffect(() => {
     if (!hasHydrated) return;
@@ -73,8 +53,8 @@ export default function useRouteParticipants(
   const submitForm = async () => {
     try {
       const normalizedParticipants = selected.map((p) => ({
-        name: p?.label,
-        id: p?.value,
+        name: p?.name,
+        id: p?.id,
       }));
       await postBeginRound({
         round: roundId,
@@ -92,8 +72,8 @@ export default function useRouteParticipants(
       const updatedParticipants = [
         ...selected,
         {
-          label: participant.label,
-          value: participant.value,
+          name: participant.name,
+          id: participant.id,
         },
       ];
       setValue("participants", updatedParticipants);
@@ -121,6 +101,6 @@ export default function useRouteParticipants(
     submitForm,
     addParticipant,
     removeParticipant,
-    loading: participantsLoading || podsLoading,
+    loading: participantsLoading,
   };
 }

@@ -145,6 +145,10 @@ const RoundDisplay = ({ roundInfo, dateKey, renderRoundLink }) => {
             iconText = "fa-solid fa-circle-exclamation";
             buttonColor = "bg-yellow-500";
             hoverColor = "bg-yellow-400";
+          } else if (!started && !completed) {
+            iconText = "fa-solid fa-clock";
+            buttonColor = "bg-slate-500";
+            hoverColor = "bg-slate-400";
           }
 
           return (
