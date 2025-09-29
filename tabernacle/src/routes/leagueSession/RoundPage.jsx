@@ -191,7 +191,7 @@ const CheckedInRow = ({ participant, checkNumber, removeParticipant, idx }) => (
         className="fa-solid fa-trash-can mx-2 cursor-pointer text-red-500"
         onClick={() => removeParticipant(idx)}
       />{" "}
-      {participant.name}
+      {participant.name || participant.label}
     </span>
   </div>
 );
@@ -226,7 +226,7 @@ function RoundLobby({ roundId, sessionId, control }) {
               options={filtered}
               onChange={(selectedOption) => addParticipant(selectedOption)}
               onCreateOption={(inputValue) =>
-                addParticipant({ id: undefined, name: inputValue })
+                addParticipant({ value: undefined, label: inputValue })
               }
               isValidNewOption={(inputValue) => !!inputValue}
               formatCreateLabel={(inputValue) => `Create ${inputValue}`}
@@ -250,7 +250,7 @@ function RoundLobby({ roundId, sessionId, control }) {
         <div className="mt-2 w-full mx-auto">
           {selected.map((participant, index) => (
             <CheckedInRow
-              key={participant?.id}
+              key={participant?.id || participant?.value}
               participant={participant}
               checkNumber={index + 1}
               removeParticipant={removeParticipant}

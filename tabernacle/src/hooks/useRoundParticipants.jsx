@@ -9,10 +9,7 @@ import {
   useGetParticipantsQuery,
 } from "../api/apiSlice";
 
-export default function useRouteParticipants(
-  roundId,
-  sessionId
-) {
+export default function useRouteParticipants(roundId, sessionId) {
   const [hasHydrated, setHasHydrated] = useState(false);
   const [postBeginRound] = usePostBeginRoundMutation();
   const { data: participants, isLoading: participantsLoading } =
@@ -52,8 +49,8 @@ export default function useRouteParticipants(
   const submitForm = async () => {
     try {
       const normalizedParticipants = selected.map((p) => ({
-        name: p?.name,
-        id: p?.id,
+        name: p?.name || p?.label,
+        id: p?.id || p?.value,
       }));
       await postBeginRound({
         round: roundId,
@@ -71,8 +68,8 @@ export default function useRouteParticipants(
       const updatedParticipants = [
         ...selected,
         {
-          name: participant.name,
-          id: participant.id,
+          label: participant.label,
+          value: participant.value,
         },
       ];
       setValue("participants", updatedParticipants);
