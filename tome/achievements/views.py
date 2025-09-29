@@ -232,7 +232,7 @@ def get_league_monthly_winner_info(_, mm_yy, participant_id):
     rounds = {
         r["id"]: r
         for r in Rounds.objects.filter(session__month_year=mm_yy, deleted=False).values(
-            "id", "round_number", "created_at"
+            "id", "round_number", "starts_at"
         )
     }
 

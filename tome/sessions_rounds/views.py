@@ -1,7 +1,7 @@
 import json
 import random
 
-from datetime import datetime
+from datetime import datetime, date, time
 from collections import defaultdict
 
 from rest_framework.response import Response
@@ -15,6 +15,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Prefetch, Exists, OuterRef
+from django.utils import timezone
 
 from .models import Sessions, Rounds, Pods, PodsParticipants, RoundSignups
 from users.models import ParticipantAchievements, Participants
@@ -73,9 +74,41 @@ def sessions_and_rounds(request, mm_yy=None):
         mm_yy = today.strftime("%m-%y")
 
     if request.method == POST:
-        new_session = Sessions.objects.create(month_year=mm_yy)
-        Rounds.objects.create(session_id=new_session.id, round_number=1)
-        Rounds.objects.create(session_id=new_session.id, round_number=2)
+        # TODO Add an optional "date" into the payload for when the round is supposed to occur
+        # Because of that double check everywhere that uses "created at" for display
+        # reasons
+        body = json.loads(request.body.decode("utf-8"))
+        sess_date_str = body.get("session_date")
+
+        if not sess_date_str:
+            return Response(
+                {"message": "Session date required (YYYY-MM-DD)."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        session_date = date.fromisoformat(sess_date_str)
+        mm_yy = session_date.strftime("%m-%y")
+        new_session = Sessions.objects.create(
+            month_year=mm_yy, session_date=session_date
+        )
+
+        tz = timezone.get_current_timezone()
+        r1_naive = datetime.combine(session_date, time(13, 30))
+        r2_naive = datetime.combine(session_date, time(15, 30))
+
+        r1_dt = (
+            r1_naive
+            if timezone.is_aware(r1_naive)
+            else timezone.make_aware(r1_naive, tz)
+        )
+        r2_dt = (
+            r2_naive
+            if timezone.is_aware(r2_naive)
+            else timezone.make_aware(r2_naive, tz)
+        )
+
+        Rounds.objects.create(session=new_session, round_number=1, starts_at=r1_dt)
+        Rounds.objects.create(session=new_session, round_number=2, starts_at=r2_dt)
         session = SessionSerializer(new_session).data
 
         return Response(session, status=status.HTTP_201_CREATED)
@@ -336,6 +369,7 @@ def get_rounds_by_month(_, mm_yy):
             "created_at",
             "completed",
             "started",
+            "starts_at",
         )
     )
 
@@ -373,11 +407,11 @@ def get_all_rounds(_, participant_id=None):
         filters["created_at__date__gt"] = participant["created_at"].date()
     rounds = (
         Rounds.objects.filter(**filters)
-        .values("id", "round_number", "created_at")
-        .order_by("-created_at")
+        .values("id", "round_number", "starts_at")
+        .order_by("-starts_at")
     )
     for r in rounds:
-        r["created_at"] = r["created_at"].strftime("%-m/%-d/%Y")
+        r["starts_at"] = r["starts_at"].strftime("%-m/%-d/%Y")
     return Response(rounds)
 
 
