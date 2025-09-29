@@ -6,8 +6,15 @@ load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / ".env", overrid
 
 from fastapi import FastAPI, Request, HTTPException
 from .verify import verify_signature
-from .router import handle_getcode, handle_link, handle_link_autocomplete
-from .constants import PING, APP_COMMAND, APP_COMMAND_AUTOCOMPLETE
+from .router import (
+    handle_getcode,
+    handle_link,
+    handle_link_autocomplete,
+    handle_signin,
+    handle_signin_confirm,
+    handle_signin_select,
+)
+from .constants import PING, APP_COMMAND, APP_COMMAND_AUTOCOMPLETE, MESSAGE
 
 
 app = FastAPI()
@@ -39,6 +46,7 @@ async def interactions(req: Request):
         name = payload["data"]["name"]
         user = (payload.get("member") or {}).get("user") or payload.get("user")
         user_id = int(user["id"])
+        guild_id = payload.get("guild_id")
 
         if name == "mycode":
             return await handle_getcode(user_id)
@@ -46,6 +54,24 @@ async def interactions(req: Request):
         if name == "link":
             option = payload["data"]["options"][0]
             return await handle_link(user_id, option["value"])
+
+        if name == "signin":
+            return await handle_signin(user, user_id, guild_id)
+
+    if t == MESSAGE:
+        data = payload["data"]
+        cid = data.get("custom_id")
+
+        user = (payload.get("member") or {}).get("user") or payload.get("user")
+        uid = int(user["id"])
+        guild_id = payload.get("guild_id")
+
+        if cid == "signin_select":
+            values = data.get("values", [])
+            return await handle_signin_select(uid, guild_id, values)
+
+        if cid == "signin_confirm":
+            return await handle_signin_confirm(uid, guild_id)
 
     return {
         "type": 4,

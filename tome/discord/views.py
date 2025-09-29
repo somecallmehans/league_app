@@ -7,6 +7,8 @@ from django.views.decorators.csrf import csrf_exempt
 from utils.decorators import require_service_token
 
 from users.models import Participants
+from sessions_rounds.models import Sessions, RoundSignups
+from sessions_rounds.serializers import SessionSerializer
 
 GET = "GET"
 POST = "POST"
@@ -69,3 +71,59 @@ def link(request):
         {"code": target.code},
         status=status.HTTP_201_CREATED,
     )
+
+
+@require_service_token
+@api_view([GET])
+def next_session(_):
+    """Return the next upcoming session with its rounds."""
+
+    next_session = (
+        Sessions.objects.filter(closed=False, deleted=False)
+        .order_by("-created_at")
+        .first()
+    )
+
+    if not next_session:
+        return Response(
+            {"message": "Sign-ins not open"}, status=status.HTTP_400_BAD_REQUEST
+        )
+
+    return Response(SessionSerializer(next_session).data)
+
+
+@csrf_exempt
+@require_service_token
+@api_view([POST])
+def signin(request):
+    """Sign in a user via discord."""
+    body = json.loads(request.body.decode("utf-8"))
+    duid: str = body.get("discord_user_id")
+    rounds: list[int] = body.get("rounds")
+
+    pid = (
+        Participants.objects.filter(deleted=False, discord_user_id=duid)
+        .values_list("id", flat=True)
+        .first()
+    )
+
+    if not pid:
+        return Response(
+            {
+                "message": "Participant is currently not linked. Run /link to connect to your league history."
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    has_signed_in = RoundSignups.objects.filter(
+        participant_id=pid, round_id__in=rounds
+    ).exists()
+
+    if has_signed_in:
+        return Response({"message": "User has already signed in."})
+
+    RoundSignups.objects.bulk_create(
+        RoundSignups(participant_id=pid, round_id=rid) for rid in rounds
+    )
+
+    return Response({"message": "Successfully added"}, status=status.HTTP_201_CREATED)
