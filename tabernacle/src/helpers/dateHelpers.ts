@@ -53,8 +53,20 @@ export function formatMonthYear(mm_yy: MonthYear): string {
   return `${monthNames[monthIndex]} 20${year}`;
 }
 
+function localDateFromISO(iso: string): Date | null {
+  const [y, m, d] = iso.split("-").map(Number);
+  if (!y || !m || !d) {
+    return null;
+  }
+  return new Date(y, m - 1, d); // local time, no off-by-one
+}
+
 export function formatDateString(dateString: string): string {
-  const date = new Date(dateString);
+  const date = localDateFromISO(dateString);
+
+  if (!date) {
+    return "";
+  }
 
   const day = date.getDate();
   const month = monthNames[date.getMonth()];
@@ -80,4 +92,11 @@ export function formatDateString(dateString: string): string {
 export const monthStr = (month: MonthYear): string => {
   const [mm, yy] = month.split("-");
   return `${monthMap[mm as MonthNumString]} '${yy}`;
+};
+
+export const formatToYYYYDDMM = (date: Date) => {
+  const year = date.getFullYear();
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 };

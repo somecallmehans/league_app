@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { ApiBuilder } from "./baseApiTypes";
 
 import { safeParseWithFallback } from "../types/parse";
@@ -35,11 +36,19 @@ import {
   type RerollPodsRequest,
 } from "../types/pod_schemas";
 
+type POST_CREATE_SESSION_BODY = {
+  session_date?: string;
+};
+
 export default (builder: ApiBuilder) => ({
-  postCreateSession: builder.mutation<CreateSessionResponse, void>({
-    query: () => ({
+  postCreateSession: builder.mutation<
+    CreateSessionResponse,
+    POST_CREATE_SESSION_BODY
+  >({
+    query: (body) => ({
       url: "sessions/new/",
       method: "POST",
+      body,
     }),
     transformResponse: (raw: unknown) =>
       safeParseWithFallback(SessionSchema, raw, EMPTY_SESSION),

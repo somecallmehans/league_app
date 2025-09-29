@@ -75,9 +75,6 @@ def sessions_and_rounds(request, mm_yy=None):
         mm_yy = today.strftime("%m-%y")
 
     if request.method == POST:
-        # TODO Add an optional "date" into the payload for when the round is supposed to occur
-        # Because of that double check everywhere that uses "created at" for display
-        # reasons
         body = json.loads(request.body.decode("utf-8"))
         sess_date_str = body.get("session_date")
 

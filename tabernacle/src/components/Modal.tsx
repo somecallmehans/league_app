@@ -45,7 +45,7 @@ export default function Modal({
           <div className="fixed inset-0 bg-black/25" />
         </TransitionChild>
         <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-4/5 items-center justify-center p-4 text-center">
+          <div className="flex min-h-screen items-center justify-center p-4 text-center">
             <TransitionChild
               as={Fragment}
               enter="ease-out duration-300"
@@ -55,7 +55,7 @@ export default function Modal({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <DialogPanel className="w-full max-w-xl transform overflow-hidden text-center rounded-2xl bg-white text-left align-middle shadow-xl transition-all p-4">
+              <DialogPanel className="w-full max-w-xl transform text-center rounded-2xl bg-white text-left align-middle shadow-xl transition-all p-4">
                 <DialogTitle
                   as="h3"
                   className="mb-2 text-xl font-medium leading-6 text-gray-900 p-2"

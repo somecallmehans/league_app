@@ -20,7 +20,6 @@ export default function useRouteParticipants(
   const { watch, setValue, reset } = useFormContext();
 
   const selected = watch("participants");
-  console.log("init state", selected);
 
   useEffect(() => {
     // Try restoring from localStorage first

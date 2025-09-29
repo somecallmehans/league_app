@@ -137,7 +137,6 @@ export default function FocusedWinner() {
   if (winnerLoading) return <LoadingSpinner />;
 
   const { rounds } = winner;
-  console.log(rounds);
 
   return (
     <div className="p-4">

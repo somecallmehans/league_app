@@ -1,5 +1,8 @@
 import React, { useState } from "react";
+import DatePicker from "react-datepicker";
 import { Route, Routes, Link } from "react-router-dom";
+
+import "react-datepicker/dist/react-datepicker.css";
 
 import RoundPage from "./RoundPage";
 import LoadingSpinner from "../../components/LoadingSpinner";
@@ -8,7 +11,11 @@ import {
   useGetAllSessionsQuery,
   usePostCreateSessionMutation,
 } from "../../api/apiSlice";
-import { formatDateString, formatMonthYear } from "../../helpers/dateHelpers";
+import {
+  formatDateString,
+  formatMonthYear,
+  formatToYYYYDDMM,
+} from "../../helpers/dateHelpers";
 import PageTitle from "../../components/PageTitle";
 import Modal from "../../components/Modal";
 
@@ -51,7 +58,7 @@ function LeagueSession() {
 
   return sessionKeys.map((month_year) => {
     const sessionList = sessions[month_year];
-    console.log(sessionList);
+
     return (
       <div className="bg-white p-4 mb-4 rounded shadow-sm" key={month_year}>
         <div className="text-lg md:text-2xl mb-2 underline">
@@ -102,11 +109,13 @@ function LeagueSession() {
 
 function LeagueManagementPage() {
   const [isOpen, setIsOpen] = useState(false);
+  const [startDate, setStartDate] = useState(new Date());
   const [postCreateSession] = usePostCreateSessionMutation();
 
   const handleCreateSession = async () => {
     try {
-      await postCreateSession().unwrap();
+      const session_date = formatToYYYYDDMM(startDate);
+      await postCreateSession({ session_date }).unwrap();
       setIsOpen(false);
     } catch (err) {
       console.error("Failed to create new league session: ", err);
@@ -127,6 +136,17 @@ function LeagueManagementPage() {
         title="Begin new session?"
         actionTitle="Begin"
         closeTitle="Cancel"
+        body={
+          <div className="my-2">
+            <DatePicker
+              selected={startDate}
+              onChange={(date) => setStartDate(date)}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-gray-900"
+              calendarClassName="rounded-lg shadow-lg bg-white border border-gray-200"
+              popperClassName="z-50"
+            />
+          </div>
+        }
       />
     </div>
   );
