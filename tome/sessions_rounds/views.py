@@ -32,6 +32,7 @@ from .helpers import (
     get_participants_total_scores,
     RoundInformationService,
     PodRerollService,
+    to_aware_datetime,
 )
 
 GET = "GET"
@@ -41,7 +42,7 @@ POST = "POST"
 @api_view([GET])
 def all_sessions(_):
     """Get all sessions that are not deleted, including their rounds info."""
-    data = Sessions.objects.filter(deleted=False).order_by("-created_at")
+    data = Sessions.objects.filter(deleted=False).order_by("-session_date")
     sessions = SessionSerializer(data, many=True).data
 
     session_map = defaultdict(list)
@@ -114,7 +115,7 @@ def sessions_and_rounds(request, mm_yy=None):
         return Response(session, status=status.HTTP_201_CREATED)
     try:
         session_data = Sessions.objects.filter(month_year=mm_yy, deleted=False).latest(
-            "created_at"
+            "session_date"
         )
         session = SessionSerializer(session_data).data
     except Sessions.DoesNotExist:
@@ -378,7 +379,7 @@ def get_rounds_by_month(_, mm_yy):
 
     round_dict = defaultdict(list)
     for round in rounds:
-        formatted_date = round["created_at"].strftime("%-m/%-d")
+        formatted_date = round["starts_at"].strftime("%-m/%-d")
         round_dict[formatted_date].append(round)
 
     return Response(round_dict)
@@ -460,11 +461,11 @@ def get_participant_recent_pods(_, participant_id, mm_yy=None):
     for pod in participant_pods:
         pod_id = pod.id
         winner = winners_dict.get(pod_id)
-        occurred = pod.rounds.created_at.strftime("%-m/%-d/%Y")
+        occurred = pod.rounds.starts_at
 
         participants = pod.podsparticipants_set.all()
 
-        out[occurred].append(
+        out[occurred.strftime("%m/%d/%Y")].append(
             {
                 "id": pod_id,
                 "round_number": pod.rounds.round_number,

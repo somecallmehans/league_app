@@ -1,4 +1,5 @@
 import random
+from datetime import datetime, date
 
 from .serializers import PodsParticipantsSerializer
 from users.models import Participants, ParticipantAchievements
@@ -305,3 +306,21 @@ class PodRerollService:
         self.shuffle_or_sort_pods()
         new_pods = self.build_new_pods()
         return PodsParticipantsSerializer(new_pods, many=True).data
+
+
+def to_aware_datetime(val):
+    if isinstance(val, str):
+        dt = datetime.fromisoformat(val.replace("Z", "+00:00"))
+        return dt
+
+    if isinstance(val, datetime):
+        return val
+
+    if isinstance(val, date):
+        from django.utils import timezone
+
+        tz = timezone.get_current_timezone()
+        naive = datetime.combine(val, datetime.min.time())
+        return timezone.make_aware(naive, tz)
+
+    raise TypeError(f"Unsupported type: {type(val)!r}")
