@@ -32,7 +32,6 @@ from .helpers import (
     get_participants_total_scores,
     RoundInformationService,
     PodRerollService,
-    to_aware_datetime,
 )
 
 GET = "GET"
