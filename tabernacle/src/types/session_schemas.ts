@@ -8,6 +8,7 @@ export const SessionSchema = z.object({
   month_year: z.string(),
   rounds: z.array(RoundSchema),
   deleted: z.boolean(),
+  session_date: z.string().optional(),
 });
 export type Session = z.infer<typeof SessionSchema>;
 
@@ -18,6 +19,7 @@ export const EMPTY_SESSION: Session = {
   month_year: "",
   rounds: [],
   deleted: false,
+  session_date: "",
 };
 
 export const SessionObjectResponseSchema = z.record(

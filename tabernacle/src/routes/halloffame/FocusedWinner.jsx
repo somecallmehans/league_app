@@ -94,7 +94,7 @@ const PillContent = ({
 
 const RoundPill = ({
   round_number,
-  created_at,
+  starts_at,
   total_points,
   commander,
   commander_img,
@@ -114,7 +114,7 @@ const RoundPill = ({
         )}
 
         <PillContent
-          date={formatDateString(created_at)}
+          date={formatDateString(starts_at)}
           round_number={round_number}
           commander={commander}
           total_points={total_points}
@@ -137,6 +137,7 @@ export default function FocusedWinner() {
   if (winnerLoading) return <LoadingSpinner />;
 
   const { rounds } = winner;
+  console.log(rounds);
 
   return (
     <div className="p-4">

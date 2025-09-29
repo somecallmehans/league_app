@@ -53,7 +53,7 @@ export type LeagueWinnerList = z.infer<typeof LeagueWinnerListSchema>;
 const WinnerRoundInfoSchema = z.object({
   id: z.number(),
   round_number: z.number(),
-  created_at: z.string(),
+  starts_at: z.string(),
   total_points: z.number(),
   commander: z.string().nullable(),
   commander_img: z

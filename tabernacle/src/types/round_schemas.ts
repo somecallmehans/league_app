@@ -9,6 +9,7 @@ export const RoundSchema = z.object({
   deleted: z.boolean().optional(),
   completed: z.boolean().optional(),
   created_at: z.string().optional(),
+  starts_at: z.string().optional(),
 });
 export type Round = z.infer<typeof RoundSchema>;
 
@@ -20,6 +21,7 @@ export const MonthRoundSchema = z.object({
   created_at: z.string(),
   completed: z.boolean(),
   started: z.boolean(),
+  starts_at: z.string().optional(),
 });
 
 export const MonthRoundObjectResponseSchema = z.record(

@@ -193,7 +193,7 @@ const SessionPill = ({
   selectedMonth,
   renderRoundLink,
 }) => {
-  const dater = roundInfo[0].created_at;
+  const dater = roundInfo[0].starts_at;
   const d = new Date(dater);
 
   const dayOfWeek = d.toLocaleDateString("en-US", { weekday: "short" });

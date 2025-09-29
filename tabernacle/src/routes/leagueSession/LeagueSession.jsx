@@ -17,7 +17,7 @@ const Round = ({
   sessionId,
   roundNumber,
   previousRoundId,
-  created_at,
+  session_date,
   completed,
 }) => {
   return (
@@ -29,7 +29,7 @@ const Round = ({
           completed: completed,
           sessionId: sessionId,
           roundNumber: roundNumber,
-          date: created_at,
+          date: session_date,
           previousRoundId: previousRoundId,
         }}
       >
@@ -51,12 +51,13 @@ function LeagueSession() {
 
   return sessionKeys.map((month_year) => {
     const sessionList = sessions[month_year];
+    console.log(sessionList);
     return (
       <div className="bg-white p-4 mb-4 rounded shadow-sm" key={month_year}>
         <div className="text-lg md:text-2xl mb-2 underline">
           {formatMonthYear(month_year)} Season
         </div>
-        {sessionList.map(({ id, created_at, rounds }) => {
+        {sessionList.map(({ id, rounds, session_date }) => {
           const roundOne = rounds.find(
             ({ round_number }) => round_number === 1
           );
@@ -69,7 +70,7 @@ function LeagueSession() {
               key={id}
             >
               <div className="text-sm md:text-base">
-                {formatDateString(created_at)}
+                {formatDateString(session_date)}
               </div>
               {/* Sessions will always have 2 rounds, no more no less. */}
               <Round
@@ -77,7 +78,7 @@ function LeagueSession() {
                 id={roundOne.id}
                 roundNumber={roundOne.round_number}
                 completed={roundOne.completed}
-                created_at={formatDateString(created_at)}
+                session_date={formatDateString(session_date)}
               />
               <Round
                 sessionId={id}
@@ -85,7 +86,7 @@ function LeagueSession() {
                 previousRoundId={roundOne.id}
                 roundNumber={roundTwo.round_number}
                 completed={roundTwo.completed}
-                created_at={formatDateString(created_at)}
+                session_date={formatDateString(session_date)}
               />
               {/* Readd this back in at some point */}
               {/* <div className="justify-self-end">
