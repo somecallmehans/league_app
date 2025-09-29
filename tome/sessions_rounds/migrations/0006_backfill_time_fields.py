@@ -6,12 +6,20 @@ from sessions_rounds.models import Sessions, Rounds
 
 
 def backfill(apps, schema_editor):
+    tz = timezone.get_current_timezone()
+
     for r in Rounds.objects.filter(starts_at__isnull=True):
-        r.starts_at = r.created_at
+        dt = r.created_at
+        if timezone.is_naive(dt):
+            dt = timezone.make_aware(dt, tz)
+        r.starts_at = dt
         r.save(update_fields=["starts_at"])
 
     for s in Sessions.objects.filter(session_date__isnull=True):
-        s.session_date = s.created_at.date()
+        dt = s.created_at
+        if timezone.is_naive(dt):
+            dt = timezone.make_aware(dt, tz)
+        s.session_date = dt.date()
         s.save(update_fields=["session_date"])
 
 
