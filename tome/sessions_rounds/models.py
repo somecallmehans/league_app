@@ -6,6 +6,7 @@ class Sessions(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     closed = models.BooleanField(default=False)
     deleted = models.BooleanField(default=False)
+    session_date = models.DateField(null=True, blank=True, default=None)
 
     class Meta:
         db_table = "sessions"
@@ -22,6 +23,7 @@ class Rounds(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     completed = models.BooleanField(default=False)
     deleted = models.BooleanField(default=False)
+    starts_at = models.DateTimeField(null=True, blank=True, default=None)
 
     class Meta:
         db_table = "rounds"
