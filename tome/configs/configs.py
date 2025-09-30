@@ -1,0 +1,51 @@
+from django.core.cache import cache
+from .models import Config
+
+CACHE_TTL = 60
+PREFIX = "config:"
+
+
+def _ck(scope_kind: str, scope_id: str | None, key: str) -> str:
+    return f"{PREFIX}{scope_kind}:{scope_id or '∅'}:{key}"
+
+
+def _maybe_cast(val, default, cast):
+    if cast and val is not None:
+        try:
+            return cast(val)
+        except (TypeError, ValueError):
+            return default
+    return val
+
+
+def set_config(key: str, value, description: str = ""):
+    # scope_kind = Config.Scope.SHOP if shop_id else Config.Scope.GLOBAL
+    obj, _ = Config.objects.update_or_create(
+        scope_kind=Config.Scope.GLOBAL,
+        key=key,
+        defaults={"value": value, "description": description},
+    )
+    cache.delete(_ck(key))
+    return obj
+
+
+def get_config(key: str, default=None, cast=None):
+    """
+    key: That actual reference key to the db config i.e. round-one-cap
+    default: optional default val
+    """
+    # TODO: When prudent, add in a shop_id check prior to grabbing the global
+    gkey = _ck(Config.Scope.GLOBAL, None, key)
+    gval = cache.get(gkey)
+    if gval is None:
+        try:
+            gval = (
+                Config.objects.only("value")
+                .get(scope_kind=Config.Scope.GLOBAL, scope_id=None, key=key)
+                .value
+            )
+        except Config.DoesNotExist:
+            gval = None
+        cache.set(gkey, gval, CACHE_TTL)
+
+    return _maybe_cast(gval if gval is not None else default, default, cast)
