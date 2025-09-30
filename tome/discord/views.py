@@ -120,7 +120,10 @@ def signin(request):
     ).exists()
 
     if has_signed_in:
-        return Response({"message": "User has already signed in."})
+        return Response(
+            {"message": "User has already signed in."},
+            status=status.HTTP_208_ALREADY_REPORTED,
+        )
 
     RoundSignups.objects.bulk_create(
         RoundSignups(participant_id=pid, round_id=rid) for rid in rounds

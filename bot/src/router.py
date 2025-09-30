@@ -107,7 +107,7 @@ def _cache_selection(guild_id, user_id, round_ids):
     SELECTIONS[(guild_id, user_id)] = (time.time() + TTL, round_ids)
 
 
-async def handle_signin(user, uid, guild_id):
+async def handle_signin(uid, guild_id):
     async with httpx.AsyncClient(timeout=10) as http:
         r = await http.get(
             f"{API_BASE}api/discord/next_session/",
@@ -190,6 +190,17 @@ async def handle_signin_select(uid, guild_id, values):
     }
 
 
+def _determine_round_number(rids: int) -> str:
+    rounds = []
+    for rid in rids:
+        if rid % 2 == 0:
+            rounds.append("Round 2")
+        else:
+            rounds.append("Round 1")
+
+    return ", ".join(rounds)
+
+
 async def handle_signin_confirm(uid, guild_id):
 
     sel = _get_selection(guild_id, uid) or []
@@ -205,17 +216,15 @@ async def handle_signin_confirm(uid, guild_id):
             json={"discord_user_id": uid, "rounds": round_ids},
         )
     if r.status_code == 201 or r.status_code == 200:
-        # Success → edit ephemeral response
         return {
             "type": 7,
             "data": {
                 "flags": 64,
-                "content": f"✅ Signed in for rounds: {', '.join(sel)}",
+                "content": f"✅ Signed in for rounds: {_determine_round_number(round_ids)}",
                 "components": [],
             },
         }
 
-    # Handle common errors from your API
     msg = "Something went wrong."
     try:
         msg = r.json().get("message") or msg

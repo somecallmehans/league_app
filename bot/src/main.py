@@ -56,7 +56,7 @@ async def interactions(req: Request):
             return await handle_link(user_id, option["value"])
 
         if name == "signin":
-            return await handle_signin(user, user_id, guild_id)
+            return await handle_signin(user_id, guild_id)
 
     if t == MESSAGE:
         data = payload["data"]

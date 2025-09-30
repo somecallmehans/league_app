@@ -87,7 +87,7 @@ export default function useRouteParticipants(roundId, sessionId) {
   const filtered = useMemo(() => {
     if (!participants) return [];
     return participants
-      .filter((p) => !selected.some((s) => s.value === p.id))
+      .filter((p) => !selected.some((s) => s.value === p.id || s.id === p.id))
       .map((p) => ({ value: p.id, label: p.name }));
   }, [participants, selected]);
 
