@@ -28,6 +28,7 @@ class Migration(migrations.Migration):
                     "description",
                     models.CharField(blank=True, default="", max_length=255),
                 ),
+                ("name", models.CharField(max_length=255)),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("updated_at", models.DateTimeField(auto_now=True)),
                 (

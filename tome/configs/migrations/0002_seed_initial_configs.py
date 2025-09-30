@@ -11,6 +11,7 @@ def seed_configs(apps, schema_editor):
             "value": 24,
             "description": "Max players allowed in Round 1",
         },
+        name="Round One Cap",
     )
 
     # Create round_two_cap = 24
@@ -21,6 +22,7 @@ def seed_configs(apps, schema_editor):
             "value": 24,
             "description": "Max players allowed in Round 2",
         },
+        name="Round Two Cap",
     )
 
 

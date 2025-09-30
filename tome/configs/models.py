@@ -9,6 +9,7 @@ class Config(models.Model):
     key = models.SlugField(max_length=64)
     value = models.JSONField()
     description = models.CharField(max_length=255, blank=True, default="")
+    name = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
