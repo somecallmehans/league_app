@@ -1,19 +1,31 @@
 import React from "react";
+import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
-import { apiSlice } from "../../api/apiSlice";
+import { apiSlice, useUpdateConfigMutation } from "../../api/apiSlice";
 
 import { Input } from "@headlessui/react";
 import LoadingSpinner from "../../components/LoadingSpinner";
 
 const ConfigRow = ({ name, configKey, value, description }) => {
+  const [updateConfig] = useUpdateConfigMutation();
   const { control, register, handleSubmit, reset } = useForm({
     defaultValues: { value },
   });
 
+  const submit = async (value) => {
+    try {
+      await updateConfig({ value, key: configKey });
+      toast.success("Saved Successfully");
+    } catch (error) {
+      console.error(error);
+      toast.error("Error updating config");
+    }
+  };
+
   return (
     <form
-      onSubmit={handleSubmit(() => {})}
+      onSubmit={handleSubmit(submit)}
       className="py-3
     flex flex-col gap-3
     sm:flex-row sm:items-center sm:justify-between
@@ -33,15 +45,15 @@ const ConfigRow = ({ name, configKey, value, description }) => {
           w-full sm:w-auto
         "
       >
-        <Input
-          name={configKey}
+        <input
+          {...register("value")}
           defaultValue={value}
           type="text"
           className="
-          w-full sm:w-64 md:w-80
-          border rounded px-2 py-1
-          text-left sm:text-right
-        "
+            w-full sm:w-64 md:w-80
+            border rounded px-2 py-1
+            text-left sm:text-right
+          "
         />
 
         <button
@@ -67,10 +79,14 @@ export default function Page() {
 
   return (
     <div className="bg-white flex flex-col gap-4 rounded-lg p-4 shadow-md border">
-      {configs?.map((config) => (
-        <>
-          <ConfigRow key={config.key} configKey={config.key} {...config} />
-        </>
+      {configs?.map(({ name, key, value, description }) => (
+        <ConfigRow
+          key={key}
+          configKey={key}
+          name={name}
+          value={value}
+          description={description}
+        />
       ))}
     </div>
   );

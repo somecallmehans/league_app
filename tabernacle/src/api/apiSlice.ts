@@ -118,6 +118,7 @@ export const {
   usePostInsertCommandersMutation,
   usePostUpsertParticipantAchievementMutation,
   usePostSignupMutation,
+  useUpdateConfigMutation,
 
   // AUTH
   useLoginMutation,

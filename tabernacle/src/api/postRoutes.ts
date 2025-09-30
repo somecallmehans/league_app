@@ -35,6 +35,7 @@ import {
   type RerollPodsResponse,
   type RerollPodsRequest,
 } from "../types/pod_schemas";
+import { type ConfigRequest } from "../types/config_schemas";
 
 type POST_CREATE_SESSION_BODY = {
   session_date?: string;
@@ -145,5 +146,13 @@ export default (builder: ApiBuilder) => ({
       body: body,
     }),
     invalidatesTags: ["SignedIn"],
+  }),
+  updateConfig: builder.mutation<void, ConfigRequest>({
+    query: (body) => ({
+      url: `configs/update/${body.key}/`,
+      method: "POST",
+      body: body.value,
+    }),
+    invalidatesTags: ["Configs"],
   }),
 });
