@@ -215,4 +215,8 @@ export default (builder: ApiBuilder) => ({
       safeParseWithFallback(SignInResponseSchema, raw, {}),
     providesTags: ["SignedIn"],
   }),
+  getAllConfigs: builder.query<void, void>({
+    query: () => "configs/all/",
+    providesTags: ["Configs"],
+  }),
 });

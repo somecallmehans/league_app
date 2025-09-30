@@ -72,6 +72,7 @@ export const apiSlice = createApi({
     "PodsAchievements",
     "Rounds",
     "SignedIn",
+    "Configs",
   ] as const,
   endpoints: (builder) => ({
     ...getRoutes(builder),
@@ -105,6 +106,7 @@ export const {
   useGetLeagueWinnersQuery,
   useGetLeagueWinnerQuery,
   useGetSigninsQuery,
+  useGetAllConfigsQuery,
 
   // POSTS
   usePostCreateSessionMutation,

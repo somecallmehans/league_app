@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import PrivateRoute from "./routes/routeHelper";
 import auth from "./helpers/authHelpers";
+import { useGetAllConfigsQuery } from "./api/apiSlice";
 
 import Navbar from "./components/Navbar";
 import Home from "./routes/home/Home";
@@ -20,6 +21,7 @@ import { usePageTracking } from "./hooks";
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(!!auth.getToken());
+  useGetAllConfigsQuery();
   usePageTracking();
 
   return (
