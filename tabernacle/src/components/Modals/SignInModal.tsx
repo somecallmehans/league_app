@@ -11,6 +11,7 @@ import {
   Transition,
   TransitionChild,
 } from "@headlessui/react";
+import { SignInResponse } from "../../types/round_schemas";
 
 const textValidate = (val: string | undefined) => {
   if (!val) return "Code is required";
@@ -28,6 +29,7 @@ interface SignInFormProps {
   closeModal: () => void;
   disabled?: boolean;
   ids: number[];
+  signIns: SignInResponse;
 }
 
 type FormValues = {
@@ -41,6 +43,7 @@ const SignInForm = ({
   closeModal,
   disabled,
   ids,
+  signIns,
 }: SignInFormProps) => {
   const {
     control,
@@ -52,6 +55,12 @@ const SignInForm = ({
     defaultValues: { code: "", rounds: { r1: false, r2: false } },
   });
 
+  const [one, two] = ids;
+  if (!one || !two) return;
+
+  const oneFull = signIns[one]?.is_full;
+  const twoFull = signIns[two]?.is_full;
+
   const submit: SubmitHandler<FormValues> = async (values) => {
     if (!values.rounds.r1 && !values.rounds.r2) {
       setError("rounds", {
@@ -60,9 +69,6 @@ const SignInForm = ({
       });
       return;
     }
-
-    const [one, two] = ids;
-    if (!one || !two) return;
 
     const rounds: number[] = [];
     if (values.rounds.r1) rounds.push(one);
@@ -101,13 +107,15 @@ const SignInForm = ({
             name="rounds.r1"
             control={control}
             render={({ field }) => (
-              <label className="flex items-center gap-3 rounded-md p-2 hover:bg-slate-50">
+              <label
+                className={`flex items-center gap-3 rounded-md p-2 ${oneFull ? "bg-slate-300" : "hover:bg-slate-50"}`}
+              >
                 <Checkbox
                   name={field.name}
                   checked={!!field.value}
-                  onChange={(v: boolean) => field.onChange(v)} // Headless UI: boolean
-                  disabled={disabled || isSubmitting}
-                  className="group block size-5 rounded border border-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-sky-400 data-[checked]:bg-sky-500"
+                  onChange={(v: boolean) => field.onChange(v)}
+                  disabled={disabled || isSubmitting || oneFull}
+                  className={`group block size-5 rounded border border-slate-400 ${oneFull ? "bg-slate-200" : "bg-white"} focus:outline-none focus:ring-2 focus:ring-sky-400 data-[checked]:bg-sky-500`}
                 >
                   <svg
                     className="stroke-white opacity-0 group-data-[checked]:opacity-100"
@@ -132,13 +140,15 @@ const SignInForm = ({
             name="rounds.r2"
             control={control}
             render={({ field }) => (
-              <label className="flex items-center gap-3 rounded-md p-2 hover:bg-slate-50">
+              <label
+                className={`flex items-center gap-3 rounded-md p-2 ${twoFull ? "bg-slate-300" : "hover:bg-slate-50"}`}
+              >
                 <Checkbox
                   name={field.name}
                   checked={!!field.value}
                   onChange={(v: boolean) => field.onChange(v)}
-                  disabled={disabled || isSubmitting}
-                  className="group block size-5 rounded border border-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-sky-400 data-[checked]:bg-sky-500"
+                  disabled={disabled || isSubmitting || twoFull}
+                  className={`group block size-5 rounded border border-slate-400 ${twoFull ? "bg-slate-200" : "bg-white"} focus:outline-none focus:ring-2 focus:ring-sky-400 data-[checked]:bg-sky-500`}
                 >
                   <svg
                     className="stroke-white opacity-0 group-data-[checked]:opacity-100"
@@ -167,7 +177,11 @@ const SignInForm = ({
 
       <div className="mt-2 flex justify-end gap-2 sm:justify-center">
         <StandardButton title="Cancel" action={closeModal} />
-        <StandardButton title="Confirm" type="submit" />
+        <StandardButton
+          title="Confirm"
+          type="submit"
+          disabled={(oneFull && twoFull) || isSubmitting}
+        />
       </div>
     </form>
   );
@@ -183,6 +197,7 @@ interface ModalProps {
   disableConfirm?: boolean;
   body?: ReactNode;
   ids: number[];
+  signIns: SignInResponse;
 }
 
 export default function ({
@@ -191,6 +206,7 @@ export default function ({
   action,
   title,
   ids,
+  signIns,
 }: ModalProps) {
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -220,7 +236,12 @@ export default function ({
               <DialogTitle as="h1" className="text-2xl font-semibold mb-2">
                 {title}
               </DialogTitle>
-              <SignInForm onSubmit={action} closeModal={closeModal} ids={ids} />
+              <SignInForm
+                onSubmit={action}
+                closeModal={closeModal}
+                ids={ids}
+                signIns={signIns}
+              />
             </DialogPanel>
           </TransitionChild>
         </div>

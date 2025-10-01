@@ -39,7 +39,6 @@ const ConfigRow = ({ name, configKey, value, description }) => {
       toast.error("Error updating config");
     }
   };
-  console.log(errors);
 
   return (
     <>

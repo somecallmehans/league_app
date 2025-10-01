@@ -98,9 +98,9 @@ const SignInArea = ({ roundInfo }) => {
             const roundLimit = configs[configKeys[rDisplay]].value;
             return (
               <div
+                key={id}
                 className="border  hover:border-sky-500 p-2 rounded-lg"
                 onClick={() => setShowParticipants(participants)}
-                disabled={count >= roundLimit}
               >
                 {rDisplay} Players:{" "}
                 <span className="font-bold">
@@ -119,6 +119,7 @@ const SignInArea = ({ roundInfo }) => {
         actionTitle="Confirm"
         closeTitle="Cancel"
         ids={ids}
+        signIns={signIns}
       />
       <InfoModal
         isOpen={showParticipants.length > 0}
