@@ -319,7 +319,7 @@ function Page() {
         </MetricWrapper>
 
         <MetricWrapper
-          title="Most Points Earned in a Round"
+          title="The Gabby Santora 'Biggest Burger' Award"
           leftIcon={<i className="fa-solid fa-burger text-amber-600" />}
           rightIcon={<i className="fa-solid fa-burger text-amber-600" />}
         >
