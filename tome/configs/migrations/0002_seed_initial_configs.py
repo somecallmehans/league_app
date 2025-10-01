@@ -1,8 +1,8 @@
 from django.db import migrations
-from configs.models import Config
 
 
 def seed_configs(apps, schema_editor):
+    Config = apps.get_model("configs", "Config")
     # Create round_one_cap = 24
     Config.objects.update_or_create(
         scope_kind="global",

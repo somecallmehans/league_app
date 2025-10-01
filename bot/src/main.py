@@ -39,11 +39,19 @@ async def interactions(req: Request):
         return {"type": 1}
 
     if t == APP_COMMAND_AUTOCOMPLETE:
-        q = payload["data"]["options"][0].get("value", "")
+        data = payload.get("data") or {}
+        options = data.get("options") or []
+        q = ""
+        if options and isinstance(options, list):
+            first = options[0] or {}
+            if isinstance(first, dict):
+                q = first.get("value") or ""
         return await handle_link_autocomplete(q)
 
     if t == APP_COMMAND:
-        name = payload["data"]["name"]
+        data = payload.get("data") or {}
+        name = data.get("name") or ""
+
         user = (payload.get("member") or {}).get("user") or payload.get("user")
         user_id = int(user["id"])
         guild_id = payload.get("guild_id")
@@ -52,8 +60,15 @@ async def interactions(req: Request):
             return await handle_getcode(user_id)
 
         if name == "link":
-            option = payload["data"]["options"][0]
-            return await handle_link(user_id, option["value"])
+            data = payload.get("data") or {}
+            options = data.get("options") or []
+            q = ""
+            if options and isinstance(options, list):
+                first = options[0] or {}
+                if isinstance(first, dict):
+                    q = first.get("value") or ""
+
+            return await handle_link(user_id, q)
 
         if name == "signin":
             return await handle_signin(user_id, guild_id)

@@ -2,10 +2,10 @@
 from django.db import migrations
 from django.utils import timezone
 
-from sessions_rounds.models import Sessions, Rounds
-
 
 def backfill(apps, schema_editor):
+    Sessions = apps.get_model("sessions_rounds", "Sessions")
+    Rounds = apps.get_model("sessions_rounds", "Rounds")
     tz = timezone.get_current_timezone()
 
     for r in Rounds.objects.filter(starts_at__isnull=True):

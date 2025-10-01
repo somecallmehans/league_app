@@ -1,10 +1,10 @@
 # 0007_backfill_codes.py
 from django.db import migrations, transaction, IntegrityError
 from users.helpers import generate_code
-from users.models import Participants
 
 
 def backfill_codes(apps, schema_editor):
+    Participants = apps.get_model("users", "Participants")
     for p in Participants.objects.filter(code__isnull=True):
         for _ in range(5):
             p.code = generate_code()
