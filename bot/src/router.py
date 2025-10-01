@@ -118,15 +118,13 @@ async def handle_signin(uid, guild_id):
 
         data = r.json()
 
-    rounds = data.get("rounds", [])[:2]  # expect 2
+    rounds = [r for r in (data.get("rounds") or [])[:2] if not r.get("is_full")]
     if not rounds:
-        return _ephemeral("No rounds available yet.")
+        return _ephemeral("Unfortunately, both rounds are full.")
 
     _cache_selection(guild_id, uid, [])
 
-    formatted_date = datetime.strptime(data.get("session_date"), "%Y-%m-%d").strftime(
-        "%m/%d/%Y"
-    )
+    formatted_date = data.get("session_date")
 
     return {
         "type": 4,
@@ -141,19 +139,18 @@ async def handle_signin(uid, guild_id):
                             "type": 3,
                             "custom_id": "signin_select",
                             "min_values": 1,
-                            "max_values": 2,
-                            "placeholder": "Choose 1 or 2 rounds",
+                            "max_values": min(2, len(rounds)),
+                            "placeholder": f"Choose up to {len(rounds)} round(s)",
                             "options": [
                                 {
                                     "label": f"Round {r['round_number']}",
-                                    "value": str(r["id"]),  # must be string
+                                    "value": str(r["id"]),
                                     "description": (
-                                        datetime.strptime(
-                                            r["starts_at"], "%Y-%m-%dT%H:%M:%SZ"
-                                        ).strftime("%-I:%M %m/%d/%Y")
+                                        f"{datetime.strptime(r['starts_at'], '%Y-%m-%dT%H:%M:%SZ').strftime('%-I:%M %m/%d/%Y')}"
                                         if r.get("starts_at")
                                         else ""
-                                    ),
+                                    )
+                                    + f" - {r['current_count']} of {r['cap']} spots claimed",
                                 }
                                 for r in rounds
                             ],
@@ -220,7 +217,7 @@ async def handle_signin_confirm(uid, guild_id):
             "type": 7,
             "data": {
                 "flags": 64,
-                "content": f"✅ Signed in for rounds: {_determine_round_number(round_ids)}",
+                "content": f"✅ Signed in for: {_determine_round_number(round_ids)}",
                 "components": [],
             },
         }
