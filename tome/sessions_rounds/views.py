@@ -33,6 +33,7 @@ from .helpers import (
     RoundInformationService,
     PodRerollService,
 )
+from configs.configs import get_round_caps
 
 GET = "GET"
 POST = "POST"
@@ -542,9 +543,11 @@ def signin_counts(request):
     )
 
     out = {
-        round_one: {"participants": [], "count": 0},
-        round_two: {"participants": [], "count": 0},
+        round_one: {"participants": [], "count": 0, "is_full": False},
+        round_two: {"participants": [], "count": 0, "is_full": False},
     }
+
+    cap1, cap2 = get_round_caps()
 
     for q in query:
         if q["round_id"] == int(round_one):
@@ -552,10 +555,15 @@ def signin_counts(request):
                 {"id": q["participant_id"], "name": q["participant__name"]}
             )
             out[round_one]["count"] += 1
+
+            if out[round_one]["count"] >= cap1:
+                out[round_one]["is_full"] = True
         else:
             out[round_two]["participants"].append(
                 {"id": q["participant_id"], "name": q["participant__name"]}
             )
             out[round_two]["count"] += 1
+            if out[round_two]["count"] >= cap2:
+                out[round_two]["is_full"] = True
 
     return Response(out)

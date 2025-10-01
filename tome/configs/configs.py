@@ -82,3 +82,13 @@ CONFIG_SPEC: dict[str, dict[str, Callable[[Any], Any]]] = {
     "round_one_cap": {"cast": to_int},
     "round_two_cap": {"cast": to_int},
 }
+
+
+def get_round_caps():
+    caps = dict(
+        Config.objects.filter(key__in=["round_one_cap", "round_two_cap"]).values_list(
+            "key", "value"
+        )
+    )
+    # sane defaults if missing
+    return int(caps.get("round_one_cap", 24)), int(caps.get("round_two_cap", 24))

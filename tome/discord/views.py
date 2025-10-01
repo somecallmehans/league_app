@@ -3,11 +3,13 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.views.decorators.csrf import csrf_exempt
-
+from django.db.models import Count
 from utils.decorators import require_service_token
 
 from users.models import Participants
-from sessions_rounds.models import Sessions, RoundSignups
+from sessions_rounds.models import Sessions, RoundSignups, Rounds
+from configs.models import Config
+from configs.configs import get_round_caps
 from sessions_rounds.serializers import SessionSerializer
 
 GET = "GET"
@@ -83,13 +85,40 @@ def next_session(_):
         .order_by("-created_at")
         .first()
     )
-
     if not next_session:
         return Response(
             {"message": "Sign-ins not open"}, status=status.HTTP_400_BAD_REQUEST
         )
 
-    return Response(SessionSerializer(next_session).data)
+    rounds = list(
+        Rounds.objects.filter(session=next_session, deleted=False)
+        .values("id", "round_number", "starts_at")
+        .order_by("round_number")[:2]
+    )
+    counts_qs = (
+        RoundSignups.objects.filter(round_id__in=[r["id"] for r in rounds])
+        .values("round_id")
+        .annotate(user_count=Count("participant_id", distinct=True))
+    )
+    current = {row["round_id"]: row["user_count"] for row in counts_qs}
+
+    cap1, cap2 = get_round_caps()
+
+    for r in rounds:
+        cap = cap1 if r["round_number"] == 1 else cap2
+        r["current_count"] = current.get(r["id"], 0)
+        r["cap"] = cap
+        r["is_full"] = r["current_count"] >= cap
+
+    if all(r["is_full"] for r in rounds):
+        return Response({"message": "Rounds are full"})
+
+    return Response(
+        {
+            "session_date": next_session.session_date.strftime("%Y-%m-%d"),
+            "rounds": rounds,
+        }
+    )
 
 
 @csrf_exempt
@@ -123,6 +152,29 @@ def signin(request):
         return Response(
             {"message": "User has already signed in."},
             status=status.HTTP_208_ALREADY_REPORTED,
+        )
+
+    round_numbers = dict(
+        Rounds.objects.filter(id__in=rounds).values_list("id", "round_number")
+    )
+    counts_qs = (
+        RoundSignups.objects.filter(round_id__in=rounds)
+        .values("round_id")
+        .annotate(user_count=Count("participant_id", distinct=True))
+    )
+    current_counts = {row["round_id"]: row["user_count"] for row in counts_qs}
+
+    cap1, cap2 = get_round_caps()
+
+    def cap_for(rid: int) -> int:
+        rn = round_numbers.get(rid)
+        return cap1 if rn == 1 else cap2
+
+    full_rounds = [rid for rid in rounds if current_counts.get(rid, 0) >= cap_for(rid)]
+    if full_rounds:
+        return Response(
+            {"message": "Selected round is full.", "full_round_ids": full_rounds},
+            status=status.HTTP_409_CONFLICT,
         )
 
     RoundSignups.objects.bulk_create(
