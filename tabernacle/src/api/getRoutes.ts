@@ -57,6 +57,7 @@ import {
   CommanderObjectResponseSchema,
   type CommanderObjectResponse,
 } from "../types/commander_schemas";
+import { type ConfigsTransformed } from "../types/config_schemas";
 
 type Id = number | string;
 
@@ -215,8 +216,13 @@ export default (builder: ApiBuilder) => ({
       safeParseWithFallback(SignInResponseSchema, raw, {}),
     providesTags: ["SignedIn"],
   }),
-  getAllConfigs: builder.query<void, void>({
+  getAllConfigs: builder.query<ConfigsTransformed, void>({
     query: () => "configs/all/",
+    transformResponse: (res) => {
+      const list = Array.isArray(res) ? res : [];
+      const byKey = Object.fromEntries(list.map((c) => [c.key, c]));
+      return { list, byKey };
+    },
     providesTags: ["Configs"],
   }),
 });

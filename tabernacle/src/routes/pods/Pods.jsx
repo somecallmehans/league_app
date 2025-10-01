@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Route, Routes, Link } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 
 import { handleNavClick } from "../../helpers/helpers";
@@ -8,6 +9,7 @@ import PageTitle from "../../components/PageTitle";
 import LoadingSpinner from "../../components/LoadingSpinner";
 
 import {
+  apiSlice,
   useGetUniqueMonthsQuery,
   useGetRoundsByMonthQuery,
   usePostSignupMutation,
@@ -37,8 +39,17 @@ const roundTimes = {
 
 const roundDisplay = (id) => (id % 2 === 0 ? "3:30PM" : "1:30PM");
 
+const configKeys = {
+  "1:30PM": "round_one_cap",
+  "3:30PM": "round_two_cap",
+};
+
 const SignInArea = ({ roundInfo }) => {
   const ids = roundInfo.map(({ id }) => id);
+  const {
+    data: { byKey: configs },
+  } = useSelector(apiSlice.endpoints.getAllConfigs.select());
+
   const [showModal, setShowModal] = useState(false);
   const [showParticipants, setShowParticipants] = useState([]);
   const { data: signIns, isLoading: signInsLoading } = useGetSigninsQuery({
@@ -83,13 +94,18 @@ const SignInArea = ({ roundInfo }) => {
           {ids.map((id) => {
             const count = signIns[id]["count"];
             const participants = signIns[id]["participants"];
+            const rDisplay = roundDisplay(id);
+            const roundLimit = configs[configKeys[rDisplay]].value;
             return (
               <div
                 className="border  hover:border-sky-500 p-2 rounded-lg"
                 onClick={() => setShowParticipants(participants)}
+                disabled={count >= roundLimit}
               >
-                {roundDisplay(id)} Players:{" "}
-                <span className="font-bold">{count}/24</span>
+                {rDisplay} Players:{" "}
+                <span className="font-bold">
+                  {count}/{roundLimit}
+                </span>
               </div>
             );
           })}
