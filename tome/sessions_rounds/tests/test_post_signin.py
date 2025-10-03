@@ -44,6 +44,10 @@ def test_post_signin_from_lobby_exists(client, build_state) -> None:
 
     assert res.status_code == status.HTTP_200_OK
     assert res.json()["message"] == "User already exists for round."
+    signup_count = RoundSignups.objects.filter(
+        participant_id=ids.P4, round_id=ids.R2_SESSION_THIS_MONTH_OPEN
+    ).count()
+    assert signup_count == 1
 
 
 def test_post_signin_from_lobby_fail(client) -> None:

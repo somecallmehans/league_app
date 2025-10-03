@@ -1,6 +1,8 @@
 import secrets
 from better_profanity import profanity
 
+profanity.load_censor_words()
+
 ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 MAX_ATTEMPTS = 5
 

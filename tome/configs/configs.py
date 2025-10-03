@@ -5,7 +5,7 @@ from .models import Config
 # CACHE_TTL = 60
 # PREFIX = "config:"
 
-# This is a bunch of stuff ChatGPT generated that seems useful
+# TODO: This is a bunch of stuff ChatGPT generated that seems useful
 # But for the sake of getting this out we will ignore for now.
 # def _ck(scope_kind: str, scope_id: str | None, key: str) -> str:
 #     return f"{PREFIX}{scope_kind}:{scope_id or '∅'}:{key}"
@@ -84,11 +84,15 @@ CONFIG_SPEC: dict[str, dict[str, Callable[[Any], Any]]] = {
 }
 
 
-def get_round_caps():
+def get_round_caps() -> tuple[int, int]:
     caps = dict(
         Config.objects.filter(key__in=["round_one_cap", "round_two_cap"]).values_list(
             "key", "value"
         )
     )
-    # sane defaults if missing
-    return int(caps.get("round_one_cap", 24)), int(caps.get("round_two_cap", 24))
+    r1_cast = CONFIG_SPEC["round_one_cap"]["cast"]
+    r2_cast = CONFIG_SPEC["round_two_cap"]["cast"]
+    return (
+        r1_cast(caps.get("round_one_cap", 24)),
+        r2_cast(caps.get("round_two_cap", 24)),
+    )
