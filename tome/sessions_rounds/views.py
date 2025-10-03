@@ -37,6 +37,7 @@ from configs.configs import get_round_caps
 
 GET = "GET"
 POST = "POST"
+DELETE = "DELETE"
 
 
 @api_view([GET])
@@ -595,3 +596,41 @@ def post_signin(request):
         )
 
     return Response({"message": "Created"}, status=status.HTTP_201_CREATED)
+
+
+@api_view([DELETE])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def delete_signin(request):
+    """Remove a signed in user from lobby."""
+    body = json.loads(request.body.decode("utf-8"))
+
+    rid = body.get("round_id")
+    pid = body.get("participant_id")
+
+    if not rid or not pid:
+        return Response(
+            {"message": "Missing round or participant in request."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        rid = int(rid)
+        pid = int(pid)
+    except (TypeError, ValueError):
+        return Response(
+            {"detail": "round_id and participant_id must be integers."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    deleted_count, _ = RoundSignups.objects.filter(
+        round_id=rid, participant_id=pid
+    ).delete()
+
+    if deleted_count == 0:
+        return Response(
+            {"detail": "Signup not found for given round_id and participant_id."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    return Response(status=status.HTTP_204_NO_CONTENT)
