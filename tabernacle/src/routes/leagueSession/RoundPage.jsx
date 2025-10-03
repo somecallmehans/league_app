@@ -196,7 +196,8 @@ const CheckedInRow = ({ participant, checkNumber, removeParticipant, idx }) => (
   </div>
 );
 
-function RoundLobby({ roundId, sessionId, control }) {
+function RoundLobby({ roundId, sessionId, control, signIns }) {
+  const roundSignIns = signIns[roundId].participants ?? [];
   const {
     filtered,
     selected,
@@ -204,7 +205,7 @@ function RoundLobby({ roundId, sessionId, control }) {
     addParticipant,
     removeParticipant,
     loading,
-  } = useRouteParticipants(roundId, sessionId);
+  } = useRouteParticipants(roundId, sessionId, roundSignIns);
   const [isOpen, setIsOpen] = useState(false);
   const [lockForm, setLockForm] = useState();
 
@@ -273,18 +274,21 @@ function RoundLobby({ roundId, sessionId, control }) {
   );
 }
 
-function RoundLobbyFormWrapper({ roundId, sessionId, signins }) {
+function RoundLobbyFormWrapper({ roundId, sessionId, signIns }) {
   const [showConfirm, setShowConfirm] = useState(false);
-  const initialParticipants = signins[roundId]?.participants;
-  const methods = useForm({
-    defaultValues: { participants: initialParticipants || [] },
-  });
+  const initialParticipants = signIns[roundId]?.participants;
+  const methods = useForm();
   const { control, reset } = methods;
 
   return (
     <FormProvider {...methods}>
       <StandardButton title="Clear" action={() => setShowConfirm(true)} />
-      <RoundLobby roundId={roundId} sessionId={sessionId} control={control} />
+      <RoundLobby
+        roundId={roundId}
+        sessionId={sessionId}
+        control={control}
+        signIns={signIns}
+      />
       <ConfirmModal
         isOpen={showConfirm}
         title="Clear lobby?"
@@ -348,10 +352,10 @@ function RoundDisplay({
 }) {
   const params = constructParams(roundId, previousRoundId);
   const { data: pods, isLoading: podsLoading } = useGetPodsQuery(roundId);
-  const { data: signins, isLoading: signinsLoading } =
+  const { data: signIns, isLoading: signInsLoading } =
     useGetSigninsQuery(params);
 
-  if (podsLoading || signinsLoading) {
+  if (podsLoading || signInsLoading) {
     return <LoadingSpinner />;
   }
 
@@ -382,7 +386,7 @@ function RoundDisplay({
     <RoundLobbyFormWrapper
       sessionId={sessionId}
       roundId={roundId}
-      signins={signins}
+      signIns={signIns}
     />
   );
 }

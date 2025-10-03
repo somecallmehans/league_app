@@ -91,7 +91,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://mtg-commander-league.xyz",
 ]
 
-CORS_ALLOW_METHODS = ["GET", "OPTIONS", "POST"]
+CORS_ALLOW_METHODS = ["GET", "OPTIONS", "POST", "DELETE"]
 
 CORS_ALLOW_HEADERS = [
     "authorization",

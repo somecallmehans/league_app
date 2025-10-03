@@ -7,44 +7,40 @@ import {
   usePostBeginRoundMutation,
   useGetPodsQuery,
   useGetParticipantsQuery,
+  usePostLobbySignInMutation,
+  useDeleteLobbySignInMutation,
 } from "../api/apiSlice";
 
-export default function useRouteParticipants(roundId, sessionId) {
+const readTemps = (rid) => {
+  const raw = localStorage.getItem(getLobbyKey(rid));
+  return JSON.parse(raw) || [];
+};
+
+const writeTemps = (rid, arr) => {
+  if (!arr.length) {
+    localStorage.removeItem(getLobbyKey(rid));
+    return;
+  }
+  localStorage.setItem(getLobbyKey(rid), JSON.stringify(arr));
+};
+
+export default function useRouteParticipants(roundId, sessionId, signIns) {
   const [hasHydrated, setHasHydrated] = useState(false);
+  const [postLobbySignIn] = usePostLobbySignInMutation();
+  const [deleteLobbySignIn] = useDeleteLobbySignInMutation();
   const [postBeginRound] = usePostBeginRoundMutation();
   const { data: participants, isLoading: participantsLoading } =
     useGetParticipantsQuery();
   const { watch, setValue, reset } = useFormContext();
 
-  const selected = watch("participants");
+  const selected = watch("participants") ?? [];
 
   useEffect(() => {
-    // Try restoring from localStorage first
-    const stored = localStorage.getItem(getLobbyKey(roundId));
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          reset({ participants: parsed });
-          setHasHydrated(true);
-          return;
-        }
-      } catch (e) {
-        console.error("Failed to parse localStorage data", e);
-      }
-    }
-
-    setHasHydrated(true);
-  }, [roundId]);
-
-  useEffect(() => {
-    if (!hasHydrated) return;
-    if (selected.length > 0) {
-      localStorage.setItem(getLobbyKey(roundId), JSON.stringify(selected));
-    } else {
-      localStorage.removeItem(getLobbyKey(roundId));
-    }
-  }, [selected, hasHydrated, roundId]);
+    const temps = readTemps(roundId);
+    const fromServer = signIns.map((p) => ({ value: p.id, label: p.name }));
+    const merged = [...fromServer, ...temps];
+    setValue("participants", merged, { shouldDirty: false });
+  }, [roundId, signIns, setValue]);
 
   const submitForm = async () => {
     try {
@@ -63,25 +59,67 @@ export default function useRouteParticipants(roundId, sessionId) {
     }
   };
 
-  const addParticipant = (participant) => {
-    if (participant) {
-      const updatedParticipants = [
-        ...selected,
-        {
-          label: participant.label,
-          value: participant.value,
-        },
-      ];
-      setValue("participants", updatedParticipants);
+  const addParticipant = async (participant) => {
+    if (!participant) return;
+
+    // If we're adding an existing participant, stick them in our table
+    if (participant.value) {
+      try {
+        await postLobbySignIn({
+          round_id: roundId,
+          participant_id: participant.value,
+        });
+        toast.success("Participant added");
+      } catch (error) {
+        toast.error("Sign-in failed");
+        console.error("sign-in failed", e);
+      }
+      return;
     }
+
+    // Otherwise we put them in local storage
+    const next = { label: participant.label };
+    const temps = readTemps(roundId);
+    if (temps.some((t) => t.label === next.label)) return;
+
+    const updated = [...temps, next];
+    writeTemps(roundId, updated);
+    const fromServer = signIns.map((p) => ({ value: p.id, label: p.name }));
+
+    setValue("participants", [...fromServer, ...updated], {
+      shouldDirty: true,
+      shouldTouch: true,
+    });
   };
 
-  const removeParticipant = (index) => {
-    const updatedParticipants = [
-      ...selected.slice(0, index),
-      ...selected.slice(index + 1),
-    ];
-    setValue("participants", updatedParticipants);
+  const removeParticipant = async (idx) => {
+    const list = watch("participants") ?? [];
+    const p = list[idx];
+    if (!p) return;
+
+    // Same as above, if we have an ID hit the API
+    if (p.value) {
+      try {
+        await deleteLobbySignIn({ round_id: roundId, participant_id: p.value });
+      } catch (error) {
+        toast.error("Removing sign-in failed");
+        console.error("sign-in failed", e);
+      }
+      return;
+    }
+
+    // Otherwise update local storage
+    const temps = readTemps(roundId);
+    const updated = temps.filter((t) => t.label !== p.label);
+    writeTemps(roundId, updated);
+    const serverOpts = signIns.map((s) => ({
+      value: s.id,
+      label: s.name,
+    }));
+
+    setValue("participants", [...serverOpts, ...updated], {
+      shouldDirty: true,
+    });
   };
 
   const filtered = useMemo(() => {

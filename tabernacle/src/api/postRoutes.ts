@@ -156,6 +156,8 @@ export default (builder: ApiBuilder) => ({
     }),
     invalidatesTags: ["Configs"],
   }),
+  // Different type of endpoint than the one above which requires
+  // a code to id the player
   postLobbySignIn: builder.mutation<void, SignInRequest>({
     query: (body) => ({
       url: "post_signin/",
@@ -170,5 +172,6 @@ export default (builder: ApiBuilder) => ({
       method: "DELETE",
       body: body,
     }),
+    invalidatesTags: ["SignedIn"],
   }),
 });
