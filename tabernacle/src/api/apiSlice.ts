@@ -119,6 +119,8 @@ export const {
   usePostUpsertParticipantAchievementMutation,
   usePostSignupMutation,
   useUpdateConfigMutation,
+  useDeleteLobbySignInMutation,
+  usePostLobbySignInMutation,
 
   // AUTH
   useLoginMutation,

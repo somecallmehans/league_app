@@ -8,6 +8,7 @@ import {
   BeginRoundResponseSchema,
   type BeginRoundRequest,
   type BeginRoundResponse,
+  type SignInRequest,
 } from "../types/round_schemas";
 import {
   SessionSchema,
@@ -154,5 +155,20 @@ export default (builder: ApiBuilder) => ({
       body: body.value,
     }),
     invalidatesTags: ["Configs"],
+  }),
+  postLobbySignIn: builder.mutation<void, SignInRequest>({
+    query: (body) => ({
+      url: "post_signin/",
+      method: "POST",
+      body: body,
+    }),
+    invalidatesTags: ["SignedIn"],
+  }),
+  deleteLobbySignIn: builder.mutation<void, SignInRequest>({
+    query: (body) => ({
+      url: "delete_signin/",
+      method: "DELETE",
+      body: body,
+    }),
   }),
 });

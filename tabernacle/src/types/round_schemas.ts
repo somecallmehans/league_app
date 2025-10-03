@@ -71,3 +71,9 @@ export const BeginRoundResponseSchema = z.array(
   })
 );
 export type BeginRoundResponse = z.infer<typeof BeginRoundResponseSchema>;
+
+export const SignInRequestSchema = z.object({
+  round_id: z.number(),
+  participant_id: z.number(),
+});
+export type SignInRequest = z.infer<typeof SignInRequestSchema>;
