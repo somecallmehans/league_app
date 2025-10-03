@@ -20,7 +20,7 @@ def build_state() -> None:
     )
 
 
-def test_signup_with_code(client, build_state) -> None:
+def test_post_signup_with_code(client, build_state) -> None:
     url = reverse("signup")
     body = {
         "code": "AAAAAA",

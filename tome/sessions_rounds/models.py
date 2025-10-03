@@ -52,3 +52,8 @@ class RoundSignups(models.Model):
 
     class Meta:
         db_table = "round_signups"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["round", "participant"], name="uniq_round_participant"
+            )
+        ]

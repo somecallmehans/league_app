@@ -15,6 +15,7 @@ from .views import (
     get_participant_recent_pods,
     signup,
     signin_counts,
+    post_signin,
 )
 
 urlpatterns = [
@@ -57,6 +58,7 @@ urlpatterns = [
     path("reroll_pods/", reroll_pods, name="reroll_pods"),
     path("signup/", signup, name="signup"),
     path("signin_counts/", signin_counts, name="signin_counts"),
+    path("post_signin/", post_signin, name="post_signin"),
     re_path(r"^get_all_rounds/$", get_all_rounds, name="get_all_rounds"),
     re_path(
         r"^get_all_rounds/(?P<participant_id>\d+)/$",

@@ -567,3 +567,31 @@ def signin_counts(request):
                 out[round_two]["is_full"] = True
 
     return Response(out)
+
+
+@api_view([POST])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def post_signin(request):
+    """Post a signed in user from the lobby. Accepts a round_id and a participant_id"""
+    body = json.loads(request.body.decode("utf-8"))
+    rid = body.get("round_id")
+    pid = body.get("participant_id")
+
+    if not rid or not pid:
+        return Response(
+            {"message": "Missing round or participant in request."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    _, created = RoundSignups.objects.get_or_create(
+        round_id=rid,
+        participant_id=pid,
+    )
+
+    if not created:
+        return Response(
+            {"message": "User already exists for round."}, status=status.HTTP_200_OK
+        )
+
+    return Response({"message": "Created"}, status=status.HTTP_201_CREATED)
