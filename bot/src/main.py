@@ -74,7 +74,7 @@ async def interactions(req: Request):
             return await handle_signin(user_id, guild_id)
 
     if t == MESSAGE:
-        data = payload["data"]
+        data = payload.get("data") or {}
         cid = data.get("custom_id")
 
         user = (payload.get("member") or {}).get("user") or payload.get("user")
