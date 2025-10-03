@@ -54,11 +54,17 @@ export function formatMonthYear(mm_yy: MonthYear): string {
 }
 
 function localDateFromISO(iso: string): Date | null {
+  if (!iso) return null;
+
+  if (iso.includes("T")) {
+    const parsed = new Date(iso);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
   const [y, m, d] = iso.split("-").map(Number);
   if (!y || !m || !d) {
     return null;
   }
-  return new Date(y, m - 1, d); // local time, no off-by-one
+  return new Date(y, m - 1, d);
 }
 
 export function formatDateString(dateString: string): string {
