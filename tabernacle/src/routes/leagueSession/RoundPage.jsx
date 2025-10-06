@@ -197,7 +197,7 @@ const CheckedInRow = ({ participant, checkNumber, removeParticipant, idx }) => (
 );
 
 function RoundLobby({ roundId, sessionId, control, signIns }) {
-  const roundSignIns = signIns[roundId].participants ?? [];
+  const roundSignIns = signIns?.[roundId]?.participants ?? [];
   const {
     filtered,
     selected,

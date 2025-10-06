@@ -77,3 +77,9 @@ export const SignInRequestSchema = z.object({
   participant_id: z.number(),
 });
 export type SignInRequest = z.infer<typeof SignInRequestSchema>;
+
+const SignUpRequestSchema = z.object({
+  rounds: z.array(z.number()),
+  conde: z.string(),
+});
+export type SignUpRequest = z.infer<typeof SignUpRequestSchema>;

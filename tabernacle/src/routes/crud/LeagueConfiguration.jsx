@@ -30,9 +30,10 @@ const ConfigRow = ({ name, configKey, value, description }) => {
     defaultValues: { value },
   });
 
-  const submit = async (value) => {
+  const submit = async (formVals) => {
     try {
-      await updateConfig({ value, key: configKey });
+      const next = formVals[configKey];
+      await updateConfig({ value: next, key: configKey });
       toast.success("Saved Successfully");
     } catch (error) {
       console.error(error);
@@ -97,9 +98,8 @@ const ConfigRow = ({ name, configKey, value, description }) => {
 };
 
 export default function Page() {
-  const {
-    data: { list: configs },
-  } = useSelector(apiSlice.endpoints.getAllConfigs.select());
+  const { data } = useSelector(apiSlice.endpoints.getAllConfigs.select());
+  const configs = data?.list ?? [];
 
   return (
     <div className="bg-white flex flex-col gap-2 rounded-lg p-4 shadow-md border">

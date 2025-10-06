@@ -9,6 +9,7 @@ import {
   type BeginRoundRequest,
   type BeginRoundResponse,
   type SignInRequest,
+  type SignUpRequest,
 } from "../types/round_schemas";
 import {
   SessionSchema,
@@ -140,7 +141,7 @@ export default (builder: ApiBuilder) => ({
     }),
     invalidatesTags: ["Earned"],
   }),
-  postSignup: builder.mutation<void, void>({
+  postSignup: builder.mutation<void, SignUpRequest>({
     query: (body) => ({
       url: "signup/",
       method: "POST",

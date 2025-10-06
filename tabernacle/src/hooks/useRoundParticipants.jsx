@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { useFormContext } from "react-hook-form";
-
+import { toast } from "react-toastify";
 import { getLobbyKey } from "../helpers/formHelpers";
 import {
   usePostBeginRoundMutation,
@@ -13,7 +13,14 @@ import {
 
 const readTemps = (rid) => {
   const raw = localStorage.getItem(getLobbyKey(rid));
-  return JSON.parse(raw) || [];
+  if (!raw) return [];
+
+  try {
+    return JSON.parse(raw) || [];
+  } catch (error) {
+    console.error("Failed to parse local storage");
+    return [];
+  }
 };
 
 const writeTemps = (rid, arr) => {

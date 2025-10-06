@@ -13,7 +13,7 @@ export type ConfigsTransformed = {
 };
 
 export const ConfigRequestSchema = z.object({
-  value: z.string(),
+  value: z.union([z.string(), z.number()]),
   key: z.string(),
 });
 export type ConfigRequest = z.infer<typeof ConfigRequestSchema>;

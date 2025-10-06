@@ -140,7 +140,11 @@ function LeagueManagementPage() {
           <div className="my-2">
             <DatePicker
               selected={startDate}
-              onChange={(date) => setStartDate(date)}
+              onChange={(date) => {
+                if (date) {
+                  setStartDate(date);
+                }
+              }}
               className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-gray-900"
               calendarClassName="rounded-lg shadow-lg bg-white border border-gray-200"
               popperClassName="z-50"
