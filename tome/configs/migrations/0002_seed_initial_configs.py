@@ -10,8 +10,8 @@ def seed_configs(apps, schema_editor):
         defaults={
             "value": 24,
             "description": "Max players allowed in Round 1",
+            "name": "Round One Cap",
         },
-        name="Round One Cap",
     )
 
     # Create round_two_cap = 24
@@ -21,12 +21,13 @@ def seed_configs(apps, schema_editor):
         defaults={
             "value": 24,
             "description": "Max players allowed in Round 2",
+            "name": "Round Two Cap",
         },
-        name="Round Two Cap",
     )
 
 
 def unseed_configs(apps, schema_editor):
+    Config = apps.get_model("configs", "Config")
     Config.objects.filter(key__in=["round_one_cap", "round_two_cap"]).delete()
 
 

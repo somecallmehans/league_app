@@ -38,15 +38,19 @@ def update_config(request, key):
             {"message": "No key provided"}, status=status.HTTP_400_BAD_REQUEST
         )
 
-    target = Config.objects.get(key=key)
-
-    if not target:
+    try:
+        target = Config.objects.get(key=key)
+    except Config.DoesNotExist:
         return Response(
-            {"message": "Config not found"}, status=status.HTTP_400_BAD_REQUEST
+            {"message": "Config not found"}, status=status.HTTP_404_NOT_FOUND
         )
 
-    body = json.loads(request.body.decode("utf-8"))
-    value = body["value"]
+    value = json.loads(request.body.decode("utf-8"))
+
+    if not value:
+        return Response(
+            {"message": "Missing value"}, status=status.HTTP_400_BAD_REQUEST
+        )
 
     spec = CONFIG_SPEC.get(key)
     if spec and "cast" in spec:

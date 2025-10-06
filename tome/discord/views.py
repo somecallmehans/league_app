@@ -1,4 +1,5 @@
 import json
+from datetime import date
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -8,9 +9,7 @@ from utils.decorators import require_service_token
 
 from users.models import Participants
 from sessions_rounds.models import Sessions, RoundSignups, Rounds
-from configs.models import Config
 from configs.configs import get_round_caps
-from sessions_rounds.serializers import SessionSerializer
 
 GET = "GET"
 POST = "POST"
@@ -56,7 +55,7 @@ def link(request):
     pid = body.get("participant_id")
     duid = body.get("discord_user_id")
 
-    if not pid and not duid:
+    if not pid or not duid:
         return Response(
             {"message": "Missing either participant_id or discord user id."},
             status=status.HTTP_400_BAD_REQUEST,
@@ -81,8 +80,12 @@ def next_session(_):
     """Return the next upcoming session with its rounds."""
 
     next_session = (
-        Sessions.objects.filter(closed=False, deleted=False)
-        .order_by("-created_at")
+        Sessions.objects.filter(
+            closed=False,
+            deleted=False,
+            session_date__gte=date.today(),
+        )
+        .order_by("session_date")
         .first()
     )
     if not next_session:
