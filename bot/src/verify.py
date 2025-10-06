@@ -13,5 +13,5 @@ def verify_signature(signature: str, timestamp: str, body: bytes) -> bool:
         vk = nacl.signing.VerifyKey(bytes.fromhex(PUBLIC_KEY))
         vk.verify(timestamp.encode() + body, bytes.fromhex(signature))
         return True
-    except nacl.exceptions.BadSignatureError:
+    except (ValueError, TypeError, nacl.exceptions.BadSignatureError):
         return False

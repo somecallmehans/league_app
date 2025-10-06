@@ -103,8 +103,18 @@ def _get_selection(guild_id, user_id):
     return vals
 
 
-def _cache_selection(guild_id, user_id, round_ids):
+def _cache_selection(guild_id, user_id, round_ids) -> None:
     SELECTIONS[(guild_id, user_id)] = (time.time() + TTL, round_ids)
+
+
+def _format_start_time(value: str) -> str:
+    if not value:
+        return ""
+    try:
+        dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return ""
+    return dt.strftime("%-I:%M %m/%d/%Y")
 
 
 async def handle_signin(uid, guild_id):
@@ -146,7 +156,7 @@ async def handle_signin(uid, guild_id):
                                     "label": f"Round {r['round_number']}",
                                     "value": str(r["id"]),
                                     "description": (
-                                        f"{datetime.strptime(r['starts_at'], '%Y-%m-%dT%H:%M:%SZ').strftime('%-I:%M %m/%d/%Y')}"
+                                        _format_start_time(r.get("starts_at"))
                                         if r.get("starts_at")
                                         else ""
                                     )
