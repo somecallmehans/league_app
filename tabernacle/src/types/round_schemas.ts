@@ -80,6 +80,6 @@ export type SignInRequest = z.infer<typeof SignInRequestSchema>;
 
 const SignUpRequestSchema = z.object({
   rounds: z.array(z.number()),
-  conde: z.string(),
+  code: z.string(),
 });
 export type SignUpRequest = z.infer<typeof SignUpRequestSchema>;

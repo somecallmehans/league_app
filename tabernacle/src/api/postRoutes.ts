@@ -1,4 +1,3 @@
-import { z } from "zod";
 import { ApiBuilder } from "./baseApiTypes";
 
 import { safeParseWithFallback } from "../types/parse";
@@ -153,7 +152,7 @@ export default (builder: ApiBuilder) => ({
     query: (body) => ({
       url: `configs/update/${body.key}/`,
       method: "POST",
-      body: body.value,
+      body: body,
     }),
     invalidatesTags: ["Configs"],
   }),

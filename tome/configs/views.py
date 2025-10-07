@@ -45,13 +45,14 @@ def update_config(request, key):
             {"message": "Config not found"}, status=status.HTTP_404_NOT_FOUND
         )
 
-    value = json.loads(request.body.decode("utf-8"))
+    body = json.loads(request.body.decode("utf-8"))
 
-    if not value:
+    if "value" not in body:
         return Response(
             {"message": "Missing value"}, status=status.HTTP_400_BAD_REQUEST
         )
 
+    value = body["value"]
     spec = CONFIG_SPEC.get(key)
     if spec and "cast" in spec:
         try:
