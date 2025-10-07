@@ -52,7 +52,7 @@ export default function useRouteParticipants(roundId, sessionId, signIns) {
         });
       } catch (error) {
         toast.error("Sign-in failed");
-        console.error("sign-in failed", e);
+        console.error("sign-in failed", error);
         return;
       }
       toast.success("Updated successfully");
@@ -85,7 +85,7 @@ export default function useRouteParticipants(roundId, sessionId, signIns) {
         await deleteLobbySignIn({ round_id: roundId, participant_id: p.value });
       } catch (error) {
         toast.error("Removing sign-in failed");
-        console.error("sign-in failed", e);
+        console.error("sign-in failed", error);
         return;
       }
       toast.success("Updated successfully");
