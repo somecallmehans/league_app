@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "react-toastify";
 import { getLobbyKey } from "../helpers/formHelpers";
+import { readTemps, writeTemps } from "../helpers/helpers";
 import {
   usePostBeginRoundMutation,
   useGetPodsQuery,
@@ -10,26 +11,6 @@ import {
   usePostLobbySignInMutation,
   useDeleteLobbySignInMutation,
 } from "../api/apiSlice";
-
-const readTemps = (rid) => {
-  const raw = localStorage.getItem(getLobbyKey(rid));
-  if (!raw) return [];
-
-  try {
-    return JSON.parse(raw) || [];
-  } catch (error) {
-    console.error("Failed to parse local storage");
-    return [];
-  }
-};
-
-const writeTemps = (rid, arr) => {
-  if (!arr.length) {
-    localStorage.removeItem(getLobbyKey(rid));
-    return;
-  }
-  localStorage.setItem(getLobbyKey(rid), JSON.stringify(arr));
-};
 
 export default function useRouteParticipants(roundId, sessionId, signIns) {
   const [hasHydrated, setHasHydrated] = useState(false);
@@ -41,13 +22,6 @@ export default function useRouteParticipants(roundId, sessionId, signIns) {
   const { watch, setValue, reset } = useFormContext();
 
   const selected = watch("participants") ?? [];
-
-  useEffect(() => {
-    const temps = readTemps(roundId);
-    const fromServer = signIns.map((p) => ({ value: p.id, label: p.name }));
-    const merged = [...fromServer, ...temps];
-    setValue("participants", merged, { shouldDirty: false });
-  }, [roundId, signIns, setValue]);
 
   const submitForm = async () => {
     try {
@@ -76,11 +50,12 @@ export default function useRouteParticipants(roundId, sessionId, signIns) {
           round_id: roundId,
           participant_id: participant.value,
         });
-        toast.success("Participant added");
       } catch (error) {
         toast.error("Sign-in failed");
         console.error("sign-in failed", e);
+        return;
       }
+      toast.success("Updated successfully");
       return;
     }
 
@@ -111,7 +86,9 @@ export default function useRouteParticipants(roundId, sessionId, signIns) {
       } catch (error) {
         toast.error("Removing sign-in failed");
         console.error("sign-in failed", e);
+        return;
       }
+      toast.success("Updated successfully");
       return;
     }
 

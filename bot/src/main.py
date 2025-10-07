@@ -22,6 +22,9 @@ app = FastAPI()
 SIGNATURE = "X-Signature-Ed25519"
 TIMESTAMP = "X-Signature-Timestamp"
 
+PROD_CHANNEL = os.getenv("PROD_CHANNEL")
+DEV_CHANNEL = os.getenv("DEV_CHANNEL")
+
 
 @app.post("/interactions")
 async def interactions(req: Request):
@@ -37,6 +40,18 @@ async def interactions(req: Request):
 
     if t == PING:
         return {"type": 1}
+
+    channel = payload.get("channel") or {}
+    channel_id = channel.get("id")
+
+    if channel_id not in (PROD_CHANNEL, DEV_CHANNEL):
+        return {
+            "type": 4,
+            "data": {
+                "flags": 64,
+                "content": "This command only works in #mtg-commander-league",
+            },
+        }
 
     if t == APP_COMMAND_AUTOCOMPLETE:
         data = payload.get("data") or {}

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import { Link, useLocation } from "react-router-dom";
 import { useForm, Controller, FormProvider } from "react-hook-form";
@@ -12,6 +12,7 @@ import {
 import { useRouteParticipants } from "../../hooks";
 import { podCalculator } from "../../helpers/helpers";
 import { getLobbyKey } from "../../helpers/formHelpers";
+import { readTemps } from "../../helpers/helpers";
 
 import PageTitle from "../../components/PageTitle";
 import StandardButton from "../../components/Button";
@@ -197,7 +198,7 @@ const CheckedInRow = ({ participant, checkNumber, removeParticipant, idx }) => (
 );
 
 function RoundLobby({ roundId, sessionId, control, signIns }) {
-  const roundSignIns = signIns?.[roundId]?.participants ?? [];
+  const roundSignIns = signIns?.[roundId]?.participants || [];
   const {
     filtered,
     selected,
@@ -247,19 +248,18 @@ function RoundLobby({ roundId, sessionId, control, signIns }) {
         </span>
         <span className="text-sm">{podCalculator(selected.length)}</span>
       </div>
-      {selected.length > 0 && (
-        <div className="mt-2 w-full mx-auto">
-          {selected.map((participant, index) => (
-            <CheckedInRow
-              key={participant?.id || participant?.value}
-              participant={participant}
-              checkNumber={index + 1}
-              removeParticipant={removeParticipant}
-              idx={index}
-            />
-          ))}
-        </div>
-      )}
+      <div className="mt-2 w-full mx-auto">
+        {selected.map((participant, index) => (
+          <CheckedInRow
+            key={participant?.id || participant?.value || participant?.label}
+            participant={participant}
+            checkNumber={index + 1}
+            removeParticipant={removeParticipant}
+            idx={index}
+          />
+        ))}
+      </div>
+
       <ConfirmModal
         isOpen={isOpen}
         title="Begin Round?"
@@ -276,9 +276,19 @@ function RoundLobby({ roundId, sessionId, control, signIns }) {
 
 function RoundLobbyFormWrapper({ roundId, sessionId, signIns }) {
   const [showConfirm, setShowConfirm] = useState(false);
-  const initialParticipants = signIns[roundId]?.participants;
+  const initialParticipants = signIns[roundId]?.participants ?? [];
   const methods = useForm();
   const { control, reset } = methods;
+
+  useEffect(() => {
+    const temps = readTemps(roundId);
+    const fromServer = initialParticipants.map((p) => ({
+      value: p.id,
+      label: p.name,
+    }));
+    const merged = [...fromServer, ...temps];
+    methods.reset({ participants: merged });
+  }, [roundId, signIns, methods.setValue]);
 
   return (
     <FormProvider {...methods}>

@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.views.decorators.csrf import csrf_exempt
-from django.db.models import Count
+from django.db.models import Count, Q
 from utils.decorators import require_service_token
 
 from users.models import Participants
@@ -39,11 +39,12 @@ def mycode(_, discord_user_id):
 def search(_, query):
     """Take in the string we're looking for and search against users who
     are currently unlinked."""
+    q = (query or "").strip()
     matched_participants = Participants.objects.filter(
-        name__contains=query, discord_user_id=None, deleted=False
+        Q(name__icontains=q), discord_user_id=None, deleted=False
     ).values("id", "name")
 
-    return Response(matched_participants)
+    return Response(list(matched_participants))
 
 
 @csrf_exempt
