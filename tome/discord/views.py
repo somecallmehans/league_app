@@ -8,7 +8,8 @@ from django.db.models import Count, Q
 from utils.decorators import require_service_token
 
 from users.models import Participants
-from sessions_rounds.models import Sessions, RoundSignups, Rounds
+from sessions_rounds.models import Sessions, RoundSignups, Rounds, Pods
+
 from configs.configs import get_round_caps
 
 GET = "GET"
@@ -139,6 +140,15 @@ def signin(request):
         .values_list("id", flat=True)
         .first()
     )
+
+    round_started = Pods.objects.filter(rounds_id__in=rounds).exists()
+
+    print("\n\n", round_started, "\n\n")
+    if round_started:
+        return Response(
+            {"message": "Round has started, sign ins are closed."},
+            status=status.HTTP_208_ALREADY_REPORTED,
+        )
 
     if not pid:
         return Response(
