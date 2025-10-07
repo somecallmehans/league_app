@@ -43,14 +43,7 @@ const SignInSchema = z.object({
 
 export type SignIn = z.infer<typeof SignInSchema>;
 
-export const SignInResponseSchema = z.record(
-  z.string(),
-  z.object({
-    participants: z.array(z.object({ id: z.number(), name: z.string() })),
-    count: z.number(),
-    is_full: z.boolean(),
-  })
-);
+export const SignInResponseSchema = z.record(z.string(), SignInSchema);
 export type SignInResponse = z.infer<typeof SignInResponseSchema>;
 
 // POST types
