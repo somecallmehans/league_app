@@ -143,7 +143,6 @@ def signin(request):
 
     round_started = Pods.objects.filter(rounds_id__in=rounds).exists()
 
-    print("\n\n", round_started, "\n\n")
     if round_started:
         return Response(
             {"message": "Round has started, sign ins are closed."},
