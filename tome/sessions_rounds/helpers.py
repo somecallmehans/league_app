@@ -1,11 +1,14 @@
-import math
 import random
+from datetime import datetime, date
 
 from .serializers import PodsParticipantsSerializer
 from users.models import Participants, ParticipantAchievements
 from users.serializers import ParticipantsSerializer
 from achievements.models import Achievements
 from sessions_rounds.models import Pods, PodsParticipants, Rounds, Sessions
+
+from users.helpers import generate_code
+
 
 PARTICIPATION_ACHIEVEMENT = "participation"
 
@@ -143,7 +146,8 @@ class RoundInformationService:
         """Take all of the new participants and make them into existing participants"""
         try:
             new = Participants.objects.bulk_create(
-                Participants(name=p["name"]) for p in self.new_participants
+                Participants(name=p["name"], code=generate_code())
+                for p in self.new_participants
             )
             self.existing_participants.extend(
                 ParticipantsSerializer(new, many=True).data
@@ -224,7 +228,7 @@ class PodRerollService:
     def create_new_participants(self):
         """Make the new people and then add them to the points needing people"""
         new_participants = Participants.objects.bulk_create(
-            [Participants(name=p["name"]) for p in self.new]
+            [Participants(name=p["name"], code=generate_code()) for p in self.new]
         )
         self.needs_points.extend(
             ParticipantsSerializer(new_participants, many=True).data

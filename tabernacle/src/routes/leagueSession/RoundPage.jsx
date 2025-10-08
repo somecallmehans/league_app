@@ -1,13 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import { Link, useLocation } from "react-router-dom";
 import { useForm, Controller, FormProvider } from "react-hook-form";
 
-import { useGetPodsQuery, usePostRerollPodsMutation } from "../../api/apiSlice";
+import {
+  useGetPodsQuery,
+  usePostRerollPodsMutation,
+  useGetSigninsQuery,
+} from "../../api/apiSlice";
 
 import { useRouteParticipants } from "../../hooks";
 import { podCalculator } from "../../helpers/helpers";
 import { getLobbyKey } from "../../helpers/formHelpers";
+import { readTemps } from "../../helpers/helpers";
 
 import PageTitle from "../../components/PageTitle";
 import StandardButton from "../../components/Button";
@@ -187,12 +192,13 @@ const CheckedInRow = ({ participant, checkNumber, removeParticipant, idx }) => (
         className="fa-solid fa-trash-can mx-2 cursor-pointer text-red-500"
         onClick={() => removeParticipant(idx)}
       />{" "}
-      {participant.label}
+      {participant.name || participant.label}
     </span>
   </div>
 );
 
-function RoundLobby({ roundId, sessionId, previousRoundId, control }) {
+function RoundLobby({ roundId, sessionId, control, signIns }) {
+  const roundSignIns = signIns?.[roundId]?.participants || [];
   const {
     filtered,
     selected,
@@ -200,7 +206,7 @@ function RoundLobby({ roundId, sessionId, previousRoundId, control }) {
     addParticipant,
     removeParticipant,
     loading,
-  } = useRouteParticipants(roundId, sessionId, previousRoundId);
+  } = useRouteParticipants(roundId, sessionId, roundSignIns);
   const [isOpen, setIsOpen] = useState(false);
   const [lockForm, setLockForm] = useState();
 
@@ -225,7 +231,7 @@ function RoundLobby({ roundId, sessionId, previousRoundId, control }) {
                 addParticipant({ value: undefined, label: inputValue })
               }
               isValidNewOption={(inputValue) => !!inputValue}
-              formatCreateLabel={(option) => `Create ${option}`}
+              formatCreateLabel={(inputValue) => `Create ${inputValue}`}
             />
           )}
         />
@@ -242,19 +248,18 @@ function RoundLobby({ roundId, sessionId, previousRoundId, control }) {
         </span>
         <span className="text-sm">{podCalculator(selected.length)}</span>
       </div>
-      {selected.length > 0 && (
-        <div className="mt-2 w-full mx-auto">
-          {selected.map((participant, index) => (
-            <CheckedInRow
-              key={participant?.value}
-              participant={participant}
-              checkNumber={index + 1}
-              removeParticipant={removeParticipant}
-              idx={index}
-            />
-          ))}
-        </div>
-      )}
+      <div className="mt-2 w-full mx-auto">
+        {selected.map((participant, index) => (
+          <CheckedInRow
+            key={participant?.id || participant?.value || participant?.label}
+            participant={participant}
+            checkNumber={index + 1}
+            removeParticipant={removeParticipant}
+            idx={index}
+          />
+        ))}
+      </div>
+
       <ConfirmModal
         isOpen={isOpen}
         title="Begin Round?"
@@ -269,10 +274,21 @@ function RoundLobby({ roundId, sessionId, previousRoundId, control }) {
   );
 }
 
-function RoundLobbyFormWrapper({ roundId, sessionId, previousRoundId }) {
+function RoundLobbyFormWrapper({ roundId, sessionId, signIns }) {
   const [showConfirm, setShowConfirm] = useState(false);
-  const methods = useForm({ defaultValues: { participants: [] } });
+  const initialParticipants = signIns[roundId]?.participants ?? [];
+  const methods = useForm();
   const { control, reset } = methods;
+
+  useEffect(() => {
+    const temps = readTemps(roundId);
+    const fromServer = initialParticipants.map((p) => ({
+      value: p.id,
+      label: p.name,
+    }));
+    const merged = [...fromServer, ...temps];
+    methods.reset({ participants: merged });
+  }, [roundId, signIns, methods.setValue]);
 
   return (
     <FormProvider {...methods}>
@@ -280,8 +296,8 @@ function RoundLobbyFormWrapper({ roundId, sessionId, previousRoundId }) {
       <RoundLobby
         roundId={roundId}
         sessionId={sessionId}
-        previousRoundId={previousRoundId}
         control={control}
+        signIns={signIns}
       />
       <ConfirmModal
         isOpen={showConfirm}
@@ -330,6 +346,13 @@ function FocusedRound({ pods = {}, sessionId, roundId }) {
   );
 }
 
+const constructParams = (rid, prid) => {
+  if (!prid) {
+    return { round_one: rid, round_two: -1 };
+  }
+  return { round_one: prid, round_two: rid };
+};
+
 function RoundDisplay({
   roundId,
   previousRoundId,
@@ -337,9 +360,12 @@ function RoundDisplay({
   completed,
   setModalOpen,
 }) {
+  const params = constructParams(roundId, previousRoundId);
   const { data: pods, isLoading: podsLoading } = useGetPodsQuery(roundId);
+  const { data: signIns, isLoading: signInsLoading } =
+    useGetSigninsQuery(params);
 
-  if (podsLoading) {
+  if (podsLoading || signInsLoading) {
     return <LoadingSpinner />;
   }
 
@@ -370,7 +396,7 @@ function RoundDisplay({
     <RoundLobbyFormWrapper
       sessionId={sessionId}
       roundId={roundId}
-      previousRoundId={previousRoundId}
+      signIns={signIns}
     />
   );
 }

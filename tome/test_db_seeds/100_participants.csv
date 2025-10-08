@@ -1,11 +1,11 @@
-id,name,deleted,created_at
-901,Charlie Smith,False,2024-10-01T00:00:00Z
-902,Trenna Thain,False,2024-10-01T00:00:00Z
-903,Fern Penvarden,False,2024-10-01T00:00:00Z
-904,Nikita Heape,False,2024-10-01T00:00:00Z
-905,Bevon Goldster,False,2024-10-01T00:00:00Z
-906,Jeffrey Blackwood,False,2024-10-01T00:00:00Z
-907,Amanda Tinnin,False,2024-10-01T00:00:00Z
-908,Bless Frankfurt,False,2024-10-01T00:00:00Z
-909,Fran Brek,False,2024-10-01T00:00:00Z
-910,Thom Horn,False,2024-10-01T00:00:00Z
+id,name,deleted,created_at,code,discord_user_id
+901,Charlie Smith,False,2024-10-01T00:00:00Z,ABCDEF,1234
+902,Trenna Thain,False,2024-10-01T00:00:00Z,BCDEFG,2345
+903,Fern Penvarden,False,2024-10-01T00:00:00Z,CDEFGH,3456
+904,Nikita Heape,False,2024-10-01T00:00:00Z,DEFGHI,4567
+905,Bevon Goldster,False,2024-10-01T00:00:00Z,EFGHIJ,5678
+906,Jeffrey Blackwood,False,2024-10-01T00:00:00Z,FGHIJK,6789
+907,Amanda Tinnin,False,2024-10-01T00:00:00Z,GHIJKL,7890
+908,Bless Frankfurt,False,2024-10-01T00:00:00Z,HIJKLM,8901
+909,Fran Brek,False,2024-10-01T00:00:00Z,IJKLMN,9012
+910,Thom Horn,False,2024-10-01T00:00:00Z,JKLMNO,1235

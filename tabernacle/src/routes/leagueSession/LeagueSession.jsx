@@ -1,5 +1,8 @@
 import React, { useState } from "react";
+import DatePicker from "react-datepicker";
 import { Route, Routes, Link } from "react-router-dom";
+
+import "react-datepicker/dist/react-datepicker.css";
 
 import RoundPage from "./RoundPage";
 import LoadingSpinner from "../../components/LoadingSpinner";
@@ -8,7 +11,11 @@ import {
   useGetAllSessionsQuery,
   usePostCreateSessionMutation,
 } from "../../api/apiSlice";
-import { formatDateString, formatMonthYear } from "../../helpers/dateHelpers";
+import {
+  formatDateString,
+  formatMonthYear,
+  formatToYYYYDDMM,
+} from "../../helpers/dateHelpers";
 import PageTitle from "../../components/PageTitle";
 import Modal from "../../components/Modal";
 
@@ -17,7 +24,7 @@ const Round = ({
   sessionId,
   roundNumber,
   previousRoundId,
-  created_at,
+  session_date,
   completed,
 }) => {
   return (
@@ -29,7 +36,7 @@ const Round = ({
           completed: completed,
           sessionId: sessionId,
           roundNumber: roundNumber,
-          date: created_at,
+          date: session_date,
           previousRoundId: previousRoundId,
         }}
       >
@@ -51,12 +58,13 @@ function LeagueSession() {
 
   return sessionKeys.map((month_year) => {
     const sessionList = sessions[month_year];
+
     return (
       <div className="bg-white p-4 mb-4 rounded shadow-sm" key={month_year}>
         <div className="text-lg md:text-2xl mb-2 underline">
           {formatMonthYear(month_year)} Season
         </div>
-        {sessionList.map(({ id, created_at, rounds }) => {
+        {sessionList.map(({ id, rounds, session_date }) => {
           const roundOne = rounds.find(
             ({ round_number }) => round_number === 1
           );
@@ -69,7 +77,7 @@ function LeagueSession() {
               key={id}
             >
               <div className="text-sm md:text-base">
-                {formatDateString(created_at)}
+                {formatDateString(session_date)}
               </div>
               {/* Sessions will always have 2 rounds, no more no less. */}
               <Round
@@ -77,7 +85,7 @@ function LeagueSession() {
                 id={roundOne.id}
                 roundNumber={roundOne.round_number}
                 completed={roundOne.completed}
-                created_at={formatDateString(created_at)}
+                session_date={formatDateString(session_date)}
               />
               <Round
                 sessionId={id}
@@ -85,7 +93,7 @@ function LeagueSession() {
                 previousRoundId={roundOne.id}
                 roundNumber={roundTwo.round_number}
                 completed={roundTwo.completed}
-                created_at={formatDateString(created_at)}
+                session_date={formatDateString(session_date)}
               />
               {/* Readd this back in at some point */}
               {/* <div className="justify-self-end">
@@ -101,11 +109,13 @@ function LeagueSession() {
 
 function LeagueManagementPage() {
   const [isOpen, setIsOpen] = useState(false);
+  const [startDate, setStartDate] = useState(new Date());
   const [postCreateSession] = usePostCreateSessionMutation();
 
   const handleCreateSession = async () => {
     try {
-      await postCreateSession().unwrap();
+      const session_date = formatToYYYYDDMM(startDate);
+      await postCreateSession({ session_date }).unwrap();
       setIsOpen(false);
     } catch (err) {
       console.error("Failed to create new league session: ", err);
@@ -126,6 +136,21 @@ function LeagueManagementPage() {
         title="Begin new session?"
         actionTitle="Begin"
         closeTitle="Cancel"
+        body={
+          <div className="my-2">
+            <DatePicker
+              selected={startDate}
+              onChange={(date) => {
+                if (date) {
+                  setStartDate(date);
+                }
+              }}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-gray-900"
+              calendarClassName="rounded-lg shadow-lg bg-white border border-gray-200"
+              popperClassName="z-50"
+            />
+          </div>
+        }
       />
     </div>
   );

@@ -1,7 +1,7 @@
 import json
 import random
 
-from datetime import datetime
+from datetime import datetime, date, time
 from collections import defaultdict
 
 from rest_framework.response import Response
@@ -14,9 +14,10 @@ from rest_framework.decorators import (
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Prefetch, Exists, OuterRef, Q
+from django.db.models import Prefetch, Exists, OuterRef
+from django.utils import timezone
 
-from .models import Sessions, Rounds, Pods, PodsParticipants
+from .models import Sessions, Rounds, Pods, PodsParticipants, RoundSignups
 from users.models import ParticipantAchievements, Participants
 from achievements.models import WinningCommanders
 
@@ -32,15 +33,17 @@ from .helpers import (
     RoundInformationService,
     PodRerollService,
 )
+from configs.configs import get_round_caps
 
 GET = "GET"
 POST = "POST"
+DELETE = "DELETE"
 
 
 @api_view([GET])
 def all_sessions(_):
     """Get all sessions that are not deleted, including their rounds info."""
-    data = Sessions.objects.filter(deleted=False).order_by("-created_at")
+    data = Sessions.objects.filter(deleted=False).order_by("-session_date")
     sessions = SessionSerializer(data, many=True).data
 
     session_map = defaultdict(list)
@@ -73,15 +76,44 @@ def sessions_and_rounds(request, mm_yy=None):
         mm_yy = today.strftime("%m-%y")
 
     if request.method == POST:
-        new_session = Sessions.objects.create(month_year=mm_yy)
-        Rounds.objects.create(session_id=new_session.id, round_number=1)
-        Rounds.objects.create(session_id=new_session.id, round_number=2)
+        body = json.loads(request.body.decode("utf-8"))
+        sess_date_str = body.get("session_date")
+
+        if not sess_date_str:
+            return Response(
+                {"message": "Session date required (YYYY-MM-DD)."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        session_date = date.fromisoformat(sess_date_str)
+        mm_yy = session_date.strftime("%m-%y")
+        new_session = Sessions.objects.create(
+            month_year=mm_yy, session_date=session_date
+        )
+
+        tz = timezone.get_current_timezone()
+        r1_naive = datetime.combine(session_date, time(13, 30))
+        r2_naive = datetime.combine(session_date, time(15, 30))
+
+        r1_dt = (
+            r1_naive
+            if timezone.is_aware(r1_naive)
+            else timezone.make_aware(r1_naive, tz)
+        )
+        r2_dt = (
+            r2_naive
+            if timezone.is_aware(r2_naive)
+            else timezone.make_aware(r2_naive, tz)
+        )
+
+        Rounds.objects.create(session=new_session, round_number=1, starts_at=r1_dt)
+        Rounds.objects.create(session=new_session, round_number=2, starts_at=r2_dt)
         session = SessionSerializer(new_session).data
 
         return Response(session, status=status.HTTP_201_CREATED)
     try:
         session_data = Sessions.objects.filter(month_year=mm_yy, deleted=False).latest(
-            "created_at"
+            "session_date"
         )
         session = SessionSerializer(session_data).data
     except Sessions.DoesNotExist:
@@ -336,6 +368,7 @@ def get_rounds_by_month(_, mm_yy):
             "created_at",
             "completed",
             "started",
+            "starts_at",
         )
     )
 
@@ -344,7 +377,7 @@ def get_rounds_by_month(_, mm_yy):
 
     round_dict = defaultdict(list)
     for round in rounds:
-        formatted_date = round["created_at"].strftime("%-m/%-d")
+        formatted_date = round["starts_at"].strftime("%-m/%-d")
         round_dict[formatted_date].append(round)
 
     return Response(round_dict)
@@ -373,11 +406,11 @@ def get_all_rounds(_, participant_id=None):
         filters["created_at__date__gt"] = participant["created_at"].date()
     rounds = (
         Rounds.objects.filter(**filters)
-        .values("id", "round_number", "created_at")
-        .order_by("-created_at")
+        .values("id", "round_number", "starts_at")
+        .order_by("-starts_at")
     )
     for r in rounds:
-        r["created_at"] = r["created_at"].strftime("%-m/%-d/%Y")
+        r["starts_at"] = r["starts_at"].strftime("%-m/%-d/%Y")
     return Response(rounds)
 
 
@@ -426,11 +459,11 @@ def get_participant_recent_pods(_, participant_id, mm_yy=None):
     for pod in participant_pods:
         pod_id = pod.id
         winner = winners_dict.get(pod_id)
-        occurred = pod.rounds.created_at.strftime("%-m/%-d/%Y")
+        occurred = pod.rounds.starts_at
 
         participants = pod.podsparticipants_set.all()
 
-        out[occurred].append(
+        out[occurred.strftime("%m/%d/%Y")].append(
             {
                 "id": pod_id,
                 "round_number": pod.rounds.round_number,
@@ -457,3 +490,147 @@ def get_participant_recent_pods(_, participant_id, mm_yy=None):
     )
 
     return Response(sorted_output)
+
+
+@api_view([POST])
+def signup(request):
+    """Allows users to pre-signup for a round using their code that should be linked
+    to them via discord."""
+    body = json.loads(request.body.decode("utf-8"))
+    code: str = body.get("code")
+    rounds: list[int] = body.get("rounds")
+
+    pid = (
+        Participants.objects.filter(
+            code=code, deleted=False, discord_user_id__isnull=False
+        )
+        .values_list("id", flat=True)
+        .first()
+    )
+
+    if not pid:
+        return Response({"message": "No participant found for the given code."})
+
+    has_signed_in = RoundSignups.objects.filter(
+        participant_id=pid, round_id__in=rounds
+    ).exists()
+
+    if has_signed_in:
+        return Response({"message": "User has already signed in."})
+
+    RoundSignups.objects.bulk_create(
+        RoundSignups(participant_id=pid, round_id=rid) for rid in rounds
+    )
+
+    return Response({"message": "Successfully added"}, status=status.HTTP_201_CREATED)
+
+
+@api_view([GET])
+def signin_counts(request):
+    """Return a count and 2 lists of currently signed in users."""
+    round_one = request.query_params.get("round_one")
+    round_two = request.query_params.get("round_two")
+
+    if not round_one and not round_two:
+        return Response(
+            {"message": "At least one round required"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    query = (
+        RoundSignups.objects.filter(round_id__in=[round_one, round_two])
+        .select_related("participant")
+        .values("participant_id", "participant__name", "round_id")
+    )
+
+    out = {
+        round_one: {"participants": [], "count": 0, "is_full": False},
+        round_two: {"participants": [], "count": 0, "is_full": False},
+    }
+
+    cap1, cap2 = get_round_caps()
+
+    for q in query:
+        if q["round_id"] == int(round_one):
+            out[round_one]["participants"].append(
+                {"id": q["participant_id"], "name": q["participant__name"]}
+            )
+            out[round_one]["count"] += 1
+
+            if out[round_one]["count"] >= cap1:
+                out[round_one]["is_full"] = True
+        else:
+            out[round_two]["participants"].append(
+                {"id": q["participant_id"], "name": q["participant__name"]}
+            )
+            out[round_two]["count"] += 1
+            if out[round_two]["count"] >= cap2:
+                out[round_two]["is_full"] = True
+
+    return Response(out)
+
+
+@api_view([POST])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def post_signin(request):
+    """Post a signed in user from the lobby. Accepts a round_id and a participant_id"""
+    body = json.loads(request.body.decode("utf-8"))
+    rid = body.get("round_id")
+    pid = body.get("participant_id")
+
+    if not rid or not pid:
+        return Response(
+            {"message": "Missing round or participant in request."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    _, created = RoundSignups.objects.get_or_create(
+        round_id=rid,
+        participant_id=pid,
+    )
+
+    if not created:
+        return Response(
+            {"message": "User already exists for round."}, status=status.HTTP_200_OK
+        )
+
+    return Response({"message": "Created"}, status=status.HTTP_201_CREATED)
+
+
+@api_view([DELETE])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def delete_signin(request):
+    """Remove a signed in user from lobby."""
+    body = json.loads(request.body.decode("utf-8"))
+
+    rid = body.get("round_id")
+    pid = body.get("participant_id")
+
+    if not rid or not pid:
+        return Response(
+            {"message": "Missing round or participant in request."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        rid = int(rid)
+        pid = int(pid)
+    except (TypeError, ValueError):
+        return Response(
+            {"detail": "round_id and participant_id must be integers."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    deleted_count, _ = RoundSignups.objects.filter(
+        round_id=rid, participant_id=pid
+    ).delete()
+
+    if deleted_count == 0:
+        return Response(
+            {"detail": "Signup not found for given round_id and participant_id."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    return Response(status=status.HTTP_204_NO_CONTENT)

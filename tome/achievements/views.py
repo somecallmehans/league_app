@@ -18,7 +18,7 @@ from django.db.models import (
 )
 
 from django.contrib.postgres.aggregates import ArrayAgg
-
+from django.utils import timezone
 from django.db.models.functions import Concat, Coalesce
 
 from rest_framework import status
@@ -216,9 +216,8 @@ def get_league_monthly_winners(_):
     """
     For each month, retrieve the top point earner for the given month + related commander info.
     """
-    today = datetime.today()
-    mm_yy = today.strftime("%m-%y")
-    return Response(calculate_monthly_winners(mm_yy=mm_yy))
+    first_of_current_month = timezone.localdate().replace(day=1)
+    return Response(calculate_monthly_winners(cutoff=first_of_current_month))
 
 
 @api_view([GET])
@@ -232,7 +231,7 @@ def get_league_monthly_winner_info(_, mm_yy, participant_id):
     rounds = {
         r["id"]: r
         for r in Rounds.objects.filter(session__month_year=mm_yy, deleted=False).values(
-            "id", "round_number", "created_at"
+            "id", "round_number", "starts_at"
         )
     }
 

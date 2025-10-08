@@ -1,3 +1,6 @@
+import { toast } from "react-toastify";
+import { getLobbyKey } from "./formHelpers";
+
 export const podCalculator = (len: number): string => {
   let threePods = 0;
   let fourPods = 0;
@@ -54,4 +57,35 @@ export const hexToRgb = (hex: string): RGB | null => {
     g: parseInt(clean.slice(2, 4), 16),
     b: parseInt(clean.slice(4, 6), 16),
   };
+};
+
+type GenericObject = {
+  label: string;
+};
+
+export const readTemps = (rid: number): Array<GenericObject> => {
+  const raw = localStorage.getItem(getLobbyKey(rid));
+  if (!raw) return [];
+
+  try {
+    return JSON.parse(raw) || [];
+  } catch (error) {
+    console.error("Failed to parse local storage");
+    return [];
+  }
+};
+
+export const writeTemps = (rid: number, arr: Array<GenericObject>): void => {
+  if (!arr.length) {
+    localStorage.removeItem(getLobbyKey(rid));
+  } else {
+    try {
+      localStorage.setItem(getLobbyKey(rid), JSON.stringify(arr));
+    } catch (error) {
+      console.error(error);
+      toast.error("Unable to remove participant");
+      return;
+    }
+  }
+  toast.success("Updated successfully");
 };

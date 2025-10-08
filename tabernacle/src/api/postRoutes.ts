@@ -7,6 +7,8 @@ import {
   BeginRoundResponseSchema,
   type BeginRoundRequest,
   type BeginRoundResponse,
+  type SignInRequest,
+  type SignUpRequest,
 } from "../types/round_schemas";
 import {
   SessionSchema,
@@ -34,12 +36,21 @@ import {
   type RerollPodsResponse,
   type RerollPodsRequest,
 } from "../types/pod_schemas";
+import { type ConfigRequest } from "../types/config_schemas";
+
+type POST_CREATE_SESSION_BODY = {
+  session_date?: string;
+};
 
 export default (builder: ApiBuilder) => ({
-  postCreateSession: builder.mutation<CreateSessionResponse, void>({
-    query: () => ({
+  postCreateSession: builder.mutation<
+    CreateSessionResponse,
+    POST_CREATE_SESSION_BODY
+  >({
+    query: (body) => ({
       url: "sessions/new/",
       method: "POST",
+      body,
     }),
     transformResponse: (raw: unknown) =>
       safeParseWithFallback(SessionSchema, raw, EMPTY_SESSION),
@@ -128,5 +139,39 @@ export default (builder: ApiBuilder) => ({
       body: body,
     }),
     invalidatesTags: ["Earned"],
+  }),
+  postSignup: builder.mutation<void, SignUpRequest>({
+    query: (body) => ({
+      url: "signup/",
+      method: "POST",
+      body: body,
+    }),
+    invalidatesTags: ["SignedIn"],
+  }),
+  updateConfig: builder.mutation<void, ConfigRequest>({
+    query: (body) => ({
+      url: `configs/update/${body.key}/`,
+      method: "POST",
+      body: body,
+    }),
+    invalidatesTags: ["Configs"],
+  }),
+  // Different type of endpoint than the one above which requires
+  // a code to id the player
+  postLobbySignIn: builder.mutation<void, SignInRequest>({
+    query: (body) => ({
+      url: "post_signin/",
+      method: "POST",
+      body: body,
+    }),
+    invalidatesTags: ["SignedIn"],
+  }),
+  deleteLobbySignIn: builder.mutation<void, SignInRequest>({
+    query: (body) => ({
+      url: "delete_signin/",
+      method: "DELETE",
+      body: body,
+    }),
+    invalidatesTags: ["SignedIn"],
   }),
 });

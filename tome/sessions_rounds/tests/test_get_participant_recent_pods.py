@@ -1,7 +1,7 @@
 import pytest
 import pytz
 
-from datetime import datetime
+from datetime import datetime, date
 
 from django.urls import reverse
 from rest_framework import status
@@ -33,16 +33,15 @@ EXTRA_ROUND = 55
 @pytest.fixture(scope="function")
 def build_pods():
     """Build our pod state"""
-    session = Sessions.objects.create(
-        id=EXTRA_SESSION, month_year="11-24", created_at=""
+    Sessions.objects.create(
+        id=EXTRA_SESSION, month_year="11-24", session_date=date(2024, 11, 18)
     )
-    round = Rounds.objects.create(
-        id=EXTRA_ROUND, session_id=EXTRA_SESSION, round_number=1, created_at=""
+    Rounds.objects.create(
+        id=EXTRA_ROUND,
+        session_id=EXTRA_SESSION,
+        round_number=1,
+        starts_at=datetime(2024, 11, 18, 0, 0, 0, tzinfo=pytz.UTC),
     )
-    session.created_at = datetime(2024, 11, 18, 0, 0, 0, tzinfo=pytz.UTC)
-    round.created_at = datetime(2024, 11, 18, 0, 0, 0, tzinfo=pytz.UTC)
-    session.save(update_fields=["created_at"])
-    round.save(update_fields=["created_at"])
 
     pods = Pods.objects.bulk_create(
         Pods(rounds_id=rid)
@@ -79,7 +78,7 @@ def test_get_participant_recent_pods(client, build_pods) -> None:
 
     expected = [
         [
-            "11/3/2024",
+            "11/03/2024",
             [
                 {
                     "id": 2,
@@ -161,19 +160,15 @@ ROUND_LAST_MONTH = 44
 @pytest.fixture(scope="function")
 def build_pods_last_month():
     """Build our pod state"""
-    session = Sessions.objects.create(
-        id=SESSION_LAST_MONTH, month_year="10-24", created_at=""
+    Sessions.objects.create(
+        id=SESSION_LAST_MONTH, month_year="10-24", session_date=date(2024, 10, 18)
     )
-    round = Rounds.objects.create(
+    Rounds.objects.create(
         id=ROUND_LAST_MONTH,
         session_id=SESSION_LAST_MONTH,
         round_number=1,
-        created_at="",
+        starts_at=datetime(2024, 10, 18, 0, 0, 0, tzinfo=pytz.UTC),
     )
-    session.created_at = datetime(2024, 10, 18, 0, 0, 0, tzinfo=pytz.UTC)
-    round.created_at = datetime(2024, 10, 18, 0, 0, 0, tzinfo=pytz.UTC)
-    session.save(update_fields=["created_at"])
-    round.save(update_fields=["created_at"])
 
     pods = Pods.objects.bulk_create(
         Pods(rounds_id=rid)

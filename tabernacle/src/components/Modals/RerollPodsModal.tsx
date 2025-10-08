@@ -15,7 +15,6 @@ import {
   useGetParticipantsQuery,
   useGetRoundParticipantsQuery,
 } from "../../api/apiSlice";
-import { type Participant } from "../../types/participant_schemas";
 import {
   type SelectOption,
   type SelectedParticipant,

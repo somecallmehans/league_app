@@ -6,6 +6,7 @@ import ParticipantPage from "./ParticipantMangement";
 import AchievementPage from "./AchievementManagement";
 import InsertCommanderPage from "./InsertCommanders";
 import UpdatePoints from "./UpdatePoints";
+import LeagueConfiguration from "./LeagueConfiguration";
 import LoadingSpinner from "../../components/LoadingSpinner";
 
 const ReusableTab = ({ name }) => (
@@ -30,6 +31,7 @@ const CrudTabPanel = () => {
         <ReusableTab name="Achievements" />
         <ReusableTab name="Update Points" />
         <ReusableTab name="Update Commanders" />
+        <ReusableTab name="League Configuration" />
       </TabList>
       <TabPanels className="mt-4">
         <TabPanel>
@@ -43,6 +45,9 @@ const CrudTabPanel = () => {
         </TabPanel>
         <TabPanel>
           <InsertCommanderPage />
+        </TabPanel>
+        <TabPanel>
+          <LeagueConfiguration />
         </TabPanel>
       </TabPanels>
     </TabGroup>

@@ -1,18 +1,33 @@
 from datetime import datetime
 
-from django.db import models
+from django.db import models, IntegrityError, transaction
 
 from sessions_rounds.models import Rounds, Sessions
 from achievements.models import Achievements
+
+from users.helpers import generate_code
 
 
 class Participants(models.Model):
     name = models.CharField(max_length=255, null=False, blank=False)
     deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    discord_user_id = models.PositiveBigIntegerField(null=True, unique=True, blank=True)
+    code = models.CharField(max_length=6, unique=True, default=None)
 
     class Meta:
         db_table = "participants"
+
+    def save(self, *args, **kwargs):
+        if not self.code:
+            for _ in range(6):
+                self.code = generate_code()
+                try:
+                    with transaction.atomic():
+                        return super().save(*args, **kwargs)
+                except IntegrityError:
+                    self.code = None
+        return super().save(*args, **kwargs)
 
     @property
     def total_points(self):

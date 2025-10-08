@@ -25,35 +25,27 @@ def test_get_rounds_no_participant(client) -> None:
 
     expected = [
         {
-            "id": ids.R1_SESSION_THIS_MONTH_OPEN,
-            "round_number": 1,
-            "created_at": "11/10/2024",
-        },
-        {
             "id": ids.R2_SESSION_THIS_MONTH_OPEN,
             "round_number": 2,
-            "created_at": "11/10/2024",
+            "starts_at": "11/10/2024",
         },
         {
-            "id": ids.R1_SESSION_THIS_MONTH_CLOSED,
+            "id": ids.R1_SESSION_THIS_MONTH_OPEN,
             "round_number": 1,
-            "created_at": "11/3/2024",
+            "starts_at": "11/10/2024",
         },
         {
             "id": ids.R2_SESSION_THIS_MONTH_CLOSED,
             "round_number": 2,
-            "created_at": "11/3/2024",
+            "starts_at": "11/3/2024",
         },
         {
-            "id": ids.R1_SESSION_LAST_MONTH,
+            "id": ids.R1_SESSION_THIS_MONTH_CLOSED,
             "round_number": 1,
-            "created_at": "10/28/2024",
+            "starts_at": "11/3/2024",
         },
-        {
-            "id": ids.R2_SESSION_LAST_MONTH,
-            "round_number": 2,
-            "created_at": "10/28/2024",
-        },
+        {"id": ids.R2_SESSION_LAST_MONTH, "round_number": 2, "starts_at": "10/28/2024"},
+        {"id": ids.R1_SESSION_LAST_MONTH, "round_number": 1, "starts_at": "10/28/2024"},
     ]
 
     assert res.status_code == status.HTTP_200_OK
@@ -85,24 +77,24 @@ def test_get_rounds_for_participant(client, build_participant) -> None:
 
     expected = [
         {
-            "id": ids.R1_SESSION_THIS_MONTH_OPEN,
-            "round_number": 1,
-            "created_at": "11/10/2024",
-        },
-        {
             "id": ids.R2_SESSION_THIS_MONTH_OPEN,
             "round_number": 2,
-            "created_at": "11/10/2024",
+            "starts_at": "11/10/2024",
         },
         {
-            "id": ids.R1_SESSION_THIS_MONTH_CLOSED,
+            "id": ids.R1_SESSION_THIS_MONTH_OPEN,
             "round_number": 1,
-            "created_at": "11/3/2024",
+            "starts_at": "11/10/2024",
         },
         {
             "id": ids.R2_SESSION_THIS_MONTH_CLOSED,
             "round_number": 2,
-            "created_at": "11/3/2024",
+            "starts_at": "11/3/2024",
+        },
+        {
+            "id": ids.R1_SESSION_THIS_MONTH_CLOSED,
+            "round_number": 1,
+            "starts_at": "11/3/2024",
         },
     ]
 

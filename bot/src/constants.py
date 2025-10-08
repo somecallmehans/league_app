@@ -1,0 +1,6 @@
+# Interaction data map
+PING = 1
+APP_COMMAND = 2
+MESSAGE = 3
+APP_COMMAND_AUTOCOMPLETE = 4
+MODAL_SUBMIT = 5

@@ -48,13 +48,16 @@ import {
 import {
   MonthRoundObjectResponseSchema,
   RoundListSchema,
+  SignInResponseSchema,
   type MonthRoundObjectResponse,
   type RoundList,
+  type SignInResponse,
 } from "../types/round_schemas";
 import {
   CommanderObjectResponseSchema,
   type CommanderObjectResponse,
 } from "../types/commander_schemas";
+import { type ConfigsTransformed } from "../types/config_schemas";
 
 type Id = number | string;
 
@@ -205,5 +208,21 @@ export default (builder: ApiBuilder) => ({
         participant_id: -1,
         rounds: [],
       }),
+  }),
+  getSignins: builder.query<SignInResponse, { round_one: Id; round_two: Id }>({
+    query: ({ round_one, round_two }) =>
+      `signin_counts/?round_one=${round_one}&round_two=${round_two}`,
+    transformResponse: (raw: unknown) =>
+      safeParseWithFallback(SignInResponseSchema, raw, {}),
+    providesTags: ["SignedIn"],
+  }),
+  getAllConfigs: builder.query<ConfigsTransformed, void>({
+    query: () => "configs/all/",
+    transformResponse: (res) => {
+      const list = Array.isArray(res) ? res : [];
+      const byKey = Object.fromEntries(list.map((c) => [c.key, c]));
+      return { list, byKey };
+    },
+    providesTags: ["Configs"],
   }),
 });

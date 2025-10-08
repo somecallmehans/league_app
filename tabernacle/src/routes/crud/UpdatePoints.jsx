@@ -155,8 +155,8 @@ export default function Page() {
 
   const roundsList = useMemo(() => {
     if (!rounds) return [];
-    return rounds.map(({ round_number, created_at, id }) => ({
-      label: `${created_at} - Round ${round_number}`,
+    return rounds.map(({ round_number, starts_at, id }) => ({
+      label: `${starts_at} - Round ${round_number}`,
       value: id,
     }));
   }, [rounds]);

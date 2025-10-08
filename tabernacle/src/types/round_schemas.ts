@@ -9,6 +9,7 @@ export const RoundSchema = z.object({
   deleted: z.boolean().optional(),
   completed: z.boolean().optional(),
   created_at: z.string().optional(),
+  starts_at: z.string().optional(),
 });
 export type Round = z.infer<typeof RoundSchema>;
 
@@ -20,6 +21,7 @@ export const MonthRoundSchema = z.object({
   created_at: z.string(),
   completed: z.boolean(),
   started: z.boolean(),
+  starts_at: z.string().optional(),
 });
 
 export const MonthRoundObjectResponseSchema = z.record(
@@ -32,6 +34,17 @@ export type MonthRoundObjectResponse = z.infer<
 
 export const RoundListSchema = z.array(RoundSchema);
 export type RoundList = z.infer<typeof RoundListSchema>;
+
+const SignInSchema = z.object({
+  participants: z.array(z.object({ id: z.number(), name: z.string() })),
+  count: z.number(),
+  is_full: z.boolean(),
+});
+
+export type SignIn = z.infer<typeof SignInSchema>;
+
+export const SignInResponseSchema = z.record(z.string(), SignInSchema);
+export type SignInResponse = z.infer<typeof SignInResponseSchema>;
 
 // POST types
 export const BeginRoundRequestSchema = z.object({
@@ -51,3 +64,15 @@ export const BeginRoundResponseSchema = z.array(
   })
 );
 export type BeginRoundResponse = z.infer<typeof BeginRoundResponseSchema>;
+
+export const SignInRequestSchema = z.object({
+  round_id: z.number(),
+  participant_id: z.number(),
+});
+export type SignInRequest = z.infer<typeof SignInRequestSchema>;
+
+const SignUpRequestSchema = z.object({
+  rounds: z.array(z.number()),
+  code: z.string(),
+});
+export type SignUpRequest = z.infer<typeof SignUpRequestSchema>;
