@@ -554,7 +554,6 @@ def fetch_and_insert_commanders(_):
     name_set, color_dict = fetch_scryfall_data()
     existing_commanders = fetch_current_commanders()
 
-    print("\n\n", len(name_set), len(existing_commanders), "\n\n")
     if len(name_set) <= len(existing_commanders):
         return Response(
             {"message": "No new Commanders found."}, status=status.HTTP_200_OK

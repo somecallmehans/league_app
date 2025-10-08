@@ -213,7 +213,7 @@ def fetch_scryfall_data():
     # they already exist with individual colors so we don't need to re-add the non-color ones
     to_remove = set(["The Prismatic Piper", "Faceless One", "Clara Oswald"])
     name_set = {card["name"] for card in out} - to_remove
-    color_dict = {c["name"]: c.get("colors", []) for c in out}
+    color_dict = {c["name"]: c.get("color_identity", []) for c in out}
 
     return name_set, color_dict
 
