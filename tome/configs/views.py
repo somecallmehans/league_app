@@ -17,8 +17,6 @@ POST = "POST"
 
 
 @api_view([GET])
-@authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
 def get_all_configs(_):
     """Get all of the current configs"""
 
