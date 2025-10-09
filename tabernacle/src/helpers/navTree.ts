@@ -7,6 +7,7 @@ export type Node = {
   admin: boolean;
   icon: string;
   children?: Array<NodeChild>;
+  hideWhenLoggedIn?: boolean;
 };
 
 export const navLinks: Array<Node> = [
@@ -51,17 +52,23 @@ export const navLinks: Array<Node> = [
     admin: false,
   },
   {
-    id: 5,
+    id: 9,
     name: "Admin",
-    to: "/management",
-    admin: true,
-    icon: "fa-solid fa-list-check",
+    to: "/login",
+    admin: false,
+    icon: "fa-solid fa-lock",
+    hideWhenLoggedIn: true,
   },
   {
-    id: 6,
-    name: "Rounds",
-    to: "/league-session",
+    id: 10,
+    name: "Admin",
+    to: "",
     admin: true,
-    icon: "fa-solid fa-gamepad",
+    icon: "fa-solid fa-unlock",
+    children: [
+      { id: "10a", name: "Rounds", to: "/league-session" },
+      { id: "10b", name: "Management", to: "/management" },
+      { id: "10c", name: "Logout", to: "/logout" },
+    ],
   },
 ];

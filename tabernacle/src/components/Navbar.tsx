@@ -114,7 +114,9 @@ interface NavbarProps {
 export default function Navbar({ loggedIn, setLoggedIn }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { pathname } = useLocation();
-  const filtered = navLinks.filter((l) => !l.admin || (l.admin && loggedIn));
+  const filtered = navLinks.filter((l) =>
+    loggedIn ? l.admin === true || (!l.admin && !l.hideWhenLoggedIn) : !l.admin
+  );
 
   const isActive = (to: string | undefined) => pathname === to;
   return (
@@ -151,8 +153,6 @@ export default function Navbar({ loggedIn, setLoggedIn }: NavbarProps) {
             );
           })}
         </div>
-        <div className="flex-grow ml-4" />
-        <LoginPopover loggedIn={loggedIn} setLoggedIn={setLoggedIn} />
       </div>
       {/* Mobile nav */}
       <div
