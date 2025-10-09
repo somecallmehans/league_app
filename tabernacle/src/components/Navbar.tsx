@@ -30,7 +30,7 @@ function DesktopDropdown({ link }: DesktopDropdownProps) {
         leaveFrom="opacity-100 translate-y-0"
         leaveTo="opacity-0 translate-y-1"
       >
-        <Menu.Items className="absolute left-1/2 -translate-x-1/2 mt-2 w-56 origin-top rounded-xl bg-slate-800 shadow-lg ring-1 ring-black/10 focus:outline-none py-2">
+        <Menu.Items className="absolute left-1/2 -translate-x-1/2 mt-2 w-56 origin-top rounded-xl bg-slate-800 shadow-lg ring-1 ring-black/10 focus:outline-none py-2 z-50">
           {link.children?.map((child: NodeChild) => (
             <Menu.Item key={child.id}>
               {({ active }) => (

@@ -54,10 +54,11 @@ export const navLinks: Array<Node> = [
   {
     id: 9,
     name: "Admin",
-    to: "/login",
+    to: "",
     admin: false,
     icon: "fa-solid fa-lock",
     hideWhenLoggedIn: true,
+    children: [{ id: "9a", name: "Login", to: "/login" }],
   },
   {
     id: 10,
