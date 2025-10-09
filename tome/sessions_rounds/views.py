@@ -19,7 +19,7 @@ from django.utils import timezone
 
 from .models import Sessions, Rounds, Pods, PodsParticipants, RoundSignups
 from users.models import ParticipantAchievements, Participants
-from achievements.models import WinningCommanders
+from achievements.models import WinningCommanders, Achievements
 
 from .serializers import SessionSerializer, PodsParticipantsSerializer
 from achievements.serializers import WinningCommandersSerializer
@@ -634,3 +634,69 @@ def delete_signin(request):
         )
 
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view([POST])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def update_pod_participants(request):
+    """Take in a participant and a pod, and if there's space/user is not in another pod already
+    then add said participant to that pod."""
+
+    body = json.loads(request.body.decode("utf-8"))
+    pod_id = body.get("pod_id")
+    pid = body.get("participant_id")
+    rid = body.get("round_id")
+
+    if not pod_id or not pid or not rid:
+        return Response(
+            {"message": "Missing pod id, participant id, or round id"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    target_pod = PodsParticipants.objects.filter(pods_id=pod_id)
+    round_participants = (
+        PodsParticipants.objects.filter(pods__rounds_id=rid, pods__deleted=False)
+        .values_list("participants_id", flat=True)
+        .distinct()
+    )
+
+    if len(target_pod) >= 5:
+        return Response(
+            {"message": "Pod already full"}, status=status.HTTP_204_NO_CONTENT
+        )
+
+    if any(pid == tp.id for tp in target_pod) or pid in round_participants:
+        return Response(
+            {"message": "Participant already in pod"}, status=status.HTTP_204_NO_CONTENT
+        )
+
+    part = Achievements.objects.get(slug="participation")
+    has_participation = (
+        ParticipantAchievements.objects.filter(
+            participant_id=pid, round_id=rid, achievement_id=part.id
+        )
+        .select_related("achievements")
+        .exists()
+    )
+
+    if not has_participation:
+        [sid] = Rounds.objects.filter(id=rid).values_list("session_id", flat=True)
+        ParticipantAchievements.objects.create(
+            participant_id=pid,
+            round_id=rid,
+            achievement_id=part.id,
+            session_id=sid,
+            earned_points=part.point_value,
+        )
+
+    PodsParticipants.objects.create(participants_id=pid, pods_id=pod_id)
+
+    return Response({"message": "Successfully added"}, status=status.HTTP_201_CREATED)
+
+
+@api_view([DELETE])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def delete_pod_participant(request):
+    """Take in a participant and a pod and delete that combo from the podsparticipants table."""
