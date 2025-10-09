@@ -700,3 +700,35 @@ def update_pod_participants(request):
 @permission_classes([IsAuthenticated])
 def delete_pod_participant(request):
     """Take in a participant and a pod and delete that combo from the podsparticipants table."""
+    body = json.loads(request.body.decode("utf-8"))
+    pod_id = body.get("pod_id")
+    pid = body.get("participant_id")
+
+    if not pod_id or not pid:
+        return Response(
+            {"message": "Missing pod id, participant id, or round id"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    target_pod = PodsParticipants.objects.filter(pods_id=pod_id)
+
+    if len(target_pod) <= 3:
+        return Response(
+            {"message": "There must be at least 3 players in a pod"},
+            status=status.HTTP_204_NO_CONTENT,
+        )
+
+    PodsParticipants.objects.filter(participants_id=pid, pods_id=pod_id).delete()
+
+    session_round = (
+        Pods.objects.filter(id=pod_id).values("rounds_id", "rounds__session_id").first()
+    )
+
+    ParticipantAchievements.objects.filter(
+        participant_id=pid,
+        round_id=session_round["rounds_id"],
+        session_id=session_round["rounds__session_id"],
+        achievement__slug="participation",
+    ).update(deleted=True)
+
+    return Response(status=status.HTTP_204_NO_CONTENT)
