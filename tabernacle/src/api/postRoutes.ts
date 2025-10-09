@@ -35,6 +35,8 @@ import {
   RerollPodsResponseSchema,
   type RerollPodsResponse,
   type RerollPodsRequest,
+  type DeletePodParticipantRequest,
+  type UpdatePodParticipantRequest,
 } from "../types/pod_schemas";
 import { type ConfigRequest } from "../types/config_schemas";
 
@@ -173,5 +175,21 @@ export default (builder: ApiBuilder) => ({
       body: body,
     }),
     invalidatesTags: ["SignedIn"],
+  }),
+  postPodParticipant: builder.mutation<void, UpdatePodParticipantRequest>({
+    query: (body) => ({
+      url: "update_pod_participants/",
+      method: "POST",
+      body: body,
+    }),
+    invalidatesTags: ["Pods"],
+  }),
+  deletePodParticipant: builder.mutation<void, DeletePodParticipantRequest>({
+    query: (body) => ({
+      url: "delete_pod_participant/",
+      method: "DELETE",
+      body: body,
+    }),
+    invalidatesTags: ["Pods"],
   }),
 });

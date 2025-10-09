@@ -80,3 +80,19 @@ export const RerollPodsResponseSchema = z.array(
 
 export type RerollPodsResponse = z.infer<typeof RerollPodsResponseSchema>;
 export type RerollPodsRequest = z.infer<typeof RerollPodsRequestSchema>;
+
+const DeletePodParticipantRequestSchema = z.object({
+  participant_id: z.number(),
+  pod_id: z.number(),
+});
+const UpdatePodParticipantRequestSchema =
+  DeletePodParticipantRequestSchema.extend({
+    round_id: z.number(),
+  });
+
+export type DeletePodParticipantRequest = z.infer<
+  typeof DeletePodParticipantRequestSchema
+>;
+export type UpdatePodParticipantRequest = z.infer<
+  typeof UpdatePodParticipantRequestSchema
+>;

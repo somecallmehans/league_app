@@ -121,6 +121,8 @@ export const {
   useUpdateConfigMutation,
   useDeleteLobbySignInMutation,
   usePostLobbySignInMutation,
+  usePostPodParticipantMutation,
+  useDeletePodParticipantMutation,
 
   // AUTH
   useLoginMutation,
