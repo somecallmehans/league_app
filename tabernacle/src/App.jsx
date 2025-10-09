@@ -6,6 +6,8 @@ import { useGetAllConfigsQuery } from "./api/apiSlice";
 
 import Navbar from "./components/Navbar";
 import Home from "./routes/home/Home";
+import Login from "./components/Login";
+import Logout from "./components/Logout";
 import Resources from "./routes/home/Resources";
 import LeaderBoard from "./routes/leaderboard/Leaderboard";
 import AchievementsPage from "./routes/achievements/Achievements";
@@ -30,6 +32,14 @@ function App() {
       <ToastContainer />
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route
+          path="/login"
+          element={<Login loggedIn={loggedIn} setLoggedIn={setLoggedIn} />}
+        />
+        <Route
+          path="/logout"
+          element={<Logout loggedIn={loggedIn} setLoggedIn={setLoggedIn} />}
+        />
         <Route path="/info" element={<Resources />} />
         <Route path="/leaderboard" element={<LeaderBoard />} />
         <Route path="/champions/*" element={<HallofFame />} />
