@@ -648,25 +648,37 @@ def update_pod_participants(request):
     pid = body.get("participant_id")
     rid = body.get("round_id")
 
-    if not pod_id or not pid or not rid:
+    if not pod_id or not rid:
         return Response(
-            {"message": "Missing pod id, participant id, or round id"},
+            {"message": "Missing pod id or round id"},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    target_pod = PodsParticipants.objects.filter(pods_id=pod_id)
-    round_participants = (
-        PodsParticipants.objects.filter(pods__rounds_id=rid, pods__deleted=False)
-        .values_list("participants_id", flat=True)
-        .distinct()
-    )
+    if not pid:
+        name = body.get("name")
+        if not name:
+            return Response(
+                {"message": "Participant info not provided"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        new = Participants.objects.create(name=name)
+        pid = new.id
 
-    if len(target_pod) >= 5:
+    pod_count = PodsParticipants.objects.filter(pods_id=pod_id).count()
+
+    if pod_count >= 5:
         return Response(
             {"message": "Pod already full"}, status=status.HTTP_204_NO_CONTENT
         )
 
-    if any(pid == tp.id for tp in target_pod) or pid in round_participants:
+    in_target = PodsParticipants.objects.filter(
+        pods_id=pod_id, participants_id=pid
+    ).exists()
+    in_round = PodsParticipants.objects.filter(
+        pods__rounds_id=rid, participants_id=pid
+    ).exists()
+
+    if in_target or in_round:
         return Response(
             {"message": "Participant already in pod"}, status=status.HTTP_204_NO_CONTENT
         )

@@ -3,7 +3,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from sessions_rounds.models import Pods, PodsParticipants
-from users.models import ParticipantAchievements
+from users.models import ParticipantAchievements, Participants
 from utils.test_helpers import get_ids
 
 ids = get_ids()
@@ -89,11 +89,12 @@ def test_post_fail_missing_id(client) -> None:
     url = reverse("update_pod_participants")
     body = {
         "pod_id": POD_ID,
-        "round_id": ids.R1_SESSION_THIS_MONTH_OPEN,
+        "participant_id": ids.P4,
     }
     res = client.post(url, body, format="json")
 
-    assert res.data["message"] == "Missing pod id, participant id, or round id"
+    assert res.status_code == status.HTTP_400_BAD_REQUEST
+    assert res.data["message"] == "Missing pod id or round id"
 
 
 @pytest.fixture(scope="function")
@@ -121,6 +122,7 @@ def test_post_fail_full_pod(client, build_full_state) -> None:
     }
     res = client.post(url, body, format="json")
 
+    assert res.status_code == status.HTTP_204_NO_CONTENT
     assert res.data["message"] == "Pod already full"
 
 
@@ -146,4 +148,29 @@ def test_post_fail_participant_in_round(
     }
     res = client.post(url, body, format="json")
 
+    assert res.status_code == status.HTTP_204_NO_CONTENT
     assert res.data["message"] == "Participant already in pod"
+
+
+def test_post_new_participant(client, build_base_state) -> None:
+    """
+    should: create a new participant and then add them to the pod
+    """
+
+    url = reverse("update_pod_participants")
+    body = {
+        "pod_id": POD_ID,
+        "round_id": ids.R1_SESSION_THIS_MONTH_OPEN,
+        "name": "TEST TESTERSON",
+    }
+    res = client.post(url, body, format="json")
+
+    new = Participants.objects.filter(name="TEST TESTERSON").first()
+
+    assert res.status_code == status.HTTP_201_CREATED
+    assert len(list(PodsParticipants.objects.filter(pods_id=POD_ID))) == 4
+    assert ParticipantAchievements.objects.filter(
+        participant_id=new.id,
+        round_id=ids.R1_SESSION_THIS_MONTH_OPEN,
+        achievement_id=ids.PARTICIPATION,
+    ).exists()
