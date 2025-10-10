@@ -117,6 +117,10 @@ function Pods({
     return null;
   }
 
+  const somePodsSubmitted = Object.values(pods)?.some(
+    ({ submitted }) => submitted
+  );
+
   const handleOnClick = (
     participant,
     round_points,
@@ -138,6 +142,10 @@ function Pods({
   };
 
   const handleUpdatePodModal = (participants, podId) => {
+    if (somePodsSubmitted) {
+      return;
+    }
+
     const parts = participants.map((p) => ({
       id: p.participant_id,
       name: p.name,
@@ -176,8 +184,9 @@ function Pods({
                   }
                 />
                 <i
-                  className="fa-solid fa-user-plus text-sky-600 hover:text-sky-500"
+                  className={`fa-solid fa-user-plus ${somePodsSubmitted ? "text-slate-500" : "text-sky-600 hover:text-sky-500"}`}
                   onClick={() => handleUpdatePodModal(participants, pod_id)}
+                  disabled={somePodsSubmitted}
                 />
               </div>
             </div>
@@ -406,19 +415,12 @@ function RoundDisplay({
 
   if (showFocusedRound) {
     return (
-      <>
-        <StandardButton
-          title="Update Pods"
-          action={() => setModalOpen(true)}
-          disabled={somePodsSubmitted}
-        />
-        <FocusedRound
-          sessionId={sessionId}
-          roundId={roundId}
-          completed={completed}
-          pods={pods}
-        />
-      </>
+      <FocusedRound
+        sessionId={sessionId}
+        roundId={roundId}
+        completed={completed}
+        pods={pods}
+      />
     );
   }
 

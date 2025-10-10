@@ -19,6 +19,9 @@ interface ParticipantBase {
   id?: number;
   participant_id?: number;
   name?: string;
+  // Kind of dumb workaround, but the backend expects name for new people specifically
+  // using p_name for display purposes.
+  p_name?: string;
 }
 
 type RequiredBy<T, K extends keyof T> = T & { [P in K]-?: T[P] };
@@ -70,6 +73,7 @@ export default function ({
     } catch (error) {
       console.error(error);
     }
+    setTarget(null);
     closeModal();
   };
 
@@ -83,6 +87,7 @@ export default function ({
     } catch (error) {
       console.error(error);
     }
+    setTarget(null);
     closeModal();
   };
 
@@ -118,7 +123,9 @@ export default function ({
                 <CreatableSelect
                   isClearable
                   options={filteredParticipants}
-                  onChange={(o) => setTarget({ participant_id: o?.value })}
+                  onChange={(o) =>
+                    setTarget({ participant_id: o?.value, p_name: o?.label })
+                  }
                   onCreateOption={(o) => setTarget({ name: o })}
                   placeholder="Add Participant"
                   className="grow"
@@ -140,6 +147,12 @@ export default function ({
               {target?.name && (
                 <div className="grid grid-cols-1 text-left w-2/3 gap-2 mx-auto text-sky-500 italic mb-2">
                   Creating {target?.name}
+                </div>
+              )}
+
+              {target?.p_name && (
+                <div className="grid grid-cols-1 text-left w-2/3 gap-2 mx-auto text-sky-500 italic mb-2">
+                  Adding {target?.p_name}
                 </div>
               )}
 
