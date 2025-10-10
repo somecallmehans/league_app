@@ -668,7 +668,7 @@ def update_pod_participants(request):
 
     if pod_count >= 5:
         return Response(
-            {"message": "Pod already full"}, status=status.HTTP_204_NO_CONTENT
+            {"message": "Pod already full"}, status=status.HTTP_400_BAD_REQUEST
         )
 
     in_target = PodsParticipants.objects.filter(
@@ -686,7 +686,7 @@ def update_pod_participants(request):
     part = Achievements.objects.get(slug="participation")
     has_participation = (
         ParticipantAchievements.objects.filter(
-            participant_id=pid, round_id=rid, achievement_id=part.id
+            participant_id=pid, round_id=rid, achievement_id=part.id, deleted=False
         )
         .select_related("achievements")
         .exists()
@@ -743,4 +743,6 @@ def delete_pod_participant(request):
         achievement__slug="participation",
     ).update(deleted=True)
 
-    return Response(status=status.HTTP_204_NO_CONTENT)
+    return Response(
+        {"message": "Successfully removed"}, status=status.HTTP_202_ACCEPTED
+    )

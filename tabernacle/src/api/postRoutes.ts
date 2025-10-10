@@ -176,20 +176,26 @@ export default (builder: ApiBuilder) => ({
     }),
     invalidatesTags: ["SignedIn"],
   }),
-  postPodParticipant: builder.mutation<void, UpdatePodParticipantRequest>({
+  postPodParticipant: builder.mutation<
+    { message: string },
+    UpdatePodParticipantRequest
+  >({
     query: (body) => ({
       url: "update_pod_participants/",
       method: "POST",
       body: body,
     }),
-    invalidatesTags: ["Pods"],
+    invalidatesTags: ["Pods", "Participants"],
   }),
-  deletePodParticipant: builder.mutation<void, DeletePodParticipantRequest>({
+  deletePodParticipant: builder.mutation<
+    { message: string },
+    DeletePodParticipantRequest
+  >({
     query: (body) => ({
       url: "delete_pod_participant/",
       method: "DELETE",
       body: body,
     }),
-    invalidatesTags: ["Pods"],
+    invalidatesTags: ["Pods", "Participants"],
   }),
 });

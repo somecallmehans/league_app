@@ -16,7 +16,11 @@ export const EMPTY_PARTICIPANT: Participant = {
   deleted: false,
 };
 
-export const ParticipantListResponseSchema = z.array(ParticipantSchema);
+export const ParticipantWithIdSchema = ParticipantSchema.extend({
+  id: z.number(),
+});
+
+export const ParticipantListResponseSchema = z.array(ParticipantWithIdSchema);
 
 export type ParticipantListResponse = z.infer<
   typeof ParticipantListResponseSchema

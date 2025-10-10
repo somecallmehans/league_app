@@ -87,6 +87,8 @@ const DeletePodParticipantRequestSchema = z.object({
 });
 const UpdatePodParticipantRequestSchema =
   DeletePodParticipantRequestSchema.extend({
+    name: z.string().optional(),
+    participant_id: z.number().optional(),
     round_id: z.number(),
   });
 
