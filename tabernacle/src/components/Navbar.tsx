@@ -184,7 +184,7 @@ export default function Navbar({ loggedIn, setLoggedIn }: NavbarProps) {
           className={`relative mx-auto w-full max-w-md px-6 
                       transition-transform duration-300 ease-out
                       ${menuOpen ? "translate-y-0" : "translate-y-3"}`}
-          style={{ top: "25%" }}
+          style={{ top: "15%" }}
         >
           <nav className="flex flex-col items-stretch text-right space-y-1">
             {filtered.map((link) =>
