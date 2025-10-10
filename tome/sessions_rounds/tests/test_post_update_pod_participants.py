@@ -122,7 +122,7 @@ def test_post_fail_full_pod(client, build_full_state) -> None:
     }
     res = client.post(url, body, format="json")
 
-    assert res.status_code == status.HTTP_204_NO_CONTENT
+    assert res.status_code == status.HTTP_400_BAD_REQUEST
     assert res.data["message"] == "Pod already full"
 
 

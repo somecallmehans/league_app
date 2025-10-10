@@ -52,6 +52,6 @@ def test_delete_participant(client, build_base_state) -> None:
         "participants_id", flat=True
     )
 
-    assert res.status_code == status.HTTP_204_NO_CONTENT
+    assert res.status_code == status.HTTP_202_ACCEPTED
     assert cheev.deleted == True
     assert ids.P4 not in participants
