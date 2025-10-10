@@ -21,6 +21,7 @@ import CreatableSelect from "react-select/creatable";
 import ScorecardModal from "../../components/Modals/ScorecardModal";
 import ConfirmModal from "../../components/Modals/ConfirmModal";
 import RerollPodsModal from "../../components/Modals/RerollPodsModal";
+import UpdatePodsModal from "../../components/Modals/UpdatePodsModal";
 import PointsModal from "./PointsModal";
 import ColorGrid from "../../components/ColorGrid";
 
@@ -103,6 +104,12 @@ function Pods({
   sessionId,
   roundId,
 }) {
+  const [updatePodModalOpen, setUpdatePodModalOpen] = useState(false);
+  const [selectedPod, setSelectedPod] = useState({
+    participants: [],
+    podId: -1,
+    roundId: -1,
+  });
   const [modalOpen, setModalOpen] = useState(false);
   const [selected, setSelected] = useState();
 
@@ -130,6 +137,15 @@ function Pods({
     setModalOpen(!modalOpen);
   };
 
+  const handleUpdatePodModal = (participants, podId) => {
+    const parts = participants.map((p) => ({
+      id: p.participant_id,
+      name: p.name,
+    }));
+    setSelectedPod({ participants: parts, podId: +podId, roundId: +roundId });
+    setUpdatePodModalOpen(!updatePodModalOpen);
+  };
+
   const handleClose = () => {
     setSelected(undefined);
     setModalOpen(false);
@@ -139,24 +155,30 @@ function Pods({
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-4 sm:px-6 pb-8 mt-4">
       {podKeys.map((pod_id, index) => {
         const { participants, submitted, id, winner_info } = pods[pod_id];
+
         return (
           <div key={pod_id}>
-            <div className="flex items-end justify-center content-center text-xl md:text-3xl mb-2">
-              <div className="mr-4">Pod {index + 1}</div>
-              <i
-                className={`fa-solid fa-${
-                  submitted ? "pen-to-square" : "circle-exclamation"
-                } text-sky-600 hover:text-sky-500`}
-                onClick={() =>
-                  openModal(participants, id, winner_info, submitted)
-                }
-              />
+            <div className="flex items-end justify-between content-center text-xl md:text-3xl mb-2">
               <div
-                className={`ml-4 text-sm p-2 rounded-lg text-white ${
+                className={`text-base md:text-lg p-2 rounded-lg text-white ${
                   submitted ? "bg-sky-500" : "bg-green-500"
                 }`}
               >
-                {submitted ? "Submitted" : "Open"}
+                Pod {index + 1} {submitted ? "Submitted" : "Open"}
+              </div>
+              <div className="flex gap-8 text-3xl">
+                <i
+                  className={`fa-solid fa-${
+                    submitted ? "pen-to-square" : "circle-exclamation"
+                  } text-sky-600 hover:text-sky-500`}
+                  onClick={() =>
+                    openModal(participants, id, winner_info, submitted)
+                  }
+                />
+                <i
+                  className="fa-solid fa-user-plus text-sky-600 hover:text-sky-500"
+                  onClick={() => handleUpdatePodModal(participants, pod_id)}
+                />
               </div>
             </div>
             <PodGrouping
@@ -179,6 +201,14 @@ function Pods({
         isOpen={modalOpen}
         closeModal={() => handleClose()}
         selected={selected}
+      />
+      <UpdatePodsModal
+        isOpen={updatePodModalOpen}
+        closeModal={() => {
+          setUpdatePodModalOpen(false);
+          setSelectedPod({ participants: [], podId: -1, roundId: -1 });
+        }}
+        modalProps={selectedPod}
       />
     </div>
   );
