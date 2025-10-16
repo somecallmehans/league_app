@@ -1,4 +1,4 @@
-import os, json
+import os, json, httpx
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -24,6 +24,9 @@ TIMESTAMP = "X-Signature-Timestamp"
 
 PROD_CHANNEL = os.getenv("PROD_CHANNEL")
 DEV_CHANNEL = os.getenv("DEV_CHANNEL")
+
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+DISCORD_API_URL = os.getenv("DISCORD_API")
 
 
 @app.post("/interactions")
@@ -107,3 +110,37 @@ async def interactions(req: Request):
         "type": 4,
         "data": {"flags": 64, "content": "Sorry, I don't know that command."},
     }
+
+
+@app.get("/announcements")
+async def announcements_health():
+    return {"ok": True}
+
+
+@app.post("/announcements")
+async def announcements(req: Request):
+    if req.headers.get("X-Api-Key") != BOT_TOKEN:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    data = await req.json()
+
+    session_date = data.get("session_date", "an upcoming date")
+
+    message = (
+        f"**Commander League!**\n\n"
+        f"The lobby for **{session_date}** is now open!\n"
+        f"Sign in using `/signin` or on our website: https://mtg-commander-league.xyz/pods\n\n"
+        f"If you haven't linked your discord yet, run /link first."
+    )
+
+    headers = {
+        "Authorization": f"Bot {BOT_TOKEN}",
+        "Content-Type": "application/json",
+    }
+
+    async with httpx.AsyncClient(timeout=10) as client:
+        await client.post(
+            f"{DISCORD_API_URL}/channels/{PROD_CHANNEL}/messages",
+            json={"content": message},
+            headers=headers,
+        )
