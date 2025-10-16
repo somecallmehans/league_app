@@ -19,7 +19,7 @@ def get_all_metrics(request):
     except Exception as e:
         print(f"Error in get_all_metrics endpoint: {e}")
         return Response(
-            {"error": "An error occurred while fetching metrics", "details": str(e)},
+            {"message": "An error occurred while fetching metrics"},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -36,6 +36,6 @@ def get_metrics_for_participant(_, participant_id):
     except Exception as e:
         print(f"Error in get_all_metrics endpoint: {e}")
         return Response(
-            {"error": "An error occurred while fetching metrics", "details": str(e)},
+            {"message": "An error occurred while fetching metrics"},
             status=status.HTTP_400_BAD_REQUEST,
         )
