@@ -180,7 +180,7 @@ const Pill = ({ title, action, type, period }) => {
   return (
     <div
       onClick={() => action(type)}
-      className={`border px-4 py-2 rounded-lg hover:border-sky-500 ${active ? "bg-sky-500 text-white" : "bg-white"}`}
+      className={`border px-2 py-1 text-center text-xs sm:text-base sm:px-4 sm:py-2 rounded-lg hover:border-sky-500 ${active ? "bg-sky-500 text-white" : "bg-white"}`}
     >
       {title}
     </div>
