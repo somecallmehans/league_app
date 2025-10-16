@@ -120,8 +120,8 @@ export default (builder: ApiBuilder) => ({
     transformResponse: (raw: unknown) =>
       safeParseWithFallback(MonthListResponseSchema, raw, []),
   }),
-  getMetrics: builder.query<Metric, void>({
-    query: () => "metrics/",
+  getMetrics: builder.query<Metric, string | null>({
+    query: (param = null) => `metrics/?period=${param}`,
     transformResponse: (raw: unknown) =>
       safeParseWithFallback(MetricSchema, raw, EMPTY_METRIC),
   }),
@@ -153,7 +153,7 @@ export default (builder: ApiBuilder) => ({
       safeParseWithFallback(MonthRoundObjectResponseSchema, raw, {}),
   }),
   getIndividualMetrics: builder.query<IndividualMetricResponse, Id>({
-    query: (id) => `metrics/${id}/`,
+    query: (id) => `metrics/participant/${id}/`,
     transformResponse: (raw: unknown) =>
       safeParseWithFallback(
         IndividualMetricResponseSchema,

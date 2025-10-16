@@ -9,7 +9,7 @@ def test_get_metrics_league_wide() -> None:
     should: get data formatted for the frontends pie chart
     """
     calc = MetricsCalculator()
-    metrics = calc.build_metrics()
+    metrics = calc.build_metrics(period=None)
 
     assert metrics["color_pie"] == {"rg": 2, "wub": 1}
     assert metrics["big_winners"] == [{"name": "Charlie Smith", "wins": 2}]

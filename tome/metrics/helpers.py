@@ -1,10 +1,50 @@
 from collections import defaultdict, Counter, OrderedDict
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.utils.timezone import now, make_aware
 
 from achievements.models import WinningCommanders
 from sessions_rounds.models import PodsParticipants, Sessions
 from users.models import ParticipantAchievements, Participants
+
+
+def first_of_month(dt):
+    return dt.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+
+def shift_months(dt, months_back):
+    """Return dt shifted back by `months_back` months (same day/time when possible)."""
+    y, m = dt.year, dt.month
+
+    total = dt.year * 12 + (dt.month - 1) - months_back
+    y = total // 12
+    m = total % 12 + 1
+
+    return dt.replace(year=y, month=m, day=1)
+
+
+def get_bounds(period: str = None):
+    """Set our time bound delta"""
+
+    n = now()
+    end = n
+    start_of_this_month = first_of_month(n)
+
+    if period is None:
+        return None, end
+
+    if period == "mtd":
+        start = start_of_this_month
+
+    elif period == "3m":
+        start = shift_months(start_of_this_month, 2)
+    elif period == "6m":
+        start = shift_months(start_of_this_month, 5)
+    elif period == "ytd":
+        start = shift_months(start_of_this_month, 11)
+    else:
+        return None, end
+
+    return start, end
 
 
 def calculate_full_name(child, parent):
@@ -87,10 +127,11 @@ class MetricsCalculator:
         except Exception as e:
             print(f"Error building most earned: {e}")
 
-    def build_big_earner(self):
+    def build_big_earner(self, filters):
         try:
             self.metrics["big_earner"] = (
-                ParticipantAchievements.objects.filter(deleted=False)
+                ParticipantAchievements.objects.filter(filters)
+                .select_related("round")
                 .values("participant_id", "participant__name")
                 .annotate(total_points=Sum("earned_points"))
                 .order_by("-total_points")
@@ -205,16 +246,27 @@ class MetricsCalculator:
         self.metrics["most_last_wins"] = dict(Counter(most_last_wins).most_common(5))
         self.metrics["biggest_burger"] = burger_display
 
-    def build_metrics(self):
+    def build_metrics(self, period):
         try:
+            start, end = get_bounds(period)
+
+            winners_filters = Q(deleted=False) & ~Q(name="END IN DRAW")
+            achievement_filters = Q(deleted=False)
+            if start is not None:
+                winners_filters &= Q(pods__rounds__created_at__gte=start) & Q(
+                    pods__rounds__created_at__lt=end
+                )
+                achievement_filters &= Q(round__created_at__gte=start) & Q(
+                    round__created_at__lt=end
+                )
+
             winners = list(
-                WinningCommanders.objects.filter(deleted=False)
-                .exclude(name="END IN DRAW")
-                .select_related("colors", "participants")
+                WinningCommanders.objects.filter(winners_filters)
+                .select_related("colors", "participants", "pods")
                 .values("name", "colors__symbol", "participants__name")
             )
             achievements = list(
-                ParticipantAchievements.objects.filter(deleted=False)
+                ParticipantAchievements.objects.filter(achievement_filters)
                 .select_related("achievement", "participant", "round")
                 .values(
                     "earned_points",
@@ -237,7 +289,7 @@ class MetricsCalculator:
         self.build_big_winner(winners)
         self.build_most_earned(achievements)
         self.top_five_commanders(winners)
-        self.build_big_earner()
+        self.build_big_earner(filters=achievement_filters)
         self.days_since_last_draw()
         self.build_achievement_chart(achievements)
         self.build_top_fives(achievements)
