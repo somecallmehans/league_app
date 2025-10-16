@@ -148,7 +148,7 @@ export const MetricWrapper = ({
       {title}
       <div>{rightIcon}</div>
     </div>
-    {children}
+    <div className="flex flex-col grow">{children}</div>
   </div>
 );
 
@@ -174,8 +174,23 @@ const TopFiveList = ({ data, list, script, mod = 1, truncate }) =>
     </div>
   ));
 
+const Pill = ({ title, action, type, period }) => {
+  const active = period === type;
+
+  return (
+    <div
+      onClick={() => action(type)}
+      className={`border px-4 py-2 rounded-lg hover:border-sky-500 ${active ? "bg-sky-500 text-white" : "bg-white"}`}
+    >
+      {title}
+    </div>
+  );
+};
+
 function Page() {
-  const { data: metrics, isLoading: metricsLoading } = useGetMetricsQuery();
+  const [period, setPeriod] = useState(null);
+  const { data: metrics, isLoading: metricsLoading } =
+    useGetMetricsQuery(period);
 
   if (metricsLoading || !metrics) {
     return <LoadingSpinner />;
@@ -200,6 +215,20 @@ function Page() {
   return (
     <div className="p-4 md:p-8 mx-auto">
       <PageTitle title="League Stats" />
+      <div className="flex gap-4 mb-4">
+        <Pill title="All" action={setPeriod} period={period} type={null} />
+        {/* TODO: Not much difference between YTD and All so we'll leave it out for now,
+        but just need to uncomment this line to make it work */}
+        {/* <Pill title="Year-To-Date" action={setPeriod} type="ytd" /> */}
+        <Pill title="6 Months" action={setPeriod} period={period} type="6m" />
+        <Pill title="3 Months" action={setPeriod} period={period} type="3m" />
+        <Pill
+          title="Current Month"
+          action={setPeriod}
+          period={period}
+          type="mtd"
+        />
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <MetricWrapper
           title="Most Earned Points"
@@ -251,7 +280,7 @@ function Page() {
         </MetricWrapper>
 
         <MetricWrapper
-          title="All Time Snack Leaders"
+          title="Snack Leaders"
           leftIcon={<i className="fa-solid fa-cookie-bite text-amber-500" />}
           rightIcon={<i className="fa-solid fa-cookie-bite text-amber-500" />}
         >
@@ -334,8 +363,8 @@ function Page() {
           <MetricBlock data={last_draw} mainKey="days" />
         </MetricWrapper> */}
 
-        <MetricWrapper
-          title="All Time Color Wins"
+        {/* <MetricWrapper
+          title="Color Wins"
           classes="col-span-1 sm:col-span-2 max-h-[24rem] md:max-h-[36rem] md:pb-12"
         >
           <ColorBarChart colorPie={color_pie} />
@@ -345,7 +374,7 @@ function Page() {
           classes="col-span-1 sm:col-span-2 max-h-[24rem] md:max-h-[36rem] md:pb-12"
         >
           <AchievementBarChart data={achievement_chart} colorMap={colorMap} />
-        </MetricWrapper>
+        </MetricWrapper> */}
       </div>
     </div>
   );
