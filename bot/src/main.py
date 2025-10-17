@@ -138,9 +138,14 @@ async def announcements(req: Request):
         "Content-Type": "application/json",
     }
 
-    async with httpx.AsyncClient(timeout=10) as client:
-        await client.post(
-            f"{DISCORD_API_URL}/channels/{PROD_CHANNEL}/messages",
-            json={"content": message},
-            headers=headers,
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            await client.post(
+                f"{DISCORD_API_URL}/channels/{PROD_CHANNEL}/messages",
+                json={"content": message},
+                headers=headers,
+            )
+    except httpx.HTTPError as e:
+        raise HTTPException(
+            status_code=502, detail=f"Failed to post to Discord: {str(e)}"
         )

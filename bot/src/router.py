@@ -155,12 +155,12 @@ async def handle_signin(uid, guild_id):
                                 {
                                     "label": f"Round {r['round_number']}",
                                     "value": str(r["id"]),
-                                    "description": (
-                                        _format_start_time(r.get("starts_at"))
-                                        if r.get("starts_at")
-                                        else ""
-                                    )
-                                    + f" - {r['current_count']} of {r['cap']} spots claimed",
+                                    # "description": (
+                                    #     _format_start_time(r.get("starts_at"))
+                                    #     if r.get("starts_at")
+                                    #     else ""
+                                    # )
+                                    # + f" - {r['current_count']} of {r['cap']} spots claimed",
                                 }
                                 for r in rounds
                             ],
