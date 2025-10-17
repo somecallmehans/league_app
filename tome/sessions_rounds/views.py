@@ -34,6 +34,7 @@ from .helpers import (
     PodRerollService,
 )
 from configs.configs import get_round_caps
+from services.discord_client import bot_announcement
 
 GET = "GET"
 POST = "POST"
@@ -109,6 +110,9 @@ def sessions_and_rounds(request, mm_yy=None):
         Rounds.objects.create(session=new_session, round_number=1, starts_at=r1_dt)
         Rounds.objects.create(session=new_session, round_number=2, starts_at=r2_dt)
         session = SessionSerializer(new_session).data
+
+        payload = {"session_date": new_session.session_date.strftime("%A, %B %-d %Y")}
+        bot_announcement(payload)
 
         return Response(session, status=status.HTTP_201_CREATED)
     try:

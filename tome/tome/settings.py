@@ -30,6 +30,9 @@ DEBUG = False
 
 SERVICE_TOKEN = os.getenv("SERVICE_TOKEN")
 
+BOT_ANNOUNCE_URL = os.getenv("BOT_ANNOUNCE_URL")
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+
 ALLOWED_HOSTS = ["*"]
 
 
