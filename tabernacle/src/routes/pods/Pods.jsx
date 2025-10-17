@@ -46,9 +46,9 @@ const configKeys = {
 
 const SignInArea = ({ roundInfo }) => {
   const ids = roundInfo.map(({ id }) => id);
-  const {
-    data: { byKey: configs },
-  } = useSelector(apiSlice.endpoints.getAllConfigs.select());
+  const { data } = useSelector(apiSlice.endpoints.getAllConfigs.select());
+
+  const configs = data?.byKey;
 
   const [showModal, setShowModal] = useState(false);
   const [showParticipants, setShowParticipants] = useState([]);
