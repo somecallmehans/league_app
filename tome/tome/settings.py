@@ -92,6 +92,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "https://commander-league-web-app-frontend.onrender.com",
     "https://mtg-commander-league.xyz",
+    "https://commanderleague.xyz",
 ]
 
 CORS_ALLOW_METHODS = ["GET", "OPTIONS", "POST", "DELETE"]
