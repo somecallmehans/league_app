@@ -129,7 +129,7 @@ async def announcements(req: Request):
     message = (
         f"**Commander League!**\n\n"
         f"The lobby for **{session_date}** is now open!\n"
-        f"Sign in using `/signin` or on our website: https://mtg-commander-league.xyz/pods\n\n"
+        f"Sign in using `/signin` or on our website: https://commanderleague.xyz/pods\n\n"
         f"If you haven't linked your discord yet, run /link first."
     )
 
