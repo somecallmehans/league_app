@@ -126,10 +126,13 @@ const SignInArea = ({ roundInfo }) => {
         closeModal={() => setShowParticipants([])}
         title="Signed In Participants"
         body={
-          <div className="grid grid-cols-2 gap-y-1 px-8">
-            {showParticipants.map(({ name }) => (
-              <div key={name} className="text-sm">
-                {name}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 px-4 sm:px-8">
+            {showParticipants.map(({ name }, idx) => (
+              <div
+                key={name}
+                className="text-sm min-h-[1.5rem] flex justify-start"
+              >
+                {idx + 1}. {name}
               </div>
             ))}
           </div>
