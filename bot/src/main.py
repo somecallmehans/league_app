@@ -149,3 +149,43 @@ async def announcements(req: Request):
         raise HTTPException(
             status_code=502, detail=f"Failed to post to Discord: {str(e)}"
         )
+
+
+@app.post("/test_message")
+async def send_test_message():
+    """Sends a simple test message to your configured Discord channel."""
+    if not all([BOT_TOKEN, PROD_CHANNEL]):
+        raise HTTPException(status_code=500, detail="Missing bot token or channel ID")
+
+    headers = {
+        "Authorization": f"Bot {BOT_TOKEN}",
+        "Content-Type": "application/json",
+    }
+
+    payload = {
+        "content": "Test - Please disregard!",
+        "allowed_mentions": {"parse": []},
+    }
+
+    async with httpx.AsyncClient(timeout=10) as client:
+        try:
+            r = await client.post(
+                f"{DISCORD_API_URL}/channels/{PROD_CHANNEL}/messages",
+                json=payload,
+                headers=headers,
+            )
+            r.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            raise HTTPException(
+                status_code=e.response.status_code,
+                detail=f"Discord API error: {e.response.text}",
+            )
+        except httpx.RequestError as e:
+            raise HTTPException(status_code=502, detail=f"HTTP request failed: {e}")
+
+    data = r.json()
+    return {
+        "message_id": data.get("id"),
+        "channel_id": data.get("channel_id"),
+        "status": "sent",
+    }
