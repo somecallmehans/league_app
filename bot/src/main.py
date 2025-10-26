@@ -140,9 +140,11 @@ async def announcements(req: Request):
 
     message = (
         f"**Commander League!**\n\n"
-        f"The lobby for **{session_date}** is now open!\n"
-        f"Sign in using `/signin` or on our website: https://commanderleague.xyz/pods\n\n"
-        f"If you haven't linked your discord yet, run /link first."
+        f"Sign-ups for **{session_date}** are now open!\n"
+        f"Sign in by typing `/signin` in this channel\n"
+        f"You can also sign in on our website using your unique code: https://commanderleague.xyz/pods\n\n"
+        f"If you haven't linked your discord yet, run /link first and then signin.\n\n"
+        f"If you have any questions, please contact a league admin."
     )
 
     headers = {
