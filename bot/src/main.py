@@ -1,6 +1,9 @@
 import os, json, httpx
+import logging
+
 from pathlib import Path
 from dotenv import load_dotenv
+
 
 load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / ".env", override=False)
 
@@ -15,6 +18,13 @@ from .router import (
     handle_signin_select,
 )
 from .constants import PING, APP_COMMAND, APP_COMMAND_AUTOCOMPLETE, MESSAGE
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+logger = logging.getLogger(__name__)
 
 
 app = FastAPI()
@@ -75,6 +85,7 @@ async def interactions(req: Request):
         guild_id = payload.get("guild_id")
 
         if name == "mycode":
+            logger.info(f"Getting code for {user_id}")
             return await handle_getcode(user_id)
 
         if name == "link":
@@ -86,6 +97,7 @@ async def interactions(req: Request):
                 if isinstance(first, dict):
                     q = first.get("value") or ""
 
+            logger.info(f"Handling linking for {user_id} with value {q}")
             return await handle_link(user_id, q)
 
         if name == "signin":
