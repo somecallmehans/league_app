@@ -20,9 +20,9 @@ async def get_code(discord_user_id: int):
             url, headers={"Authorization": f"X-SERVICE-TOKEN {SERVICE_TOKEN}"}
         )
         if res.status_code == 200:
+            logger.info(f"Successfully retrieved code for {discord_user_id}")
             return res.json()
 
-    logger.info(f"Successfully retrieved code for {discord_user_id}")
     return None
 
 
