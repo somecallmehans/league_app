@@ -1,6 +1,10 @@
 import os, httpx, time
 from datetime import datetime
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 API_BASE = os.getenv("LEAGUE_API_BASE")
 SERVICE_TOKEN = os.getenv("SERVICE_TOKEN")
 
@@ -18,6 +22,7 @@ async def get_code(discord_user_id: int):
         if res.status_code == 200:
             return res.json()
 
+    logger.info(f"Successfully retrieved code for {discord_user_id}")
     return None
 
 
