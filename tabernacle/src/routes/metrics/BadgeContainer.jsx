@@ -5,6 +5,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { apiSlice, useGetParticipantBadgesQuery } from "../../api/apiSlice";
 
 import PageTitle from "../../components/PageTitle";
+import StandardButton from "../../components/Button";
 import { SimpleSelect } from "../crud/CrudComponents";
 
 const AbbreviatedTypeFilter = ({ typeFilter, setTypeFilter }) => {
@@ -52,6 +53,7 @@ const AchievementCard = ({ name, earned }) => (
 export default function BadgesPage() {
   const { participant_id } = useParams();
   const dispatch = useDispatch();
+  const navigation = useNavigate();
   const [typeFilter, setTypeFilter] = useState();
   const [statusFilter, setStatusFilter] = useState({
     label: "All",
@@ -101,9 +103,25 @@ export default function BadgesPage() {
       .filter((b) => b.achievements.length > 0);
   }, [badges, typeFilter, statusFilter]);
 
+  const onBack = () => {
+    const canGoBack = window.history.state?.idx > 0;
+    if (canGoBack) navigation(-1);
+    else navigation(fallback, { replace: true });
+  };
+
   return (
     <div className="p-4 md:p-8 space-y-8">
-      <PageTitle title="Earned Achievements" />
+      <div className="flex">
+        <span>
+          <button
+            className="px-4 py-2 mr-2 rounded bg-sky-600 text-sm text-white"
+            onClick={() => onBack()}
+          >
+            Back
+          </button>
+        </span>
+        <PageTitle title="Earned Achievements" />
+      </div>
       <div className="flex gap-2">
         <AbbreviatedTypeFilter
           setTypeFilter={setTypeFilter}
@@ -120,7 +138,6 @@ export default function BadgesPage() {
               ? { label: statusFilter.label, value: statusFilter.value }
               : null
           }
-          isClearable
           onChange={(obj) => setStatusFilter(obj || null)}
           classes="bg-white h-9 text-base [&>div]:h-9 [&>div]:min-h-0  md:w-1/3 text-gray-600 "
           menuPlacement="top"
