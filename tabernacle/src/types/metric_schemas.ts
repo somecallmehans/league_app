@@ -63,3 +63,13 @@ export type IndividualMetricResponse = z.infer<
 
 export const EMPTY_INDIVIDUAL_METRIC: IndividualMetricResponse =
   IndividualMetricResponseSchema.parse({});
+
+const BadgeResponseSchema = z.object({
+  type_id: z.number(),
+  type_name: z.string(),
+  achievements: z.array(
+    z.object({ id: z.number(), name: z.string(), earned: z.boolean() })
+  ),
+});
+
+export type BadgeResponse = z.infer<typeof BadgeResponseSchema>;

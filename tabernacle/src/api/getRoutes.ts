@@ -44,6 +44,7 @@ import {
   EMPTY_INDIVIDUAL_METRIC,
   type Metric,
   type IndividualMetricResponse,
+  type BadgeResponse,
 } from "../types/metric_schemas";
 import {
   MonthRoundObjectResponseSchema,
@@ -224,5 +225,8 @@ export default (builder: ApiBuilder) => ({
       return { list, byKey };
     },
     providesTags: ["Configs"],
+  }),
+  getParticipantBadges: builder.query<BadgeResponse, { participant_id: Id }>({
+    query: ({ participant_id }) => `badges/?participant_id=${participant_id}`,
   }),
 });

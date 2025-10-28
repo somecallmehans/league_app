@@ -107,6 +107,7 @@ export const {
   useGetLeagueWinnerQuery,
   useGetSigninsQuery,
   useGetAllConfigsQuery,
+  useGetParticipantBadgesQuery,
 
   // POSTS
   usePostCreateSessionMutation,
