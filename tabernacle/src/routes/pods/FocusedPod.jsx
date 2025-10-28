@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { useGetPodsQuery } from "../../api/apiSlice";
 import { handleNavClick } from "../../helpers/helpers";
@@ -114,7 +114,18 @@ export default function () {
   const [selected, setSelected] = useState();
 
   const location = useLocation();
-  const search = location.search;
+  const navigate = useNavigate();
+
+  const state = location.state || {};
+  const search = location.search || "";
+
+  const { round_id } = useParams();
+
+  useEffect(() => {
+    if (!state?.roundId) {
+      navigate(`/pods${search}`, { replace: true });
+    }
+  }, [state, navigate, search]);
 
   const { roundId, roundNumber, date } = location.state;
 
