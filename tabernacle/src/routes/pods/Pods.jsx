@@ -253,6 +253,7 @@ const RoundList = ({ rounds, selectedMonth, renderRoundLink }) => {
     .sort(dateSort)
     .map((round) => {
       const roundInfo = rounds[round];
+      if (roundInfo.length === 0) return null;
       return (
         <SessionPill
           key={round}
@@ -279,17 +280,15 @@ function Page() {
     return <LoadingSpinner />;
   }
 
-  const options = [...months]
-    ?.sort((a, b) => {
+  const monthList = Array.isArray(months) ? months : [];
+  const options = monthList
+    .slice()
+    .sort((a, b) => {
       const [monthA, yearA] = a.split("-").map(Number);
       const [monthB, yearB] = b.split("-").map(Number);
-
       return yearB - yearA || monthB - monthA;
     })
-    ?.map((month) => ({
-      label: monthStr(month),
-      value: month,
-    }));
+    .map((m) => ({ label: monthStr(m), value: m }));
 
   const value = selectedMonth
     ? { label: monthStr(selectedMonth), value: selectedMonth }
@@ -310,7 +309,7 @@ function Page() {
           options={options}
           classes="md:w-1/2 mb-4"
           value={value}
-          onChange={(obj) => setSelectedMonth(obj.value)}
+          onChange={(obj) => obj && setSelectedMonth(obj.value)}
           isClearable={false}
         />
       </div>
