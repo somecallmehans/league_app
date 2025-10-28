@@ -1,11 +1,9 @@
-from django.shortcuts import render
-
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 
 
-from .helpers import MetricsCalculator, IndividualMetricsCalculator
+from .helpers import MetricsCalculator, IndividualMetricsCalculator, calculate_badges
 
 
 @api_view(["GET"])
@@ -39,3 +37,20 @@ def get_metrics_for_participant(_, participant_id):
             {"message": "An error occurred while fetching metrics"},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+
+@api_view(["GET"])
+def get_earned_badges(request):
+    """Return lists of achievements and whether a participant has earned
+    each one or not."""
+
+    pid = request.query_params.get("participant_id")
+    if not pid:
+        return Response(
+            {"detail": "participant_id is required"}, status=status.HTTP_400_BAD_REQUEST
+        )
+    pid = int(pid)
+
+    out = calculate_badges(pid)
+
+    return Response(out)

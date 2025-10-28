@@ -1,8 +1,10 @@
 from collections import defaultdict, Counter, OrderedDict
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, Exists, OuterRef, Value, Case, When, F
+from django.db.models.functions import Concat, Coalesce
+
 from django.utils.timezone import now, make_aware
 
-from achievements.models import WinningCommanders
+from achievements.models import WinningCommanders, Achievements
 from sessions_rounds.models import PodsParticipants, Sessions
 from users.models import ParticipantAchievements, Participants
 
@@ -453,3 +455,72 @@ class IndividualMetricsCalculator:
             "unique_achievements": self.calculate_unique_achievements(),
             "session_points": self.calculate_session_points(),
         }
+
+
+def calculate_badges(pid):
+    earned_exists = ParticipantAchievements.objects.filter(
+        deleted=False,
+        participant_id=pid,
+        achievement_id=OuterRef("pk"),
+    )
+
+    has_children = Achievements.objects.filter(
+        deleted=False,
+        parent_id=OuterRef("pk"),
+    )
+
+    base_qs = (
+        Achievements.objects.filter(deleted=False)
+        .exclude(type_id=4)
+        .exclude(parent__type_id=4)
+        # optional hardening if needed:
+        # .exclude(parent__deleted=True)
+        .annotate(has_children=Exists(has_children))
+        .filter(Q(parent__isnull=False) | Q(has_children=False))
+        .select_related("type", "parent", "parent__type")
+        # Grouping type: prefer parent.type for children, else self.type
+        .annotate(
+            group_type_id=Coalesce(F("parent__type_id"), F("type_id")),
+            group_type_name=Coalesce(F("parent__type__name"), F("type__name")),
+        )
+        # Display name: "<parent> <child>" for children, else self.name
+        .annotate(
+            display_name=Case(
+                When(
+                    parent__isnull=False,
+                    then=Concat(F("parent__name"), Value(" "), F("name")),
+                ),
+                default=F("name"),
+                output_field=Achievements._meta.get_field(
+                    "name"
+                ).__class__(),  # CharField
+            ),
+            earned=Exists(earned_exists),
+        )
+        .values(
+            "id",
+            "display_name",
+            "group_type_id",
+            "group_type_name",
+            "earned",
+        )
+        .order_by("display_name")
+    )
+
+    grouped = defaultdict(
+        lambda: {"type_id": None, "type_name": None, "achievements": []}
+    )
+    for row in base_qs:
+        tkey = row["group_type_id"]
+        out = grouped[tkey]
+        out["type_id"] = tkey
+        out["type_name"] = row["group_type_name"]
+        out["achievements"].append(
+            {
+                "id": row["id"],
+                "name": row["display_name"],
+                "earned": bool(row["earned"]),
+            }
+        )
+
+    return list(grouped.values())
