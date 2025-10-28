@@ -1,5 +1,5 @@
 import React from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 
 import LoadingSpinner from "../../components/LoadingSpinner";
 import PageTitle from "../../components/PageTitle";
@@ -12,7 +12,7 @@ import StandardButton from "../../components/Button";
 import LineChart from "./PointsByMonthLineChart";
 import ParticipantPods from "./ParticipantPods";
 
-export default function InvdividualMetrics() {
+export default function IndividualMetrics() {
   const { participant_id } = useParams();
   const navigation = useNavigate();
 
@@ -36,12 +36,22 @@ export default function InvdividualMetrics() {
 
   return (
     <div className="p-4 md:p-8">
-      <div className="flex">
+      <div className="flex mb-2">
         <span>
           <StandardButton action={() => onBack()} title="Back" />
         </span>
-        <PageTitle title={metrics.participant_name} />
+
+        <Link
+          to={`badges/`}
+          className="flex items-center justify-center bg-sky-600 hover:bg-sky-500 active:bg-sky-700 rounded text-white w-[37px] h-[37px] ml-2 mr-2"
+        >
+          <span className="bg-sky-600 hover:bg-sky-500 rounded mx-2">
+            <i className="fa-solid fa-trophy text-yellow-400" />
+          </span>
+        </Link>
       </div>
+      <PageTitle title={metrics.participant_name} />
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <MetricWrapper title="Average Win Points">
           <MetricBlock data={metrics} mainKey="avg_win_points" />

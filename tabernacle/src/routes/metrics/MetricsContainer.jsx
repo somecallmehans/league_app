@@ -8,6 +8,7 @@ import PageTitle from "../../components/PageTitle";
 import ColorBarChart from "./ColorBarChart";
 import AchievementBarChart from "./AchievementBarChart";
 import IndividualMetrics from "./IndividualMetrics";
+import Badges from "./BadgeContainer";
 
 const colorMap = {
   1: "rgba(31, 119, 180, 0.8)", // Blue
@@ -385,6 +386,7 @@ export default function MetricsRouter() {
     <Routes>
       <Route path="/" element={<Page />} />
       <Route path="/:participant_id" element={<IndividualMetrics />} />
+      <Route path="/:participant_id/badges" element={<Badges />} />
     </Routes>
   );
 }
