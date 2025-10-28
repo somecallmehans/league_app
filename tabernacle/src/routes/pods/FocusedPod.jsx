@@ -73,6 +73,8 @@ const PodSquare = ({ participants, handleOnClick, winnerInfo, submitted }) => {
 };
 
 const PodContainer = ({ pods, handleOnClick }) => {
+  if (!pods) return null;
+
   if (Object.keys(pods).length === 0) {
     return (
       <div className="p-4 mb-4 h-full ">
@@ -127,7 +129,9 @@ export default function () {
     }
   }, [state, navigate, search]);
 
-  const { roundId, roundNumber, date } = location.state;
+  const roundId = location?.state?.roundId;
+  const roundNumber = location?.state?.roundNumber;
+  const date = location?.state?.date;
 
   const { data: pods, isLoading: podsLoading } = useGetPodsQuery(roundId, {
     skip: !roundId,
