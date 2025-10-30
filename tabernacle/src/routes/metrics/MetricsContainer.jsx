@@ -386,7 +386,7 @@ export default function MetricsRouter() {
     <Routes>
       <Route path="/" element={<Page />} />
       <Route path="/:participant_id" element={<IndividualMetrics />} />
-      <Route path="/:participant_id/badges" element={<Badges />} />
+      <Route path="/:participant_id/earned" element={<Badges />} />
     </Routes>
   );
 }

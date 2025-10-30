@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 
 import { apiSlice, useGetParticipantBadgesQuery } from "../../api/apiSlice";
 
@@ -54,6 +54,7 @@ export default function BadgesPage() {
   const { participant_id } = useParams();
   const dispatch = useDispatch();
   const navigation = useNavigate();
+  const location = useLocation();
   const [typeFilter, setTypeFilter] = useState();
   const [statusFilter, setStatusFilter] = useState({
     label: "All",
@@ -103,26 +104,29 @@ export default function BadgesPage() {
       .filter((b) => b.achievements.length > 0);
   }, [badges, typeFilter, statusFilter]);
 
+  const fallback = "/leaderboard";
   const onBack = () => {
     const canGoBack = window.history.state?.idx > 0;
     if (canGoBack) navigation(-1);
     else navigation(fallback, { replace: true });
   };
 
+  const participant = location?.state?.name || "Participant";
+
   return (
-    <div className="p-4 md:p-8 space-y-8">
+    <div className="p-4 md:p-8 space-y-4">
       <div className="flex">
         <span>
           <button
             className="px-4 py-2 mr-2 rounded bg-sky-600 text-sm text-white"
             onClick={() => onBack()}
           >
-            Back
+            <i className="fa-solid fa-arrow-left" />
           </button>
         </span>
-        <PageTitle title="Earned Achievements" />
+        <PageTitle title={`Earned by ${participant}`} />
       </div>
-      <div className="flex gap-2">
+      <div className="flex flex-col md:flex-row gap-2">
         <AbbreviatedTypeFilter
           setTypeFilter={setTypeFilter}
           typeFilter={typeFilter}
