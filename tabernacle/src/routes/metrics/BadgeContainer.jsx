@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 import { apiSlice, useGetParticipantBadgesQuery } from "../../api/apiSlice";
-
+import { useParticipantsLookup } from "../../hooks";
 import PageTitle from "../../components/PageTitle";
 import StandardButton from "../../components/Button";
 import { SimpleSelect } from "../crud/CrudComponents";
@@ -52,9 +52,9 @@ const AchievementCard = ({ name, earned }) => (
 
 export default function BadgesPage() {
   const { participant_id } = useParams();
+  const { lookup: participantsLookup } = useParticipantsLookup();
   const dispatch = useDispatch();
   const navigation = useNavigate();
-  const location = useLocation();
   const [typeFilter, setTypeFilter] = useState();
   const [statusFilter, setStatusFilter] = useState({
     label: "All",
@@ -111,7 +111,7 @@ export default function BadgesPage() {
     else navigation(fallback, { replace: true });
   };
 
-  const participant = location?.state?.name || "Participant";
+  const participant = participantsLookup[participant_id];
 
   return (
     <div className="p-4 md:p-8 space-y-4">

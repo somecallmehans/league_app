@@ -44,7 +44,6 @@ export default function IndividualMetrics() {
         <Link
           to={`earned/`}
           className="flex items-center justify-center bg-sky-600 hover:bg-sky-500 active:bg-sky-700 rounded text-white w-[80px] h-[37px] ml-2 mr-2"
-          state={{ name: metrics?.participant_name }}
         >
           <span className="bg-sky-600 hover:bg-sky-500 rounded mx-8">
             <i className="fa-solid fa-trophy text-yellow-400" />
