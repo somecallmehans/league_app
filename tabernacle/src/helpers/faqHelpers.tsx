@@ -112,7 +112,7 @@ export const resourceInfo: ResourceInfo[] = [
 export const faqInfo = [
   {
     id: 1,
-    title: "When Is Commander League?",
+    title: "When is Commander League?",
     Component: () => (
       <div className="py-2">
         <p className="mb-2">
@@ -135,71 +135,65 @@ export const faqInfo = [
   },
   {
     id: 10,
-    title: "Do I Need A Special Deck To Participate?",
+    title: "Do I need a special deck to participate?",
     Component: () => (
       <div className="py-2">
         <p className="mb-2">
-          Nope! Any (commander legal) deck is valid to participate in league.
-          The league meta tries to target around precon power-level, but playing
-          games higher (or lower) in power is not uncommon. The most important
-          thing is to have a Rule 0 conversation with your pod prior to the game
-          starting, especially if you're playing a deck that wasn't built with
-          league points in mind.{" "}
+          Nope! Decks brewed specifically for league points are usually brackets
+          2-3 and you should be prepared for most rule-zero conversations to
+          settle in this range. But they don’t always! Any Commander-legal deck
+          is allowed and if your pod agrees to a higher bracket game, go for it!
         </p>
         <p className="mb-2">
-          If you want to participate but feel your deck might be overpowered for
-          your pod, many league participants would be more than happy to lend a
-          deck as well!
+          Alternatively, if your decks are too strong for your pod’s agreed
+          power level, others will be more than happy to lend you a deck.
         </p>
       </div>
     ),
   },
   {
     id: 11,
-    title: "How Do Achievements Work?",
+    title: "How do achievements work?",
     Component: () => (
       <div className="py-2">
         <p className="mb-2">
-          Achievements are split into several categories which you can view on
-          our{" "}
+          Most achievements are stackable deck building challenges with point
+          values roughly weighted by difficulty. These are earned by winning
+          league games with decks that meet various restrictions.
+        </p>
+        <p className="mb-2">
+          For example: a two-color (3pts) deck that is standard legal (12pts)
+          with at least 44 legendary cards (3pts) and no instants or sorceries
+          (4pts) would earn 22 points upon winning a game.
+        </p>
+        <p className="mb-2">
+          Points aren't just awarded for deck building! Additional achievements
+          may be earned by bringing a snack to share, sharing your decklist on
+          our discord channel, lending decks to other players, and more. Learn
+          everything there is to know on our
           <a
             className="text-sky-500 hover:text-sky-300"
             href="https://commanderleague.xyz/achievements"
           >
-            Achievement's Page
+            {" "}
+            achievement's page
           </a>
-          . Each month, participants brew decks that abide by as many or as few
-          of these achievements as they'd like; for each achievement your deck
-          qualifies for, you are awarded those points when you meet the
-          achievement's criteria.
-        </p>
-        <p className="mb-2">
-          For example: a two-color (3pts) deck that is modern legal (2pts) with
-          at least 44 legendary cards (3pts) and no instants or sorceries (4pts)
-          would earn 12 points upon winning a game.
-        </p>
-        <p className="mb-2">
-          Achievement points aren't just awarded for deckbuilding either! You
-          can earn additional achievements by doing things like bringing a
-          snack, sharing your decklist in our discord channel, lending a deck,
-          etc.
         </p>
       </div>
     ),
   },
   {
     id: 12,
-    title: "I Want To Participate, How Do I Sign Up?",
+    title: "I want to participate! How do I sign up?",
     Component: () => (
       <div className="py-2">
         <p className="mb-2">
-          There are multiple ways that you can register for league in advance!
-          Additionally, as long as there is space available, walk ins are always
-          welcome!
+          There are multiple ways to register in advance! And as long as there
+          is space available, walk-ins are always welcome.
         </p>
-        <h3 className="mb-2 font-bold">1. How can I sign in via discord?</h3>
+        <h3 className="mb-2 font-bold">1. Sign in on Discord</h3>
         <p className="mb-2">
-          If you aren't already a member, head over to the{" "}
+          Head over to the
           <a
             className="text-sky-500 hover:text-sky-300"
             href="https://discord.com/channels/1123750208937938964/1203058271620038756"
@@ -208,24 +202,22 @@ export const faqInfo = [
             Mimic’s Market’s Discord server
           </a>{" "}
           and join our Commander League channel. If you've previously
-          participated in league, you just need to type{" "}
+          participated in league, type{" "}
           <code className="bg-slate-200">/link</code> in the message box, then
           use <code className="bg-slate-200">/signin</code> to register for any
           upcoming league rounds.
         </p>
 
-        <h3 className="mb-2 font-bold">
-          2. How can I sign in via this website?{" "}
-        </h3>
+        <h3 className="mb-2 font-bold">2. Sign in on this website </h3>
         <p className="mb-2">
-          Similar to option 1, head over to discord and{" "}
-          <code className="bg-slate-200">/link</code> your discord to your
-          league history. You will be provided a unique, six character sign-in
-          code that you can use to sign in for open rounds on{" "}
+          After using <code className="bg-slate-200">/link</code> on Discord,
+          you will be provided a unique, six character sign in code that you can
+          enter on
           <a
             className="text-sky-500 hover:text-sky-300"
             href="https://www.commanderleague.xyz/pods"
           >
+            {" "}
             our pairings page
           </a>
           . Just click the big blue "Sign In" button, enter your code, and
@@ -233,22 +225,17 @@ export const faqInfo = [
         </p>
 
         <h3 className="mb-2 font-bold">
-          3. I have never participated in commander league and can't use{" "}
-          <code className="bg-slate-200">/link</code> in the discord, what
-          should I do?
+          3. Haven't participated before and can't use{" "}
+          <code className="bg-slate-200">/link</code> in discord?
         </h3>
         <p className="mb-2">
-          That's no problem! Post in the commander league channel and an admin
-          will add you to our league database. You will be able to use the
-          command after that.
+          No problem! Speak up in the commander league channel and an admin will
+          add you to our database. Then, you will be able to use the command.
         </p>
 
-        <h3 className="mb-2 font-bold">
-          4. I don't have discord, what should I do?
-        </h3>
+        <h3 className="mb-2 font-bold">4. Don't have discord?</h3>
         <p>
-          That's no problem either! Feel free to stop by Mimic's Market during
-          league or reach out to{" "}
+          Stop by Mimic's Market during league or reach out to{" "}
           <a
             className="text-sky-500 hover:text-sky-300"
             href="https://christianwillanderson.com"
@@ -257,15 +244,15 @@ export const faqInfo = [
           >
             Christian (Christo) Anderson
           </a>
-          . He will set you up in the league database and provide you a unique
-          login code you can use on our sign in page (i.e. option 2 above).
+          . He will add you to the database and provide a unique code you can
+          use to log in on this website (see #2 above).
         </p>
       </div>
     ),
   },
   {
     id: 2,
-    title: "What Is Commander League's Proxy Policy?",
+    title: "Are proxies allowed?",
     Component: () => (
       <div className="py-2">
         <p className="mb-2">
@@ -292,7 +279,7 @@ export const faqInfo = [
   },
   {
     id: 3,
-    title: "Do I Need To Purchase Booster Packs To Participate?",
+    title: "Does it cost money to participate?",
     Component: () => (
       <div className="py-2">
         <p className="mb-2">
@@ -339,15 +326,16 @@ export const faqInfo = [
   // },
   {
     id: 5,
-    title: "How Often Does the League Get Updated?",
+    title: "How often is Commander League updated?",
     Component: () => (
       <div className="py-2">
         <p className="mb-2">
-          Commander League&apos;s rules are the product of a council of
-          dedicated players who monitor league play and meet bi-quarterly to
-          discuss potential changes to league structure, with the changes
-          themselves rolled out quarterly. Lively discussion about the league
-          continues on
+          Commander League's rules are the product of a council of dedicated
+          players who monitor the metagame and meet quarterly to discuss and
+          vote on changes. Most updates are simple patches to account for new
+          cards and game mechanics, with big-picture changes limited to two
+          updates per year (usually finalized for February and July leagues).
+          Lively discussion about the league continues on
           <a
             className="text-sky-500 hover:text-sky-300"
             href="https://discord.com/channels/1123750208937938964/1203058271620038756"
@@ -367,7 +355,7 @@ export const faqInfo = [
   },
   {
     id: 6,
-    title: "Where Does League Take Place?",
+    title: "Where does league take place?",
     Component: () => (
       <div className="py-2">
         <p className="mb-2">
