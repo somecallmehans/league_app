@@ -22,9 +22,9 @@ def get_all_participants(_, id=None):
     filters = {"deleted": False}
     if id:
         filters["id"] = id
-    data = Participants.objects.all().filter(**filters)
-    participants = ParticipantsSerializer(data, many=True).data
-    return Response(participants, status=status.HTTP_200_OK)
+    data = list(Participants.objects.filter(**filters).values("id", "name"))
+    # participants = ParticipantsSerializer(data, many=True).data
+    return Response(data, status=status.HTTP_200_OK)
 
 
 @api_view(["POST"])
