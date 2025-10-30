@@ -7,6 +7,7 @@ import { useParticipantsLookup } from "../../hooks";
 import PageTitle from "../../components/PageTitle";
 import StandardButton from "../../components/Button";
 import { SimpleSelect } from "../crud/CrudComponents";
+import LoadingSpinner from "../../components/LoadingSpinner";
 
 const AbbreviatedTypeFilter = ({ typeFilter, setTypeFilter }) => {
   const { data: types } = useSelector(
@@ -52,7 +53,8 @@ const AchievementCard = ({ name, earned }) => (
 
 export default function BadgesPage() {
   const { participant_id } = useParams();
-  const { lookup: participantsLookup } = useParticipantsLookup();
+  const { lookup: participantsLookup, isLoading: participantsLoading } =
+    useParticipantsLookup();
   const dispatch = useDispatch();
   const navigation = useNavigate();
   const [typeFilter, setTypeFilter] = useState();
@@ -110,6 +112,10 @@ export default function BadgesPage() {
     if (canGoBack) navigation(-1);
     else navigation(fallback, { replace: true });
   };
+
+  if (participantsLoading) {
+    return <LoadingSpinner />;
+  }
 
   const participant = participantsLookup[participant_id];
 
