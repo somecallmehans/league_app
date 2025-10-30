@@ -267,8 +267,9 @@ const RoundList = ({ rounds, selectedMonth, renderRoundLink }) => {
 };
 
 function Page() {
-  const { selectedMonth, setSelectedMonth, month, year } = useMonthYear();
   const { data: months, isLoading: monthsLoading } = useGetUniqueMonthsQuery();
+  const { selectedMonth, setSelectedMonth, month, year } = useMonthYear(months);
+
   const { data: rounds, isLoading: roundsLoading } = useGetRoundsByMonthQuery(
     selectedMonth,
     { skip: !selectedMonth }
