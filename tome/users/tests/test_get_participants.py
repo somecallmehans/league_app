@@ -18,4 +18,4 @@ def test_get_one_participant(client):
     parsed_res = res.json()
 
     assert res.status_code == status.HTTP_200_OK
-    assert parsed_res[0] == {"id": 901, "name": "Charlie Smith", "total_points": 0}
+    assert parsed_res[0] == {"id": 901, "name": "Charlie Smith"}
