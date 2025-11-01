@@ -1,6 +1,6 @@
 import logging
 import requests, json, hashlib, threading, time, re
-from typing import Dict, List, Iterable, Any, Optional
+from typing import Dict, List, Iterable, Any, Optional, Union
 from collections import OrderedDict
 from django.core.cache import cache
 
@@ -18,10 +18,15 @@ _lock = threading.Lock()
 
 PLUS_SPLIT = re.compile(r"\s*\+\s*")
 SUFFIX_PARENS = re.compile(r"\s*\([^)]*\)$")
+DOUBLE_FACE_SPLIT = re.compile(r"\s*//\s*")
 
 
 def _normalize_for_scryfall(name: str) -> str:
-    return SUFFIX_PARENS.sub("", name or "").strip()
+    name = DOUBLE_FACE_SPLIT.split(name, 1)[0]
+
+    name = SUFFIX_PARENS.sub("", name).strip()
+
+    return name
 
 
 def _norm_key(name: str) -> str:
@@ -141,24 +146,34 @@ class ScryfallClientRequest:
             all_cards.extend(data.get("data", []))
             if data.get("warnings"):
                 all_warnings.extend(data["warnings"])
-
         out = {"object": "list", "data": all_cards}
         if all_warnings:
             out["warnings"] = all_warnings
         return out
 
     @staticmethod
-    def primary_image_url(card: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def primary_image_url(
+        card: Dict[str, Any],
+    ) -> Optional[Union[Dict[str, Any], List[Dict[str, Any]]]]:
         """Picks a usable image URL, handling MDFCs."""
         iu = card.get("image_uris")
         artist = card.get("artist")
-
         if iu:
             return {"url": iu.get("art_crop"), "artist": artist}
-        # faces = card.get("card_faces") or []
-        # if faces and faces[0].get("image_uris"):
-        #     iu0 = faces[0]["image_uris"]
-        #     return iu0.get("normal") or iu0.get("large") or iu0.get("png")
+        faces = card.get("card_faces") or []
+        if faces := card.get("card_faces"):
+            images = []
+            for face in faces:
+                if face.get("image_uris"):
+                    iu = face["image_uris"]
+                    images.append(
+                        {
+                            "url": iu.get("art_crop"),
+                            "artist": face.get("artist"),
+                        }
+                    )
+            return images if images else None
+
         return None
 
     def get_commander_card_payloads_by_raw(
@@ -232,11 +247,15 @@ class ScryfallClientRequest:
         """
         cards_by_raw = self.get_commander_card_payloads_by_raw(commander_names)
         images_by_raw: dict[str, list[str]] = {}
+
         for raw, cards in cards_by_raw.items():
             imgs = []
             for c in cards:
-                url = self.primary_image_url(c)
-                if url:
-                    imgs.append(url)
+                urls = self.primary_image_url(c)
+                if urls:
+                    if isinstance(urls, list):
+                        imgs.extend(urls)
+                    else:
+                        imgs.append(urls)
             images_by_raw[raw] = imgs
         return images_by_raw
