@@ -195,3 +195,52 @@ def signin(request):
     )
 
     return Response({"message": "Successfully added"}, status=status.HTTP_201_CREATED)
+
+
+@require_service_token
+@api_view([POST])
+def drop_user(request):
+    """Take in a discord user id and check if that user is registered for the next
+    league round. If yes, remove them."""
+
+    body = json.loads(request.body.decode("utf-8"))
+    duid = body.get("discord_user_id")
+
+    if not duid:
+        return Response(
+            {"message": "Discord user id not provided."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    target = Participants.objects.filter(discord_user_id=duid).first()
+
+    if not target:
+        return Response(
+            {"message": "User is not linked"}, status=status.HTTP_400_BAD_REQUEST
+        )
+
+    next_session = (
+        Sessions.objects.filter(
+            closed=False,
+            deleted=False,
+            session_date__gte=date.today(),
+        )
+        .order_by("session_date")
+        .first()
+    )
+    if not next_session:
+        return Response(
+            {"message": "Sign-ins not open"}, status=status.HTTP_400_BAD_REQUEST
+        )
+
+    rids = list(
+        Rounds.objects.filter(session=next_session, deleted=False)
+        .values_list("id", flat=True)
+        .order_by("round_number")[:2]
+    )
+
+    RoundSignups.objects.filter(participant_id=target.id, round_id__in=rids).delete()
+
+    return Response(
+        {"date": next_session.session_date}, status=status.HTTP_202_ACCEPTED
+    )

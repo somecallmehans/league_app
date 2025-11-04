@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import mycode, search, link, next_session, signin
+from .views import mycode, search, link, next_session, signin, drop_user
 
 urlpatterns = [
     path("mycode/<int:discord_user_id>/", mycode, name="mycode"),
@@ -8,4 +8,5 @@ urlpatterns = [
     path("link/", link, name="link"),
     path("next_session/", next_session, name="next_session"),
     path("signin/", signin, name="signin"),
+    path("drop/", drop_user, name="drop"),
 ]
