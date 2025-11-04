@@ -16,6 +16,7 @@ from .router import (
     handle_signin,
     handle_signin_confirm,
     handle_signin_select,
+    handle_drop,
 )
 from .constants import PING, APP_COMMAND, APP_COMMAND_AUTOCOMPLETE, MESSAGE
 
@@ -32,8 +33,7 @@ app = FastAPI()
 SIGNATURE = "X-Signature-Ed25519"
 TIMESTAMP = "X-Signature-Timestamp"
 
-PROD_CHANNEL = os.getenv("PROD_CHANNEL")
-DEV_CHANNEL = os.getenv("DEV_CHANNEL")
+CHANNEL_ID = os.getenv("CHANNEL_ID")
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 DISCORD_API_URL = os.getenv("DISCORD_API")
@@ -57,7 +57,7 @@ async def interactions(req: Request):
     channel = payload.get("channel") or {}
     channel_id = channel.get("id")
 
-    if channel_id not in (PROD_CHANNEL, DEV_CHANNEL):
+    if channel_id not in (CHANNEL_ID):
         return {
             "type": 4,
             "data": {
@@ -102,6 +102,9 @@ async def interactions(req: Request):
 
         if name == "signin":
             return await handle_signin(user_id, guild_id)
+
+        if name == "drop":
+            return await handle_drop(user_id)
 
     if t == MESSAGE:
         data = payload.get("data") or {}
@@ -155,7 +158,7 @@ async def announcements(req: Request):
     try:
         async with httpx.AsyncClient(timeout=10) as client:
             await client.post(
-                f"{DISCORD_API_URL}/channels/{PROD_CHANNEL}/messages",
+                f"{DISCORD_API_URL}/channels/{CHANNEL_ID}/messages",
                 json={"content": message},
                 headers=headers,
             )
@@ -168,7 +171,7 @@ async def announcements(req: Request):
 @app.post("/test_message")
 async def send_test_message():
     """Sends a simple test message to your configured Discord channel."""
-    if not all([BOT_TOKEN, PROD_CHANNEL]):
+    if not all([BOT_TOKEN, CHANNEL_ID]):
         raise HTTPException(status_code=500, detail="Missing bot token or channel ID")
 
     headers = {
@@ -184,7 +187,7 @@ async def send_test_message():
     async with httpx.AsyncClient(timeout=10) as client:
         try:
             r = await client.post(
-                f"{DISCORD_API_URL}/channels/{PROD_CHANNEL}/messages",
+                f"{DISCORD_API_URL}/channels/{CHANNEL_ID}/messages",
                 json=payload,
                 headers=headers,
             )

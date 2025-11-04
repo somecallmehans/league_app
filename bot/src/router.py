@@ -233,3 +233,33 @@ async def handle_signin_confirm(uid, guild_id):
     except Exception:
         pass
     return _ephemeral(f"❌ {msg}")
+
+
+async def handle_drop(uid):
+    """Handle dropping a participant from their league rounds."""
+
+    async with httpx.AsyncClient(timeout=10) as http:
+        r = await http.post(
+            f"{API_BASE}api/discord/drop/",
+            headers={"Authorization": f"X-SERVICE-TOKEN {SERVICE_TOKEN}"},
+            json={"discord_user_id": uid},
+        )
+
+    res = r.json()
+    date = res.get("date")
+    if r.status_code == 202:
+        return {
+            "type": 4,
+            "data": {
+                "flags": 64,
+                "content": f"You have been dropped from league on {date}",
+                "components": [],
+            },
+        }
+
+    msg = "Something went wrong."
+    try:
+        msg = res.get("message") or msg
+    except Exception:
+        pass
+    return _ephemeral(f"❌ {msg}")
