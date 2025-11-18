@@ -63,6 +63,7 @@ from achievements.helpers import (
 )
 from sessions_rounds.helpers import handle_close_round
 from services.scryfall_client import ScryfallClientRequest
+from services.redis_keepalive import redis_keepalive
 
 GET = "GET"
 POST = "POST"
@@ -582,6 +583,7 @@ def fetch_and_insert_commanders(_):
         print(f"Error found in commander mapping: {e}")
 
     out = Commanders.objects.bulk_create(records)
+    redis_keepalive()
 
     return Response(
         {"message": f"Added {len(out)} new commanders to the database."},
