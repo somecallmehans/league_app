@@ -172,7 +172,7 @@ function Pods({
                   submitted ? "bg-sky-500" : "bg-green-500"
                 }`}
               >
-                Pod {index + 1} {submitted ? "Submitted" : "Open"}
+                Table {index + 1} {submitted ? "Submitted" : "Open"}
               </div>
               <div className="flex gap-8 text-3xl">
                 <i

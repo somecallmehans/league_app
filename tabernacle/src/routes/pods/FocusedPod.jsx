@@ -93,7 +93,7 @@ const PodContainer = ({ pods, handleOnClick }) => {
         return (
           <div key={pod_id}>
             <div className="flex items-end justify-center content-center text-xl md:text-3xl mb-2">
-              <div className="mr-4">Pod {index + 1}</div>
+              <div className="mr-4">Table {index + 1}</div>
             </div>
             <div className="shadow-lg border  grid grid-cols-1 sm:grid-cols-2 overflow-y-auto shadow-md">
               <PodSquare
