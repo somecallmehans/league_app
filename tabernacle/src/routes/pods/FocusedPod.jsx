@@ -56,6 +56,7 @@ const PodSquare = ({ participants, handleOnClick, winnerInfo, submitted }) => {
           show={isWinner(participant_id)}
           colors={winnerInfo?.colors?.name}
           containerClasses="mt-2"
+          endInDraw={winnerInfo?.name === "END IN DRAW"}
           action={() =>
             handleOnClick(
               name,

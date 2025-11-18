@@ -101,7 +101,6 @@ const RoundPill = ({
 }) => {
   const imageUrls = commander_img.map(({ url }) => url);
   const artists = commander_img.map(({ artist }) => artist);
-
   return (
     <div className="flex flex-col mb-8">
       <div className="grid grid-cols-4 w-full h-48 bg-white border rounded-lg shadow-md overflow-hidden">

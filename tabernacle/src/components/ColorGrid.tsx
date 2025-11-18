@@ -10,6 +10,7 @@ interface ColorGridProps {
   submitted: boolean;
   action?: MouseEventHandler<HTMLDivElement>;
   noHover: boolean;
+  endInDraw?: boolean;
 }
 
 export default function ColorGrid({
@@ -19,6 +20,7 @@ export default function ColorGrid({
   submitted,
   action,
   noHover,
+  endInDraw,
 }: ColorGridProps) {
   if (!submitted) {
     return;
@@ -27,7 +29,7 @@ export default function ColorGrid({
     return (
       <div onClick={action}>
         <i
-          className={`fa-solid fa-skull-crossbones text-xl md:text-3xl ${
+          className={`fa-solid fa-${endInDraw ? "handshake" : "skull-crossbones"} text-xl md:text-3xl ${
             noHover ? "" : "hover:text-sky-400"
           } cursor-pointer`}
         />
