@@ -5,6 +5,7 @@ import { Route, Routes, Link } from "react-router-dom";
 import "react-datepicker/dist/react-datepicker.css";
 
 import RoundPage from "./RoundPage";
+import ScorecardPage from "./ScorecardPage";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import StandardButton from "../../components/Button";
 import {
@@ -161,6 +162,7 @@ export default function LeagueRouter() {
     <Routes>
       <Route path="/" element={<LeagueManagementPage />} />
       <Route path="/:round_id" element={<RoundPage />} />
+      <Route path="/:round_id/scorecard/:pod_id" element={<ScorecardPage />} />
     </Routes>
   );
 }

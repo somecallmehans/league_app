@@ -176,14 +176,16 @@ function Pods({
                 Table {index + 1} {submitted ? "Submitted" : "Open"}
               </div>
               <div className="flex gap-8 text-3xl">
-                <i
-                  className={`fa-solid fa-${
-                    submitted ? "pen-to-square" : "circle-exclamation"
-                  } text-sky-600 hover:text-sky-500`}
-                  onClick={() =>
-                    openModal(participants, id, winner_info, submitted)
-                  }
-                />
+                <Link to={`scorecard/${pod_id}`}>
+                  <i
+                    className={`fa-solid fa-${
+                      submitted ? "pen-to-square" : "circle-exclamation"
+                    } text-sky-600 hover:text-sky-500`}
+                    // onClick={() =>
+                    //   openModal(participants, id, winner_info, submitted)
+                    // }
+                  />
+                </Link>
                 <i
                   className={`fa-solid fa-user-plus ${somePodsSubmitted ? "text-slate-500" : "text-sky-600 hover:text-sky-500"}`}
                   onClick={() => handleUpdatePodModal(participants, pod_id)}
