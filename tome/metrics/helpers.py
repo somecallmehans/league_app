@@ -188,6 +188,7 @@ class MetricsCalculator:
         most_last_wins = Counter()
         biggest_burger = defaultdict(Counter)
         round_meta = {}
+        unique = defaultdict(set)
 
         for achievement in achievements:
             player_name = achievement["participant__name"]
@@ -202,6 +203,7 @@ class MetricsCalculator:
 
             points_by_participant[player_name] += points
             biggest_burger[rnd][player_name] += points
+            unique[player_name].add(achievement["achievement__id"])
 
             if slug == "best-snack" or slug == "bring-snack":
                 snack_leaders[player_name] += points
@@ -247,6 +249,11 @@ class MetricsCalculator:
         self.metrics["most_knockouts"] = dict(Counter(most_knockouts).most_common(5))
         self.metrics["most_last_wins"] = dict(Counter(most_last_wins).most_common(5))
         self.metrics["biggest_burger"] = burger_display
+
+        unique_counts = Counter(
+            {p: len(achievements) for p, achievements in unique.items()}
+        )
+        self.metrics["unique"] = dict(unique_counts.most_common(5))
 
     def build_metrics(self, period):
         try:
