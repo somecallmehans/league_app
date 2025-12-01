@@ -214,8 +214,6 @@ function Page() {
     unique,
   } = metrics;
 
-  console.log(unique);
-
   return (
     <div className="p-4 md:p-8 mx-auto">
       <PageTitle title="League Stats" />
