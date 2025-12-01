@@ -198,7 +198,7 @@ class MetricsCalculator:
 
             round_meta[rnd] = (
                 achievement["round__round_number"],
-                achievement["round__created_at"],
+                achievement["round__starts_at"],
             )
 
             points_by_participant[player_name] += points
@@ -287,7 +287,7 @@ class MetricsCalculator:
                     "achievement__parent__name",
                     "participant__name",
                     "round__round_number",
-                    "round__created_at",
+                    "round__starts_at",
                 )
             )
 
