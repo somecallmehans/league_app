@@ -211,7 +211,10 @@ function Page() {
     most_knockouts,
     most_last_wins,
     biggest_burger,
+    unique,
   } = metrics;
+
+  console.log(unique);
 
   return (
     <div className="p-4 md:p-8 mx-auto">
@@ -358,6 +361,14 @@ function Page() {
             list={Object.keys(biggest_burger)}
             script="Points"
           />
+        </MetricWrapper>
+
+        <MetricWrapper
+          title="Unique Earned Achievements"
+          leftIcon={<i className="fa-solid fa-list-ol text-green-500" />}
+          rightIcon={<i className="fa-solid fa-list-ol text-green-500" />}
+        >
+          <TopFiveList data={unique} list={Object.keys(unique)} />
         </MetricWrapper>
 
         {/* <MetricWrapper title="Days Since Last Draw">

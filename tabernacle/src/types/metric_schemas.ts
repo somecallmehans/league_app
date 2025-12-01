@@ -35,6 +35,7 @@ export const MetricSchema = z.object({
   overall_points: MetricMapSchema.default({}),
   snack_leaders: MetricMapSchema.default({}),
   top_winners: MetricMapSchema.default({}),
+  unique: MetricMapSchema.default({}),
 });
 
 export type Metric = z.infer<typeof MetricSchema>;
