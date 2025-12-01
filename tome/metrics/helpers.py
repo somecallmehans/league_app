@@ -202,7 +202,10 @@ class MetricsCalculator:
             )
 
             points_by_participant[player_name] += points
-            biggest_burger[rnd][player_name] += points
+
+            if slug is None or slug != "best-snack":
+                biggest_burger[rnd][player_name] += points
+
             unique[player_name].add(achievement["achievement__id"])
 
             if slug == "best-snack" or slug == "bring-snack":
