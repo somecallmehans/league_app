@@ -4,10 +4,20 @@ body {
 }
 
 .clickable-icon {
-  cursor: pointer;  
+  cursor: pointer;
   transition: opacity 0.2s ease-in-out;
 }
 
 .clickable-icon:hover {
   opacity: 0.5;
+}
+
+.pb-safe {
+  padding-bottom: 1rem;
+}
+
+@supports (padding: max(0px)) {
+  .pb-safe {
+    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+  }
 }

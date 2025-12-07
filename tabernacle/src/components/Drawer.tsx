@@ -8,7 +8,12 @@ interface DrawerProps {
   children: React.ReactNode;
 }
 
-export default function Drawer({ isOpen, onClose, title, children }: DrawerProps) {
+export default function Drawer({
+  isOpen,
+  onClose,
+  title,
+  children,
+}: DrawerProps) {
   return (
     <Transition.Root show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-40" onClose={onClose}>
@@ -24,7 +29,7 @@ export default function Drawer({ isOpen, onClose, title, children }: DrawerProps
                 leaveFrom="translate-x-0"
                 leaveTo="translate-x-full"
               >
-                <Dialog.Panel className="w-[315px] sm:w-[700px] bg-zinc-50 shadow-xl">
+                <Dialog.Panel className="w-[315px] sm:w-[700px] h-[100dvh] bg-zinc-50 shadow-xl">
                   <div className="flex items-center justify-between px-4 py-4 border-b">
                     <div className="text-lg font-medium text-gray-900">
                       {title}
@@ -36,9 +41,7 @@ export default function Drawer({ isOpen, onClose, title, children }: DrawerProps
                       X
                     </button>
                   </div>
-                  <div className="overflow-y-auto max-h-[calc(100vh-4rem)]">
-                    {children}
-                  </div>
+                  <div className="overflow-y-auto pb-safe">{children}</div>
                 </Dialog.Panel>
               </Transition.Child>
             </div>
