@@ -59,7 +59,7 @@ export const AchievementPanel = ({
   restrictions,
 }) => {
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col">
       <div className="text-xl grow  p-4 font-bold">
         {point_value} Point{point_value === 1 ? "" : "s"}
       </div>

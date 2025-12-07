@@ -21,3 +21,7 @@ body {
     padding-bottom: max(env(safe-area-inset-bottom), 1rem);
   }
 }
+
+.scroll-y-touch {
+  -webkit-overflow-scrolling: touch;
+}
