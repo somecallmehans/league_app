@@ -1,10 +1,39 @@
-import React, { forwardRef } from "react";
-import { Controller } from "react-hook-form";
+import { forwardRef } from "react";
 
-import Select from "react-select";
+import Select, {
+  components as selectComponents,
+  GroupBase,
+  MultiValue,
+  Props as ReactSelectProps,
+} from "react-select";
+import {
+  Controller,
+  type Control,
+  type FieldErrors,
+  type FieldValues,
+  type Path,
+  type RegisterOptions,
+} from "react-hook-form";
 import { Checkbox, Input, Label, Field, Textarea } from "@headlessui/react";
 
-const customStyles = {
+type BaseFieldProps<TFieldValues extends FieldValues> = {
+  name: Path<TFieldValues>;
+  control: Control<TFieldValues>;
+  rules?: RegisterOptions<TFieldValues>;
+  disabled?: boolean;
+  classes?: string;
+};
+
+type WithTitleAndErrors<TFieldValues extends FieldValues> = {
+  title?: string;
+  errors?: FieldErrors<TFieldValues>;
+  containerClasses?: string;
+};
+
+type GetOptionLabel<TOption> = (option: TOption) => string;
+type GetOptionValue<TOption> = (option: TOption) => string;
+
+const customStyles: ReactSelectProps<any, boolean, GroupBase<any>>["styles"] = {
   option: (styles, { isDisabled }) => {
     return {
       ...styles,
@@ -16,7 +45,25 @@ const customStyles = {
   menuPortal: (base) => ({ ...base, zIndex: 9999 }),
 };
 
-const CustomMultiValue = ({ data, handleRemove, selectProps }) => {
+type TempIdOption = {
+  tempId?: string;
+  name: string;
+};
+
+type CustomMultiValueProps<TOption extends TempIdOption> = {
+  data: TOption;
+  selectProps: { value: readonly TOption[] | null };
+  handleRemove: (
+    id: string | undefined,
+    list: readonly TOption[] | null
+  ) => void;
+};
+
+const CustomMultiValue = <TOption extends TempIdOption>({
+  data,
+  handleRemove,
+  selectProps,
+}: CustomMultiValueProps<TOption>) => {
   return (
     <div className="flex items-center p-2 border border-gray-300 rounded-md bg-gray-100">
       {data.name}
@@ -29,17 +76,28 @@ const CustomMultiValue = ({ data, handleRemove, selectProps }) => {
   );
 };
 
-export const MultiSelector = ({
+type MultiSelectorProps<
+  TFieldValues extends FieldValues,
+  TOption,
+> = BaseFieldProps<TFieldValues> & {
+  options: TOption[];
+  placeholder?: string;
+  isClearable?: boolean;
+  getOptionLabel: GetOptionLabel<TOption>;
+  getOptionValue: GetOptionValue<TOption>;
+};
+
+export const MultiSelector = <TFieldValues extends FieldValues, TOption>({
   name,
   options,
   control,
   placeholder,
   classes,
-  disabled,
-  isClearable,
+  disabled = false,
+  isClearable = false,
   getOptionLabel,
   getOptionValue,
-}) => {
+}: MultiSelectorProps<TFieldValues, TOption>) => {
   return (
     <Controller
       name={name}
@@ -68,7 +126,29 @@ export const MultiSelector = ({
   );
 };
 
-export const AchievementSelector = ({
+type AchievementOption = {
+  id?: number | string;
+  achievement_id?: number;
+  name: string;
+  tempId?: string;
+  [key: string]: unknown;
+};
+
+type AchievementSelectorProps<
+  TFieldValues extends FieldValues,
+  TOption extends AchievementOption,
+> = BaseFieldProps<TFieldValues> & {
+  options: TOption[];
+  placeholder?: string;
+  isClearable?: boolean;
+  getOptionLabel: GetOptionLabel<TOption>;
+  getOptionValue: GetOptionValue<TOption>;
+};
+
+export const AchievementSelector = <
+  TFieldValues extends FieldValues,
+  TOption extends AchievementOption,
+>({
   name,
   options,
   control,
@@ -78,14 +158,14 @@ export const AchievementSelector = ({
   isClearable,
   getOptionLabel,
   getOptionValue,
-}) => {
+}: AchievementSelectorProps<TFieldValues, TOption>) => {
   const uuidv4 = () => crypto.randomUUID();
   return (
     <Controller
       name={name}
       control={control}
       render={({ field }) => {
-        const handleChange = (selectedOption) => {
+        const handleChange = (selectedOption: readonly TOption[] | null) => {
           if (!selectedOption) return;
           const entries = selectedOption.map((sO) => ({
             ...sO,
@@ -94,7 +174,10 @@ export const AchievementSelector = ({
           field.onChange(entries);
         };
 
-        const handleRemove = (id, list) => {
+        const handleRemove = (
+          id: string | undefined,
+          list: readonly TOption[] | null
+        ) => {
           const toRemove = list?.filter(({ tempId }) => tempId !== id);
           field.onChange(toRemove);
         };
@@ -119,7 +202,11 @@ export const AchievementSelector = ({
             onChange={handleChange}
             components={{
               MultiValueContainer: (props) => (
-                <CustomMultiValue {...props} handleRemove={handleRemove} />
+                <CustomMultiValue<TOption>
+                  data={(props as any).data}
+                  selectProps={(props as any).selectProps}
+                  handleRemove={handleRemove}
+                />
               ),
             }}
           />
@@ -129,22 +216,40 @@ export const AchievementSelector = ({
   );
 };
 
-export const Selector = ({
+type SelectorProps<
+  TFieldValues extends FieldValues,
+  TOption extends { disabled?: boolean },
+> = BaseFieldProps<TFieldValues> & {
+  title?: string;
+  options: TOption[];
+  placeholder?: string;
+  defaultValue?: TOption;
+  isClearable?: boolean;
+  getOptionLabel: GetOptionLabel<TOption>;
+  getOptionValue: GetOptionValue<TOption>;
+  filterOption?: ReactSelectProps<TOption, false>["filterOption"];
+  containerClasses?: string;
+};
+
+export const Selector = <
+  TFieldValues extends FieldValues,
+  TOption extends { disabled?: boolean },
+>({
   name,
   title = "",
   options,
   control,
   placeholder = "",
   classes,
-  defaultValue,
+  defaultValue = undefined,
   disabled = false,
-  isClearable,
+  isClearable = false,
   getOptionLabel,
   getOptionValue,
   filterOption,
   rules,
-  containerClasses,
-}) => {
+  containerClasses = "",
+}: SelectorProps<TFieldValues, TOption>) => {
   return (
     <Controller
       name={name}
@@ -183,7 +288,7 @@ export const Selector = ({
               isDisabled={disabled}
               isClearable={isClearable}
               filterOption={filterOption}
-              isOptionDisabled={(option) => option.disabled}
+              isOptionDisabled={(option) => !!option.disabled}
             />
           </div>
         );
@@ -192,7 +297,19 @@ export const Selector = ({
   );
 };
 
-export const CheckBoxInput = forwardRef(
+type CheckBoxInputProps = {
+  name?: string;
+  checked: boolean;
+  onChange: (...event: any[]) => void;
+  onBlur?: () => void;
+  value?: any;
+  classes?: string;
+  checkboxClasses?: string;
+  label?: string;
+  disabled?: boolean;
+};
+
+export const CheckBoxInput = forwardRef<HTMLInputElement, CheckBoxInputProps>(
   (
     { name, checked, onChange, classes, checkboxClasses, label, disabled },
     ref
@@ -228,25 +345,31 @@ export const CheckBoxInput = forwardRef(
   }
 );
 
-export const TextInput = ({
+type TextInputProps<TFieldValues extends FieldValues> =
+  BaseFieldProps<TFieldValues> &
+    WithTitleAndErrors<TFieldValues> & {
+      type?: React.HTMLInputTypeAttribute;
+      placeholder?: string;
+      defaultValue?: any;
+    };
+
+export const TextInput = <TFieldValues extends FieldValues>({
   name,
   title,
   type,
   placeholder = "",
   classes = "",
-  register,
   control,
-  defaultValue = "",
+  defaultValue = undefined,
   disabled,
   rules,
   errors,
   containerClasses,
-}) => {
+}: TextInputProps<TFieldValues>) => {
   return (
     <Controller
       name={name}
       control={control}
-      register={register}
       defaultValue={defaultValue}
       rules={rules}
       render={({ field }) => (
@@ -259,7 +382,7 @@ export const TextInput = ({
             )}
             {errors?.[name] && (
               <span className="text-xs italic text-rose-400 ml-2">
-                {errors[name].message}
+                {(errors[name]?.message as any) ?? "Invalid"}
               </span>
             )}
           </div>
@@ -277,24 +400,30 @@ export const TextInput = ({
   );
 };
 
-export const TextAreaField = ({
+type TextAreaFieldProps<TFieldValues extends FieldValues> =
+  BaseFieldProps<TFieldValues> &
+    WithTitleAndErrors<TFieldValues> & {
+      placeholder?: string;
+      defaultValue?: any;
+      rows?: number;
+    };
+
+export const TextAreaField = <TFieldValues extends FieldValues>({
   name,
   title,
   placeholder,
   classes = "",
-  register,
   control,
-  defaultValue = "",
+  defaultValue = undefined,
   disabled,
   rows = 3,
   rules,
   errors,
-}) => {
+}: TextAreaFieldProps<TFieldValues>) => {
   return (
     <Controller
       name={name}
       control={control}
-      register={register}
       defaultValue={defaultValue}
       rules={rules}
       render={({ field }) => (
@@ -303,7 +432,7 @@ export const TextAreaField = ({
             {title && <label className="font-bold text-lg">{title}</label>}
             {errors?.[name] && (
               <span className="text-xs italic text-rose-400 ml-2">
-                {errors[name].message}
+                {(errors[name]?.message as any) ?? "Invalid"}
               </span>
             )}
           </div>
