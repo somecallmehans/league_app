@@ -1,5 +1,7 @@
 import { useForm, Controller } from "react-hook-form";
 
+import { useScorecardInfo } from "../../hooks";
+
 import {
   CheckBoxInput,
   MultiSelector,
@@ -24,7 +26,7 @@ const PLAYER_ACHIEVEMENT_MAP = [
     label: "Did anyone who did not win knock out other players?",
     slug: "knock-out",
   },
-  // TODO
+  // TODO: add to backend w/ slug
   {
     key: 5,
     label:
@@ -62,9 +64,18 @@ const PLAYER_WIN_MAP = [
 ];
 
 export default function ScorecardPage() {
-  const { control } = useForm();
+  const { filteredAchievements } = useScorecardInfo();
+  const { control, handleSubmit, getValues, setValue, watch } = useForm();
+
+  const cart = watch("winner-achievements") ?? [];
+
+  const handleFormSubmit = (data: any) => {
+    const { picker, ...clean } = data;
+    console.log(clean);
+  };
+
   return (
-    <div className="p-8 flex gap-2">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="p-8 flex gap-2">
       <div className="w-1/2">
         {PLAYER_ACHIEVEMENT_MAP.map(({ label, slug, key }) => (
           <MultiSelector
@@ -144,6 +155,7 @@ export default function ScorecardPage() {
               //     : undefined,
             }
           }
+          isOptionDisabled={(o) => o.id === -1}
         />
         <Selector
           name="partner-commander"
@@ -174,6 +186,7 @@ export default function ScorecardPage() {
           getOptionLabel={(option: { name: string }) => option.name}
           getOptionValue={(option: { id: number }) => String(option.id)}
           rules={{}}
+          isOptionDisabled={(o) => o.id === -1}
         />
         {PLAYER_WIN_MAP.map(({ label, slug, key }) => (
           <Controller
@@ -196,20 +209,59 @@ export default function ScorecardPage() {
       <div className="w-1/2 flex flex-col gap-2">
         <div className="flex justify-between gap-2">
           <Selector
-            name="winner-achievements"
-            options={[]}
+            name="picker"
+            options={filteredAchievements || []}
             control={control}
             placeholder="Deck Building Achievements"
-            getOptionLabel={(option: { name: string }) => option.name}
-            getOptionValue={(option: { id: number }) => String(option.id)}
+            getOptionLabel={(option) => option.name}
+            getOptionValue={(option) => String(option.id)}
             containerClasses="grow"
+            isClearable
           />
-          <StandardButton action={() => {}} type="button" title="Add" />
+          <StandardButton
+            action={() => {
+              const selected = getValues("picker");
+              if (!selected) return;
+
+              const curr = getValues("winner-achievements") ?? [];
+              setValue("winner-achievements", [
+                ...curr,
+                { ...selected, tempId: crypto.randomUUID() },
+              ]);
+
+              setValue("picker", null, {
+                shouldDirty: true,
+                shouldValidate: false,
+              });
+            }}
+            type="button"
+            title="Add"
+          />
         </div>
-        <div className="h-full bg-slate-200 p-4">
-          {["Test", "test", "test"].map((x) => x)}
+        <div className="h-full bg-zinc-100 p-4 rounded-lg border drop-shadow-md flex flex-col gap-2">
+          {cart.map((c: { tempId: string; name: string | undefined }) => (
+            <div className="flex justify-between">
+              <div className="text-sm truncate">{c.name}</div>
+              <span
+                aria-hidden
+                className="flex-1 h-4 border-b-2 border-black border-dotted mx-1"
+              />
+              <i
+                className="fa fa-trash text-zinc-500 hover:text-red-500"
+                onClick={() => {
+                  setValue(
+                    "winner-achievements",
+                    cart.filter((x: any) => x.tempId !== c.tempId)
+                  );
+                }}
+              />
+            </div>
+          ))}
+        </div>
+        <div className="mt-2 flex justify-end">
+          <StandardButton title="Submit" type="submit" />
         </div>
       </div>
-    </div>
+    </form>
   );
 }

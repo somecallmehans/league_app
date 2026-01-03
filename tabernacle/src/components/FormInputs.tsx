@@ -218,7 +218,7 @@ export const AchievementSelector = <
 
 type SelectorProps<
   TFieldValues extends FieldValues,
-  TOption extends { disabled?: boolean },
+  TOption,
 > = BaseFieldProps<TFieldValues> & {
   title?: string;
   options: TOption[];
@@ -229,12 +229,10 @@ type SelectorProps<
   getOptionValue: GetOptionValue<TOption>;
   filterOption?: ReactSelectProps<TOption, false>["filterOption"];
   containerClasses?: string;
+  isOptionDisabled?: (option: TOption) => boolean;
 };
 
-export const Selector = <
-  TFieldValues extends FieldValues,
-  TOption extends { disabled?: boolean },
->({
+export const Selector = <TFieldValues extends FieldValues, TOption>({
   name,
   title = "",
   options,
@@ -249,6 +247,7 @@ export const Selector = <
   filterOption,
   rules,
   containerClasses = "",
+  isOptionDisabled,
 }: SelectorProps<TFieldValues, TOption>) => {
   return (
     <Controller
@@ -288,7 +287,7 @@ export const Selector = <
               isDisabled={disabled}
               isClearable={isClearable}
               filterOption={filterOption}
-              isOptionDisabled={(option) => !!option.disabled}
+              isOptionDisabled={isOptionDisabled}
             />
           </div>
         );

@@ -66,12 +66,25 @@ export interface Achievement {
   restrictions?: z.infer<typeof AchievementRestrictionsSchema> | null;
 }
 
-export const AchievementSchema: z.ZodType<Achievement> = z.lazy(() =>
+export interface GetAchievement {
+  id: number;
+  name: string;
+  full_name: string;
+  slug?: string | null;
+  points?: number | null;
+  point_value?: number | null;
+  type?: z.infer<typeof AchievementTypeSchema> | null;
+  type_id?: number | null;
+  parent?: z.infer<typeof ParentAchievementSchema> | null;
+  parent_id?: number | null;
+  restrictions?: z.infer<typeof AchievementRestrictionsSchema> | null;
+}
+
+export const AchievementSchema: z.ZodType<GetAchievement> = z.lazy(() =>
   z.object({
     id: z.number(),
-    name: z.string().nullish(),
-    full_name: z.string().nullish(),
-    deleted: z.boolean().nullish(),
+    name: z.string(),
+    full_name: z.string(),
     parent_id: z.number().nullish(),
     slug: z.string().nullish(),
     points: z.number().nullish(),
