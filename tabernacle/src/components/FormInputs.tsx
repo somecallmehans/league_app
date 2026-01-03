@@ -240,7 +240,7 @@ export const Selector = <
   options,
   control,
   placeholder = "",
-  classes,
+  classes = "",
   defaultValue = undefined,
   disabled = false,
   isClearable = false,
@@ -317,6 +317,10 @@ export const CheckBoxInput = forwardRef<HTMLInputElement, CheckBoxInputProps>(
     return (
       <Field className={`${classes}`}>
         {label && <Label className="text-xs">{label}</Label>}
+        <span
+          aria-hidden
+          className="flex-1 h-3 border-b border-dotted border-slate-300 mx-1"
+        />
         <Checkbox
           name={name}
           checked={checked}
