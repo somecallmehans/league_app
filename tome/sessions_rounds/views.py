@@ -14,7 +14,7 @@ from rest_framework.decorators import (
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Prefetch, Exists, OuterRef
+from django.db.models import Prefetch, Exists, OuterRef, F
 from django.utils import timezone
 
 from .models import Sessions, Rounds, Pods, PodsParticipants, RoundSignups
@@ -750,3 +750,21 @@ def delete_pod_participant(request):
     return Response(
         {"message": "Successfully removed"}, status=status.HTTP_202_ACCEPTED
     )
+
+
+@api_view([GET])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def get_pod_participants(_, pod_id):
+    """Get all participants for a given pod_id."""
+
+    participants_qs = PodsParticipants.objects.filter(pods_id=pod_id).values(
+        "participants_id", "participants__name"
+    )
+
+    participants = [
+        {"id": row["participants_id"], "name": row["participants__name"]}
+        for row in participants_qs
+    ]
+
+    return Response(participants)
