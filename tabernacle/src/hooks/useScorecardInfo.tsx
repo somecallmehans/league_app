@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { skipToken } from "@reduxjs/toolkit/query";
 import {
@@ -21,31 +22,27 @@ export default function useScorecardInfo() {
   const { data: participants, isLoading: participantsLoading } =
     useGetPodParticipantsQuery(podParticipantsQueryArg);
 
-  if (achievementsLoading || commandersLoading || participantsLoading) {
-    return {
-      filteredAchievements: [],
-      commanders: [],
-      partners: [],
-      participants: [],
-    };
-  }
+  const filteredAchievements = useMemo(() => {
+    if (!achievements?.data) return [];
+    return achievements.data
+      .filter((a) => !achievements.parents.includes(a.id))
+      .filter(({ slug }) => !slug?.match(slugRegex))
+      .map((a) => ({ id: a.id, name: a.full_name }));
+  }, [achievements]);
 
-  const filteredAchievements = achievements?.data
-    .filter((achievement) => !achievements.parents.includes(achievement.id))
-    .filter(({ slug }) => !slug?.match(slugRegex))
-    .map((achievement) => ({
-      id: achievement?.id,
-      name: achievement?.full_name,
-    }));
+  const commanderOptions = useMemo(() => {
+    return [
+      { id: -1, name: "Type To Select a Primary Commander" },
+      ...(commanders?.commanders ?? []),
+    ];
+  }, [commanders]);
 
-  const commanderOptions = [
-    { id: -1, name: "Type To Select a Primary Commander" },
-    ...(commanders?.commanders ?? []),
-  ];
-  const partnerOptions = [
-    { id: -1, name: "Type To Select a Partner/Background/Companion" },
-    ...(commanders?.partners ?? []),
-  ];
+  const partnerOptions = useMemo(() => {
+    return [
+      { id: -1, name: "Type To Select a Partner/Background/Companion" },
+      ...(commanders?.partners ?? []),
+    ];
+  }, [commanders]);
 
   return {
     filteredAchievements,
