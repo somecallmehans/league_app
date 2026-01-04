@@ -229,4 +229,10 @@ export default (builder: ApiBuilder) => ({
   getParticipantBadges: builder.query<BadgeResponse, { participant_id: Id }>({
     query: ({ participant_id }) => `badges/?participant_id=${participant_id}`,
   }),
+  getPodParticipants: builder.query<
+    { id: number; name: string }[],
+    { pod_id: Id }
+  >({
+    query: ({ pod_id }) => `get_pod_participants/${pod_id}/`,
+  }),
 });

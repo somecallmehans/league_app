@@ -6,7 +6,7 @@ const isColorKey = (v: string): v is ColorKey => v in imgs;
 interface ColorGridProps {
   show: boolean;
   colors?: string;
-  containerClasses: string;
+  containerClasses?: string;
   submitted: boolean;
   action?: MouseEventHandler<HTMLDivElement>;
   noHover: boolean;

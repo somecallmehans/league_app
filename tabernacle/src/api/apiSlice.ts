@@ -108,6 +108,7 @@ export const {
   useGetSigninsQuery,
   useGetAllConfigsQuery,
   useGetParticipantBadgesQuery,
+  useGetPodParticipantsQuery,
 
   // POSTS
   usePostCreateSessionMutation,
