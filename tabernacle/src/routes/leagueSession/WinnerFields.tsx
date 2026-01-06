@@ -1,7 +1,9 @@
 import { useFormContext, useWatch, Controller } from "react-hook-form";
 import { CheckBoxInput, Selector } from "../../components/FormInputs";
-
+import { useCommanderColors } from "../../hooks";
 import { useScorecardInfoCtx } from "./ScorecardCTX";
+
+import ColorGrid from "../../components/ColorGrid";
 
 const PLAYER_WIN_MAP = [
   {
@@ -39,14 +41,27 @@ export default function WinnerFields() {
   const selectedWinner = useWatch({ control, name: "winner" });
   const selectedCommander = useWatch({ control, name: "winner-commander" });
 
+  const commander = useWatch({ control, name: "winner-commander" });
+  const partner = useWatch({ control, name: "partner-commander" });
+
+  const { colorName } = useCommanderColors(
+    commander?.colors_id,
+    partner?.colors_id
+  );
+
   return (
     <>
+      <div className="flex items-center gap-2">
+        <h2 className="text-sm font-semibold text-zinc-700">Winner</h2>
+        <ColorGrid colors={colorName} submitted show noHover isSmall />
+      </div>
+      <div className="border-t space-y-2 " />
       <Selector
         name="winner"
         placeholder="Winner"
         control={control}
         options={participants || []}
-        classes="mb-2"
+        classes="space-y-2 "
         disabled={endInDraw}
         rules={{
           validate: (value) =>
@@ -63,7 +78,7 @@ export default function WinnerFields() {
         placeholder="Winner's Commander"
         control={control}
         options={commanderOptions || []}
-        classes="mb-2"
+        classes="space-y-2 "
         disabled={endInDraw}
         isClearable
         filterOption={(option, input) => {
@@ -87,7 +102,7 @@ export default function WinnerFields() {
         placeholder="Partner/Background/Companion"
         control={control}
         options={partnerOptions || []}
-        classes="mb-2"
+        classes="space-y-2 "
         disabled={endInDraw || !selectedCommander?.name}
         isClearable
         filterOption={(option, input) => {
@@ -110,7 +125,7 @@ export default function WinnerFields() {
           render={({ field }) => (
             <CheckBoxInput
               {...field}
-              classes="flex justify-between items-center mb-2"
+              classes="flex justify-between items-center space-y-2 "
               checked={!!field.value}
               disabled={endInDraw}
               label={label}

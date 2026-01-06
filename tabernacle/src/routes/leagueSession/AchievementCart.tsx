@@ -10,8 +10,10 @@ export default function AchievementCart() {
   const cart = useWatch({ control, name: "winner-achievements" }) ?? [];
 
   return (
-    <div className="md:w-1/2 flex flex-col gap-2">
-      <div className="flex justify-between gap-2">
+    <div className="flex flex-col">
+      <h2 className="text-sm font-semibold text-zinc-700">General</h2>
+      <div className="border-t mb-2" />
+      <div className="flex justify-between gap-2 mb-2 ">
         <Selector
           name="picker"
           options={filteredAchievements || []}
@@ -41,9 +43,9 @@ export default function AchievementCart() {
           title="Add"
         />
       </div>
-      <div className="h-64 md:h-full bg-zinc-100 p-4 rounded-lg border drop-shadow-md flex flex-col gap-2">
+      <div className="h-64 md:h-full bg-white p-4 rounded-lg border drop-shadow-md flex flex-col gap-2">
         {cart.map((c: { tempId: string; name: string | undefined }) => (
-          <div className="flex justify-between">
+          <div className="flex justify-between" key={c.tempId}>
             <div className="text-sm truncate">{c.name}</div>
             <span
               aria-hidden

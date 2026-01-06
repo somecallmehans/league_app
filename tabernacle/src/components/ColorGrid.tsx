@@ -11,6 +11,7 @@ interface ColorGridProps {
   action?: MouseEventHandler<HTMLDivElement>;
   noHover: boolean;
   endInDraw?: boolean;
+  isSmall?: boolean;
 }
 
 export default function ColorGrid({
@@ -21,6 +22,7 @@ export default function ColorGrid({
   action,
   noHover,
   endInDraw,
+  isSmall,
 }: ColorGridProps) {
   if (!submitted) {
     return;
@@ -29,7 +31,7 @@ export default function ColorGrid({
     return (
       <div onClick={action}>
         <i
-          className={`fa-solid fa-${endInDraw ? "handshake" : "skull-crossbones"} text-xl md:text-3xl ${
+          className={`fa-solid fa-${endInDraw ? "handshake" : "skull-crossbones"} ${isSmall ? "text-sm md:text-base" : "text-xl md:text-3xl"} ${
             noHover ? "" : "hover:text-sky-400"
           } cursor-pointer`}
         />
@@ -47,7 +49,11 @@ export default function ColorGrid({
       } ${containerClasses}`}
     >
       {keys?.map((c, idx) => (
-        <img key={idx} className="w-4 h-4 md:w-6 md:h-6" src={imgs[c]} />
+        <img
+          key={idx}
+          className={`${isSmall ? "w-2 h-2 md:w-4 md:h-4" : "w-4 h-4 md:w-6 md:h-6"}`}
+          src={imgs[c]}
+        />
       ))}
     </div>
   );

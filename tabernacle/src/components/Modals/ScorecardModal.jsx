@@ -195,7 +195,7 @@ const ScorecardFormFields = ({
               : "Winner is required if the game didn't end in a draw",
         }}
       />
-      <Selector
+      {/* <Selector
         name="winner-commander"
         placeholder="Winner's Commander"
         control={control}
@@ -224,8 +224,8 @@ const ScorecardFormFields = ({
               ? "Commander is required when winner is selected"
               : undefined,
         }}
-      />
-      <Selector
+      /> */}
+      {/* <Selector
         name="partner-commander"
         placeholder="Partner/Background/Companion"
         control={control}
@@ -248,7 +248,7 @@ const ScorecardFormFields = ({
         }}
         getOptionLabel={(option) => option.name}
         getOptionValue={(option) => option.id}
-      />
+      /> */}
 
       <div className="mb-2 flex gap-2 justify-between">
         <div className="flex gap-2">

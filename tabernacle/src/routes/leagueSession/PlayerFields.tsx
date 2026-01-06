@@ -34,6 +34,8 @@ export default function PlayerFields() {
   const { participants } = useScorecardInfoCtx();
   return (
     <>
+      <h2 className="text-sm font-semibold text-zinc-700">General</h2>
+      <div className="border-t space-y-2 " />
       {PLAYER_ACHIEVEMENT_MAP.map(({ label, slug, key }) => (
         <MultiSelector
           key={key}
@@ -41,7 +43,7 @@ export default function PlayerFields() {
           control={control}
           placeholder={label}
           options={participants || []}
-          classes="mb-2"
+          classes="space-y-2 "
           getOptionLabel={(option) => option.name}
           getOptionValue={(option) => String(option.id)}
         />
@@ -55,7 +57,7 @@ export default function PlayerFields() {
             {...field}
             checked={field.value}
             label="Did the game end in a draw?"
-            classes="flex justify-between items-center mb-2"
+            classes="flex justify-between items-center space-y-2 "
           />
         )}
       />
