@@ -64,6 +64,7 @@ class Colors(models.Model):
     symbol = models.CharField(max_length=5)
     slug = models.CharField(max_length=26)
     name = models.CharField(max_length=50)
+    mask = models.PositiveIntegerField(default=0)
 
     class Meta:
         db_table = "colors"

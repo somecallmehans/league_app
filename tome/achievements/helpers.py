@@ -13,6 +13,7 @@ from achievements.models import (
     Commanders,
     Restrictions,
     AchievementsRestrictions,
+    Colors,
 )
 from users.models import ParticipantAchievements
 from users.serializers import ParticipantsSerializer
@@ -311,3 +312,18 @@ def cascade_soft_delete(achievement):
     )
 
     Restrictions.objects.filter(id__in=parent_restriction_ids).update(deleted=True)
+
+
+def calculate_color_mask(colors: list[int]) -> dict:
+    """
+    Take in some color ids, use them to calculate the mask of the combined color.
+    I.e. red = 8, green = 16. Therefore redgreen = 24
+    """
+
+    mask_list = Colors.objects.filter(id__in=colors).values_list("mask", flat=True)
+    summed_mask = sum(mask_list)
+    calculated = Colors.objects.filter(mask=summed_mask).values("id", "symbol").first()
+
+    win_colors = len(calculated["symbol"]) if calculated["symbol"] != "c" else 0
+
+    return win_colors, calculated["id"]
