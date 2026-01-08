@@ -27,7 +27,9 @@ def get_achievements():
                 participant_id=participant_id,
                 session_id=session_id,
                 deleted=deleted,
-            ).values_list("achievement_id", flat=True)
+            )
+            .order_by("achievement_id")
+            .values_list("achievement_id", flat=True)
         )
 
     return _get
