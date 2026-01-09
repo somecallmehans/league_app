@@ -13,7 +13,7 @@ from .views import (
     get_achievement_types,
     get_league_monthly_winners,
     get_league_monthly_winner_info,
-    insert_scoresheet,
+    scoresheet,
 )
 
 urlpatterns = [
@@ -60,5 +60,9 @@ urlpatterns = [
         get_league_monthly_winner_info,
         name="get_leage_winner",
     ),
-    path("insert_scoresheet/", insert_scoresheet, name="insert_scoresheet"),
+    path(
+        "rounds/<int:round_id>/pods/<int:pod_id>/scoresheet/",
+        scoresheet,
+        name="scoresheet",
+    ),
 ]

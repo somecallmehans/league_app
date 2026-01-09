@@ -25,31 +25,35 @@ winner_slugs = {
 
 
 class ScoresheetBuildResult(NamedTuple):
-    records: list
+    records: list[ParticipantAchievements]
     commander_name: Optional[str]
     colors_id: Optional[int]
-    pod_id: int
-    round_id: int
     session_id: int
     winner_id: Optional[int]
+    pods_participants: list[int]
 
 
 class ScoresheetHelper:
     """Special class to help tabulate and assign points
     for a scoresheet."""
 
-    def __init__(self, **kwargs):
+    def __init__(self, round_id, pod_id, **kwargs):
         self.records: list[ParticipantAchievements] = []
         for key, value in kwargs.items():
             setattr(self, key, value)
         self.session_id = (
-            Rounds.objects.filter(id=kwargs["round_id"])
+            Rounds.objects.filter(id=round_id)
             .values_list("session_id", flat=True)
             .first()
         )
         self.slug_achievements = Achievements.objects.filter(
             slug__isnull=False, deleted=False
         ).values("id", "slug", "point_value")
+        self.pod_participants = PodsParticipants.objects.filter(
+            pods_id=pod_id
+        ).values_list("participants_id", flat=True)
+        self.round_id = round_id
+        self.pod_id = pod_id
 
     def build_slug_dicts(self):
         """Compose our slugged achievements into dicts, one
@@ -65,6 +69,10 @@ class ScoresheetHelper:
 
         for poa in pod_slugs:
             pids = getattr(self, poa)
+
+            if not pids:
+                continue
+
             for p in pids:
                 self.records.append(
                     ParticipantAchievements(
@@ -138,9 +146,6 @@ class ScoresheetHelper:
     def build_draw(self):
         """Build records for all participants in the event of a draw."""
 
-        pids = PodsParticipants.objects.filter(pods_id=self.pod_id).values_list(
-            "participants_id", flat=True
-        )
         self.records.extend(
             ParticipantAchievements(
                 participant_id=p,
@@ -149,7 +154,7 @@ class ScoresheetHelper:
                 session_id=self.session_id,
                 earned_points=self.points_by_slug["end-draw"],
             )
-            for p in pids
+            for p in self.pod_participants
         )
 
     def build(self):
@@ -165,15 +170,8 @@ class ScoresheetHelper:
         is_draw = getattr(self, "end-draw")
         if is_draw:
             self.build_draw()
-
             return ScoresheetBuildResult(
-                self.records,
-                None,
-                None,
-                self.pod_id,
-                self.round_id,
-                self.session_id,
-                None,
+                self.records, None, None, self.session_id, None, self.pod_participants
             )
         else:
             self.build_winner_achievements()
@@ -182,8 +180,7 @@ class ScoresheetHelper:
                 self.records,
                 c_name,
                 c_id,
-                self.pod_id,
-                self.round_id,
                 self.session_id,
                 self.winner,
+                self.pod_participants,
             )

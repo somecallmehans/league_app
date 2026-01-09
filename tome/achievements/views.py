@@ -60,7 +60,6 @@ from achievements.helpers import (
     handle_upsert_restrictions,
     cascade_soft_delete,
     calculate_monthly_winners,
-    calculate_color_mask,
 )
 from achievements.scoresheet_helpers import ScoresheetHelper
 from sessions_rounds.helpers import handle_close_round
@@ -69,6 +68,7 @@ from services.redis_keepalive import redis_keepalive
 
 GET = "GET"
 POST = "POST"
+PUT = "PUT"
 
 scryfall_request = ScryfallClientRequest()
 
@@ -652,25 +652,55 @@ def pick_keys(data: dict, keys: set[str]) -> dict:
     return {k: data[k] for k in keys if k in data}
 
 
-@api_view([POST])
+@api_view([POST, PUT])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def insert_scoresheet(request):
+def scoresheet(request, round_id: int, pod_id: int):
     """Technically V3 of the upsert participant achievements endpoint, but now
     broken into 2 endpoints (insert/update) to reduce complexity."""
 
     body = request.data
-    builder = ScoresheetHelper(**body)
+    builder = ScoresheetHelper(round_id, pod_id, **body)
     result = builder.build()
 
     with transaction.atomic():
+        pod = Pods.objects.select_for_update().get(id=pod_id)
+
+        if request.method == "POST" and pod.submitted:
+            return Response(
+                {"message": "Pod already submitted. Use PUT to update."},
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        if request.method == PUT:
+            if not pod.submitted:
+                return Response(
+                    {"message": "Pod not submitted, use POST to insert."},
+                    status=status.HTTP_409_CONFLICT,
+                )
+
+            ParticipantAchievements.objects.filter(
+                participant_id__in=result.pods_participants,
+                round_id=round_id,
+                session_id=result.session_id,
+                deleted=False,
+            ).update(deleted=True)
+            WinningCommanders.objects.filter(pods_id=pod_id, deleted=False).update(
+                deleted=True
+            )
+
         ParticipantAchievements.objects.bulk_create(result.records)
-        if result.commander_name:
+
+        if result.commander_name is not None:
             WinningCommanders.objects.create(
                 name=result.commander_name,
                 colors_id=result.colors_id,
                 participants_id=result.winner_id,
-                pods_id=result.pod_id,
+                pods_id=pod_id,
             )
+        if not pod.submitted:
+            pod.submitted = True
+            pod.save()
 
+    handle_close_round(round_id)
     return Response(status=status.HTTP_201_CREATED)
