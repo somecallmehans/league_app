@@ -16,7 +16,6 @@ PID = 102
 COMMANDER = "Wilson, Refined Grizzly"
 PARTNER = "Tavern Brawler"
 
-AID1 = 131
 AID2 = 132
 AID3 = 133
 AID4 = 134
@@ -35,9 +34,6 @@ def build_state() -> None:
     Commanders.objects.create(id=PID, name=PARTNER, colors_id=RED, is_background=True)
     Achievements.objects.bulk_create(
         [
-            Achievements(
-                id=AID1, name="Bring snack", slug="bring-snack", point_value=3
-            ),
             Achievements(id=AID2, name="Lend deck", slug="lend-deck", point_value=2),
             Achievements(
                 id=AID3,
@@ -132,8 +128,8 @@ def test_insert_scoresheet(client, get_slug, get_achievements, build_state) -> N
         AID9,
     ]
 
-    assert get_achievements(ids.P2) == [ids.KNOCK_OUT, AID1, AID2]
-    assert get_achievements(ids.P4) == [AID1, AID2, AID3, AID4]
+    assert get_achievements(ids.P2) == [ids.SNACK, ids.KNOCK_OUT, AID2]
+    assert get_achievements(ids.P4) == [ids.SNACK, AID2, AID3, AID4]
 
     winning_commander = (
         WinningCommanders.objects.filter(participants_id=winner_id, pods_id=POD_ID)
@@ -181,7 +177,7 @@ def test_insert_scoresheet_draw(
     res = client.post(url, body, format="json")
     assert res.status_code == status.HTTP_201_CREATED
 
-    assert get_achievements(ids.P1) == [ids.DRAW, ids.KNOCK_OUT, AID1, AID2]
-    assert get_achievements(ids.P3) == [ids.DRAW, AID1, AID2]
+    assert get_achievements(ids.P1) == [ids.DRAW, ids.SNACK, ids.KNOCK_OUT, AID2]
+    assert get_achievements(ids.P3) == [ids.DRAW, ids.SNACK, AID2]
     assert get_achievements(ids.P5) == [ids.DRAW, AID3, AID4]
     assert get_achievements(ids.P8) == [ids.DRAW]

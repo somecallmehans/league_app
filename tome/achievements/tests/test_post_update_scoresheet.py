@@ -18,7 +18,6 @@ PID = 102
 COMMANDER = "Wilson, Refined Grizzly"
 PARTNER = "Tavern Brawler"
 
-AID1 = 131
 AID2 = 132
 AID3 = 133
 AID4 = 134
@@ -37,9 +36,6 @@ def build_state() -> None:
     Commanders.objects.create(id=PID, name=PARTNER, colors_id=RED, is_background=True)
     Achievements.objects.bulk_create(
         [
-            Achievements(
-                id=AID1, name="Bring snack", slug="bring-snack", point_value=3
-            ),
             Achievements(id=AID2, name="Lend deck", slug="lend-deck", point_value=2),
             Achievements(
                 id=AID3,
@@ -91,14 +87,14 @@ def build_inserted_state(client, build_state) -> dict:
     records = [
         ParticipantAchievements(
             participant_id=ids.P5,
-            achievement_id=AID1,
+            achievement_id=ids.SNACK,
             round_id=rid,
             session_id=sid,
             earned_points=1,
         ),
         ParticipantAchievements(
             participant_id=ids.P8,
-            achievement_id=AID1,
+            achievement_id=ids.SNACK,
             round_id=rid,
             session_id=sid,
             earned_points=1,
@@ -280,8 +276,8 @@ def test_update_scoresheet(
     ]
 
     assert get_achievements(ids.P8, round_id=ids.R1_SESSION_THIS_MONTH_OPEN) == [
+        ids.SNACK,
         ids.KNOCK_OUT,
-        AID1,
         AID2,
     ]
 
@@ -341,7 +337,7 @@ def test_update_scoresheet_draw(
 
     assert get_achievements(ids.P8, round_id=ids.R1_SESSION_THIS_MONTH_OPEN) == [
         ids.DRAW,
+        ids.SNACK,
         ids.KNOCK_OUT,
-        AID1,
         AID2,
     ]
