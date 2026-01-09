@@ -62,6 +62,7 @@ from achievements.helpers import (
     calculate_monthly_winners,
     calculate_color_mask,
 )
+from achievements.scoresheet_helpers import ScoresheetHelper
 from sessions_rounds.helpers import handle_close_round
 from services.scryfall_client import ScryfallClientRequest
 from services.redis_keepalive import redis_keepalive
@@ -647,23 +648,6 @@ def upsert_earned_achievements(request):
     return Response(status=status.HTTP_201_CREATED)
 
 
-pod_slugs = {
-    "bring-snack",
-    "submit-to-discord",
-    "lend-deck",
-    "knock-out",
-    "money-pack",
-}
-
-winner_slugs = {
-    "last-in-order",
-    "commander-damage",
-    "lose-the-game-effect",
-    "win-the-game-effect",
-    "zero-or-less-life",
-}
-
-
 def pick_keys(data: dict, keys: set[str]) -> dict:
     return {k: data[k] for k in keys if k in data}
 
@@ -676,107 +660,17 @@ def insert_scoresheet(request):
     broken into 2 endpoints (insert/update) to reduce complexity."""
 
     body = request.data
-    pod_id = body["pod_id"]
-    rid = body["round_id"]
-    sid = Rounds.objects.filter(id=rid).values_list("session_id", flat=True).first()
-    is_draw = body["end-draw"]
+    builder = ScoresheetHelper(**body)
+    result = builder.build()
 
-    if not sid:
-        return Response(status=status.HTTP_400_BAD_REQUEST)
-
-    inst = Achievements.objects.filter(slug__isnull=False, deleted=False).values(
-        "id", "slug", "point_value"
-    )
-    ids_by_slug = {i["slug"]: i["id"] for i in inst}
-    points_by_slug = {i["slug"]: i["point_value"] for i in inst}
-
-    records: list[ParticipantAchievements] = []
-    for poa in pod_slugs:
-        pids = body[poa]
-        for p in pids:
-            records.append(
-                ParticipantAchievements(
-                    participant_id=p,
-                    achievement_id=ids_by_slug[poa],
-                    round_id=rid,
-                    session_id=sid,
-                    earned_points=points_by_slug[poa],
-                )
-            )
-
-    if is_draw:
-        pids = PodsParticipants.objects.filter(pods_id=pod_id).values_list(
-            "participants_id", flat=True
-        )
-        records.extend(
-            ParticipantAchievements(
-                participant_id=p,
-                achievement_id=ids_by_slug["end-draw"],
-                round_id=rid,
-                session_id=sid,
-                earned_points=points_by_slug["end-draw"],
-            )
-            for p in pids
-        )
-    else:
-        winner = body["winner"]
-
-        for ws in winner_slugs:
-            isTrue = body[ws]
-            if isTrue:
-                records.append(
-                    ParticipantAchievements(
-                        participant_id=winner,
-                        achievement_id=ids_by_slug[ws],
-                        round_id=rid,
-                        session_id=sid,
-                        earned_points=points_by_slug[ws],
-                    )
-                )
-
-        points = Achievements.objects.filter(id__in=body["winner-achievements"]).values(
-            "id", "point_value"
-        )
-        points_dict = {p["id"]: p["point_value"] for p in points}
-        for wa in body["winner-achievements"]:
-            records.append(
-                ParticipantAchievements(
-                    participant_id=winner,
-                    achievement_id=wa,
-                    round_id=rid,
-                    session_id=sid,
-                    earned_points=points_dict[wa],
-                )
-            )
-
-        commander = body["winner-commander"]
-        partner = body.get("partner-commander")
-
-        c1 = Commanders.objects.get(id=commander)
-        c2 = Commanders.objects.filter(id=partner).first()
-        cids = [c1.colors_id]
-        c_name = c1.name
-        if c2:
-            c_name = c1.name + "+" + c2.name
-            cids.append(c2.colors_id)
-
-        win_colors, colors_id = calculate_color_mask(cids)
-
-        records.append(
-            ParticipantAchievements(
-                participant_id=winner,
-                achievement_id=ids_by_slug[f"win-{win_colors}-colors"],
-                round_id=rid,
-                session_id=sid,
-                earned_points=points_by_slug[f"win-{win_colors}-colors"],
-            )
-        )
     with transaction.atomic():
-        ParticipantAchievements.objects.bulk_create(records)
-
-        if not is_draw:
+        ParticipantAchievements.objects.bulk_create(result.records)
+        if result.commander_name:
             WinningCommanders.objects.create(
-                name=c_name, colors_id=colors_id, participants_id=winner, pods_id=pod_id
+                name=result.commander_name,
+                colors_id=result.colors_id,
+                participants_id=result.winner_id,
+                pods_id=result.pod_id,
             )
 
     return Response(status=status.HTTP_201_CREATED)
