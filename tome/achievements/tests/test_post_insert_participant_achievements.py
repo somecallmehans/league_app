@@ -65,9 +65,9 @@ def test_insert_winner_deckbuilding_achievements(
         .first()
     )
     assert get_achievements(ids.P1) == [
-        ids.WIN_TWO_COLORS,
         ids.NO_CREATURES,
         ids.CMDR_DMG,
+        ids.WIN_TWO_COLORS,
     ]
     assert winning_commander["name"] == WINNING_COMMANDER
 
@@ -197,9 +197,9 @@ def test_insert_participant_achievements(client, get_slug, get_achievements) -> 
     assert res.status_code == status.HTTP_201_CREATED
 
     assert get_achievements(ids.P1) == [
-        ids.WIN_TWO_COLORS,
         ids.NO_CREATURES,
         ids.CMDR_DMG,
+        ids.WIN_TWO_COLORS,
     ]
     assert get_achievements(ids.P3) == [ids.KNOCK_OUT]
     assert get_achievements(ids.P5) == [ids.KNOCK_OUT]

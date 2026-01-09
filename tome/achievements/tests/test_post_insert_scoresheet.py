@@ -84,7 +84,10 @@ def test_insert_scoresheet(client, get_slug, get_achievements, build_state) -> N
     This test supports v3 of our submission functionality.
     """
 
-    url = reverse("insert_scoresheet")
+    url = reverse(
+        "scoresheet",
+        kwargs={"round_id": ids.R1_SESSION_THIS_MONTH_OPEN, "pod_id": POD_ID},
+    )
     winner_id = ids.P3
 
     body = {
@@ -111,8 +114,6 @@ def test_insert_scoresheet(client, get_slug, get_achievements, build_state) -> N
             ids.NO_CREATURES,
             ids.NO_INSTANTS_SORCERIES,
         ],
-        "round_id": ids.R1_SESSION_THIS_MONTH_OPEN,
-        "pod_id": POD_ID,
     }
 
     res = client.post(url, body, format="json")
@@ -149,7 +150,10 @@ def test_insert_scoresheet_draw(
 ) -> None:
     """Should: Mark a round as a draw in addition to other pod achievements."""
 
-    url = reverse("insert_scoresheet")
+    url = reverse(
+        "scoresheet",
+        kwargs={"round_id": ids.R1_SESSION_THIS_MONTH_OPEN, "pod_id": POD_ID},
+    )
 
     body = {
         "bring-snack": [ids.P1, ids.P3],
@@ -172,8 +176,6 @@ def test_insert_scoresheet_draw(
         "win-the-game-effect": None,
         "zero-or-less-life": None,
         "winner-achievements": None,
-        "round_id": ids.R1_SESSION_THIS_MONTH_OPEN,
-        "pod_id": POD_ID,
     }
 
     res = client.post(url, body, format="json")

@@ -94,9 +94,9 @@ def test_update_winner_deckbuilding_achievements(
     assert res.status_code == status.HTTP_201_CREATED
 
     assert get_achievements(ids.P1, deleted=False) == [
-        ids.WIN_TWO_COLORS,
-        ids.NO_CREATURES,
         ids.KILL_TABLE,
+        ids.NO_CREATURES,
+        ids.WIN_TWO_COLORS,
     ]
     assert get_achievements(ids.P1, deleted=True) == [ids.CMDR_DMG]
 
@@ -150,13 +150,13 @@ def test_update_pod_winner(client, get_slug, get_achievements) -> None:
 
     assert res.status_code == status.HTTP_201_CREATED
     assert get_achievements(ids.P1, deleted=True) == [
-        ids.CMDR_DMG,
         ids.NO_CREATURES,
+        ids.CMDR_DMG,
     ]
     assert get_achievements(ids.P3, deleted=False) == [
+        ids.KILL_TABLE,
         ids.KNOCK_OUT,
         ids.WIN_TWO_COLORS,
-        ids.KILL_TABLE,
     ]
     assert winning_commander.participants_id == ids.P3
     assert winning_commander.name == NEW_COMMANDER
@@ -229,11 +229,11 @@ def test_update_to_draw(client, get_slug, get_achievements) -> None:
 
     assert get_achievements(ids.P1, deleted=False) == [ids.DRAW]
     assert get_achievements(ids.P3, deleted=False) == [
-        ids.KNOCK_OUT,
         ids.DRAW,
+        ids.KNOCK_OUT,
     ]
     assert get_achievements(ids.P5, deleted=False) == [
-        ids.KNOCK_OUT,
         ids.DRAW,
+        ids.KNOCK_OUT,
     ]
-    assert get_achievements(ids.P8, deleted=False) == [ids.SNACK, ids.DRAW]
+    assert get_achievements(ids.P8, deleted=False) == [ids.DRAW, ids.SNACK]
