@@ -61,7 +61,7 @@ from achievements.helpers import (
     cascade_soft_delete,
     calculate_monthly_winners,
 )
-from achievements.scoresheet_helpers import ScoresheetHelper
+from achievements.scoresheet_helpers import POSTScoresheetHelper, GETScoresheetHelper
 from sessions_rounds.helpers import handle_close_round
 from services.scryfall_client import ScryfallClientRequest
 from services.redis_keepalive import redis_keepalive
@@ -652,15 +652,20 @@ def pick_keys(data: dict, keys: set[str]) -> dict:
     return {k: data[k] for k in keys if k in data}
 
 
-@api_view([POST, PUT])
+@api_view([GET, POST, PUT])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def scoresheet(request, round_id: int, pod_id: int):
     """Technically V3 of the upsert participant achievements endpoint, but now
-    broken into 2 endpoints (insert/update) to reduce complexity."""
+    broken into 3 endpoints (fetch/insert/update) to reduce complexity."""
+
+    if request.method == GET:
+        builder = GETScoresheetHelper(round_id, pod_id)
+        result = builder.build()
+        return Response(result)
 
     body = request.data
-    builder = ScoresheetHelper(round_id, pod_id, **body)
+    builder = POSTScoresheetHelper(round_id, pod_id, **body)
     result = builder.build()
 
     with transaction.atomic():

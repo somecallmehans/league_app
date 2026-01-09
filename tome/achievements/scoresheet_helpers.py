@@ -2,7 +2,7 @@ from typing import NamedTuple, Optional
 from rest_framework.exceptions import NotFound
 
 from sessions_rounds.models import Rounds, PodsParticipants
-from achievements.models import Achievements, Commanders
+from achievements.models import Achievements, Commanders, WinningCommanders
 from users.models import ParticipantAchievements
 
 from achievements.helpers import calculate_color_mask
@@ -23,6 +23,8 @@ winner_slugs = {
     "zero-or-less-life",
 }
 
+DRAW_NAME = "END IN DRAW"
+
 
 class ScoresheetBuildResult(NamedTuple):
     records: list[ParticipantAchievements]
@@ -33,7 +35,151 @@ class ScoresheetBuildResult(NamedTuple):
     pods_participants: list[int]
 
 
-class ScoresheetHelper:
+class CommanderResult(NamedTuple):
+    commander: Optional[dict]
+    partner: Optional[dict]
+    participant_id: Optional[int]
+
+
+class GETScoresheetHelper:
+    """Tab to assemble and return achievements for a given round/pod"""
+
+    def __init__(self, round_id, pod_id):
+        self.round_id = round_id
+        self.pod_id = pod_id
+        self.session_id = (
+            Rounds.objects.filter(id=round_id)
+            .values_list("session_id", flat=True)
+            .first()
+        )
+        self.pod_participants = list(
+            PodsParticipants.objects.filter(pods_id=self.pod_id)
+            .select_related("participants")
+            .values("participants_id", "participants__name")
+        )
+
+    def handle_commander(self):
+        """Handle getting colors + names for a logged commander."""
+        wc = (
+            WinningCommanders.objects.filter(pods_id=self.pod_id, deleted=False)
+            .values("participants_id", "name", "colors_id")
+            .first()
+        )
+
+        if wc.get("name") == DRAW_NAME:
+            return CommanderResult(commander=None, partner=None, participant_id=None)
+
+        name_list = wc["name"].split("+")
+        commander = (
+            Commanders.objects.filter(name=name_list[0])
+            .values("name", "colors_id")
+            .first()
+        )
+        if len(name_list) > 1:
+
+            partner = (
+                Commanders.objects.filter(name=name_list[1])
+                .values("name", "colors_id")
+                .first()
+            )
+
+            return CommanderResult(
+                commander=commander,
+                partner=partner,
+                participant_id=wc["participants_id"],
+            )
+        return CommanderResult(
+            commander=commander, partner=None, participant_id=wc["participants_id"]
+        )
+
+    def build(self):
+        participant_rows = list(
+            PodsParticipants.objects.filter(pods_id=self.pod_id)
+            .select_related("participants")
+            .values("participants_id", "participants__name")
+        )
+        participant_ids = [r["participants_id"] for r in participant_rows]
+        participant_name_by_id = {
+            r["participants_id"]: r["participants__name"] for r in participant_rows
+        }
+
+        earned = list(
+            ParticipantAchievements.objects.filter(
+                participant_id__in=participant_ids,
+                round_id=self.round_id,
+                session_id=self.session_id,
+                deleted=False,
+            )
+            .select_related("achievement")
+            .values(
+                "participant_id",
+                "achievement_id",
+                "achievement__slug",
+                "achievement__name",
+            )
+        )
+
+        wc = self.handle_commander()
+        winner_id = None
+        if wc.commander is not None:
+            winner_id = wc.participant_id
+            winner_dict = {
+                "id": winner_id,
+                "name": participant_name_by_id.get(winner_id),
+            }
+
+        else:
+            winner_dict = None
+
+        payload = {slug: [] for slug in pod_slugs}
+        bool_slugs = winner_slugs | {"end-draw"}
+        for slug in bool_slugs:
+            payload[slug] = False
+
+        payload.update(
+            {
+                "winner": winner_dict,
+                "winner-commander": wc.commander,
+                "partner-commander": wc.partner,
+                "winner-achievements": [],
+            }
+        )
+
+        winner_slug_set = set()
+
+        for row in earned:
+            pid = row["participant_id"]
+            slug = row["achievement__slug"]
+
+            if not slug:
+                if winner_id and pid == winner_id:
+                    payload["winner-achievements"].append(
+                        {
+                            "id": row["achievement_id"],
+                            "name": row["achievement__name"],
+                        }
+                    )
+                continue
+
+            if slug in pod_slugs:
+                payload[slug].append(
+                    {"id": pid, "name": participant_name_by_id.get(pid)}
+                )
+                continue
+
+            if slug in bool_slugs:
+                if slug == "end-draw":
+                    payload["end-draw"] = True
+                elif winner_id and pid == winner_id:
+                    winner_slug_set.add(slug)
+
+        for slug in winner_slugs:
+            payload[slug] = slug in winner_slug_set
+
+        return payload
+
+
+class POSTScoresheetHelper:
     """Special class to help tabulate and assign points
     for a scoresheet."""
 
