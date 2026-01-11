@@ -15,6 +15,7 @@ import {
   type RegisterOptions,
 } from "react-hook-form";
 import { Checkbox, Input, Label, Field, Textarea } from "@headlessui/react";
+import { onChange } from "node_modules/react-toastify/dist/core/store";
 
 type BaseFieldProps<TFieldValues extends FieldValues> = {
   name: Path<TFieldValues>;
@@ -230,6 +231,7 @@ type SelectorProps<
   filterOption?: ReactSelectProps<TOption, false>["filterOption"];
   containerClasses?: string;
   isOptionDisabled?: (option: TOption) => boolean;
+  onChange?: (value: unknown) => void;
 };
 
 export const Selector = <TFieldValues extends FieldValues, TOption>({
@@ -248,6 +250,7 @@ export const Selector = <TFieldValues extends FieldValues, TOption>({
   rules,
   containerClasses = "",
   isOptionDisabled,
+  onChange,
 }: SelectorProps<TFieldValues, TOption>) => {
   return (
     <Controller
@@ -281,8 +284,9 @@ export const Selector = <TFieldValues extends FieldValues, TOption>({
               styles={customStyles}
               placeholder={placeholder}
               defaultValue={defaultValue}
-              onChange={(selectedOption) => {
-                field.onChange(selectedOption);
+              onChange={(val) => {
+                field.onChange(val);
+                onChange?.(val);
               }}
               isDisabled={disabled}
               isClearable={isClearable}

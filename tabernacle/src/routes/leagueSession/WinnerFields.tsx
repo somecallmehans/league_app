@@ -52,7 +52,7 @@ export default function WinnerFields() {
   return (
     <>
       <div className="flex items-center gap-2">
-        <h2 className="text-sm font-semibold text-zinc-700">Winner</h2>
+        <h2 className="text-lg font-semibold text-zinc-700">Winner</h2>
         <ColorGrid colors={colorName} submitted show noHover isSmall />
       </div>
       <div className="border-t space-y-2 " />

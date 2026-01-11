@@ -1,5 +1,11 @@
+import { useEffect } from "react";
 import { useForm, FormProvider } from "react-hook-form";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  useGetScoresheetsQuery,
+  useInsertScoresheetMutation,
+  useUpdateScoresheetMutation,
+} from "../../api/apiSlice";
 import { useGoBack, useScorecardInfo } from "../../hooks";
 import { ScorecardInfoContext } from "./ScorecardCTX";
 
@@ -7,23 +13,64 @@ import StandardButton from "../../components/Button";
 import WinnerFields from "./WinnerFields";
 import PlayerFields from "./PlayerFields";
 import AchievementCart from "./AchievementCart";
+import { skipToken } from "@reduxjs/toolkit/query";
+
+const normalize = (items?: { id: number; name: string }[]) =>
+  items?.map(({ id }) => id) ?? [];
 
 export default function ScorecardPage() {
-  const { round_id } = useParams();
+  const { round_id, pod_id } = useParams();
+  const navigate = useNavigate();
+  const args = round_id && pod_id ? { round_id, pod_id } : skipToken;
+  const { data: scoresheet } = useGetScoresheetsQuery(args);
+  const [postScoresheet] = useInsertScoresheetMutation();
+  const [putScoresheet] = useUpdateScoresheetMutation();
+
   const info = useScorecardInfo();
 
   const Back = useGoBack(`/${round_id}`);
 
-  const methods = useForm();
+  const methods = useForm({ defaultValues: scoresheet || undefined });
   const {
     handleSubmit,
     formState: { isSubmitting },
+    reset,
   } = methods;
 
-  const handleFormSubmit = (data: any) => {
+  useEffect(() => {
+    if (scoresheet) {
+      reset(scoresheet);
+    }
+  }, [scoresheet]);
+
+  const handleFormSubmit = async (data: any) => {
     // We also need to strip names from the POST body
     const { picker, ...clean } = data;
-    console.log(clean);
+
+    const payload = {
+      ...clean,
+      winner: clean["winner"]?.id,
+      "winner-commander": clean["winner-commander"]?.id,
+      "partner-commander": clean["partner-commander"]?.id,
+      "bring-snack": normalize(clean["bring-snack"]),
+      "submit-to-discord": normalize(clean["submit-to-discord"]),
+      "lend-deck": normalize(clean["lend-deck"]),
+      "knock-out": normalize(clean["knock-out"]),
+      "money-pack": normalize(clean["money-pack"]),
+      "winner-achievements": normalize(clean["winner-achievements"]),
+      round_id,
+      pod_id,
+    };
+    try {
+      if (scoresheet?.meta?.isSubmitted) {
+        await putScoresheet(payload).unwrap();
+      } else {
+        await postScoresheet(payload).unwrap();
+      }
+      navigate(`/league-session/${round_id}`);
+    } catch (error) {
+      console.error("Failed to submit scoresheet.", error);
+    }
   };
 
   return (

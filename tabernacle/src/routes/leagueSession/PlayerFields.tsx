@@ -34,19 +34,20 @@ export default function PlayerFields() {
   const { participants } = useScorecardInfoCtx();
   return (
     <>
-      <h2 className="text-sm font-semibold text-zinc-700">General</h2>
+      <h2 className="text-lg font-semibold text-zinc-700">General</h2>
       <div className="border-t space-y-2 " />
       {PLAYER_ACHIEVEMENT_MAP.map(({ label, slug, key }) => (
-        <MultiSelector
-          key={key}
-          name={slug}
-          control={control}
-          placeholder={label}
-          options={participants || []}
-          classes="space-y-2 "
-          getOptionLabel={(option) => option.name}
-          getOptionValue={(option) => String(option.id)}
-        />
+        <div className="mt-2 italic" key={key}>
+          <div className="text-sm mt-1">{label}</div>
+          <MultiSelector
+            key={key}
+            name={slug}
+            control={control}
+            options={participants || []}
+            getOptionLabel={(option) => option.name}
+            getOptionValue={(option) => String(option.id)}
+          />
+        </div>
       ))}
       <Controller
         name="end-draw"
