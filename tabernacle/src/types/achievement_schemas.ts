@@ -217,3 +217,70 @@ export const UpsertPartcipantAchievementRequestSchema = z.object({
 export type UpsertParticipantAchievementRequest = z.infer<
   typeof UpsertPartcipantAchievementRequestSchema
 >;
+
+const IdName = z.object({ id: z.number(), name: z.string() });
+
+const ScoresheetBase = z.object({
+  "lend-deck": z.unknown(),
+  "money-pack": z.unknown(),
+  "bring-snack": z.unknown(),
+  "knock-out": z.unknown(),
+  "submit-to-discord": z.unknown(),
+
+  "last-in-order": z.boolean(),
+  "zero-or-less-life": z.boolean(),
+  "win-the-game-effect": z.boolean(),
+  "lose-the-game-effect": z.boolean(),
+  "commander-damage": z.boolean(),
+  "end-draw": z.boolean(),
+
+  winner: z.unknown().optional(),
+  "winner-commander": z.unknown().optional(),
+  "partner-commander": z.unknown().optional(),
+  "winner-achievements": z.unknown(),
+});
+
+const IdListFieldsRequest = {
+  "lend-deck": z.array(z.number()),
+  "money-pack": z.array(z.number()),
+  "bring-snack": z.array(z.number()),
+  "knock-out": z.array(z.number()),
+  "submit-to-discord": z.array(z.number()),
+} as const;
+
+const IdListFieldsResponse = {
+  "lend-deck": z.array(IdName),
+  "money-pack": z.array(IdName),
+  "bring-snack": z.array(IdName),
+  "knock-out": z.array(IdName),
+  "submit-to-discord": z.array(IdName),
+} as const;
+
+export const ScoresheetFormRequestSchema = ScoresheetBase.extend({
+  ...IdListFieldsRequest,
+  winner: z.number().nullable(),
+  "winner-commander": z.number().nullable(),
+  "partner-commander": z.number().nullable(),
+  "winner-achievements": z.array(z.number()),
+  pod_id: z.number(),
+  round_id: z.number(),
+});
+
+export type ScoresheetFormRequest = z.infer<typeof ScoresheetFormRequestSchema>;
+
+export const ScoresheetFormResponseSchema = ScoresheetBase.extend({
+  ...IdListFieldsResponse,
+  winner: IdName.optional(),
+  "winner-commander": z
+    .object({ id: z.number(), name: z.string(), colors_id: z.number() })
+    .optional(),
+  "partner-commander": z
+    .object({ id: z.number(), name: z.string(), colors_id: z.number() })
+    .optional(),
+  "winner-achievements": z.array(IdName),
+  meta: z.object({ isSubmitted: z.boolean() }),
+});
+
+export type ScoresheetFormResponse = z.infer<
+  typeof ScoresheetFormResponseSchema
+>;

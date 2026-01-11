@@ -30,6 +30,7 @@ import {
   type UpsertAchievementResponse,
   type UpsertAchievementRequest,
   type UpsertParticipantAchievementRequest,
+  type ScoresheetFormRequest,
 } from "../types/achievement_schemas";
 import {
   RerollPodsResponseSchema,
@@ -197,5 +198,19 @@ export default (builder: ApiBuilder) => ({
       body: body,
     }),
     invalidatesTags: ["Pods", "Participants"],
+  }),
+  insertScoresheet: builder.mutation<void, ScoresheetFormRequest>({
+    query: ({ round_id, pod_id, ...body }) => ({
+      url: `rounds/${round_id}/pods/${pod_id}/scoresheet/`,
+      method: "POST",
+      body: body,
+    }),
+  }),
+  updateScoresheet: builder.mutation<void, ScoresheetFormRequest>({
+    query: ({ round_id, pod_id, ...body }) => ({
+      url: `rounds/${round_id}/pods/${pod_id}/scoresheet/`,
+      method: "PUT",
+      body: body,
+    }),
   }),
 });

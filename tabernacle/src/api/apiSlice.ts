@@ -109,6 +109,7 @@ export const {
   useGetAllConfigsQuery,
   useGetParticipantBadgesQuery,
   useGetPodParticipantsQuery,
+  useGetScoresheetsQuery,
 
   // POSTS
   usePostCreateSessionMutation,
@@ -125,6 +126,8 @@ export const {
   usePostLobbySignInMutation,
   usePostPodParticipantMutation,
   useDeletePodParticipantMutation,
+  useInsertScoresheetMutation,
+  useUpdateScoresheetMutation,
 
   // AUTH
   useLoginMutation,

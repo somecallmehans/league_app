@@ -12,10 +12,12 @@ import {
   EMPTY_PODACHIEVEMENT,
   EarnedAchievementStubListResponseSchema,
   AchievementTypeListResponseSchema,
+  ScoresheetFormResponseSchema,
   type AchievementListResponse,
   type AchievementObjectResponse,
   type EarnedAchievementSubListResponse,
   type AchievementTypeListResponse,
+  type ScoresheetFormResponse,
 } from "../types/achievement_schemas";
 import {
   SessionObjectResponseSchema,
@@ -234,5 +236,12 @@ export default (builder: ApiBuilder) => ({
     { pod_id: Id }
   >({
     query: ({ pod_id }) => `get_pod_participants/${pod_id}/`,
+  }),
+  getScoresheets: builder.query<
+    ScoresheetFormResponse,
+    { round_id: Id; pod_id: Id }
+  >({
+    query: ({ round_id, pod_id }) =>
+      `rounds/${round_id}/pods/${pod_id}/scoresheet/`,
   }),
 });

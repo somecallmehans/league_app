@@ -1,7 +1,7 @@
 from typing import NamedTuple, Optional
 from rest_framework.exceptions import NotFound
 
-from sessions_rounds.models import Rounds, PodsParticipants
+from sessions_rounds.models import Rounds, PodsParticipants, Pods
 from achievements.models import Achievements, Commanders, WinningCommanders
 from users.models import ParticipantAchievements
 
@@ -72,7 +72,7 @@ class GETScoresheetHelper:
         name_list = wc["name"].split("+")
         commander = (
             Commanders.objects.filter(name=name_list[0])
-            .values("name", "colors_id")
+            .values("id", "name", "colors_id")
             .first()
         )
         if len(name_list) > 1:
@@ -93,6 +93,14 @@ class GETScoresheetHelper:
         )
 
     def build(self):
+        is_submitted = (
+            Pods.objects.filter(id=self.pod_id)
+            .values_list("submitted", flat=True)
+            .first()
+        )
+        if is_submitted is False:
+            return {"meta": {"isSubmitted": is_submitted}}
+
         participant_rows = list(
             PodsParticipants.objects.filter(pods_id=self.pod_id)
             .select_related("participants")
@@ -103,21 +111,22 @@ class GETScoresheetHelper:
             r["participants_id"]: r["participants__name"] for r in participant_rows
         }
 
-        earned = list(
-            ParticipantAchievements.objects.filter(
-                participant_id__in=participant_ids,
-                round_id=self.round_id,
-                session_id=self.session_id,
-                deleted=False,
-            )
-            .select_related("achievement")
-            .values(
-                "participant_id",
-                "achievement_id",
-                "achievement__slug",
-                "achievement__name",
-            )
-        )
+        qs = ParticipantAchievements.objects.filter(
+            participant_id__in=participant_ids,
+            round_id=self.round_id,
+            session_id=self.session_id,
+            deleted=False,
+        ).select_related("achievement", "achievement__parent")
+
+        earned = [
+            {
+                "participant_id": pa.participant_id,
+                "achievement_id": pa.achievement_id,
+                "achievement__slug": pa.achievement.slug,
+                "achievement_full_name": pa.achievement.full_name,
+            }
+            for pa in qs
+        ]
 
         wc = self.handle_commander()
         winner_id = None
@@ -131,7 +140,9 @@ class GETScoresheetHelper:
         else:
             winner_dict = None
 
-        payload = {slug: [] for slug in pod_slugs}
+        payload = {slug: [] for slug in pod_slugs} | {
+            "meta": {"isSubmitted": is_submitted}
+        }
         bool_slugs = winner_slugs | {"end-draw"}
         for slug in bool_slugs:
             payload[slug] = False
@@ -156,7 +167,7 @@ class GETScoresheetHelper:
                     payload["winner-achievements"].append(
                         {
                             "id": row["achievement_id"],
-                            "name": row["achievement__name"],
+                            "name": row["achievement_full_name"],
                         }
                     )
                 continue
@@ -214,7 +225,7 @@ class POSTScoresheetHelper:
         """Build achievement records for general pod achievements."""
 
         for poa in pod_slugs:
-            pids = getattr(self, poa)
+            pids = getattr(self, poa, [])
 
             if not pids:
                 continue
@@ -233,10 +244,10 @@ class POSTScoresheetHelper:
     def build_winner_achievements(self):
         """Build achievement records for winner achievements."""
         winner = self.winner
-        winner_achievements = getattr(self, "winner-achievements")
+        winner_achievements = getattr(self, "winner-achievements", [])
 
         for ws in winner_slugs:
-            isTrue = getattr(self, ws)
+            isTrue = getattr(self, ws, False)
             if isTrue:
                 self.records.append(
                     ParticipantAchievements(
@@ -265,8 +276,8 @@ class POSTScoresheetHelper:
 
     def build_win_colors(self):
         """Build the winning commander record."""
-        winner_commander = getattr(self, "winner-commander")
-        partner_commander = getattr(self, "partner-commander")
+        winner_commander = getattr(self, "winner-commander", None)
+        partner_commander = getattr(self, "partner-commander", None)
         c1 = Commanders.objects.get(id=winner_commander)
         c2 = Commanders.objects.filter(id=partner_commander).first()
         cids = [c1.colors_id]
@@ -313,7 +324,7 @@ class POSTScoresheetHelper:
 
         self.build_pod_achievements()
 
-        is_draw = getattr(self, "end-draw")
+        is_draw = getattr(self, "end-draw", False)
         if is_draw:
             self.build_draw()
             return ScoresheetBuildResult(
