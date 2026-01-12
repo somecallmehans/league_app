@@ -1,5 +1,6 @@
 from typing import NamedTuple, Optional
 from rest_framework.exceptions import NotFound
+from django.db.models.functions import Coalesce
 
 from sessions_rounds.models import Rounds, PodsParticipants, Pods
 from achievements.models import Achievements, Commanders, WinningCommanders
@@ -258,10 +259,13 @@ class POSTScoresheetHelper:
                         earned_points=self.points_by_slug[ws],
                     )
                 )
-        points = Achievements.objects.filter(id__in=winner_achievements).values(
-            "id", "point_value"
+        qs = (
+            Achievements.objects.filter(id__in=winner_achievements, deleted=False)
+            .annotate(true_value=Coalesce("point_value", "parent__point_value"))
+            .values_list("id", "true_value")
         )
-        points_dict = {p["id"]: p["point_value"] for p in points}
+
+        points_dict = dict(qs)
 
         for wa in winner_achievements:
             self.records.append(

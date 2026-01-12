@@ -51,7 +51,7 @@ export default function ColorGrid({
       {keys?.map((c, idx) => (
         <img
           key={idx}
-          className={`${isSmall ? "w-2 h-2 md:w-4 md:h-4" : "w-4 h-4 md:w-6 md:h-6"}`}
+          className={`${isSmall ? "w-3 h-3 md:w-4 md:h-4" : "w-4 h-4 md:w-6 md:h-6"}`}
           src={imgs[c]}
         />
       ))}
