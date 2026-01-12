@@ -262,8 +262,13 @@ def build_single_state() -> None:
     )
 
 
+@pytest.fixture(scope="function")
+def make_submit_pod() -> None:
+    Pods.objects.filter(id=POD_ID).update(submitted=True)
+
+
 def test_get_scoresheet_one_commander(
-    client, create_pod_and_bridge_records, build_single_state
+    client, create_pod_and_bridge_records, build_single_state, make_submit_pod
 ) -> None:
     """
     should: return the bare essentials for the form to function
@@ -276,6 +281,7 @@ def test_get_scoresheet_one_commander(
     parsed_res = res.json()
     assert res.status_code == status.HTTP_200_OK
     assert parsed_res == {
+        "meta": {"isSubmitted": True},
         "bring-snack": [],
         "end-draw": False,
         "lend-deck": [],
@@ -283,10 +289,7 @@ def test_get_scoresheet_one_commander(
         "money-pack": [],
         "knock-out": [],
         "winner": {"id": ids.P3, "name": "Fern Penvarden"},
-        "winner-commander": {
-            "colors_id": ids.GRUUL,
-            "name": "TEST GUY",
-        },
+        "winner-commander": {"colors_id": ids.GRUUL, "name": "TEST GUY", "id": 1},
         "partner-commander": None,
         "last-in-order": False,
         "commander-damage": False,
@@ -298,7 +301,7 @@ def test_get_scoresheet_one_commander(
 
 
 def test_get_scoresheet_two_commanders(
-    client, create_pod_and_bridge_records, build_state
+    client, create_pod_and_bridge_records, build_state, make_submit_pod
 ) -> None:
     """
     should: get a scoresheet in the shape the frontend expects as the initial state
@@ -313,6 +316,7 @@ def test_get_scoresheet_two_commanders(
     parsed_res = res.json()
     assert res.status_code == status.HTTP_200_OK
     assert parsed_res == {
+        "meta": {"isSubmitted": True},
         "bring-snack": [
             {
                 "id": ids.P5,
@@ -340,11 +344,9 @@ def test_get_scoresheet_two_commanders(
         "winner-commander": {
             "colors_id": 11,
             "name": "Wilson, Refined Grizzly",
+            "id": CID,
         },
-        "partner-commander": {
-            "colors_id": 10000,
-            "name": "Tavern Brawler",
-        },
+        "partner-commander": {"colors_id": 10000, "name": "Tavern Brawler"},
         "last-in-order": True,
         "commander-damage": True,
         "lose-the-game-effect": True,
@@ -363,10 +365,13 @@ def test_get_scoresheet_two_commanders(
     }
 
 
-def test_get_scoresheet_draw(client, create_pod_and_bridge_records, draw_state) -> None:
+def test_get_scoresheet_draw(
+    client, create_pod_and_bridge_records, draw_state, make_submit_pod
+) -> None:
     """
     should: get a completed scoresheet for a pod that ended in a draw
     """
+
     url = reverse(
         "scoresheet",
         kwargs={"round_id": ids.R1_SESSION_THIS_MONTH_OPEN, "pod_id": POD_ID},
@@ -375,6 +380,7 @@ def test_get_scoresheet_draw(client, create_pod_and_bridge_records, draw_state) 
     parsed_res = res.json()
 
     assert parsed_res == {
+        "meta": {"isSubmitted": True},
         "bring-snack": [
             {
                 "id": ids.P3,

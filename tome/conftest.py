@@ -77,3 +77,5 @@ def seed_db(db):
         cursor.execute(
             "TRUNCATE TABLE participant_achievements RESTART IDENTITY CASCADE"
         )
+        cursor.execute("TRUNCATE TABLE winning_commanders RESTART IDENTITY CASCADE")
+        cursor.execute("TRUNCATE TABLE commanders RESTART IDENTITY CASCADE")
