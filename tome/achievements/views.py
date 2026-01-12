@@ -683,13 +683,16 @@ def scoresheet(request, round_id: int, pod_id: int):
                     {"message": "Pod not submitted, use POST to insert."},
                     status=status.HTTP_409_CONFLICT,
                 )
-
             ParticipantAchievements.objects.filter(
                 participant_id__in=result.pods_participants,
                 round_id=round_id,
                 session_id=result.session_id,
                 deleted=False,
-            ).update(deleted=True)
+            ).select_related("achievement").exclude(
+                achievement__slug="participation"
+            ).update(
+                deleted=True
+            )
             WinningCommanders.objects.filter(pods_id=pod_id, deleted=False).update(
                 deleted=True
             )
