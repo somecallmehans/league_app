@@ -73,6 +73,7 @@ export const apiSlice = createApi({
     "Rounds",
     "SignedIn",
     "Configs",
+    "Scoresheet",
   ] as const,
   endpoints: (builder) => ({
     ...getRoutes(builder),

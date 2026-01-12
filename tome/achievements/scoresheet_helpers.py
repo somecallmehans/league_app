@@ -237,7 +237,7 @@ class POSTScoresheetHelper:
                         achievement_id=self.ids_by_slug[poa],
                         round_id=self.round_id,
                         session_id=self.session_id,
-                        earned_points=self.ids_by_slug[poa],
+                        earned_points=self.points_by_slug[poa],
                     )
                 )
 

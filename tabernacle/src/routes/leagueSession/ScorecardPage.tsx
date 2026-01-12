@@ -44,7 +44,6 @@ export default function ScorecardPage() {
   }, [scoresheet]);
 
   const handleFormSubmit = async (data: any) => {
-    // We also need to strip names from the POST body
     const { picker, ...clean } = data;
 
     const payload = {
@@ -67,7 +66,7 @@ export default function ScorecardPage() {
       } else {
         await postScoresheet(payload).unwrap();
       }
-      navigate(`/league-session/${round_id}`);
+      navigate(-1);
     } catch (error) {
       console.error("Failed to submit scoresheet.", error);
     }

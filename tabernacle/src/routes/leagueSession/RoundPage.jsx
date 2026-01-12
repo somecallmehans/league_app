@@ -437,6 +437,8 @@ function RoundDisplay({
 }
 
 export default function RoundPage() {
+  // TODO: RIP OUT ALL OF THE OLD SCORESHEET MODAL CODE
+  // GET RID OF LOCATION.STATE WE CAN DO BETTER
   const [modalOpen, setModalOpen] = useState(false);
   const [postRerollPods] = usePostRerollPodsMutation();
 

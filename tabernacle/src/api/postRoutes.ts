@@ -205,6 +205,7 @@ export default (builder: ApiBuilder) => ({
       method: "POST",
       body: body,
     }),
+    invalidatesTags: ["Pods", "Earned", "Scoresheet"],
   }),
   updateScoresheet: builder.mutation<void, ScoresheetFormRequest>({
     query: ({ round_id, pod_id, ...body }) => ({
@@ -212,5 +213,6 @@ export default (builder: ApiBuilder) => ({
       method: "PUT",
       body: body,
     }),
+    invalidatesTags: ["Pods", "Earned", "Scoresheet"],
   }),
 });

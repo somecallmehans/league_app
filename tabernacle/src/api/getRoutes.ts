@@ -243,5 +243,8 @@ export default (builder: ApiBuilder) => ({
   >({
     query: ({ round_id, pod_id }) =>
       `rounds/${round_id}/pods/${pod_id}/scoresheet/`,
+    providesTags: (result, error, { round_id, pod_id }) => [
+      { type: "Scoresheet", id: `${round_id}${pod_id}` },
+    ],
   }),
 });
