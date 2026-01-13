@@ -3,6 +3,13 @@ import { z } from "zod";
 import { ParticipantSchema } from "./participant_schemas";
 import { StubPodSchema } from "./pod_schemas";
 
+export type StubRound = {
+  roundNumber: string;
+  completed: boolean;
+  sessionDate: string;
+  previousRoundId: string | null;
+};
+
 export const RoundSchema = z.object({
   id: z.number(),
   round_number: z.union([z.literal(1), z.literal(2)]),

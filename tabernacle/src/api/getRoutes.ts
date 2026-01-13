@@ -54,6 +54,7 @@ import {
   type MonthRoundObjectResponse,
   type RoundList,
   type SignInResponse,
+  type StubRound,
 } from "../types/round_schemas";
 import {
   CommanderObjectResponseSchema,
@@ -62,13 +63,6 @@ import {
 import { type ConfigsTransformed } from "../types/config_schemas";
 
 type Id = number | string;
-
-type Round = {
-  roundNumber: string;
-  completed: boolean;
-  sessionDate: string;
-  previousRoundId: string;
-};
 
 export default (builder: ApiBuilder) => ({
   getAchievements: builder.query<AchievementObjectResponse, void>({
@@ -253,7 +247,10 @@ export default (builder: ApiBuilder) => ({
       { type: "Scoresheet", id: `${round_id}${pod_id}` },
     ],
   }),
-  getRoundsBySession: builder.query<Record<string, Round>, { session_id: Id }>({
+  getRoundsBySession: builder.query<
+    Record<string, StubRound>,
+    { session_id: Id }
+  >({
     query: ({ session_id }) => `get_rounds_by_session/${session_id}/`,
   }),
 });

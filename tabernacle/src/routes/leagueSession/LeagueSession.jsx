@@ -12,7 +12,6 @@ import {
   useGetAllSessionsQuery,
   usePostCreateSessionMutation,
 } from "../../api/apiSlice";
-import { useSessionRoundInfo } from "../../hooks";
 import {
   formatDateString,
   formatMonthYear,
