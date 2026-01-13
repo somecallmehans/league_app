@@ -330,7 +330,7 @@ export const CheckBoxInput = forwardRef<HTMLInputElement, CheckBoxInputProps>(
           onChange={onChange}
           ref={ref}
           className={`block size-6 rounded border border-slate-400 bg-white data-[checked]:bg-blue-500 ${checkboxClasses} ${
-            disabled ? "bg-gray-400" : ""
+            disabled ? "bg-zinc-300" : ""
           }`}
           disabled={disabled}
         >

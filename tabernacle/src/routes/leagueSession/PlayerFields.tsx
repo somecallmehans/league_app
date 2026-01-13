@@ -1,4 +1,4 @@
-import { useFormContext, Controller } from "react-hook-form";
+import { useFormContext, Controller, useWatch } from "react-hook-form";
 import { CheckBoxInput, MultiSelector } from "../../components/FormInputs";
 
 import { useScorecardInfoCtx } from "./ScorecardCTX";
@@ -20,7 +20,6 @@ const PLAYER_ACHIEVEMENT_MAP = [
     label: "Did anyone who did not win knock out other players?",
     slug: "knock-out",
   },
-  // TODO: add to backend w/ slug
   {
     key: 5,
     label:
@@ -29,9 +28,21 @@ const PLAYER_ACHIEVEMENT_MAP = [
   },
 ];
 
+const fieldsToReset = [
+  { name: "lose-the-game-effect", default: false },
+  { name: "zero-or-less-life", default: false },
+  { name: "win-the-game-effect", default: false },
+  { name: "commander-damage", default: false },
+  { name: "last-in-order", default: false },
+  { name: "winner-commander", default: { value: undefined, label: undefined } },
+  { name: "partner-damage", default: { value: undefined, label: undefined } },
+  { name: "winner", default: { value: undefined, label: undefined } },
+];
+
 export default function PlayerFields() {
-  const { control } = useFormContext();
+  const { control, resetField, setValue } = useFormContext();
   const { participants } = useScorecardInfoCtx();
+  const endDraw = useWatch({ control, name: "end-draw" });
   return (
     <>
       <h2 className="text-lg font-semibold text-zinc-700">General</h2>
@@ -58,7 +69,14 @@ export default function PlayerFields() {
             {...field}
             checked={field.value}
             label="Did the game end in a draw?"
-            classes="flex justify-between items-center space-y-2 "
+            classes="flex justify-between items-center space-y-2"
+            onChange={() => {
+              setValue("end-draw", !endDraw);
+              setValue("winner-achievements", null);
+              fieldsToReset.forEach((field) =>
+                resetField(field.name, { defaultValue: field.default })
+              );
+            }}
           />
         )}
       />

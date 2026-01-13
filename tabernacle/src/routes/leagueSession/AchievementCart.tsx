@@ -7,7 +7,7 @@ export default function AchievementCart() {
   const { control, getValues, setValue } = useFormContext();
   const { filteredAchievements } = useScorecardInfoCtx();
   const cart = useWatch({ control, name: "winner-achievements" }) ?? [];
-
+  const endDraw = useWatch({ control, name: "end-draw" });
   return (
     <div className="flex flex-col">
       <h2 className="text-lg font-semibold text-zinc-700">Deckbuilding</h2>
@@ -44,6 +44,7 @@ export default function AchievementCart() {
               shouldValidate: false,
             });
           }}
+          disabled={endDraw}
         />
       </div>
       <div className="h-64 md:h-full bg-zinc-100 p-4 rounded-lg border drop-shadow-md flex flex-col gap-2">
