@@ -12,7 +12,6 @@ import {
   EMPTY_PODACHIEVEMENT,
   EarnedAchievementStubListResponseSchema,
   AchievementTypeListResponseSchema,
-  ScoresheetFormResponseSchema,
   type AchievementListResponse,
   type AchievementObjectResponse,
   type EarnedAchievementSubListResponse,
@@ -63,6 +62,13 @@ import {
 import { type ConfigsTransformed } from "../types/config_schemas";
 
 type Id = number | string;
+
+type Round = {
+  roundNumber: string;
+  completed: boolean;
+  sessionDate: string;
+  previousRoundId: string;
+};
 
 export default (builder: ApiBuilder) => ({
   getAchievements: builder.query<AchievementObjectResponse, void>({
@@ -243,8 +249,11 @@ export default (builder: ApiBuilder) => ({
   >({
     query: ({ round_id, pod_id }) =>
       `rounds/${round_id}/pods/${pod_id}/scoresheet/`,
-    providesTags: (result, error, { round_id, pod_id}) => [
-      { type: "Scoresheet", id: `${round_id}${pod_id}`}
-    ]
+    providesTags: (result, error, { round_id, pod_id }) => [
+      { type: "Scoresheet", id: `${round_id}${pod_id}` },
+    ],
+  }),
+  getRoundsBySession: builder.query<Record<string, Round>, { session_id: Id }>({
+    query: ({ session_id }) => `get_rounds_by_session/${session_id}/`,
   }),
 });

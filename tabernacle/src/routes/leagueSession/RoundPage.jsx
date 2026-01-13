@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 
-import { Link, useLocation } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useForm, Controller, FormProvider } from "react-hook-form";
+import { skipToken } from "@reduxjs/toolkit/query";
 
 import {
   useGetPodsQuery,
@@ -9,7 +10,7 @@ import {
   useGetSigninsQuery,
 } from "../../api/apiSlice";
 
-import { useRouteParticipants } from "../../hooks";
+import { useRouteParticipants, useSessionRoundInfo } from "../../hooks";
 import { podCalculator } from "../../helpers/helpers";
 import { getLobbyKey } from "../../helpers/formHelpers";
 import { readTemps } from "../../helpers/helpers";
@@ -18,9 +19,7 @@ import PageTitle from "../../components/PageTitle";
 import StandardButton from "../../components/Button";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import CreatableSelect from "react-select/creatable";
-import ScorecardModal from "../../components/Modals/ScorecardModal";
 import ConfirmModal from "../../components/Modals/ConfirmModal";
-import RerollPodsModal from "../../components/Modals/RerollPodsModal";
 import UpdatePodsModal from "../../components/Modals/UpdatePodsModal";
 import PointsModal from "./PointsModal";
 import ColorGrid from "../../components/ColorGrid";
@@ -95,16 +94,7 @@ const PodGrouping = ({
   </div>
 );
 
-function Pods({
-  pods,
-  podKeys,
-  isOpen,
-  focusedPod,
-  openModal,
-  closeModal,
-  sessionId,
-  roundId,
-}) {
+function Pods({ pods, podKeys, sessionId, roundId }) {
   const [updatePodModalOpen, setUpdatePodModalOpen] = useState(false);
   const [selectedPod, setSelectedPod] = useState({
     participants: [],
@@ -181,9 +171,6 @@ function Pods({
                     className={`fa-solid fa-${
                       submitted ? "pen-to-square" : "circle-exclamation"
                     } text-sky-600 hover:text-sky-500`}
-                    // onClick={() =>
-                    //   openModal(participants, id, winner_info, submitted)
-                    // }
                   />
                 </Link>
                 <i
@@ -202,13 +189,6 @@ function Pods({
           </div>
         );
       })}
-      <ScorecardModal
-        isOpen={isOpen}
-        closeModal={closeModal}
-        focusedPod={focusedPod}
-        sessionId={sessionId}
-        roundId={roundId}
-      />
       <PointsModal
         isOpen={modalOpen}
         closeModal={() => handleClose()}
@@ -356,32 +336,10 @@ function RoundLobbyFormWrapper({ roundId, sessionId, signIns }) {
 }
 
 function FocusedRound({ pods = {}, sessionId, roundId }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [focusedPod, setFocusedPod] = useState({});
-
-  function closeModal() {
-    setFocusedPod({});
-    setIsOpen(false);
-  }
-
-  function openModal(p, id, w_info, submitted) {
-    setFocusedPod({
-      id,
-      submitted,
-      participants: p,
-      winnerInfo: w_info,
-    });
-    setIsOpen(true);
-  }
-
   return (
     <Pods
       podKeys={Object.keys(pods)}
       pods={pods}
-      isOpen={isOpen}
-      focusedPod={focusedPod}
-      openModal={openModal}
-      closeModal={closeModal}
       sessionId={sessionId}
       roundId={roundId}
     />
@@ -395,15 +353,12 @@ const constructParams = (rid, prid) => {
   return { round_one: prid, round_two: rid };
 };
 
-function RoundDisplay({
-  roundId,
-  previousRoundId,
-  sessionId,
-  completed,
-  setModalOpen,
-}) {
-  const params = constructParams(roundId, previousRoundId);
-  const { data: pods, isLoading: podsLoading } = useGetPodsQuery(roundId);
+function RoundDisplay({ roundId, previousRoundId, sessionId, completed }) {
+  const params = roundId
+    ? constructParams(roundId, previousRoundId)
+    : skipToken;
+  const token = roundId ? roundId : skipToken;
+  const { data: pods, isLoading: podsLoading } = useGetPodsQuery(token);
   const { data: signIns, isLoading: signInsLoading } =
     useGetSigninsQuery(params);
 
@@ -426,7 +381,6 @@ function RoundDisplay({
       />
     );
   }
-
   return (
     <RoundLobbyFormWrapper
       sessionId={sessionId}
@@ -437,39 +391,18 @@ function RoundDisplay({
 }
 
 export default function RoundPage() {
-  // TODO: RIP OUT ALL OF THE OLD SCORESHEET MODAL CODE
-  // GET RID OF LOCATION.STATE WE CAN DO BETTER
-  const [modalOpen, setModalOpen] = useState(false);
-  const [postRerollPods] = usePostRerollPodsMutation();
+  const { session_id: sessionId, round_id: roundId } = useParams();
+  const roundInfo = useSessionRoundInfo();
 
-  const location = useLocation();
-  const { roundNumber, date, roundId } = location.state;
-
-  const handleModalSubmit = async (participants) => {
-    try {
-      await postRerollPods({
-        round: roundId,
-        participants,
-      });
-      setModalOpen(false);
-    } catch (error) {
-      console.error("Failed to update pods: ", error);
-    }
-  };
+  const { roundNumber, sessionDate } = roundInfo;
 
   return (
     <div className="bg-white p-4 mb-4 h-full">
-      <PageTitle title={`Round ${roundNumber} for ${date}`} />
+      <PageTitle title={`Round ${roundNumber} for ${sessionDate}`} />
       <Link to={"/league-session"}>
         <StandardButton title="Back" />
       </Link>
-      <RoundDisplay {...location.state} setModalOpen={setModalOpen} />
-      <RerollPodsModal
-        isOpen={modalOpen}
-        confirmAction={(participants) => handleModalSubmit(participants)}
-        closeModal={() => setModalOpen(!modalOpen)}
-        round={roundId}
-      />
+      <RoundDisplay {...roundInfo} roundId={roundId} sessionId={sessionId} />
     </div>
   );
 }

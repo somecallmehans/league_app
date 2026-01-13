@@ -20,6 +20,7 @@ from .views import (
     update_pod_participants,
     delete_pod_participant,
     get_pod_participants,
+    get_rounds_by_session,
 )
 
 urlpatterns = [
@@ -76,6 +77,11 @@ urlpatterns = [
         "get_pod_participants/<int:pod_id>/",
         get_pod_participants,
         name="get_pod_participants",
+    ),
+    path(
+        "get_rounds_by_session/<int:session_id>/",
+        get_rounds_by_session,
+        name="get_rounds_by_session",
     ),
     re_path(r"^get_all_rounds/$", get_all_rounds, name="get_all_rounds"),
     re_path(

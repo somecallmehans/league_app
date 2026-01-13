@@ -7,3 +7,4 @@ export { default as useParticipantsLookup } from "./useParticipantsLookup.tsx";
 export { default as useScorecardInfo } from "./useScorecardInfo.tsx";
 export { default as useGoBack } from "./useGoBack.tsx";
 export { default as useCommanderColors } from "./useCommanderColors.tsx";
+export { default as useSessionRoundInfo } from "./useSessionRoundInfo.tsx";

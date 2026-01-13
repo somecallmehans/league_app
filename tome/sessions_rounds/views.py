@@ -768,3 +768,28 @@ def get_pod_participants(_, pod_id):
     ]
 
     return Response(participants)
+
+
+@api_view([GET])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def get_rounds_by_session(_, session_id):
+    """Return the rounds associated with a given session."""
+
+    rounds = list(
+        Rounds.objects.filter(session_id=session_id, deleted=False)
+        .values("round_number", "completed", "session__session_date", "id")
+        .order_by("id")
+    )
+
+    out = {
+        r["id"]: {
+            "roundNumber": r["round_number"],
+            "completed": r["completed"],
+            "sessionDate": r["session__session_date"],
+            "previousRoundId": rounds[0]["id"] if r["id"] % 2 == 0 else None,
+        }
+        for r in rounds
+    }
+
+    return Response(out)

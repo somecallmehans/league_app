@@ -111,6 +111,7 @@ export const {
   useGetParticipantBadgesQuery,
   useGetPodParticipantsQuery,
   useGetScoresheetsQuery,
+  useGetRoundsBySessionQuery,
 
   // POSTS
   usePostCreateSessionMutation,

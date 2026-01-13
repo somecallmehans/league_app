@@ -12,6 +12,7 @@ import {
   useGetAllSessionsQuery,
   usePostCreateSessionMutation,
 } from "../../api/apiSlice";
+import { useSessionRoundInfo } from "../../hooks";
 import {
   formatDateString,
   formatMonthYear,
@@ -20,27 +21,10 @@ import {
 import PageTitle from "../../components/PageTitle";
 import Modal from "../../components/Modal";
 
-const Round = ({
-  id,
-  sessionId,
-  roundNumber,
-  previousRoundId,
-  session_date,
-  completed,
-}) => {
+const Round = ({ id, sessionId, roundNumber }) => {
   return (
     <div className="justify-self-end">
-      <Link
-        to={`${id}`}
-        state={{
-          roundId: id,
-          completed: completed,
-          sessionId: sessionId,
-          roundNumber: roundNumber,
-          date: session_date,
-          previousRoundId: previousRoundId,
-        }}
-      >
+      <Link to={`${sessionId}/${id}`}>
         <StandardButton title={`View Round ${roundNumber}`} />
       </Link>
     </div>
@@ -85,16 +69,11 @@ function LeagueSession() {
                 sessionId={id}
                 id={roundOne.id}
                 roundNumber={roundOne.round_number}
-                completed={roundOne.completed}
-                session_date={formatDateString(session_date)}
               />
               <Round
                 sessionId={id}
                 id={roundTwo.id}
-                previousRoundId={roundOne.id}
                 roundNumber={roundTwo.round_number}
-                completed={roundTwo.completed}
-                session_date={formatDateString(session_date)}
               />
               {/* Readd this back in at some point */}
               {/* <div className="justify-self-end">
@@ -161,8 +140,11 @@ export default function LeagueRouter() {
   return (
     <Routes>
       <Route path="/" element={<LeagueManagementPage />} />
-      <Route path="/:round_id" element={<RoundPage />} />
-      <Route path="/:round_id/scorecard/:pod_id" element={<ScorecardPage />} />
+      <Route path="/:session_id/:round_id" element={<RoundPage />} />
+      <Route
+        path="/:session_id/:round_id/scorecard/:pod_id"
+        element={<ScorecardPage />}
+      />
     </Routes>
   );
 }
