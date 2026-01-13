@@ -4,10 +4,10 @@ import { ParticipantSchema } from "./participant_schemas";
 import { StubPodSchema } from "./pod_schemas";
 
 export type StubRound = {
-  roundNumber: string;
+  roundNumber: number;
   completed: boolean;
   sessionDate: string;
-  previousRoundId: string | null;
+  previousRoundId: number | null;
 };
 
 export const RoundSchema = z.object({

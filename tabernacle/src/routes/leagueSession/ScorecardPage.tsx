@@ -41,7 +41,7 @@ export default function ScorecardPage() {
     if (scoresheet) {
       reset(scoresheet);
     }
-  }, [scoresheet]);
+  }, [scoresheet, reset]);
 
   const handleFormSubmit = async (data: any) => {
     const { picker, ...clean } = data;

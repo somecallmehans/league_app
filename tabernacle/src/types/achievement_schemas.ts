@@ -261,7 +261,7 @@ export const ScoresheetFormRequestSchema = ScoresheetBase.extend({
   winner: z.number().nullable(),
   "winner-commander": z.number().nullable(),
   "partner-commander": z.number().nullable(),
-  "winner-achievements": z.array(z.number()),
+  "winner-achievements": z.array(z.number()).nullable(),
   pod_id: z.number(),
   round_id: z.number(),
 });
@@ -270,13 +270,13 @@ export type ScoresheetFormRequest = z.infer<typeof ScoresheetFormRequestSchema>;
 
 export const ScoresheetFormResponseSchema = ScoresheetBase.extend({
   ...IdListFieldsResponse,
-  winner: IdName.optional(),
+  winner: IdName.nullable(),
   "winner-commander": z
     .object({ id: z.number(), name: z.string(), colors_id: z.number() })
-    .optional(),
+    .nullable(),
   "partner-commander": z
     .object({ id: z.number(), name: z.string(), colors_id: z.number() })
-    .optional(),
+    .nullable(),
   "winner-achievements": z.array(IdName),
   meta: z.object({ isSubmitted: z.boolean() }),
 });

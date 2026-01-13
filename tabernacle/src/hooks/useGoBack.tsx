@@ -6,7 +6,8 @@ export default function useGoBack(fallback: string) {
   const navigation = useNavigate();
 
   const onBack = () => {
-    const canGoBack = window.history.state?.idx > 0;
+    const canGoBack =
+      window.history.length > 1 || window.history.state?.idx > 0;
     if (canGoBack) navigation(-1);
     else navigation(fallback, { replace: true });
   };

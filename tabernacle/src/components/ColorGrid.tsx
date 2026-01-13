@@ -53,6 +53,7 @@ export default function ColorGrid({
           key={idx}
           className={`${isSmall ? "w-3 h-3 md:w-4 md:h-4" : "w-4 h-4 md:w-6 md:h-6"}`}
           src={imgs[c]}
+          alt={c}
         />
       ))}
     </div>

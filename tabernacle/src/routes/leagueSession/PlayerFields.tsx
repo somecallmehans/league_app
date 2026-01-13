@@ -35,7 +35,10 @@ const fieldsToReset = [
   { name: "commander-damage", default: false },
   { name: "last-in-order", default: false },
   { name: "winner-commander", default: { value: undefined, label: undefined } },
-  { name: "partner-damage", default: { value: undefined, label: undefined } },
+  {
+    name: "partner-commander",
+    default: { value: undefined, label: undefined },
+  },
   { name: "winner", default: { value: undefined, label: undefined } },
 ];
 

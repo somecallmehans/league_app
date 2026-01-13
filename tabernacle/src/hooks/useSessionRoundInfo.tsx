@@ -14,7 +14,7 @@ export default function useSessionRoundInfo(): StubRound | undefined {
     return rounds[params.round_id];
   } else {
     return {
-      roundNumber: "-1",
+      roundNumber: -1,
       sessionDate: "",
       completed: false,
       previousRoundId: null,
