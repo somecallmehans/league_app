@@ -275,7 +275,7 @@ def cascade_soft_delete(achievement):
     Restrictions.objects.filter(id__in=parent_restriction_ids).update(deleted=True)
 
 
-def calculate_color_mask(colors: list[int]) -> dict:
+def calculate_color_mask(colors: list[int]) -> tuple[int, int]:
     """
     Take in some color ids, use them to calculate the mask of the combined color.
     I.e. red = 8, green = 16. Therefore redgreen = 24
@@ -284,6 +284,9 @@ def calculate_color_mask(colors: list[int]) -> dict:
     mask_list = Colors.objects.filter(id__in=colors).values_list("mask", flat=True)
     summed_mask = sum(mask_list)
     calculated = Colors.objects.filter(mask=summed_mask).values("id", "symbol").first()
+
+    if calculated is None:
+        raise ValueError(f"No color found for mask: {summed_mask}")
 
     win_colors = len(calculated["symbol"]) if calculated["symbol"] != "c" else 0
 

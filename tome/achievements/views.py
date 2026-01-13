@@ -528,10 +528,6 @@ def upsert_earned_achievements(request):
     return Response(status=status.HTTP_201_CREATED)
 
 
-def pick_keys(data: dict, keys: set[str]) -> dict:
-    return {k: data[k] for k in keys if k in data}
-
-
 @api_view([GET, POST, PUT])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
@@ -551,7 +547,7 @@ def scoresheet(request, round_id: int, pod_id: int):
     with transaction.atomic():
         pod = Pods.objects.select_for_update().get(id=pod_id)
 
-        if request.method == "POST" and pod.submitted:
+        if request.method == POST and pod.submitted:
             return Response(
                 {"message": "Pod already submitted. Use PUT to update."},
                 status=status.HTTP_409_CONFLICT,

@@ -66,6 +66,8 @@ class GETScoresheetHelper:
             .values("participants_id", "name", "colors_id")
             .first()
         )
+        if wc is None:
+            return CommanderResult(commander=None, partner=None, participant_id=None)
 
         if wc.get("name") == DRAW_NAME:
             return CommanderResult(commander=None, partner=None, participant_id=None)
@@ -282,6 +284,9 @@ class POSTScoresheetHelper:
         """Build the winning commander record."""
         winner_commander = getattr(self, "winner-commander", None)
         partner_commander = getattr(self, "partner-commander", None)
+        if winner_commander is None:
+            raise NotFound(detail="Winner commander is required for non-draw games")
+
         c1 = Commanders.objects.get(id=winner_commander)
         c2 = Commanders.objects.filter(id=partner_commander).first()
         cids = [c1.colors_id]
