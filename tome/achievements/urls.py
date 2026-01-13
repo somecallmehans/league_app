@@ -4,7 +4,6 @@ from .views import (
     upsert_achievements,
     get_colors,
     get_achievements_by_participant_month,
-    upsert_participant_achievements_v2,
     get_participant_round_achievements,
     get_all_commanders,
     fetch_and_insert_commanders,
@@ -21,9 +20,6 @@ urlpatterns = [
         "get_participant_round_achievements/<int:participant_id>/<int:round_id>/",
         get_participant_round_achievements,
         name="get_participant_round_achievements",
-    ),
-    path(
-        "upsert_earned_v2/", upsert_participant_achievements_v2, name="upsert_earned_v2"
     ),
     re_path(
         r"^achievements_for_month(?:/(?P<mm_yy>[^/]+))?/$",

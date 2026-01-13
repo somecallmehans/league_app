@@ -25,8 +25,6 @@ import {
 import {
   UpsertAchievementResponseSchema,
   EMPTY_ACHIEVEMENT_RESPONSE,
-  UpsertEarnedRequest,
-  UpsertEarnedResponse,
   type UpsertAchievementResponse,
   type UpsertAchievementRequest,
   type UpsertParticipantAchievementRequest,
@@ -104,17 +102,6 @@ export default (builder: ApiBuilder) => ({
         EMPTY_ACHIEVEMENT_RESPONSE
       ),
     invalidatesTags: ["Achievements"],
-  }),
-  postUpsertEarnedV2: builder.mutation<
-    UpsertEarnedResponse,
-    UpsertEarnedRequest
-  >({
-    query: (body) => ({
-      url: "upsert_earned_v2/",
-      method: "POST",
-      body: body,
-    }),
-    invalidatesTags: ["Pods", "Earned"],
   }),
   postRerollPods: builder.mutation<RerollPodsResponse, RerollPodsRequest>({
     query: (body) => ({

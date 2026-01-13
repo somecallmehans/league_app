@@ -138,45 +138,6 @@ def all_participant_achievements_for_month(session):
     return result
 
 
-def handle_pod_win(winner, info, round_id, participant_ids):
-    """Handle scenarios where it would be prudent to update or create
-    a PA record specifically for a win."""
-    win_achievement = None
-    if info.get("slug"):
-        win_achievement = Achievements.objects.filter(slug=info.get("slug")).first()
-
-    win_record = (
-        ParticipantAchievements.objects.filter(
-            round_id=round_id,
-            achievement__slug__endswith="-colors",
-            deleted=False,
-            participant_id__in=participant_ids,
-        )
-        .select_related("achievement")
-        .first()
-    )
-
-    if not win_record:
-        if win_achievement:
-            ParticipantAchievements.objects.create(
-                participant_id=info.get("participant_id"),
-                round_id=round_id,
-                session_id=winner.get("session_id"),
-                achievement_id=win_achievement.id,
-                earned_points=win_achievement.points,
-            )
-        return
-
-    if info.get("deleted"):
-        win_record.deleted = info.get("deleted", False)
-
-    if win_achievement is not None and info.get("participant_id"):
-        win_record.achievement_id = win_achievement.id
-        win_record.participant_id = info.get("participant_id", None)
-        win_record.earned_points = win_achievement.points
-    win_record.save()
-
-
 class ScryfallCommanderData:
     def __init__(self, name, colors):
         self.name = name
