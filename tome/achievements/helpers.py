@@ -291,3 +291,19 @@ def calculate_color_mask(colors: list[int]) -> tuple[int, int]:
     win_colors = len(calculated["symbol"]) if calculated["symbol"] != "c" else 0
 
     return win_colors, calculated["id"]
+
+
+def calculate_color(masks: list[int]) -> str:
+    """
+    Take in a list of color masks, sum them and return the associated color info
+    """
+    summed = 0
+
+    for m in masks:
+        if m >= 0:
+            summed += m
+
+    color = Colors.objects.filter(mask=summed).values("symbol", "name").first()
+    if color is None:
+        return None
+    return color

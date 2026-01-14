@@ -17,7 +17,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .models import Participants
 from .serializers import ParticipantsSerializer
-from .queries import get_decklists
+from .queries import get_decklists, post_decklists
 
 
 @api_view(["GET"])
@@ -76,10 +76,16 @@ class Login(APIView):
         return Response(content)
 
 
-@api_view(["GET"])
+@api_view(["GET", "POST"])
 def decklists(request):
     """Return all current active submitted decklists"""
 
     if request.method == "GET":
         out = get_decklists(request.query_params)
         return Response(out)
+
+    try:
+        post_decklists(request.data)
+        return Response(status=status.HTTP_201_CREATED)
+    except Exception as e:
+        return Response(status=status.HTTP_400_BAD_REQUEST)

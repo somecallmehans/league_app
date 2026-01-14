@@ -4,7 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from users.models import Decklists, DecklistsAchievements
-from achievements.models import Commanders
+from achievements.models import Commanders, Colors
 from utils.test_helpers import get_ids
 
 ids = get_ids()
@@ -19,10 +19,14 @@ def build_state() -> None:
     """Build some decklists"""
 
     partner = Commanders.objects.create(
-        name="Noble Heritage", is_background=True, colors_id=ids.COLORLESS
+        name="Master Chef", is_background=True, colors_id=ids.GREEN
     )
     companion = Commanders.objects.create(
         name="Umori, the Collector", has_partner=True, colors_id=ids.COLORLESS
+    )
+
+    Colors.objects.create(
+        symbol="wubg", slug="i do not care", name="whiteblueblackgreen", mask=23
     )
 
     Decklists.objects.bulk_create(
@@ -80,20 +84,13 @@ def assert_decklists_response(response_data):
         assert isinstance(deck["code"], str)
         assert deck["code"].startswith("DL-")
 
-        assert isinstance(deck["commander_id"], int)
-        assert isinstance(deck["commander__name"], str)
+        assert deck["partner_name"] is None or isinstance(deck["partner_name"], str)
 
-        assert deck["partner_id"] is None or isinstance(deck["partner_id"], int)
-        assert deck["partner__name"] is None or isinstance(deck["partner__name"], str)
+        # assert deck["companion_id"] is None or isinstance(deck["companion_id"], int)
+        assert deck["companion_name"] is None or isinstance(deck["companion_name"], str)
 
-        assert deck["companion_id"] is None or isinstance(deck["companion_id"], int)
-        assert deck["companion__name"] is None or isinstance(
-            deck["companion__name"], str
-        )
-
-        assert deck["participant_id"] is None or isinstance(deck["participant_id"], int)
-        assert deck["participant__name"] is None or isinstance(
-            deck["participant__name"], str
+        assert deck["participant_name"] is None or isinstance(
+            deck["participant_name"], str
         )
 
         assert isinstance(deck["points"], int)
@@ -136,33 +133,33 @@ def test_get_decklists_by_color(client, build_state) -> None:
     parsed_res = res.json()
     assert parsed_res == [
         {
+            "code": "DL-C3D4",
+            "color": {
+                "name": "red green",
+                "symbol": "rg",
+            },
             "commander_img": [
                 {
-                    "url": "https://cards.scryfall.io/art_crop/front/3/2/326845a7-7502-4dc3-8f3e-867d6c84e931.jpg?1706242292",
                     "artist": "Dmitry Burmak",
-                }
+                    "url": "https://cards.scryfall.io/art_crop/front/3/2/326845a7-7502-4dc3-8f3e-867d6c84e931.jpg?1706242292",
+                },
             ],
-            "partner_img": None,
+            "commander_name": "Yarus, Roar of the Old Gods",
             "companion_img": [
                 {
-                    "url": "https://cards.scryfall.io/art_crop/front/7/5/75ac31e0-ac70-4ee6-b2b1-cc445ffa1da9.jpg?1591228489",
                     "artist": "Jehan Choo",
-                }
+                    "url": "https://cards.scryfall.io/art_crop/front/7/5/75ac31e0-ac70-4ee6-b2b1-cc445ffa1da9.jpg?1591228489",
+                },
             ],
+            "companion_name": "Umori, the Collector",
             "id": 2,
             "name": "Boop",
-            "url": "www.moxfield.com/boop",
-            "code": "DL-C3D4",
-            "commander_id": 52,
-            "commander__name": "Yarus, Roar of the Old Gods",
-            "partner_id": None,
-            "partner__name": None,
-            "companion_id": 4,
-            "companion__name": "Umori, the Collector",
-            "participant__name": None,
-            "participant_id": None,
+            "participant_name": None,
+            "partner_img": None,
+            "partner_name": None,
             "points": 4,
-        }
+            "url": "www.moxfield.com/boop",
+        },
     ]
 
 

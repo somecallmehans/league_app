@@ -1,9 +1,12 @@
+from dataclasses import dataclass
 from rest_framework.exceptions import ValidationError
 
 from django.db.models import Sum, F
 from django.db.models.functions import Coalesce
 
-from .models import Decklists
+from achievements.helpers import calculate_color
+
+from .models import Decklists, DecklistsAchievements
 from services.scryfall_client import ScryfallClientRequest
 
 
@@ -28,6 +31,12 @@ def get_decklists(params: str = "") -> list[Decklists]:
     color_mask = params.get("colors")
     query = (
         Decklists.objects.filter(deleted=False)
+        .select_related(
+            "commander__colors",
+            "partner__colors",
+            "companion__colors",
+            "participant",
+        )
         .annotate(
             points=Coalesce(
                 Sum(
@@ -47,8 +56,10 @@ def get_decklists(params: str = "") -> list[Decklists]:
             "code",
             "commander_id",
             "commander__name",
+            "commander__colors__mask",
             "partner_id",
             "partner__name",
+            "partner__colors__mask",
             "companion_id",
             "companion__name",
             "participant__name",
@@ -80,14 +91,52 @@ def get_decklists(params: str = "") -> list[Decklists]:
             if name
         ]
     )
-    for q in query:
+    for qu in query:
         out.append(
             {
-                "commander_img": commander_images.get(q["commander__name"], []),
-                "partner_img": commander_images.get(q["partner__name"]),
-                "companion_img": commander_images.get(q["companion__name"]),
-                **q,
+                "id": qu["id"],
+                "name": qu["name"],
+                "url": qu["url"],
+                "participant_name": qu["participant__name"],
+                "code": qu["code"],
+                "commander_name": qu["commander__name"],
+                "commander_img": commander_images.get(qu["commander__name"]),
+                "partner_name": qu.get("partner__name"),
+                "partner_img": commander_images.get(qu["partner__name"]),
+                "companion_name": qu.get("companion__name"),
+                "companion_img": commander_images.get(qu["companion__name"]),
+                "color": calculate_color(
+                    [
+                        qu["commander__colors__mask"],
+                        qu.get("partner__colors__mask") or -1,
+                    ]
+                ),
+                "points": qu["points"],
             }
         )
 
     return list(out)
+
+
+def post_decklists(body) -> None:
+    """Post a new decklist"""
+    achievements = body.get("achievements", [])
+
+    try:
+        deck = Decklists.objects.create(
+            name=body["name"],
+            url=body["url"],
+            participant_id=body.get("participant_id", None),
+            commander_id=body["commander"],
+            partner_id=body.get("partner", None),
+            companion_id=body.get("companion", None),
+        )
+
+        DecklistsAchievements.objects.bulk_create(
+            [
+                DecklistsAchievements(decklist_id=deck.id, achievement_id=a_id)
+                for a_id in achievements
+            ]
+        )
+    except:
+        raise Exception("Issue saving deck")
