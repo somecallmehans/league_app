@@ -105,6 +105,7 @@ class Decklists(models.Model):
     code = models.CharField(max_length=10, unique=True, editable=False)
     deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    give_credit = models.BooleanField(default=False)
 
     commander = models.ForeignKey(
         Commanders, related_name="commander_decklists", on_delete=models.CASCADE

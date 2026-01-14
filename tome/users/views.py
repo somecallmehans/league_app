@@ -14,7 +14,7 @@ from rest_framework.decorators import (
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-
+from utils.decorators import require_user_code
 from .models import Participants
 from .serializers import ParticipantsSerializer
 from .queries import get_decklists, post_decklists
@@ -77,7 +77,8 @@ class Login(APIView):
 
 
 @api_view(["GET", "POST"])
-def decklists(request):
+@require_user_code
+def decklists(request, **kwargs):
     """Return all current active submitted decklists"""
 
     if request.method == "GET":
@@ -85,7 +86,8 @@ def decklists(request):
         return Response(out)
 
     try:
-        post_decklists(request.data)
+        pid = kwargs["participant_id"]
+        post_decklists(request.data, pid)
         return Response(status=status.HTTP_201_CREATED)
     except Exception as e:
         return Response(status=status.HTTP_400_BAD_REQUEST)

@@ -54,6 +54,7 @@ def get_decklists(params: str = "") -> list[Decklists]:
             "name",
             "url",
             "code",
+            "give_credit",
             "commander_id",
             "commander__name",
             "commander__colors__mask",
@@ -92,12 +93,13 @@ def get_decklists(params: str = "") -> list[Decklists]:
         ]
     )
     for qu in query:
+        give_credit = qu["give_credit"]
         out.append(
             {
                 "id": qu["id"],
                 "name": qu["name"],
                 "url": qu["url"],
-                "participant_name": qu["participant__name"],
+                "participant_name": qu["participant__name"] if give_credit else None,
                 "code": qu["code"],
                 "commander_name": qu["commander__name"],
                 "commander_img": commander_images.get(qu["commander__name"]),
@@ -118,7 +120,7 @@ def get_decklists(params: str = "") -> list[Decklists]:
     return list(out)
 
 
-def post_decklists(body) -> None:
+def post_decklists(body, pid) -> None:
     """Post a new decklist"""
     achievements = body.get("achievements", [])
 
@@ -126,10 +128,11 @@ def post_decklists(body) -> None:
         deck = Decklists.objects.create(
             name=body["name"],
             url=body["url"],
-            participant_id=body.get("participant_id", None),
+            participant_id=pid,
             commander_id=body["commander"],
             partner_id=body.get("partner", None),
             companion_id=body.get("companion", None),
+            give_credit=body.get("give_credit", False),
         )
 
         DecklistsAchievements.objects.bulk_create(
