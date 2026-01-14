@@ -172,6 +172,7 @@ export default (builder: ApiBuilder) => ({
         commander_lookup: {},
         commanders: [],
         partners: [],
+        companions: [],
       }),
   }),
   getRoundParticipants: builder.query<ParticipantListResponse, Id>({

@@ -1,4 +1,4 @@
-import { useFormContext, useWatch, Controller } from "react-hook-form";
+import { useFormContext, useWatch } from "react-hook-form";
 import { Selector } from "../../components/FormInputs";
 
 import { useScorecardInfoCtx } from "./ScorecardCTX";

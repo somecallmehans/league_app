@@ -102,6 +102,7 @@ CORS_ALLOW_HEADERS = [
     "authorization",
     "content-type",
     "x-requested-with",
+    "x-participant-code",
 ]
 
 

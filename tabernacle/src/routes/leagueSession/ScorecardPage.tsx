@@ -15,7 +15,7 @@ import PlayerFields from "./PlayerFields";
 import AchievementCart from "./AchievementCart";
 import { skipToken } from "@reduxjs/toolkit/query";
 
-const normalize = (items?: { id: number; name: string }[]) =>
+export const normalize = (items?: { id: number; name: string }[]) =>
   items?.map(({ id }) => id) ?? [];
 
 export default function ScorecardPage() {

@@ -204,12 +204,12 @@ export default (builder: ApiBuilder) => ({
     invalidatesTags: ["Pods", "Earned", "Scoresheet"],
   }),
   postDecklist: builder.mutation<void, PostDecklistRequest>({
-    query: (body) => ({
-      url: "decklists",
+    query: ({ code, ...body }) => ({
+      url: "decklists/",
       method: "POST",
       body: body,
       headers: {
-        "x-participant-code": body.code,
+        "x-participant-code": code,
       },
     }),
     invalidatesTags: ["Decklists"],

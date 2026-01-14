@@ -1,11 +1,6 @@
 import { forwardRef } from "react";
 
-import Select, {
-  components as selectComponents,
-  GroupBase,
-  MultiValue,
-  Props as ReactSelectProps,
-} from "react-select";
+import Select, { GroupBase, Props as ReactSelectProps } from "react-select";
 import {
   Controller,
   type Control,

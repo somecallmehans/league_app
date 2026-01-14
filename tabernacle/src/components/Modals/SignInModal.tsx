@@ -13,7 +13,7 @@ import {
 } from "@headlessui/react";
 import { SignInResponse } from "../../types/round_schemas";
 
-const textValidate = (val: string | undefined) => {
+export const textValidate = (val: string | undefined) => {
   if (!val) return "Code is required";
 
   if (val.length != 6) return "Code must be 6 characters";

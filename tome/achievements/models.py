@@ -103,6 +103,7 @@ class Commanders(models.Model):
     deleted = models.BooleanField(default=False)
     has_partner = models.BooleanField(default=False)
     is_background = models.BooleanField(default=False)
+    is_companion = models.BooleanField(default=False)
 
     colors = models.ForeignKey(Colors, on_delete=models.CASCADE)
 

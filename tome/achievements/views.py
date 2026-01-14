@@ -407,6 +407,7 @@ def get_all_commanders(_):
             Q(has_partner=True) | Q(is_background=True),
             deleted=False,
         ).distinct("name")
+        companions = Commanders.objects.filter(is_companion=True, deleted=False)
     except Exception as e:
         return Response(
             {"error": f"An unexpected error occurred: {str(e)}"},
@@ -415,11 +416,13 @@ def get_all_commanders(_):
     commander_data = CommandersSerializer(commanders, many=True).data
     commander_lookup = {c["name"]: c for c in commander_data}
     partner_data = CommandersSerializer(partners_backgrounds, many=True).data
+    companion_data = CommandersSerializer(companions, many=True).data
     return Response(
         {
             "commanders": commander_data,
             "partners": partner_data,
             "commander_lookup": commander_lookup,
+            "companions": companion_data,
         }
     )
 
