@@ -42,7 +42,7 @@ function App() {
           element={<Logout loggedIn={loggedIn} setLoggedIn={setLoggedIn} />}
         />
         <Route path="/faqs" element={<Resources />} />
-        <Route path="/decklists" element={<Decklists />} />
+        <Route path="/decklists/*" element={<Decklists />} />
         <Route path="/leaderboard" element={<LeaderBoard />} />
         <Route path="/champions/*" element={<HallofFame />} />
         <Route path="/achievements" element={<AchievementsPage />} />
