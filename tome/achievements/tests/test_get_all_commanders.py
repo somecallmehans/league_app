@@ -10,104 +10,63 @@ from utils.test_helpers import get_ids
 ids = get_ids()
 
 
-@pytest.fixture(scope="function")
-def populate_commanders():
-    Commanders.objects.bulk_create(
-        [
-            Commanders(name="Syr Ginger, the Meal Ender", colors_id=ids.COLORLESS),
-            Commanders(name="Marwyn, the Nurterer", colors_id=ids.GREEN),
-            Commanders(name="Stangg, Echo Warrior", colors_id=ids.GRUUL),
-            Commanders(
-                name="Saruman of Many Colors", colors_id=ids.ESPER, deleted=True
-            ),
-            Commanders(
-                name="Tester, the Background", colors_id=ids.ESPER, is_background=True
-            ),
-        ]
-    )
-
-
-def test_get_all_commanders(client, populate_commanders) -> None:
+def test_get_all_commanders(client) -> None:
     """
     Should: return all of the commanders in our db that aren't deleted
     """
 
     url = reverse("commanders")
 
-    expected_lookup = {
-        "Marwyn, the Nurterer": {
-            "colors_id": 11,
-            "has_partner": False,
-            "id": 2,
-            "is_background": False,
-            "name": "Marwyn, the Nurterer",
-        },
-        "Stangg, Echo Warrior": {
-            "colors_id": 12,
-            "has_partner": False,
-            "id": 3,
-            "is_background": False,
-            "name": "Stangg, Echo Warrior",
-        },
-        "Syr Ginger, the Meal Ender": {
-            "colors_id": 10,
-            "has_partner": False,
-            "id": 1,
-            "is_background": False,
-            "name": "Syr Ginger, the Meal Ender",
-        },
-        "Tester, the Background": {
-            "colors_id": 13,
-            "has_partner": False,
-            "id": 5,
-            "is_background": True,
-            "name": "Tester, the Background",
-        },
-    }
-    expected_commanders = [
-        {
-            "colors_id": 10,
-            "has_partner": False,
-            "id": 1,
-            "is_background": False,
-            "name": "Syr Ginger, the Meal Ender",
-        },
-        {
-            "colors_id": 11,
-            "has_partner": False,
-            "id": 2,
-            "is_background": False,
-            "name": "Marwyn, the Nurterer",
-        },
-        {
-            "colors_id": 12,
-            "has_partner": False,
-            "id": 3,
-            "is_background": False,
-            "name": "Stangg, Echo Warrior",
-        },
-        {
-            "colors_id": 13,
-            "has_partner": False,
-            "id": 5,
-            "is_background": True,
-            "name": "Tester, the Background",
-        },
-    ]
-    expected_partners = [
-        {
-            "colors_id": 13,
-            "has_partner": False,
-            "id": 5,
-            "is_background": True,
-            "name": "Tester, the Background",
-        },
-    ]
-
     res = client.get(url)
     parsed_res = res.json()
 
     assert res.status_code == status.HTTP_200_OK
-    assert parsed_res["commanders"] == expected_commanders
-    assert parsed_res["commander_lookup"] == expected_lookup
-    assert parsed_res["partners"] == expected_partners
+    assert parsed_res == {
+        "commanders": [
+            {
+                "id": 51,
+                "name": "Fynn, the Fangbearer",
+                "colors_id": 11,
+                "has_partner": False,
+                "is_background": False,
+            },
+            {
+                "id": 52,
+                "name": "Yarus, Roar of the Old Gods",
+                "colors_id": 12,
+                "has_partner": False,
+                "is_background": False,
+            },
+            {
+                "id": 53,
+                "name": "Urza, Chief Artificer",
+                "colors_id": 13,
+                "has_partner": False,
+                "is_background": False,
+            },
+        ],
+        "partners": [],
+        "commander_lookup": {
+            "Fynn, the Fangbearer": {
+                "id": 51,
+                "name": "Fynn, the Fangbearer",
+                "colors_id": 11,
+                "has_partner": False,
+                "is_background": False,
+            },
+            "Yarus, Roar of the Old Gods": {
+                "id": 52,
+                "name": "Yarus, Roar of the Old Gods",
+                "colors_id": 12,
+                "has_partner": False,
+                "is_background": False,
+            },
+            "Urza, Chief Artificer": {
+                "id": 53,
+                "name": "Urza, Chief Artificer",
+                "colors_id": 13,
+                "has_partner": False,
+                "is_background": False,
+            },
+        },
+    }

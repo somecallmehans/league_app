@@ -1,3 +1,5 @@
+from rest_framework.exceptions import ValidationError
+
 from django.db.models import Sum, F
 from django.db.models.functions import Coalesce
 
@@ -17,12 +19,13 @@ SORT_MAP = {
     "name_desc": ("-name", "id"),
 }
 
+COLOR_BITS = {"W": 1, "U": 2, "B": 4, "R": 8, "G": 16, "C": 0}
+
 
 def get_decklists(params: str = "") -> list[Decklists]:
     """Return decklists based on params"""
     sort_order = params.get("sort_order")
-    color_filter = params.get("colors")
-
+    color_mask = params.get("colors")
     query = (
         Decklists.objects.filter(deleted=False)
         .annotate(
@@ -55,6 +58,13 @@ def get_decklists(params: str = "") -> list[Decklists]:
     )
 
     order_by = SORT_MAP.get(sort_order, SORT_MAP["points_desc"])
+    if color_mask:
+        try:
+            mask_int = int(color_mask)
+        except (TypeError, ValueError):
+            raise ValidationError({"colors": "colors must be an integer mask"})
+
+        query = query.filter(commander__colors__mask=mask_int)
     query = query.order_by(*order_by)
 
     out = []
