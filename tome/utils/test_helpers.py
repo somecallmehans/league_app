@@ -79,6 +79,10 @@ class Identifiers:
     GRUUL: int = id_from_csv_row("600_colors", 2)
     ESPER: int = id_from_csv_row("600_colors", 3)
 
+    FYNN: int = id_from_csv_row("700_commanders", 0)
+    YARUS: int = id_from_csv_row("700_commanders", 1)
+    URZA: int = id_from_csv_row("700_commanders", 2)
+
 
 @cache
 def get_ids() -> Identifiers:

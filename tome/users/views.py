@@ -1,6 +1,8 @@
 import json
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Sum, F
+from django.db.models.functions import Coalesce
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
@@ -13,8 +15,12 @@ from rest_framework.decorators import (
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from .models import Participants
+from services.scryfall_client import ScryfallClientRequest
+
+from .models import Participants, Decklists
 from .serializers import ParticipantsSerializer
+
+scryfall_request = ScryfallClientRequest()
 
 
 @api_view(["GET"])
@@ -71,3 +77,59 @@ class Login(APIView):
     def get(self, _):
         content = {"message": "Hello, World!"}
         return Response(content)
+
+
+@api_view(["GET"])
+def get_decklists(_):
+    """Return all current active submitted decklists"""
+
+    query = (
+        Decklists.objects.filter(deleted=False)
+        .annotate(
+            points=Coalesce(
+                Sum(
+                    Coalesce(
+                        "achievement__point_value",
+                        F("achievement__parent__point_value"),
+                        0,
+                    )
+                ),
+                0,
+            )
+        )
+        .values(
+            "id",
+            "name",
+            "url",
+            "code",
+            "commander_id",
+            "commander__name",
+            "partner_id",
+            "partner__name",
+            "companion_id",
+            "companion__name",
+            "participant__name",
+            "participant_id",
+            "points",
+        )
+    )
+
+    out = []
+    commander_images = scryfall_request.get_commander_image_urls(
+        commander_names=[
+            name
+            for row in query
+            for name in (
+                row.get("commander__name"),
+                row.get("partner__name"),
+                row.get("companion__name"),
+            )
+            if name
+        ]
+    )
+    for q in query:
+        out.append(
+            {"commander_img": commander_images.get(q["commander__name"], []), **q}
+        )
+
+    return Response(list(out))
