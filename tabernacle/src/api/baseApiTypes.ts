@@ -16,7 +16,8 @@ export type Tag =
   | "Rounds"
   | "SignedIn"
   | "Configs"
-  | "Scoresheet";
+  | "Scoresheet"
+  | "Decklists";
 
 export type BaseBQ = BaseQueryFn<
   string | FetchArgs,

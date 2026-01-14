@@ -74,6 +74,7 @@ export const apiSlice = createApi({
     "SignedIn",
     "Configs",
     "Scoresheet",
+    "Decklists",
   ] as const,
   endpoints: (builder) => ({
     ...getRoutes(builder),
@@ -112,6 +113,7 @@ export const {
   useGetPodParticipantsQuery,
   useGetScoresheetsQuery,
   useGetRoundsBySessionQuery,
+  useGetDecklistsQuery,
 
   // POSTS
   usePostCreateSessionMutation,
@@ -129,6 +131,7 @@ export const {
   useDeletePodParticipantMutation,
   useInsertScoresheetMutation,
   useUpdateScoresheetMutation,
+  usePostDecklistMutation,
 
   // AUTH
   useLoginMutation,

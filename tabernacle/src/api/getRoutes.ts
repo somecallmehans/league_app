@@ -61,6 +61,7 @@ import {
   type CommanderObjectResponse,
 } from "../types/commander_schemas";
 import { type ConfigsTransformed } from "../types/config_schemas";
+import { type GetDecklistsResponse } from "../types/decklist_schemas";
 
 type Id = number | string;
 
@@ -252,5 +253,13 @@ export default (builder: ApiBuilder) => ({
     { session_id: Id }
   >({
     query: ({ session_id }) => `get_rounds_by_session/${session_id}/`,
+  }),
+  getDecklists: builder.query<
+    GetDecklistsResponse,
+    { sort_order: string | null; colors: number | null }
+  >({
+    query: ({ sort_order, colors }) =>
+      `decklists/?colors=${colors}&sort_order=${sort_order}`,
+    providesTags: ["Decklists"],
   }),
 });

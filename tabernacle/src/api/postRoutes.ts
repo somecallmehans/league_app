@@ -38,6 +38,7 @@ import {
   type UpdatePodParticipantRequest,
 } from "../types/pod_schemas";
 import { type ConfigRequest } from "../types/config_schemas";
+import { type PostDecklistRequest } from "../types/decklist_schemas";
 
 type POST_CREATE_SESSION_BODY = {
   session_date?: string;
@@ -201,5 +202,16 @@ export default (builder: ApiBuilder) => ({
       body: body,
     }),
     invalidatesTags: ["Pods", "Earned", "Scoresheet"],
+  }),
+  postDecklist: builder.mutation<void, PostDecklistRequest>({
+    query: (body) => ({
+      url: "decklists",
+      method: "POST",
+      body: body,
+      headers: {
+        "x-participant-code": body.code,
+      },
+    }),
+    invalidatesTags: ["Decklists"],
   }),
 });
