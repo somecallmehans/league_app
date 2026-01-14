@@ -13,6 +13,7 @@ from achievements.models import (
     Commanders,
     Restrictions,
     AchievementsRestrictions,
+    Colors,
 )
 from users.models import ParticipantAchievements
 from users.serializers import ParticipantsSerializer
@@ -135,45 +136,6 @@ def all_participant_achievements_for_month(session):
         result.append(participant_data)
 
     return result
-
-
-def handle_pod_win(winner, info, round_id, participant_ids):
-    """Handle scenarios where it would be prudent to update or create
-    a PA record specifically for a win."""
-    win_achievement = None
-    if info.get("slug"):
-        win_achievement = Achievements.objects.filter(slug=info.get("slug")).first()
-
-    win_record = (
-        ParticipantAchievements.objects.filter(
-            round_id=round_id,
-            achievement__slug__endswith="-colors",
-            deleted=False,
-            participant_id__in=participant_ids,
-        )
-        .select_related("achievement")
-        .first()
-    )
-
-    if not win_record:
-        if win_achievement:
-            ParticipantAchievements.objects.create(
-                participant_id=info.get("participant_id"),
-                round_id=round_id,
-                session_id=winner.get("session_id"),
-                achievement_id=win_achievement.id,
-                earned_points=win_achievement.points,
-            )
-        return
-
-    if info.get("deleted"):
-        win_record.deleted = info.get("deleted", False)
-
-    if win_achievement is not None and info.get("participant_id"):
-        win_record.achievement_id = win_achievement.id
-        win_record.participant_id = info.get("participant_id", None)
-        win_record.earned_points = win_achievement.points
-    win_record.save()
 
 
 class ScryfallCommanderData:
@@ -311,3 +273,21 @@ def cascade_soft_delete(achievement):
     )
 
     Restrictions.objects.filter(id__in=parent_restriction_ids).update(deleted=True)
+
+
+def calculate_color_mask(colors: list[int]) -> tuple[int, int]:
+    """
+    Take in some color ids, use them to calculate the mask of the combined color.
+    I.e. red = 8, green = 16. Therefore redgreen = 24
+    """
+
+    mask_list = Colors.objects.filter(id__in=colors).values_list("mask", flat=True)
+    summed_mask = sum(mask_list)
+    calculated = Colors.objects.filter(mask=summed_mask).values("id", "symbol").first()
+
+    if calculated is None:
+        raise ValueError(f"No color found for mask: {summed_mask}")
+
+    win_colors = len(calculated["symbol"]) if calculated["symbol"] != "c" else 0
+
+    return win_colors, calculated["id"]

@@ -21,13 +21,22 @@ def get_slug():
 
 @pytest.fixture
 def get_achievements():
-    def _get(participant_id, session_id=ids.SESSION_THIS_MONTH_OPEN, deleted=False):
+    def _get(
+        participant_id,
+        session_id=ids.SESSION_THIS_MONTH_OPEN,
+        round_id=None,
+        deleted=False,
+    ):
+        qs = ParticipantAchievements.objects.filter(
+            participant_id=participant_id,
+            session_id=session_id,
+            deleted=deleted,
+        )
+        if round_id is not None:
+            qs = qs.filter(round_id=round_id)
+
         return list(
-            ParticipantAchievements.objects.filter(
-                participant_id=participant_id,
-                session_id=session_id,
-                deleted=deleted,
-            ).values_list("achievement_id", flat=True)
+            qs.order_by("achievement_id").values_list("achievement_id", flat=True)
         )
 
     return _get

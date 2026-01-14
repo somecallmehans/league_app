@@ -5,7 +5,7 @@ import {
   usePostUpsertParticipantMutation,
 } from "../../api/apiSlice";
 import { EditButtons } from "./CrudComponents.jsx";
-import { TextInput } from "../../components/FormInputs.jsx";
+import { TextInput } from "../../components/FormInputs.tsx";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import StandardButton from "../../components/Button";
 import { useSearch } from "../../hooks";

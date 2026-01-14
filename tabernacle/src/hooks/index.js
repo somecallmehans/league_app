@@ -4,3 +4,7 @@ export { default as usePageTracking } from "./usePageTracking.jsx";
 export { default as useMonthYear } from "./useMonthYear.jsx";
 export { default as useAchievementSearch } from "./useAchievementSearch.jsx";
 export { default as useParticipantsLookup } from "./useParticipantsLookup.tsx";
+export { default as useScorecardInfo } from "./useScorecardInfo.tsx";
+export { default as useGoBack } from "./useGoBack.tsx";
+export { default as useCommanderColors } from "./useCommanderColors.tsx";
+export { default as useSessionRoundInfo } from "./useSessionRoundInfo.tsx";

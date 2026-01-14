@@ -73,6 +73,7 @@ export const apiSlice = createApi({
     "Rounds",
     "SignedIn",
     "Configs",
+    "Scoresheet",
   ] as const,
   endpoints: (builder) => ({
     ...getRoutes(builder),
@@ -108,13 +109,15 @@ export const {
   useGetSigninsQuery,
   useGetAllConfigsQuery,
   useGetParticipantBadgesQuery,
+  useGetPodParticipantsQuery,
+  useGetScoresheetsQuery,
+  useGetRoundsBySessionQuery,
 
   // POSTS
   usePostCreateSessionMutation,
   usePostBeginRoundMutation,
   usePostUpsertParticipantMutation,
   usePostUpsertAchievementsMutation,
-  usePostUpsertEarnedV2Mutation,
   usePostRerollPodsMutation,
   usePostInsertCommandersMutation,
   usePostUpsertParticipantAchievementMutation,
@@ -124,6 +127,8 @@ export const {
   usePostLobbySignInMutation,
   usePostPodParticipantMutation,
   useDeletePodParticipantMutation,
+  useInsertScoresheetMutation,
+  useUpdateScoresheetMutation,
 
   // AUTH
   useLoginMutation,

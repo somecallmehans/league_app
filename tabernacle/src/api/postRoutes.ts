@@ -25,11 +25,10 @@ import {
 import {
   UpsertAchievementResponseSchema,
   EMPTY_ACHIEVEMENT_RESPONSE,
-  UpsertEarnedRequest,
-  UpsertEarnedResponse,
   type UpsertAchievementResponse,
   type UpsertAchievementRequest,
   type UpsertParticipantAchievementRequest,
+  type ScoresheetFormRequest,
 } from "../types/achievement_schemas";
 import {
   RerollPodsResponseSchema,
@@ -103,17 +102,6 @@ export default (builder: ApiBuilder) => ({
         EMPTY_ACHIEVEMENT_RESPONSE
       ),
     invalidatesTags: ["Achievements"],
-  }),
-  postUpsertEarnedV2: builder.mutation<
-    UpsertEarnedResponse,
-    UpsertEarnedRequest
-  >({
-    query: (body) => ({
-      url: "upsert_earned_v2/",
-      method: "POST",
-      body: body,
-    }),
-    invalidatesTags: ["Pods", "Earned"],
   }),
   postRerollPods: builder.mutation<RerollPodsResponse, RerollPodsRequest>({
     query: (body) => ({
@@ -197,5 +185,21 @@ export default (builder: ApiBuilder) => ({
       body: body,
     }),
     invalidatesTags: ["Pods", "Participants"],
+  }),
+  insertScoresheet: builder.mutation<void, ScoresheetFormRequest>({
+    query: ({ round_id, pod_id, ...body }) => ({
+      url: `rounds/${round_id}/pods/${pod_id}/scoresheet/`,
+      method: "POST",
+      body: body,
+    }),
+    invalidatesTags: ["Pods", "Earned", "Scoresheet"],
+  }),
+  updateScoresheet: builder.mutation<void, ScoresheetFormRequest>({
+    query: ({ round_id, pod_id, ...body }) => ({
+      url: `rounds/${round_id}/pods/${pod_id}/scoresheet/`,
+      method: "PUT",
+      body: body,
+    }),
+    invalidatesTags: ["Pods", "Earned", "Scoresheet"],
   }),
 });
