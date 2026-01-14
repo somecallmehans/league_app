@@ -114,7 +114,7 @@ def test_get_current_decklists(client, build_state) -> None:
     should: return all of the decklist info + total points  `
     """
 
-    url = reverse("get_decklists")
+    url = reverse("decklists")
     res = client.get(url)
 
     assert res.status_code == status.HTTP_200_OK
