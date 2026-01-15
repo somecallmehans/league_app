@@ -1,6 +1,7 @@
 import json
 
 from django.core.exceptions import ObjectDoesNotExist
+from rest_framework.exceptions import ValidationError
 
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -89,5 +90,10 @@ def decklists(request, **kwargs):
         pid = kwargs["participant_id"]
         post_decklists(request.data, pid)
         return Response(status=status.HTTP_201_CREATED)
+    except ValidationError as e:
+        return Response(
+            {"detail": str(e.detail["url"]), "errors": e.detail},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     except Exception as e:
         return Response(status=status.HTTP_400_BAD_REQUEST)

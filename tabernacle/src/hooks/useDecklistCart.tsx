@@ -12,10 +12,6 @@ export default function useDecklistCart() {
 
   const loading = achievementsLoading || achievementsObjLoading;
 
-  if (loading) {
-    return {};
-  }
-
   const filteredAchievements = useMemo(() => {
     if (!achievements) return [];
     return achievements
@@ -31,6 +27,10 @@ export default function useDecklistCart() {
       return acc;
     }, {});
   }, [achievements]);
+
+  if (loading) {
+    return { achievements: [], lookup: {} };
+  }
 
   return { achievements: filteredAchievements, lookup: pointLookup };
 }

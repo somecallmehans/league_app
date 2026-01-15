@@ -1,4 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
+
 import { toast } from "react-toastify";
 
 import auth, { getTokenRaw } from "../helpers/authHelpers";
@@ -17,6 +19,45 @@ const baseQuery = fetchBaseQuery({
     return headers;
   },
 });
+
+type MaybeRTKQError = FetchBaseQueryError | { error: string } | unknown;
+
+export function getErrorMessage(err: MaybeRTKQError): string {
+  if (!err) return "Unknown error";
+  if (
+    typeof err === "object" &&
+    err !== null &&
+    "error" in err &&
+    typeof (err as any).error === "string"
+  ) {
+    return (err as any).error;
+  }
+
+  if (typeof err === "object" && err !== null && "data" in err) {
+    const data = (err as any).data;
+
+    if (typeof data === "string") return data;
+
+    if (data?.detail) return data.detail;
+    if (data?.message) return data.message;
+
+    if (data?.errors) {
+      try {
+        return JSON.stringify(data.errors);
+      } catch {
+        return "Request failed with validation errors.";
+      }
+    }
+
+    try {
+      return JSON.stringify(data);
+    } catch {
+      return "Request failed.";
+    }
+  }
+
+  return "Unknown error";
+}
 
 const baseQueryWithReauth: BaseBQ = async (args, api, extraOptions) => {
   let result = await baseQuery(args, api, extraOptions);
@@ -44,17 +85,7 @@ const baseQueryWithReauth: BaseBQ = async (args, api, extraOptions) => {
   }
 
   if (result?.error) {
-    let msg = "Unknown error";
-
-    if ("error" in result.error) {
-      msg = result.error.error;
-    } else {
-      msg =
-        typeof result.error.data === "string"
-          ? result.error.data
-          : JSON.stringify(result.error.data);
-    }
-    toast.error(`Error while performing request: ${msg}`);
+    toast.error(getErrorMessage(result.error));
   }
 
   return result;

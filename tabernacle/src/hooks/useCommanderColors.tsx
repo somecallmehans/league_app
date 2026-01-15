@@ -7,10 +7,12 @@ export default function useCommanderColors(
 ) {
   const { data: colors } = useGetAllColorsQuery();
 
-  if (!primary) return { colorName: undefined, colorId: -1 };
+  if (!primary) return { colorName: undefined, colorId: -1, colorLength: -1 };
 
   const colorId = getCommanderColorId(colors, primary, secondary);
   const colorName = colors?.idObj[colorId]?.name?.toLowerCase();
+  const colorSymbol = colors?.idObj[colorId]?.symbol;
+  const colorLength = colorSymbol === "c" ? 0 : colorSymbol?.length;
 
-  return { colorId, colorName };
+  return { colorId, colorName, colorLength };
 }

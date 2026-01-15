@@ -12,7 +12,7 @@ import {
   useGetCommandersQuery,
   usePostDecklistMutation,
 } from "../../api/apiSlice";
-import { useGoBack, useDecklistCart } from "../../hooks";
+import { useGoBack, useDecklistCart, useCommanderColors } from "../../hooks";
 import {
   TextInput,
   Selector,
@@ -22,7 +22,22 @@ import { textValidate } from "../../components/Modals/SignInModal";
 import StandardButton from "../../components/Button";
 import { normalize } from "../leagueSession/ScorecardPage";
 
-const AchievementCart = () => {
+import ColorGrid from "../../components/ColorGrid";
+
+const pointLookup: Record<number, number> = {
+  5: 0,
+  4: 1,
+  3: 2,
+  2: 3,
+  1: 4,
+  0: 5,
+};
+
+const AchievementCart = ({
+  colorLength = -1,
+}: {
+  colorLength: number | undefined;
+}) => {
   const { control, setValue, getValues } = useFormContext();
   const { achievements, lookup } = useDecklistCart();
   const cart = useWatch({ control, name: "achievements" }) ?? [];
@@ -30,15 +45,19 @@ const AchievementCart = () => {
   const sum = useMemo(() => {
     if (!cart) return [];
     return cart.reduce((acc: number, curr: any) => {
-      acc += lookup[curr.id];
+      acc += lookup?.[curr.id];
       return acc;
-    }, 0);
+    }, pointLookup[colorLength] || 0);
   }, [cart, lookup]);
 
   return (
     <div className="flex flex-col">
       <h2 className="text-lg font-semibold text-zinc-700">
-        Deckbuilding Achievements {sum} Points
+        Deckbuilding Achievements{" "}
+        <span className={`text-bold ${sum > 0 ? "text-green-600" : ""}`}>
+          {sum}
+        </span>{" "}
+        Points
       </h2>
       <div className="border-t mb-2" />
       <div className="flex justify-between gap-2 mb-2">
@@ -95,6 +114,14 @@ const AchievementCart = () => {
           </div>
         ))}
       </div>
+      {sum > 0 ? (
+        <p className="text-xs italic text-red-600 mt-1">
+          Note: the point total above is only representative of deck building +
+          color achievements, and not points potentially earned during a match.
+        </p>
+      ) : (
+        <div className="my-4" />
+      )}
     </div>
   );
 };
@@ -112,22 +139,28 @@ export default function DecklistForm() {
   const { data: commanders, isLoading: commandersLoading } =
     useGetCommandersQuery();
   const selectedCommander = useWatch({ control, name: "commander" });
+  const selectedPartner = useWatch({ control, name: "partner" });
 
-  const commanderOptions = [
-    { id: -1, name: "Type to select a commander" },
-    ...(commanders?.commanders.map(({ id, name }) => ({
-      id,
-      name,
-    })) ?? []),
-  ];
+  const { colorLength, colorName } = useCommanderColors(
+    selectedCommander?.colors_id,
+    selectedPartner?.colors_id
+  );
 
-  const partnerOptions = [
-    { id: -1, name: "Type to select a partner/background" },
-    ...(commanders?.partners.map(({ id, name }) => ({ id, name })) ?? []),
-  ];
+  const commanderOptions = useMemo(() => {
+    return [
+      { id: -1, name: "Type To Select a Primary Commander" },
+      ...(commanders?.commanders ?? []),
+    ];
+  }, [commanders]);
 
-  const companionOptions =
-    commanders?.companions.map(({ id, name }) => ({ id, name })) ?? [];
+  const partnerOptions = useMemo(() => {
+    return [
+      { id: -1, name: "Type To Select a Partner/Background/Companion" },
+      ...(commanders?.partners ?? []),
+    ];
+  }, [commanders]);
+
+  const companionOptions = commanders?.companions ?? [];
 
   const handleFormSubmit = async (data: any) => {
     const { picker, ...clean } = data;
@@ -142,7 +175,9 @@ export default function DecklistForm() {
     };
 
     try {
-      await postDecklist(payload).unwrap();
+      const res = await postDecklist(payload).unwrap();
+      console.log(res);
+      debugger;
       navigate(-1);
     } catch (error) {
       console.error("Failed to submit decklist.", error);
@@ -150,16 +185,25 @@ export default function DecklistForm() {
   };
 
   return (
-    <div className="p-4 md:p-8 min-h-screen">
+    <div className="px-4 py-8 md:p-8 h-auto mb-4">
       <Back />
       <div className="mx-auto h-[50vh]">
         <FormProvider {...methods}>
           <form onSubmit={handleSubmit(handleFormSubmit)}>
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2 h-full">
               <div className="flex flex-col h-full">
-                <h2 className="text-lg font-semibold text-zinc-700">
-                  General Info
-                </h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-lg font-semibold text-zinc-700">
+                    General Info
+                  </h2>
+                  <ColorGrid
+                    colors={colorName}
+                    submitted
+                    show
+                    noHover
+                    isSmall
+                  />
+                </div>
                 <div className="border-t mb-2" />
                 <div className="text-sm mt-1">
                   Provide a name for your decklist
@@ -246,9 +290,9 @@ export default function DecklistForm() {
                   disabled={!selectedCommander}
                 />
               </div>
-              <AchievementCart />
+              <AchievementCart colorLength={colorLength} />
             </div>
-            <div className="mt-4 backdrop-blur border-t py-3 flex justify-end items-center gap-4">
+            <div className="mt-4 backdrop-blur border-t py-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-end md:gap-4">
               <Controller
                 name="give_credit"
                 control={control}
@@ -258,7 +302,7 @@ export default function DecklistForm() {
                     {...field}
                     checked={field.value}
                     label="Do you want named credit for this deck?"
-                    classes="flex justify-between items-center"
+                    classes="flex items-start md:items-center w-full md:w-auto"
                   />
                 )}
               />
@@ -268,7 +312,7 @@ export default function DecklistForm() {
                 placeholder="User code"
                 control={control}
                 type="text"
-                containerClasses="items-end"
+                containerClasses="w-full md:w-48"
                 classes="text-sm w-full border rounded-lg p-2"
                 rules={{
                   validate: (value) =>
