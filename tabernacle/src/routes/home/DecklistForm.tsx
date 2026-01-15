@@ -10,10 +10,9 @@ import {
 
 import {
   useGetCommandersQuery,
-  useGetAchievementsQuery,
   usePostDecklistMutation,
 } from "../../api/apiSlice";
-import { useGoBack } from "../../hooks";
+import { useGoBack, useDecklistCart } from "../../hooks";
 import {
   TextInput,
   Selector,
@@ -25,28 +24,27 @@ import { normalize } from "../leagueSession/ScorecardPage";
 
 const AchievementCart = () => {
   const { control, setValue, getValues } = useFormContext();
-  const { data: achievements, isLoading: achievementsLoading } =
-    useGetAchievementsQuery();
+  const { achievements, lookup } = useDecklistCart();
   const cart = useWatch({ control, name: "achievements" }) ?? [];
 
-  const filteredAchievements = useMemo(() => {
-    if (!achievements?.data) return [];
-    return achievements.data
-      .filter((a) => !achievements.parents.includes(a.id))
-      .filter(({ slug }) => !slug)
-      .map((a) => ({ id: a.id, name: a.full_name }));
-  }, [achievements]);
+  const sum = useMemo(() => {
+    if (!cart) return [];
+    return cart.reduce((acc: number, curr: any) => {
+      acc += lookup[curr.id];
+      return acc;
+    }, 0);
+  }, [cart, lookup]);
 
   return (
     <div className="flex flex-col">
       <h2 className="text-lg font-semibold text-zinc-700">
-        Deckbuilding Achievements
+        Deckbuilding Achievements {sum} Points
       </h2>
       <div className="border-t mb-2" />
       <div className="flex justify-between gap-2 mb-2">
         <Selector
           name="picker"
-          options={filteredAchievements || []}
+          options={achievements ?? []}
           control={control}
           placeholder="Deck Building Achievements"
           getOptionLabel={(option) => option.name}
