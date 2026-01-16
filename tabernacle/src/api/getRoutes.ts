@@ -257,10 +257,23 @@ export default (builder: ApiBuilder) => ({
   }),
   getDecklists: builder.query<
     GetDecklistsResponse,
-    { sort_order: string | null; colors: number | null }
+    void | { sort_order: string | null; colors: number | null }
   >({
-    query: ({ sort_order, colors }) =>
-      `decklists/?colors=${colors}&sort_order=${sort_order}`,
+    query: (params) => {
+      let paramList = [];
+      let qParams = "";
+      if (params?.colors) {
+        paramList.push(`colors=${params?.colors}`);
+      }
+      if (params?.sort_order) {
+        paramList.push(`sort_order=${params?.sort_order}`);
+      }
+
+      if (qParams.length > 0) {
+        qParams = `?${paramList.join("&")}`;
+      }
+      return `decklists/${qParams}`;
+    },
     providesTags: ["Decklists"],
   }),
 });

@@ -1,6 +1,8 @@
 import requests
 import json
 import time
+from typing import Optional, TypedDict
+
 
 from collections import defaultdict
 from django.db.models import Q, F, Sum, Max, Window, IntegerField, Value
@@ -293,17 +295,22 @@ def calculate_color_mask(colors: list[int]) -> tuple[int, int]:
     return win_colors, calculated["id"]
 
 
-def calculate_color(masks: list[int]) -> str:
+class ColorInfo(TypedDict):
+    symbol: str
+    name: str
+
+
+def calculate_color(masks: list[int]) -> Optional[ColorInfo]:
     """
     Take in a list of color masks, sum them and return the associated color info
     """
-    summed = 0
+    combined = 0
 
     for m in masks:
-        if m >= 0:
-            summed += m
+        if m is not None and m >= 0:
+            combined |= m
 
-    color = Colors.objects.filter(mask=summed).values("symbol", "name").first()
+    color = Colors.objects.filter(mask=combined).values("symbol", "name").first()
     if color is None:
         return None
     return color

@@ -24,7 +24,7 @@ import { normalize } from "../leagueSession/ScorecardPage";
 
 import ColorGrid from "../../components/ColorGrid";
 
-const pointLookup: Record<number, number> = {
+export const pointLookup: Record<number, number> = {
   5: 0,
   4: 1,
   3: 2,
@@ -175,9 +175,7 @@ export default function DecklistForm() {
     };
 
     try {
-      const res = await postDecklist(payload).unwrap();
-      console.log(res);
-      debugger;
+      await postDecklist(payload).unwrap();
       navigate(-1);
     } catch (error) {
       console.error("Failed to submit decklist.", error);

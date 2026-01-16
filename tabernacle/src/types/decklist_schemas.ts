@@ -4,12 +4,15 @@ export const IdSchema = z.number().int().positive();
 export type Id = z.infer<typeof IdSchema>;
 
 export const ScryfallImageSchema = z.object({
-  url: z.string().url(),
+  url: z.string(),
   artist: z.string(),
 });
 export type ScryfallImage = z.infer<typeof ScryfallImageSchema>;
 
-export const DecklistColorSchema = z.string();
+export const DecklistColorSchema = z.object({
+  name: z.string(),
+  symbol: z.string(),
+});
 export type DecklistColor = z.infer<typeof DecklistColorSchema>;
 
 export const DecklistSummarySchema = z.object({
@@ -20,7 +23,7 @@ export const DecklistSummarySchema = z.object({
   code: z.string().min(1),
 
   commander_name: z.string().min(1),
-  commander_img: z.array(ScryfallImageSchema).nullable().optional(),
+  commander_img: z.array(ScryfallImageSchema),
 
   partner_name: z.string().nullable().optional(),
   partner_img: z.array(ScryfallImageSchema).nullable().optional(),

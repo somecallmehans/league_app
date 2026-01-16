@@ -73,7 +73,7 @@ def get_decklists(params: str = "") -> list[Decklists]:
     )
 
     order_by = SORT_MAP.get(sort_order, SORT_MAP["points_desc"])
-    if color_mask:
+    if color_mask is not None:
         try:
             mask_int = int(color_mask)
         except (TypeError, ValueError):
