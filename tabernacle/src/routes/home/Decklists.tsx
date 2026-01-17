@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Route, Routes, Link } from "react-router-dom";
 
 import { type SimpleColor } from "../../types/color_schemas";
@@ -11,6 +12,7 @@ import DecklistForm from "./DecklistForm";
 import DecklistImages from "./DecklistImages";
 import ColorGrid from "../../components/ColorGrid";
 import LoadingSpinner from "../../components/LoadingSpinner";
+import DecklistFilters from "./DecklistFiltering";
 
 type DecklistProps = {
   name: string;
@@ -47,24 +49,27 @@ const DecklistCard = ({
   return (
     <Link to={url}>
       <div
-        className="relative w-full max-w-sm md:max-w-lg bg-white border rounded-xl shadow-lg overflow-hidden transition-transform duration-200 ease-out
-  hover:scale-[1.03]"
+        className="w-full overflow-hidden rounded-xl border bg-white shadow-sm
+          transition-transform duration-200 ease-out md:hover:scale-[1.02]"
       >
-        <div className="relative w-full aspect-[4/3] bg-zinc-200 overflow-hidden">
+        <div className="relative w-full aspect-[16/11] sm:aspect-[4/3] bg-zinc-200 overflow-hidden">
           <DecklistImages name={name} imgs={imgs} />
         </div>
+
         <div className="pb-4 px-2 pt-2">
           <div className="text-sm font-semibold flex justify-between">
             <div className="text-lg truncate w-3/4">{name}</div>
             <ColorGrid colors={color?.name} noHover show submitted isSmall />
           </div>
+
           <div className="flex justify-between">
             <span>{totalPoints} Points </span>
             <span className="font-bold">{code}</span>
           </div>
-          <div className="text-xs">{pName}</div>
+
+          <div className="text-xs min-h-[1rem]">{pName ?? ""}</div>
         </div>
-        <div className="absolute bottom-0 inset-x-0 w-full text-center text-[8px] text-slate-400">
+        <div className="pt-2 text-center text-[10px] text-slate-400">
           Card art by {artists.join(", ")}
         </div>
       </div>
@@ -72,23 +77,32 @@ const DecklistCard = ({
   );
 };
 
+export type DecklistParams = {
+  colors?: number | null;
+  sort_order?: string | null;
+};
+
 function DecklistContainer() {
+  const [params, setParams] = useState<DecklistParams>({});
+
+  const token = Object.keys(params).length === 0 ? {} : params;
   const { data: decklists, isLoading: decklistsLoading } =
-    useGetDecklistsQuery();
+    useGetDecklistsQuery(token);
 
   if (decklistsLoading) {
     return <LoadingSpinner />;
   }
 
   return (
-    <div className="p-8 md:p-16">
+    <div className="p-1 md:p-8">
       <div className="flex justify-between items-center">
         <PageTitle title="Decklists" />
         <Link to={`new`}>
           <StandardButton title="New" />
         </Link>
       </div>
-      <div className="grid gap-3 md:grid-cols-3 h-full">
+      <DecklistFilters params={params} setParams={setParams} />
+      <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-3">
         {decklists?.map(
           ({
             id,

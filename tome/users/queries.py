@@ -4,7 +4,7 @@ from urllib.parse import urlparse
 from better_profanity import profanity
 from rest_framework.exceptions import ValidationError
 
-from django.db.models import Sum, F
+from django.db.models import Func, F, IntegerField, Value, Sum
 from django.db.models.functions import Coalesce
 
 from achievements.helpers import calculate_color
@@ -26,6 +26,20 @@ SORT_MAP = {
 }
 
 COLOR_BITS = {"W": 1, "U": 2, "B": 4, "R": 8, "G": 16, "C": 0}
+
+
+class BitAnd(Func):
+    function = ""
+    template = "(%(expressions)s)"
+    arg_joiner = " & "
+    output_field = IntegerField()
+
+
+class BitOr(Func):
+    function = ""
+    template = "(%(expressions)s)"
+    arg_joiner = " | "
+    output_field = IntegerField()
 
 
 def get_decklists(params: str = "") -> list[Decklists]:
@@ -79,7 +93,19 @@ def get_decklists(params: str = "") -> list[Decklists]:
         except (TypeError, ValueError):
             raise ValidationError({"colors": "colors must be an integer mask"})
 
-        query = query.filter(commander__colors__mask=mask_int)
+        query = query.annotate(
+            combined_mask=BitOr(
+                F("commander__colors__mask"),
+                Coalesce(F("partner__colors__mask"), Value(0)),
+            )
+        )
+
+        if mask_int == 0:
+            query = query.filter(combined_mask=0)
+        else:
+            query = query.annotate(
+                matched_mask=BitAnd(F("combined_mask"), Value(mask_int))
+            ).filter(matched_mask=mask_int)
     query = query.order_by(*order_by)
 
     out = []

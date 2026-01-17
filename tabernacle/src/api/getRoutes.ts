@@ -62,6 +62,7 @@ import {
 } from "../types/commander_schemas";
 import { type ConfigsTransformed } from "../types/config_schemas";
 import { type GetDecklistsResponse } from "../types/decklist_schemas";
+import { type DecklistParams } from "../routes/home/Decklists";
 
 type Id = number | string;
 
@@ -255,23 +256,21 @@ export default (builder: ApiBuilder) => ({
   >({
     query: ({ session_id }) => `get_rounds_by_session/${session_id}/`,
   }),
-  getDecklists: builder.query<
-    GetDecklistsResponse,
-    void | { sort_order: string | null; colors: number | null }
-  >({
+  getDecklists: builder.query<GetDecklistsResponse, void | DecklistParams>({
     query: (params) => {
       let paramList = [];
       let qParams = "";
-      if (params?.colors) {
+      if (params?.colors || params?.colors === 0) {
         paramList.push(`colors=${params?.colors}`);
       }
       if (params?.sort_order) {
         paramList.push(`sort_order=${params?.sort_order}`);
       }
 
-      if (qParams.length > 0) {
+      if (paramList.length > 0) {
         qParams = `?${paramList.join("&")}`;
       }
+      console.log(qParams);
       return `decklists/${qParams}`;
     },
     providesTags: ["Decklists"],
