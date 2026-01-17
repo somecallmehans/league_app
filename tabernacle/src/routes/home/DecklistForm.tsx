@@ -8,11 +8,13 @@ import {
   Controller,
 } from "react-hook-form";
 
+import { usePostDecklistMutation } from "../../api/apiSlice";
 import {
-  useGetCommandersQuery,
-  usePostDecklistMutation,
-} from "../../api/apiSlice";
-import { useGoBack, useDecklistCart, useCommanderColors } from "../../hooks";
+  useGoBack,
+  useDecklistCart,
+  useCommanderColors,
+  useCommanderOptions,
+} from "../../hooks";
 import {
   TextInput,
   Selector,
@@ -40,8 +42,8 @@ const AchievementCart = ({
 }) => {
   const { control, setValue, getValues } = useFormContext();
   const { achievements, lookup } = useDecklistCart();
-  const cart = useWatch({ control, name: "achievements" }) ?? [];
 
+  const cart = useWatch({ control, name: "achievements" }) ?? [];
   const sum = useMemo(() => {
     if (!cart) return [];
     return cart.reduce((acc: number, curr: any) => {
@@ -127,6 +129,8 @@ const AchievementCart = ({
 };
 
 export default function DecklistForm() {
+  const { commanderOptions, partnerOptions, companionOptions } =
+    useCommanderOptions();
   const [postDecklist] = usePostDecklistMutation();
   const navigate = useNavigate();
   const methods = useForm();
@@ -134,10 +138,11 @@ export default function DecklistForm() {
     control,
     handleSubmit,
     formState: { errors },
+    setValue,
+    getValues,
   } = methods;
   const Back = useGoBack("/");
-  const { data: commanders, isLoading: commandersLoading } =
-    useGetCommandersQuery();
+
   const selectedCommander = useWatch({ control, name: "commander" });
   const selectedPartner = useWatch({ control, name: "partner" });
 
@@ -145,22 +150,6 @@ export default function DecklistForm() {
     selectedCommander?.colors_id,
     selectedPartner?.colors_id
   );
-
-  const commanderOptions = useMemo(() => {
-    return [
-      { id: -1, name: "Type To Select a Primary Commander" },
-      ...(commanders?.commanders ?? []),
-    ];
-  }, [commanders]);
-
-  const partnerOptions = useMemo(() => {
-    return [
-      { id: -1, name: "Type To Select a Partner/Background/Companion" },
-      ...(commanders?.partners ?? []),
-    ];
-  }, [commanders]);
-
-  const companionOptions = commanders?.companions ?? [];
 
   const handleFormSubmit = async (data: any) => {
     const { picker, ...clean } = data;
@@ -286,6 +275,31 @@ export default function DecklistForm() {
                   getOptionValue={(option) => String(option.id)}
                   classes="mb-2"
                   disabled={!selectedCommander}
+                  onChange={(selected) => {
+                    const cart = getValues("achievements") ?? [];
+
+                    if (!selected) {
+                      setValue("companion", null, {
+                        shouldDirty: true,
+                        shouldValidate: false,
+                      });
+                      setValue(
+                        "achievements",
+                        cart.filter(({ id }: { id: number }) => id !== 28)
+                      );
+                      return;
+                    }
+                    // TODO Fix this hack that no one
+                    // will care about but me lmao
+                    setValue("achievements", [
+                      ...cart,
+                      {
+                        id: 28,
+                        name: "Win with a deck that includes one of Ikoria’s “Companions” as a companion",
+                        tempId: crypto.randomUUID(),
+                      },
+                    ]);
+                  }}
                 />
               </div>
               <AchievementCart colorLength={colorLength} />

@@ -9,3 +9,4 @@ export { default as useGoBack } from "./useGoBack.tsx";
 export { default as useCommanderColors } from "./useCommanderColors.tsx";
 export { default as useSessionRoundInfo } from "./useSessionRoundInfo.tsx";
 export { default as useDecklistCart } from "./useDecklistCart.tsx";
+export { default as useCommanderOptions } from "./useCommanderOptions.tsx";

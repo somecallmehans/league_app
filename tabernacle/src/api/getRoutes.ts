@@ -270,7 +270,6 @@ export default (builder: ApiBuilder) => ({
       if (paramList.length > 0) {
         qParams = `?${paramList.join("&")}`;
       }
-      console.log(qParams);
       return `decklists/${qParams}`;
     },
     providesTags: ["Decklists"],

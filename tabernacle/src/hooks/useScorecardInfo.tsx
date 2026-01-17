@@ -3,7 +3,6 @@ import { useParams } from "react-router-dom";
 import { skipToken } from "@reduxjs/toolkit/query";
 import {
   useGetAchievementsQuery,
-  useGetCommandersQuery,
   useGetPodParticipantsQuery,
 } from "../api/apiSlice";
 
@@ -15,8 +14,7 @@ export default function useScorecardInfo() {
   }>();
   const { data: achievements, isLoading: achievementsLoading } =
     useGetAchievementsQuery();
-  const { data: commanders, isLoading: commandersLoading } =
-    useGetCommandersQuery();
+
   const podParticipantsQueryArg = pod_id ? { pod_id } : skipToken;
 
   const { data: participants, isLoading: participantsLoading } =
@@ -30,24 +28,12 @@ export default function useScorecardInfo() {
       .map((a) => ({ id: a.id, name: a.full_name }));
   }, [achievements]);
 
-  const commanderOptions = useMemo(() => {
-    return [
-      { id: -1, name: "Type To Select a Primary Commander" },
-      ...(commanders?.commanders ?? []),
-    ];
-  }, [commanders]);
-
-  const partnerOptions = useMemo(() => {
-    return [
-      { id: -1, name: "Type To Select a Partner/Background/Companion" },
-      ...(commanders?.partners ?? []),
-    ];
-  }, [commanders]);
+  if (achievementsLoading || participantsLoading) {
+    return { filteredAchievements: [], participants: [] };
+  }
 
   return {
     filteredAchievements,
     participants,
-    commanderOptions,
-    partnerOptions,
   };
 }

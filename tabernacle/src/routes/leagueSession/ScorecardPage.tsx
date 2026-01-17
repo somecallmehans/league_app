@@ -6,7 +6,7 @@ import {
   useInsertScoresheetMutation,
   useUpdateScoresheetMutation,
 } from "../../api/apiSlice";
-import { useGoBack, useScorecardInfo } from "../../hooks";
+import { useGoBack, useScorecardInfo, useCommanderOptions } from "../../hooks";
 import { ScorecardInfoContext } from "./ScorecardCTX";
 
 import StandardButton from "../../components/Button";
@@ -26,6 +26,7 @@ export default function ScorecardPage() {
   const [postScoresheet] = useInsertScoresheetMutation();
   const [putScoresheet] = useUpdateScoresheetMutation();
 
+  const options = useCommanderOptions();
   const info = useScorecardInfo();
 
   const Back = useGoBack(`/${round_id}`);
@@ -89,7 +90,7 @@ export default function ScorecardPage() {
               </span>
             ))}
           </div>
-          <ScorecardInfoContext.Provider value={info}>
+          <ScorecardInfoContext.Provider value={{ ...info, ...options }}>
             <FormProvider {...methods}>
               <form onSubmit={handleSubmit(handleFormSubmit)}>
                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2">

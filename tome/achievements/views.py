@@ -402,7 +402,9 @@ def get_participant_round_achievements(_, participant_id, round_id):
 def get_all_commanders(_):
     """Get and return all valid commanders we have currently."""
     try:
-        commanders = Commanders.objects.filter(deleted=False)
+        commanders = Commanders.objects.filter(
+            deleted=False, is_background=False, is_companion=False
+        )
         partners_backgrounds = Commanders.objects.filter(
             Q(has_partner=True) | Q(is_background=True),
             deleted=False,
