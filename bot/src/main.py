@@ -101,6 +101,7 @@ async def interactions(req: Request):
             return await handle_link(user_id, q)
 
         if name == "signin":
+            logger.info(f"Attempting sign in for {user_id}")
             return await handle_signin(user_id, guild_id)
 
         if name == "drop":

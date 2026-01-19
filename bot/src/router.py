@@ -1,5 +1,4 @@
 import os, httpx, time
-from datetime import datetime
 
 API_BASE = os.getenv("LEAGUE_API_BASE")
 SERVICE_TOKEN = os.getenv("SERVICE_TOKEN")
@@ -105,16 +104,6 @@ def _get_selection(guild_id, user_id):
 
 def _cache_selection(guild_id, user_id, round_ids) -> None:
     SELECTIONS[(guild_id, user_id)] = (time.time() + TTL, round_ids)
-
-
-def _format_start_time(value: str) -> str:
-    if not value:
-        return ""
-    try:
-        dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
-    except ValueError:
-        return ""
-    return dt.strftime("%-I:%M %m/%d/%Y")
 
 
 async def handle_signin(uid, guild_id):
