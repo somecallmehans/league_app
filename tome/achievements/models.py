@@ -125,6 +125,9 @@ class WinningCommanders(models.Model):
         null=True,
         blank=True,
     )
+    decklist = models.ForeignKey(
+        "users.Decklists", on_delete=models.CASCADE, null=True, blank=True
+    )
 
     class Meta:
         db_table = "winning_commanders"

@@ -30,8 +30,8 @@ export default function useRouteParticipants(roundId, sessionId, signIns) {
         id: p?.id || p?.value,
       }));
       await postBeginRound({
-        round: roundId,
-        session: sessionId,
+        round: +roundId,
+        session: +sessionId,
         participants: normalizedParticipants,
       }).unwrap();
       localStorage.removeItem(getLobbyKey(roundId));

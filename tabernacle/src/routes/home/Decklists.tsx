@@ -47,33 +47,33 @@ const DecklistCard = ({
   const totalPoints = points + colorPoints;
   const pName = participant_name ? `by ${participant_name}` : "";
   return (
-    <Link to={url}>
-      <div
-        className="w-full overflow-hidden rounded-xl border bg-white shadow-sm
+    <div
+      className="w-full overflow-hidden rounded-xl border bg-white shadow-sm
           transition-transform duration-200 ease-out md:hover:scale-[1.02]"
-      >
+    >
+      <Link to={url}>
         <div className="relative w-full aspect-[16/11] sm:aspect-[4/3] bg-zinc-200 overflow-hidden">
           <DecklistImages name={name} imgs={imgs} />
         </div>
+      </Link>
 
-        <div className="pb-4 px-2 pt-2">
-          <div className="text-sm font-semibold flex justify-between">
-            <div className="text-lg truncate w-3/4">{name}</div>
-            <ColorGrid colors={color?.name} noHover show submitted isSmall />
-          </div>
-
-          <div className="flex justify-between">
-            <span>{totalPoints} Points </span>
-            <span className="font-bold">{code}</span>
-          </div>
-
-          <div className="text-xs min-h-[1rem]">{pName ?? ""}</div>
+      <div className="pb-4 px-2 pt-2">
+        <div className="text-sm font-semibold flex justify-between">
+          <div className="text-lg truncate w-3/4">{name}</div>
+          <ColorGrid colors={color?.name} noHover show submitted isSmall />
         </div>
-        <div className="pt-2 text-center text-[10px] text-slate-400">
-          Card art by {artists.join(", ")}
+
+        <div className="flex justify-between">
+          <span>{totalPoints} Points </span>
+          <span className="font-bold">{code}</span>
         </div>
+
+        <div className="text-xs min-h-[1rem]">{pName ?? ""}</div>
       </div>
-    </Link>
+      <div className="pt-2 text-center text-[10px] text-slate-400">
+        Card art by {artists.join(", ")}
+      </div>
+    </div>
   );
 };
 
