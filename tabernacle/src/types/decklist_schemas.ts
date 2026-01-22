@@ -58,3 +58,22 @@ export type PostDecklistRequest = z.infer<typeof PostDecklistRequestSchema>;
 
 export const PostDecklistResponseSchema = z.void();
 export type PostDecklistResponse = z.infer<typeof PostDecklistResponseSchema>;
+
+const CommanderSchema = z.object({
+  id: IdSchema,
+  name: z.string(),
+  colors_id: z.number(),
+});
+
+const GetDecklistResponseSchema = z.object({
+  "winner-commander": CommanderSchema,
+  "partner-commander": CommanderSchema.optional(),
+  "companion-commander": CommanderSchema.optional(),
+  "winner-achievements": z.array(
+    z.object({
+      id: IdSchema,
+      name: z.string(),
+    })
+  ),
+});
+export type GetDecklistResponse = z.infer<typeof GetDecklistResponseSchema>;

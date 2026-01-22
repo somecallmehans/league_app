@@ -145,6 +145,7 @@ export const {
   useGetScoresheetsQuery,
   useGetRoundsBySessionQuery,
   useGetDecklistsQuery,
+  useLazyGetDecklistQuery,
 
   // POSTS
   usePostCreateSessionMutation,

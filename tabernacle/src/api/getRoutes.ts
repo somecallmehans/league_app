@@ -61,7 +61,10 @@ import {
   type CommanderObjectResponse,
 } from "../types/commander_schemas";
 import { type ConfigsTransformed } from "../types/config_schemas";
-import { type GetDecklistsResponse } from "../types/decklist_schemas";
+import {
+  type GetDecklistsResponse,
+  type GetDecklistResponse,
+} from "../types/decklist_schemas";
 import { type DecklistParams } from "../routes/home/Decklists";
 
 type Id = number | string;
@@ -273,5 +276,8 @@ export default (builder: ApiBuilder) => ({
       return `decklists/${qParams}`;
     },
     providesTags: ["Decklists"],
+  }),
+  getDecklist: builder.query<GetDecklistResponse, { code: string }>({
+    query: ({ code }) => `decklist/?code=${code}`,
   }),
 });
