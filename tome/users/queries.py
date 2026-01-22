@@ -1,4 +1,5 @@
 import re
+from typing import Optional
 from urllib.parse import urlparse
 
 from better_profanity import profanity
@@ -147,6 +148,61 @@ def get_decklists(params: str = "") -> list[Decklists]:
         )
 
     return list(out)
+
+
+class StubCommander(dict):
+    id: Optional[int]
+    name: Optional[int]
+    color_id: Optional[int]
+
+
+def get_single_decklist(param: str = "") -> Decklists:
+    code = f"DL-{param}"
+    query = (
+        Decklists.objects.filter(deleted=False, code=code)
+        .values(
+            "id",
+            "commander_id",
+            "commander__name",
+            "commander__colors_id",
+            "partner_id",
+            "partner__name",
+            "partner__colors_id",
+            "companion_id",
+            "companion__name",
+            "companion__colors_id",
+        )
+        .first()
+    )
+    a_query = DecklistsAchievements.objects.filter(
+        decklist_id=query["id"]
+    ).select_related("achievement")
+
+    payload = {
+        "winner-achievements": [],
+        "winner-commander": StubCommander(
+            id=query["commander_id"],
+            name=query["commander__name"],
+            color_id=query["commander__colors_id"],
+        ),
+        "partner-commander": StubCommander(
+            id=query["partner_id"],
+            name=query["partner__name"],
+            color_id=query["partner__colors_id"],
+        ),
+        "companion-commander": StubCommander(
+            id=query["companion_id"],
+            name=query["companion__name"],
+            color_id=query["companion__colors_id"],
+        ),
+    }
+
+    for row in a_query:
+        payload["winner-achievements"].append(
+            {"id": row.achievement_id, "name": row.achievement.full_name}
+        )
+
+    return payload
 
 
 ALLOWED_HOSTS = {

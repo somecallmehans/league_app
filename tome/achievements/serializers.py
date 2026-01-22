@@ -127,7 +127,9 @@ class WinningCommandersSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def by_pods(pods):
-        winning_commanders = WinningCommanders.objects.filter(pods_id__in=pods)
+        winning_commanders = WinningCommanders.objects.filter(
+            pods_id__in=pods, deleted=False
+        )
 
         winners_by_pod = {
             winner.pods_id: WinningCommandersSerializer(winner).data

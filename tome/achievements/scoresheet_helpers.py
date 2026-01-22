@@ -4,7 +4,7 @@ from django.db.models.functions import Coalesce
 
 from sessions_rounds.models import Rounds, PodsParticipants, Pods
 from achievements.models import Achievements, Commanders, WinningCommanders
-from users.models import ParticipantAchievements
+from users.models import ParticipantAchievements, Decklists, DecklistsAchievements
 
 from achievements.helpers import calculate_color_mask
 
@@ -34,6 +34,10 @@ class ScoresheetBuildResult(NamedTuple):
     session_id: int
     winner_id: Optional[int]
     pods_participants: list[int]
+    commander_id: int
+    partner_id: Optional[int]
+    companion_id: Optional[int]
+    decklist_id: Optional[int]
 
 
 class CommanderResult(NamedTuple):
@@ -224,6 +228,16 @@ class POSTScoresheetHelper:
             i["slug"]: i["point_value"] for i in self.slug_achievements
         }
 
+    def build_points_dict(self, achievement_ids):
+        """Compose a dict of points by ID"""
+        qs = (
+            Achievements.objects.filter(id__in=achievement_ids, deleted=False)
+            .annotate(true_value=Coalesce("point_value", "parent__point_value"))
+            .values_list("id", "true_value")
+        )
+
+        return dict(qs)
+
     def build_pod_achievements(self):
         """Build achievement records for general pod achievements."""
 
@@ -261,13 +275,8 @@ class POSTScoresheetHelper:
                         earned_points=self.points_by_slug[ws],
                     )
                 )
-        qs = (
-            Achievements.objects.filter(id__in=winner_achievements, deleted=False)
-            .annotate(true_value=Coalesce("point_value", "parent__point_value"))
-            .values_list("id", "true_value")
-        )
 
-        points_dict = dict(qs)
+        points_dict = self.build_points_dict(winner_achievements)
 
         for wa in winner_achievements:
             self.records.append(
@@ -284,18 +293,25 @@ class POSTScoresheetHelper:
         """Build the winning commander record."""
         winner_commander = getattr(self, "winner-commander", None)
         partner_commander = getattr(self, "partner-commander", None)
+        companion_commander = getattr(self, "companion-commander", None)
         if winner_commander is None:
             raise NotFound(detail="Winner commander is required for non-draw games")
 
         c1 = Commanders.objects.get(id=winner_commander)
         c2 = Commanders.objects.filter(id=partner_commander).first()
-        cids = [c1.colors_id]
-        c_name = c1.name
-        if c2:
-            c_name = f"{c1.name}+{c2.name}"
-            cids.append(c2.colors_id)
+        c3 = Commanders.objects.filter(id=companion_commander).first()
 
-        win_colors, colors_id = calculate_color_mask(cids)
+        color_ids = [c1.colors_id]
+        name_list = [c1.name]
+
+        if c2:
+            name_list.append(c2.name)
+            color_ids.append(c2.colors_id)
+
+        if c3:
+            name_list.append(c3.name)
+
+        win_colors, colors_id = calculate_color_mask(color_ids)
 
         self.records.append(
             ParticipantAchievements(
@@ -307,7 +323,9 @@ class POSTScoresheetHelper:
             )
         )
 
-        return c_name, colors_id
+        out_name = "+".join(name_list)
+
+        return out_name, colors_id
 
     def build_draw(self):
         """Build records for all participants in the event of a draw."""
@@ -337,16 +355,38 @@ class POSTScoresheetHelper:
         if is_draw:
             self.build_draw()
             return ScoresheetBuildResult(
-                self.records, None, None, self.session_id, None, self.pod_participants
+                self.records,
+                None,
+                None,
+                self.session_id,
+                None,
+                self.pod_participants,
+                None,
+                None,
+                None,
+                None,
             )
         else:
             self.build_winner_achievements()
-            c_name, c_id = self.build_win_colors()
+            combined_name, color_id = self.build_win_colors()
+            code = getattr(self, "decklist-code", None)
+            commander = getattr(self, "winner-commander")
+            partner_commander = getattr(self, "partner-commander", None)
+            companion_commander = getattr(self, "companion-commander", None)
+
+            if code:
+                decklist = Decklists.objects.get(code=f"DL-{code}")
+                decklist_id = decklist.id
+
             return ScoresheetBuildResult(
                 self.records,
-                c_name,
-                c_id,
+                combined_name,
+                color_id,
                 self.session_id,
                 self.winner,
                 self.pod_participants,
+                commander,
+                partner_commander,
+                companion_commander,
+                decklist_id or None,
             )

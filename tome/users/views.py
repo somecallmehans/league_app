@@ -18,7 +18,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from utils.decorators import require_user_code
 from .models import Participants
 from .serializers import ParticipantsSerializer
-from .queries import get_decklists, post_decklists
+from .queries import get_decklists, post_decklists, get_single_decklist
 
 
 @api_view(["GET"])
@@ -97,3 +97,25 @@ def decklists(request, **kwargs):
         )
     except Exception as e:
         return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET"])
+def decklist(request):
+    """Return an individual decklist, shaped for our scoresheet form."""
+
+    params = request.query_params
+    code = params.get("code")
+
+    if not code:
+        return Response(
+            {"detail": "Code is required"}, status=status.HTTP_400_BAD_REQUEST
+        )
+
+    if len(code) != 4:
+        return Response(
+            {"detail": "Incorrect code format supplied"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    payload = get_single_decklist(code)
+    return Response(payload, status=status.HTTP_200_OK)

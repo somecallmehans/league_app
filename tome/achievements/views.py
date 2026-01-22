@@ -586,6 +586,10 @@ def scoresheet(request, round_id: int, pod_id: int):
                 colors_id=result.colors_id,
                 participants_id=result.winner_id,
                 pods_id=pod_id,
+                commander_id=result.commander_id,
+                partner_id=result.partner_id,
+                companion_id=result.commander_id,
+                decklist_id=result.decklist_id,
             )
         if not pod.submitted:
             pod.submitted = True
