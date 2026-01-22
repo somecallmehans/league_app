@@ -52,14 +52,14 @@ const DecklistCard = ({
           transition-transform duration-200 ease-out md:hover:scale-[1.02]"
     >
       <Link to={url}>
-        <div className="relative w-full aspect-[16/11] sm:aspect-[4/3] bg-zinc-200 overflow-hidden">
+        <div className="relative w-full aspect-[4/3] sm:aspect-[4/3] bg-zinc-200 overflow-hidden">
           <DecklistImages name={name} imgs={imgs} />
         </div>
       </Link>
 
-      <div className="pb-4 px-2 pt-2">
+      <div className="pb-3 px-2 pt-2 sm:pb-4">
         <div className="text-sm font-semibold flex justify-between">
-          <div className="text-lg truncate w-3/4">{name}</div>
+          <div className="text-base sm:text-lg truncate w-3/4">{name}</div>
           <ColorGrid colors={color?.name} noHover show submitted isSmall />
         </div>
 
@@ -102,7 +102,7 @@ function DecklistContainer() {
         </Link>
       </div>
       <DecklistFilters params={params} setParams={setParams} />
-      <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-5">
         {decklists?.map(
           ({
             id,

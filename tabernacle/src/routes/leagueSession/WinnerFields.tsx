@@ -35,11 +35,8 @@ const PLAYER_WIN_MAP = [
 
 export default function WinnerFields() {
   const { control } = useFormContext();
-  const { participants, commanderOptions, partnerOptions } =
-    useScorecardInfoCtx();
+  const { participants } = useScorecardInfoCtx();
   const endInDraw = useWatch({ control, name: "end-draw" });
-  const selectedWinner = useWatch({ control, name: "winner" });
-  const selectedCommander = useWatch({ control, name: "winner-commander" });
 
   const commander = useWatch({ control, name: "winner-commander" });
   const partner = useWatch({ control, name: "partner-commander" });
@@ -72,49 +69,6 @@ export default function WinnerFields() {
         isClearable={true}
         getOptionLabel={(option) => option.name}
         getOptionValue={(option) => String(option.id)}
-      />
-      <Selector
-        name="winner-commander"
-        placeholder="Winner's Commander"
-        control={control}
-        options={commanderOptions || []}
-        classes="space-y-2 "
-        disabled={endInDraw}
-        isClearable
-        filterOption={(option, input) => {
-          if (input.length > 1) {
-            return option.label.toLowerCase().includes(input.toLowerCase());
-          }
-          return option.value === "-1";
-        }}
-        getOptionLabel={(option) => option.name}
-        getOptionValue={(option) => String(option.id)}
-        rules={{
-          validate: (value) =>
-            selectedWinner && !value
-              ? "Commander is required when winner is selected"
-              : undefined,
-        }}
-        isOptionDisabled={(o) => o.id === -1}
-      />
-      <Selector
-        name="partner-commander"
-        placeholder="Partner/Background/Companion"
-        control={control}
-        options={partnerOptions || []}
-        classes="space-y-2 "
-        disabled={endInDraw || !selectedCommander?.name}
-        isClearable
-        filterOption={(option, input) => {
-          if (input.length > 1) {
-            return option.label.toLowerCase().includes(input.toLowerCase());
-          }
-          return option.value === "-1";
-        }}
-        getOptionLabel={(option) => option.name}
-        getOptionValue={(option) => String(option.id)}
-        rules={{}}
-        isOptionDisabled={(o) => o.id === -1}
       />
       {PLAYER_WIN_MAP.map(({ label, slug, key }) => (
         <Controller

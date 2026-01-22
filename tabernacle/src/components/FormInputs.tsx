@@ -352,6 +352,7 @@ type TextInputProps<TFieldValues extends FieldValues> =
       type?: React.HTMLInputTypeAttribute;
       placeholder?: string;
       defaultValue?: any;
+      onBlur?: () => void;
     };
 
 export const TextInput = <TFieldValues extends FieldValues>({
@@ -366,6 +367,7 @@ export const TextInput = <TFieldValues extends FieldValues>({
   rules,
   errors,
   containerClasses,
+  onBlur,
 }: TextInputProps<TFieldValues>) => {
   return (
     <Controller
@@ -394,6 +396,7 @@ export const TextInput = <TFieldValues extends FieldValues>({
             type={type}
             disabled={disabled}
             autoComplete="off"
+            onBlur={onBlur}
           />
         </div>
       )}

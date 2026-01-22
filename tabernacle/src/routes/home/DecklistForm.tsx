@@ -206,8 +206,8 @@ export default function DecklistForm() {
                   rules={{ required: "Required" }}
                 />
                 <div className="text-sm mt-1">
-                  Share a URL for where your decklist lives; Moxfield and
-                  Archidekt preferred
+                  Share the Moxfield or Archidekt URL for where your decklist
+                  lives
                 </div>
                 <TextInput
                   name="url"

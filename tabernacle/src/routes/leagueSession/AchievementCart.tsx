@@ -1,18 +1,143 @@
 import { useFormContext, useWatch } from "react-hook-form";
-import { Selector } from "../../components/FormInputs";
+import { useLazyGetDecklistQuery } from "../../api/apiSlice";
+import { Selector, TextInput } from "../../components/FormInputs";
 
 import { useScorecardInfoCtx } from "./ScorecardCTX";
 
-export default function AchievementCart() {
+function CommanderFields() {
+  const { control } = useFormContext();
+  const { commanderOptions, partnerOptions, companionOptions } =
+    useScorecardInfoCtx();
+  const selectedWinner = useWatch({ control, name: "winner" });
+  const selectedCommander = useWatch({ control, name: "winner-commander" });
+
+  const endInDraw = useWatch({ control, name: "end-draw" });
+
+  return (
+    <div>
+      <h2 className="text-lg font-semibold text-zinc-700">Deckbuilding</h2>
+      <div className="border-t space-y-2 " />
+      <div className="mt-2  italic">
+        <div className="text-sm  mt-1">Commander</div>
+        <Selector
+          name="winner-commander"
+          placeholder="Winner's Commander"
+          control={control}
+          options={commanderOptions || []}
+          disabled={endInDraw}
+          isClearable
+          filterOption={(option, input) => {
+            if (input.length > 1) {
+              return option.label.toLowerCase().includes(input.toLowerCase());
+            }
+            return option.value === "-1";
+          }}
+          getOptionLabel={(option) => option.name}
+          getOptionValue={(option) => String(option.id)}
+          rules={{
+            validate: (value) =>
+              selectedWinner && !value
+                ? "Commander is required when winner is selected"
+                : undefined,
+          }}
+          isOptionDisabled={(o) => o.id === -1}
+        />
+      </div>
+
+      <div className="mt-2 italic">
+        <div className="text-sm  mt-1">Partner (Optional)</div>
+
+        <Selector
+          name="partner-commander"
+          placeholder="Partner/Background/Companion"
+          control={control}
+          options={partnerOptions || []}
+          disabled={endInDraw || !selectedCommander?.name}
+          isClearable
+          filterOption={(option, input) => {
+            if (input.length > 1) {
+              return option.label.toLowerCase().includes(input.toLowerCase());
+            }
+            return option.value === "-1";
+          }}
+          getOptionLabel={(option) => option.name}
+          getOptionValue={(option) => String(option.id)}
+          isOptionDisabled={(o) => o.id === -1}
+        />
+      </div>
+
+      <div className="mt-2 italic">
+        <div className="text-sm  mt-1">Companion (Optional)</div>
+        <Selector
+          name="companion-commander"
+          placeholder="Companion"
+          control={control}
+          options={companionOptions || []}
+          disabled={endInDraw || !selectedCommander?.name}
+          isClearable
+          getOptionLabel={(option) => option.name}
+          getOptionValue={(option) => String(option.id)}
+          isOptionDisabled={(o) => o.id === -1}
+        />
+      </div>
+    </div>
+  );
+}
+
+function DecklistCodeField() {
+  const { control, getValues, setValue } = useFormContext();
+  const mode = useWatch({ control, name: "submissionMode" });
+  const [triggerDecklist, { data, isFetching, isError, error }] =
+    useLazyGetDecklistQuery();
+
+  const onBlur = async () => {
+    const code = getValues("decklist-code")?.trim().toUpperCase();
+    if (!code) return;
+
+    try {
+      const res = await triggerDecklist({ code }).unwrap();
+
+      setValue("winner-commander", res["winner-commander"]);
+      setValue("partner-commander", res["partner-commander"]);
+      setValue("companion-commander", res["companion-commander"]);
+      setValue("winner-achievements", res["winner-achievements"]);
+    } catch (e) {
+      // show invalid code message
+    }
+  };
+
+  if (mode !== "decklist") return null;
+
+  return (
+    <div>
+      <h2 className="text-lg font-semibold text-zinc-700">Decklist</h2>
+      <div className="border-t mb-2" />
+      <div className="mt-2 italic">
+        <div className="text-sm mt-1">Decklist Code</div>
+        <TextInput
+          name="decklist-code"
+          control={control}
+          type="text"
+          placeholder="Add 4 Letter Code (i.e. w/o DL-)"
+          classes="text-lg w-full border rounded-lg p-2"
+          onBlur={onBlur}
+        />
+      </div>
+    </div>
+  );
+}
+
+function AchievementCart() {
   const { control, getValues, setValue } = useFormContext();
   const { filteredAchievements } = useScorecardInfoCtx();
+
   const cart = useWatch({ control, name: "winner-achievements" }) ?? [];
-  const endDraw = useWatch({ control, name: "end-draw" });
+  const endInDraw = useWatch({ control, name: "end-draw" });
+
   return (
-    <div className="flex flex-col">
-      <h2 className="text-lg font-semibold text-zinc-700">Deckbuilding</h2>
-      <div className="border-t mb-2" />
-      <div className="flex justify-between gap-2 mb-2">
+    <div className="flex flex-col h-full min-h-0">
+      <div className="text-sm  mt-1">Deckbuilding Achievements</div>
+      <div className="flex justify-between gap-2 mb-2 shrink-0">
         <Selector
           name="picker"
           options={filteredAchievements || []}
@@ -44,10 +169,10 @@ export default function AchievementCart() {
               shouldValidate: false,
             });
           }}
-          disabled={endDraw}
+          disabled={endInDraw}
         />
       </div>
-      <div className="h-64 md:h-full bg-zinc-100 p-4 rounded-lg border drop-shadow-md flex flex-col gap-2">
+      <div className="h-full min-h-0 bg-zinc-100 p-4 rounded-lg border drop-shadow-md flex flex-col gap-2 overflow-y-auto">
         {cart.map((c: { tempId: string; name: string | undefined }) => (
           <div
             className="flex justify-between bg-white rounded-lg p-2 shadow-md  items-center"
@@ -66,6 +191,29 @@ export default function AchievementCart() {
             />
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+export default function AchievementCartGate() {
+  const { control } = useFormContext();
+  const mode = useWatch({ control, name: "submissionMode" });
+  return (
+    <div className="flex flex-col h-full min-h-0">
+      <div className="shrink-0 space-y-4">
+        {(mode === "manual" || !mode) && <CommanderFields />}
+
+        {mode === "decklist" && (
+          <div className="space-y-4">
+            <DecklistCodeField />
+            <CommanderFields />
+          </div>
+        )}
+      </div>
+
+      <div className="h-full min-h-0 mt-2">
+        <AchievementCart />
       </div>
     </div>
   );
