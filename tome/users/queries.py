@@ -2,6 +2,7 @@ import re
 from typing import Optional
 from urllib.parse import urlparse
 
+from collections import defaultdict
 from better_profanity import profanity
 from rest_framework.exceptions import ValidationError
 
@@ -11,6 +12,8 @@ from django.db.models.functions import Coalesce
 from achievements.helpers import calculate_color
 
 from .models import Decklists, DecklistsAchievements
+from achievements.models import WinningCommanders
+from sessions_rounds.models import PodsParticipants
 from services.scryfall_client import ScryfallClientRequest
 
 
@@ -87,6 +90,18 @@ def get_decklists(params: str = "") -> list[Decklists]:
         )
     )
 
+    ach_query = DecklistsAchievements.objects.all().select_related("achievement")
+    ach_by_decklist = defaultdict(list)
+
+    for row in ach_query:
+        ach_by_decklist[row.decklist_id].append(
+            {
+                "id": row.achievement_id,
+                "name": row.achievement.full_name,
+                "points": row.achievement.points,
+            }
+        )
+
     order_by = SORT_MAP.get(sort_order, SORT_MAP["points_desc"])
     if color_mask is not None:
         try:
@@ -144,6 +159,7 @@ def get_decklists(params: str = "") -> list[Decklists]:
                     ]
                 ),
                 "points": qu["points"],
+                "achievements": ach_by_decklist.get(qu["id"], []),
             }
         )
 
@@ -156,7 +172,7 @@ class StubCommander(dict):
     color_id: Optional[int]
 
 
-def get_single_decklist(param: str = "") -> Decklists:
+def get_single_decklist_by_code(param: str = "") -> Decklists:
     code = f"DL-{param}"
     query = (
         Decklists.objects.filter(deleted=False, code=code)
@@ -203,6 +219,56 @@ def get_single_decklist(param: str = "") -> Decklists:
         )
 
     return payload
+
+
+def get_decklist_by_participant_round(participant_id: int, round_id: int) -> Decklists:
+    pod_id = (
+        PodsParticipants.objects.filter(
+            participants_id=participant_id, pods__rounds_id=round_id
+        )
+        .values_list("pods_id", flat=True)
+        .get()
+    )
+
+    try:
+        winning_commander = WinningCommanders.objects.filter(
+            participants_id=participant_id, pods_id=pod_id, deleted=False
+        ).get()
+        if not winning_commander.decklist_id:
+            return {"achievements": [], "url": "", "id": "", "name": "", "code": ""}
+
+        decklist = (
+            Decklists.objects.filter(id=winning_commander.decklist_id)
+            .values("id", "name", "url", "code")
+            .first()
+        )
+        a_query = DecklistsAchievements.objects.filter(
+            decklist_id=decklist["id"]
+        ).select_related("achievement")
+
+        payload = {
+            "achievements": [],
+            "url": decklist["url"],
+            "id": decklist["id"],
+            "name": decklist["name"],
+            "code": decklist["code"],
+        }
+
+        payload["decklist"] = decklist
+
+        for row in a_query:
+            payload["achievements"].append(
+                {
+                    "id": row.achievement_id,
+                    "name": row.achievement.full_name,
+                    "points": row.achievement.points,
+                }
+            )
+
+        return payload
+
+    except WinningCommanders.DoesNotExist:
+        return {"achievements": [], "url": "", "id": "", "name": "", "code": ""}
 
 
 ALLOWED_HOSTS = {

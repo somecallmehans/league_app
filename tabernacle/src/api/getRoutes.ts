@@ -277,7 +277,20 @@ export default (builder: ApiBuilder) => ({
     },
     providesTags: ["Decklists"],
   }),
-  getDecklist: builder.query<GetDecklistResponse, { code: string }>({
-    query: ({ code }) => `decklist/?code=${code}`,
+  getDecklist: builder.query<
+    GetDecklistResponse,
+    {
+      code: string | undefined;
+      participant_id: string | undefined;
+      round_id: string | undefined;
+    }
+  >({
+    query: ({ code, participant_id, round_id }) => {
+      if (code) {
+        return `decklist/?code=${code}`;
+      } else {
+        return `decklist/?participant_id=${participant_id}&round_id=${round_id}`;
+      }
+    },
   }),
 });

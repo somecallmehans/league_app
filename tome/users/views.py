@@ -18,7 +18,12 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from utils.decorators import require_user_code
 from .models import Participants
 from .serializers import ParticipantsSerializer
-from .queries import get_decklists, post_decklists, get_single_decklist
+from .queries import (
+    get_decklists,
+    post_decklists,
+    get_single_decklist_by_code,
+    get_decklist_by_participant_round,
+)
 
 
 @api_view(["GET"])
@@ -105,17 +110,23 @@ def decklist(request):
 
     params = request.query_params
     code = params.get("code")
+    participant_id = params.get("participant_id")
+    round_id = params.get("round_id")
 
-    if not code:
+    if not code and not participant_id and not round_id:
         return Response(
-            {"detail": "Code is required"}, status=status.HTTP_400_BAD_REQUEST
+            {"detail": "Details missing to fetch decklist"},
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
-    if len(code) != 4:
+    if code and len(code) != 4:
         return Response(
             {"detail": "Incorrect code format supplied"},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    payload = get_single_decklist(code)
+    if code:
+        payload = get_single_decklist_by_code(code)
+    else:
+        payload = get_decklist_by_participant_round(int(participant_id), int(round_id))
     return Response(payload, status=status.HTTP_200_OK)
