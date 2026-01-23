@@ -33,6 +33,13 @@ export const DecklistSummarySchema = z.object({
 
   color: DecklistColorSchema,
   points: z.number().int().nonnegative(),
+  achievements: z.array(
+    z.object({
+      id: z.number(),
+      name: z.string(),
+      points: z.number(),
+    })
+  ),
 });
 
 export type DecklistSummary = z.infer<typeof DecklistSummarySchema>;
@@ -65,7 +72,7 @@ const CommanderSchema = z.object({
   colors_id: z.number(),
 });
 
-const GetDecklistResponseSchema = z.object({
+const GetDecklistResponseCodeSchema = z.object({
   "winner-commander": CommanderSchema,
   "partner-commander": CommanderSchema.optional(),
   "companion-commander": CommanderSchema.optional(),
@@ -76,4 +83,22 @@ const GetDecklistResponseSchema = z.object({
     })
   ),
 });
+
+const GetDecklistResponseIdSchema = z.object({
+  id: IdSchema,
+  name: z.string(),
+  points: z.string(),
+  code: z.string(),
+  achievements: z.array(
+    z.object({
+      id: IdSchema,
+      name: z.string(),
+    })
+  ),
+});
+export const GetDecklistResponseSchema = z.union([
+  GetDecklistResponseCodeSchema,
+  GetDecklistResponseIdSchema,
+]);
+
 export type GetDecklistResponse = z.infer<typeof GetDecklistResponseSchema>;

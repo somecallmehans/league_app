@@ -13,6 +13,7 @@ import DecklistImages from "./DecklistImages";
 import ColorGrid from "../../components/ColorGrid";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import DecklistFilters from "./DecklistFiltering";
+import AchievementModal, { type Achievement } from "./AchievementModal";
 
 type DecklistProps = {
   name: string;
@@ -24,6 +25,7 @@ type DecklistProps = {
   participant_name: string | null;
   code: string;
   url: string;
+  achievements: Achievement[];
 };
 
 const DecklistCard = ({
@@ -36,7 +38,11 @@ const DecklistCard = ({
   participant_name,
   code,
   url,
+  achievements,
 }: DecklistProps) => {
+  const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState();
+
   const { imgs, artists } = compileImgUrls(
     commander_img,
     partner_img,
@@ -46,6 +52,7 @@ const DecklistCard = ({
     color?.symbol === "c" ? 5 : (pointLookup[color?.symbol.length] ?? 0);
   const totalPoints = points + colorPoints;
   const pName = participant_name ? `by ${participant_name}` : "";
+
   return (
     <div
       className="w-full overflow-hidden rounded-xl border bg-white shadow-sm
@@ -60,7 +67,14 @@ const DecklistCard = ({
       <div className="pb-3 px-2 pt-2 sm:pb-4">
         <div className="text-sm font-semibold flex justify-between">
           <div className="text-base sm:text-lg truncate w-3/4">{name}</div>
-          <ColorGrid colors={color?.name} noHover show submitted isSmall />
+          <ColorGrid
+            colors={color?.name}
+            action={() => setOpen(true)}
+            noHover
+            show
+            submitted
+            isSmall
+          />
         </div>
 
         <div className="flex justify-between">
@@ -73,6 +87,12 @@ const DecklistCard = ({
       <div className="pt-2 text-center text-[10px] text-slate-400">
         Card art by {artists.join(", ")}
       </div>
+      <AchievementModal
+        achievements={achievements}
+        colorPoints={colorPoints}
+        isOpen={open}
+        closeModal={() => setOpen(!open)}
+      />
     </div>
   );
 };
@@ -115,6 +135,7 @@ function DecklistContainer() {
             participant_name,
             code,
             url,
+            achievements,
           }) => (
             <DecklistCard
               key={id}
@@ -127,6 +148,7 @@ function DecklistContainer() {
               participant_name={participant_name}
               code={code}
               url={url}
+              achievements={achievements}
             />
           )
         )}
