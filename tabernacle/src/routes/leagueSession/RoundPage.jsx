@@ -4,11 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import { useForm, Controller, FormProvider } from "react-hook-form";
 import { skipToken } from "@reduxjs/toolkit/query";
 
-import {
-  useGetPodsQuery,
-  usePostRerollPodsMutation,
-  useGetSigninsQuery,
-} from "../../api/apiSlice";
+import { useGetPodsQuery, useGetSigninsQuery } from "../../api/apiSlice";
 
 import { useRouteParticipants, useSessionRoundInfo } from "../../hooks";
 import { podCalculator } from "../../helpers/helpers";

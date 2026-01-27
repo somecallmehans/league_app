@@ -21,31 +21,8 @@ def test_get_all_commanders(client) -> None:
     parsed_res = res.json()
 
     assert res.status_code == status.HTTP_200_OK
+
     assert parsed_res == {
-        "commanders": [
-            {
-                "id": 51,
-                "name": "Fynn, the Fangbearer",
-                "colors_id": 11,
-                "has_partner": False,
-                "is_background": False,
-            },
-            {
-                "id": 52,
-                "name": "Yarus, Roar of the Old Gods",
-                "colors_id": 12,
-                "has_partner": False,
-                "is_background": False,
-            },
-            {
-                "id": 53,
-                "name": "Urza, Chief Artificer",
-                "colors_id": 13,
-                "has_partner": False,
-                "is_background": False,
-            },
-        ],
-        "partners": [],
         "commander_lookup": {
             "Fynn, the Fangbearer": {
                 "id": 51,
@@ -69,4 +46,29 @@ def test_get_all_commanders(client) -> None:
                 "is_background": False,
             },
         },
+        "partners": [],
+        "companions": [],
+        "commanders": [
+            {
+                "id": 51,
+                "name": "Fynn, the Fangbearer",
+                "colors_id": 11,
+                "has_partner": False,
+                "is_background": False,
+            },
+            {
+                "id": 52,
+                "name": "Yarus, Roar of the Old Gods",
+                "colors_id": 12,
+                "has_partner": False,
+                "is_background": False,
+            },
+            {
+                "id": 53,
+                "name": "Urza, Chief Artificer",
+                "colors_id": 13,
+                "has_partner": False,
+                "is_background": False,
+            },
+        ],
     }

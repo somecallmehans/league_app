@@ -153,7 +153,6 @@ export const {
   usePostBeginRoundMutation,
   usePostUpsertParticipantMutation,
   usePostUpsertAchievementsMutation,
-  usePostRerollPodsMutation,
   usePostInsertCommandersMutation,
   usePostUpsertParticipantAchievementMutation,
   usePostSignupMutation,

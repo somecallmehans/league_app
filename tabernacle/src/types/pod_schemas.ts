@@ -60,27 +60,6 @@ export const UpsertEarnedWinInfoSchema = z.object({
   deleted: z.boolean().optional(),
 });
 
-const RerollParticipantSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  isNew: z.boolean().optional(),
-  total_points: z.number().optional(),
-});
-
-export const RerollPodsRequestSchema = z.object({
-  round: z.number(),
-  participants: z.array(RerollParticipantSchema),
-});
-
-export const RerollPodsResponseSchema = z.array(
-  PodParticipantSchema.extend({
-    pods: StubPodSchema,
-  })
-);
-
-export type RerollPodsResponse = z.infer<typeof RerollPodsResponseSchema>;
-export type RerollPodsRequest = z.infer<typeof RerollPodsRequestSchema>;
-
 const DeletePodParticipantRequestSchema = z.object({
   participant_id: z.number(),
   pod_id: z.number(),

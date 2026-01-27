@@ -31,9 +31,6 @@ import {
   type ScoresheetFormRequest,
 } from "../types/achievement_schemas";
 import {
-  RerollPodsResponseSchema,
-  type RerollPodsResponse,
-  type RerollPodsRequest,
   type DeletePodParticipantRequest,
   type UpdatePodParticipantRequest,
 } from "../types/pod_schemas";
@@ -104,16 +101,7 @@ export default (builder: ApiBuilder) => ({
       ),
     invalidatesTags: ["Achievements"],
   }),
-  postRerollPods: builder.mutation<RerollPodsResponse, RerollPodsRequest>({
-    query: (body) => ({
-      url: "reroll_pods/",
-      method: "POST",
-      body: body,
-    }),
-    transformResponse: (raw: unknown) =>
-      safeParseWithFallback(RerollPodsResponseSchema, raw, []),
-    invalidatesTags: ["Pods", "Participants"],
-  }),
+
   postInsertCommanders: builder.mutation<string, void>({
     query: () => ({
       url: "fetch_new_commanders/",

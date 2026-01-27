@@ -34,7 +34,7 @@ def test_post_new_decklist(safe_client) -> None:
     url = reverse("decklists")
     body = {
         "name": NEW_NAME,
-        "url": "www.google.com/decklists",
+        "url": "www.moxfield.com/abcdefg",
         "commander": ids.YARUS,
         "partner": None,
         "companion": None,

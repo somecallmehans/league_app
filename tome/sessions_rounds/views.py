@@ -31,7 +31,6 @@ from .helpers import (
     generate_pods,
     get_participants_total_scores,
     RoundInformationService,
-    PodRerollService,
 )
 from configs.configs import get_round_caps
 from services.discord_client import bot_announcement
@@ -180,37 +179,6 @@ def begin_round(request):
         generate_pods(participants=all_participants, round_id=round_id), many=True
     ).data
     return Response(pods, status=status.HTTP_201_CREATED)
-
-
-@api_view([POST])
-@authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
-def reroll_pods(request):
-    """Take in a list of participants and a round_id. Create any participants that don't exist
-    and then roll everyone into new pods (either random or sorted based on round)"""
-    body = json.loads(request.body.decode("utf-8"))
-
-    try:
-        participants = body.get("participants", None)
-        round = Rounds.objects.get(id=body.get("round", None))
-        pods = Pods.objects.filter(rounds_id=round.id, deleted=False)
-    except Exception as e:
-        return Response(
-            {"message": "Missing information to reroll pods"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    try:
-        pod_service = PodRerollService(
-            participants=participants, round=round, pods=pods
-        )
-        new_pods = pod_service.build()
-    except Exception as e:
-        return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    return Response(
-        new_pods,
-        status=status.HTTP_201_CREATED,
-    )
 
 
 @api_view([GET])

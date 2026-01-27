@@ -1,5 +1,6 @@
 import pytest
 
+from unittest.mock import patch
 from django.urls import reverse
 from rest_framework import status
 
@@ -120,46 +121,50 @@ def test_get_current_decklists(client, build_state) -> None:
     assert_decklists_response(parsed_res)
 
 
+def strip_imgs(deck):
+    deck = dict(deck)
+    deck.pop("commander_img", None)
+    deck.pop("partner_img", None)
+    deck.pop("companion_img", None)
+    return deck
+
+
 def test_get_decklists_by_color(client, build_state) -> None:
     """
     should: just return decklist info for the provided color
     """
 
     url = reverse("decklists")
-    res = client.get(f"{url}?colors=24")
+    with patch(
+        "users.queries.scryfall_request.get_commander_image_urls",
+        return_value={},
+    ):
+        res = client.get(f"{url}?colors=24")
 
     assert res.status_code == status.HTTP_200_OK
 
-    parsed_res = res.json()
+    parsed_res = [strip_imgs(d) for d in res.json()]
+
     assert parsed_res == [
         {
             "code": "DL-C3D4",
-            "color": {
-                "name": "red green",
-                "symbol": "rg",
-            },
-            "commander_img": [
-                {
-                    "artist": "Dmitry Burmak",
-                    "url": "https://cards.scryfall.io/art_crop/front/3/2/326845a7-7502-4dc3-8f3e-867d6c84e931.jpg?1706242292",
-                },
-            ],
+            "color": {"name": "red green", "symbol": "rg"},
             "commander_name": "Yarus, Roar of the Old Gods",
-            "companion_img": [
-                {
-                    "artist": "Jehan Choo",
-                    "url": "https://cards.scryfall.io/art_crop/front/7/5/75ac31e0-ac70-4ee6-b2b1-cc445ffa1da9.jpg?1591228489",
-                },
-            ],
             "companion_name": "Umori, the Collector",
             "id": 2,
             "name": "Boop",
             "participant_name": None,
-            "partner_img": None,
             "partner_name": None,
             "points": 4,
             "url": "www.moxfield.com/boop",
-        },
+            "achievements": [
+                {
+                    "id": 27,
+                    "name": "Win with no creatures except your commander",
+                    "points": 4,
+                },
+            ],
+        }
     ]
 
 
