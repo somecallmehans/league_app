@@ -116,7 +116,7 @@ function DecklistContainer() {
   }
 
   return (
-    <div className="p-1 md:p-8">
+    <div className="p-2 md:p-8">
       <div className="flex justify-between items-center">
         <PageTitle title="Decklists" />
         <Link to={`new`}>
@@ -125,7 +125,7 @@ function DecklistContainer() {
       </div>
       <details className="w-full md:w-3/4 mb-3">
         <summary className="cursor-pointer text-lg font-medium text-gray-800">
-          How decklists work
+          Click here for page information
         </summary>
 
         <div className="mt-2 text-xs md:text-sm text-gray-700 space-y-2">

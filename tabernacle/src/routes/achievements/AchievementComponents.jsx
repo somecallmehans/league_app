@@ -118,19 +118,73 @@ export const AchievementCard = (props) => {
   );
 };
 
-export const TypeInfo = ({ showInfo }) => {
+export const TypeInfo = ({ showInfo, setShowInfo }) => {
   const { data: types } = useSelector(
     apiSlice.endpoints.getAchievementTypes.select(undefined)
   );
   if (!types || types.length === 0) return null;
 
-  return (
+  const mobileDrawer = (
+    <div className="sm:hidden">
+      <div
+        className={[
+          "fixed inset-x-0 bottom-0 z-50",
+          "transform transition-transform duration-200 ease-out",
+          showInfo ? "translate-y-0" : "translate-y-full",
+        ].join(" ")}
+        role="dialog"
+        aria-modal="true"
+      >
+        <div
+          onClick={() => setShowInfo(false)}
+          className="mx-auto max-w-lg rounded-t-2xl bg-white shadow-2xl border-t"
+        >
+          <div className="px-4 pt-3 pb-2">
+            <div className="mx-auto h-1.5 w-10 rounded-full bg-gray-300 mb-3" />
+            <div className="flex items-center justify-between">
+              <div className="text-sm font-semibold text-gray-900">
+                Achievement Types
+              </div>
+              <div className="text-xs text-gray-500">Tap to close</div>
+            </div>
+          </div>
+
+          <div className="px-4 pb-[calc(env(safe-area-inset-bottom,0)+1rem)] max-h-[70vh] overflow-y-auto">
+            <div className="space-y-3">
+              {types.map(({ id, name, hex_code, description }) => {
+                const rgbVal = hex_code ? hexToRgb(hex_code) : null;
+                const rgbString = rgbVal
+                  ? `rgba(${rgbVal.r}, ${rgbVal.g}, ${rgbVal.b}, 0.4)`
+                  : undefined;
+
+                return (
+                  <div key={id} className="rounded-md border p-3">
+                    <div
+                      className="text-center rounded mb-2 py-1 text-sm font-medium"
+                      style={{ backgroundColor: rgbString }}
+                    >
+                      {name}
+                    </div>
+                    <div className="text-xs text-gray-700 leading-relaxed">
+                      {description}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const desktopInline = (
     <div
-      className={` transition-all ease-in-out duration-200 overflow-hidden ${
+      className={`hidden sm:flex transition-all ease-in-out duration-200 overflow-hidden ${
         showInfo
-          ? "opacity-100 max-h-50 bg-white border shadow-md flex flex-col md:flex-row justify-between p-3 gap-4"
+          ? "opacity-100 max-h-50 bg-white border shadow-md flex-col md:flex-row justify-between p-3 gap-4"
           : "opacity-0 max-h-0"
-      } `}
+      }`}
     >
       {types.map(({ id, name, hex_code, description }) => {
         const rgbVal = hex_code ? hexToRgb(hex_code) : null;
@@ -142,9 +196,7 @@ export const TypeInfo = ({ showInfo }) => {
           <div key={id} className="flex-1 min-w-0">
             <div
               className="text-center rounded mb-1"
-              style={{
-                backgroundColor: rgbString,
-              }}
+              style={{ backgroundColor: rgbString }}
             >
               {name}
             </div>
@@ -153,5 +205,12 @@ export const TypeInfo = ({ showInfo }) => {
         );
       })}
     </div>
+  );
+
+  return (
+    <>
+      {mobileDrawer}
+      {desktopInline}
+    </>
   );
 };

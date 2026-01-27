@@ -176,7 +176,7 @@ export default function DecklistForm() {
       <Back />
       <details className="w-full md:w-3/4 my-2">
         <summary className="cursor-pointer text-lg font-medium text-gray-800">
-          How to submit a decklist
+          Click here for submission instructions
         </summary>
 
         <div className="mt-2 text-xs md:text-sm text-gray-700 space-y-2">
