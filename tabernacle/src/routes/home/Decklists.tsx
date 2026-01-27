@@ -41,7 +41,6 @@ const DecklistCard = ({
   achievements,
 }: DecklistProps) => {
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState();
 
   const { imgs, artists } = compileImgUrls(
     commander_img,
@@ -67,14 +66,17 @@ const DecklistCard = ({
       <div className="pb-3 px-2 pt-2 sm:pb-4">
         <div className="text-sm font-semibold flex justify-between">
           <div className="text-base sm:text-lg truncate w-3/4">{name}</div>
-          <ColorGrid
-            colors={color?.name}
-            action={() => setOpen(true)}
-            noHover
-            show
-            submitted
-            isSmall
-          />
+          <div className="flex items-center gap-2 group">
+            <i className="fa fa-arrow-up-right-from-square text-sky-500 invisible group-hover:visible" />
+            <ColorGrid
+              colors={color?.name}
+              action={() => setOpen(true)}
+              noHover
+              show
+              submitted
+              isSmall
+            />
+          </div>
         </div>
 
         <div className="flex justify-between">
@@ -121,6 +123,30 @@ function DecklistContainer() {
           <StandardButton title="New" />
         </Link>
       </div>
+      <details className="w-full md:w-3/4 mb-3">
+        <summary className="cursor-pointer text-lg font-medium text-gray-800">
+          How decklists work
+        </summary>
+
+        <div className="mt-2 text-xs md:text-sm text-gray-700 space-y-2">
+          <p>
+            Use the toggles below to sort decklists or filter by color identity.
+          </p>
+
+          <p>Each card image opens the decklist on Moxfield or Archidekt.</p>
+
+          <p>
+            Select the pips on a card to view the achievements earned with that
+            deck.
+          </p>
+
+          <p>
+            If you win with a shared decklist, submit the
+            <span className="font-medium"> DL-XXXX </span>
+            code instead of listing achievements.
+          </p>
+        </div>
+      </details>
       <DecklistFilters params={params} setParams={setParams} />
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-5">
         {decklists?.map(

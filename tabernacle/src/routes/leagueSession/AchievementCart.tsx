@@ -2,7 +2,21 @@ import { useFormContext, useWatch } from "react-hook-form";
 import { useLazyGetDecklistQuery } from "../../api/apiSlice";
 import { Selector, TextInput } from "../../components/FormInputs";
 
+import { type DecklistCodeResponse } from "../../types/decklist_schemas";
+
 import { useScorecardInfoCtx } from "./ScorecardCTX";
+import { toast } from "react-toastify";
+
+function isCodeResponse(res: any): res is DecklistCodeResponse {
+  return "winner-commander" in res;
+}
+
+const CODE_FIELDS = [
+  "winner-commander",
+  "partner-commander",
+  "companion-commander",
+  "winner-achievements",
+] as const;
 
 function CommanderFields() {
   const { control } = useFormContext();
@@ -87,22 +101,38 @@ function CommanderFields() {
 function DecklistCodeField() {
   const { control, getValues, setValue } = useFormContext();
   const mode = useWatch({ control, name: "submissionMode" });
+  const selectedWinner = useWatch({ control, name: "winner" }) ?? undefined;
   const [triggerDecklist, { data, isFetching, isError, error }] =
     useLazyGetDecklistQuery();
 
   const onBlur = async () => {
-    const code = getValues("decklist-code")?.trim().toUpperCase();
+    const code: string | undefined = getValues("decklist-code")
+      ?.trim()
+      .toUpperCase();
     if (!code) return;
 
     try {
-      const res = await triggerDecklist({ code }).unwrap();
+      const res = await triggerDecklist({
+        code,
+        participant_id: undefined,
+        round_id: undefined,
+      }).unwrap();
 
-      setValue("winner-commander", res["winner-commander"]);
-      setValue("partner-commander", res["partner-commander"]);
-      setValue("companion-commander", res["companion-commander"]);
-      setValue("winner-achievements", res["winner-achievements"]);
+      if (isCodeResponse(res)) {
+        CODE_FIELDS.forEach((field) => {
+          setValue(field, res[field]);
+        });
+        const curr = getValues("submit-to-discord");
+
+        if (
+          selectedWinner &&
+          !curr.some((x: any) => x.id === selectedWinner.id)
+        ) {
+          setValue("submit-to-discord", [...curr, selectedWinner]);
+        }
+      }
     } catch (e) {
-      // show invalid code message
+      toast.error("Invalid code provided");
     }
   };
 

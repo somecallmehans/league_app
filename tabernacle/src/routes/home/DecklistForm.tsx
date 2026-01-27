@@ -117,7 +117,7 @@ const AchievementCart = ({
         ))}
       </div>
       {sum > 0 ? (
-        <p className="text-xs italic text-red-600 mt-1">
+        <p className="text-xs italic text-blue-600 mt-1">
           Note: the point total above is only representative of deck building +
           color achievements, and not points potentially earned during a match.
         </p>
@@ -174,6 +174,35 @@ export default function DecklistForm() {
   return (
     <div className="px-4 py-8 md:p-8 h-auto mb-4">
       <Back />
+      <details className="w-full md:w-3/4 my-2">
+        <summary className="cursor-pointer text-lg font-medium text-gray-800">
+          How to submit a decklist
+        </summary>
+
+        <div className="mt-2 text-xs md:text-sm text-gray-700 space-y-2">
+          <p>
+            Enter a name for your deck, paste the decklist link, and select the
+            commander(s) used.
+          </p>
+
+          <p>
+            Select any <span>deckbuilding achievements</span> your deck earns.
+            Color identity achievements are added automatically.
+          </p>
+
+          <p>
+            Choose whether your name should appear on the decklist page as the
+            deck’s creator.
+          </p>
+
+          <p>
+            To submit the decklist, enter your personal verification code. You
+            can get this code by typing{" "}
+            <span className="font-semibold">/mycode</span> in the league
+            Discord.
+          </p>
+        </div>
+      </details>
       <div className="mx-auto h-[50vh]">
         <FormProvider {...methods}>
           <form onSubmit={handleSubmit(handleFormSubmit)}>
@@ -192,9 +221,7 @@ export default function DecklistForm() {
                   />
                 </div>
                 <div className="border-t mb-2" />
-                <div className="text-sm mt-1">
-                  Provide a name for your decklist
-                </div>
+                <div className="text-sm mt-1">Name your decklist</div>
                 <TextInput
                   name="name"
                   defaultValue=""
@@ -206,8 +233,7 @@ export default function DecklistForm() {
                   rules={{ required: "Required" }}
                 />
                 <div className="text-sm mt-1">
-                  Share the Moxfield or Archidekt URL for where your decklist
-                  lives
+                  Share the Moxfield or Archidekt URL for your decklist
                 </div>
                 <TextInput
                   name="url"

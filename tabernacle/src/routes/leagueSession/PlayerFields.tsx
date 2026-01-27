@@ -7,7 +7,7 @@ const PLAYER_ACHIEVEMENT_MAP = [
   { key: 1, label: "Did anyone bring a snack to share?", slug: "bring-snack" },
   {
     key: 2,
-    label: "Did anyone use a decklist that has been shared on Discord?",
+    label: "Did anyone use a decklist that has been shared?",
     slug: "submit-to-discord",
   },
   {

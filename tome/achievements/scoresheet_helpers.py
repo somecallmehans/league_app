@@ -169,7 +169,7 @@ class GETScoresheetHelper:
             pid = row["participant_id"]
             slug = row["achievement__slug"]
 
-            if not slug:
+            if not slug or slug == "precon":
                 if winner_id and pid == winner_id:
                     payload["winner-achievements"].append(
                         {
@@ -373,6 +373,7 @@ class POSTScoresheetHelper:
             commander = getattr(self, "winner-commander")
             partner_commander = getattr(self, "partner-commander", None)
             companion_commander = getattr(self, "companion-commander", None)
+            decklist_id = None
 
             if code:
                 decklist = Decklists.objects.get(code=f"DL-{code}")
@@ -388,5 +389,5 @@ class POSTScoresheetHelper:
                 commander,
                 partner_commander,
                 companion_commander,
-                decklist_id or None,
+                decklist_id,
             )

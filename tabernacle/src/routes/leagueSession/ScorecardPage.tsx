@@ -46,32 +46,40 @@ const SubmissionToggle = () => {
   };
 
   return (
-    <div className="mt-4 flex items-center gap-2">
-      <button
-        type="button"
-        onClick={() => setMode("manual")}
-        className={[
-          "px-3 py-1 rounded-full text-sm border",
-          mode === "manual"
-            ? "bg-zinc-900 text-white"
-            : "bg-white text-zinc-700",
-        ].join(" ")}
-      >
-        Manual
-      </button>
-      <button
-        type="button"
-        onClick={() => setMode("decklist")}
-        className={[
-          "px-3 py-1 rounded-full text-sm border",
-          mode === "decklist"
-            ? "bg-zinc-900 text-white"
-            : "bg-white text-zinc-700",
-        ].join(" ")}
-      >
-        Decklist
-      </button>
-    </div>
+    <>
+      <div className="mt-4 flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setMode("manual")}
+          className={[
+            "px-3 py-1 rounded-full text-sm border",
+            mode === "manual"
+              ? "bg-zinc-900 text-white"
+              : "bg-white text-zinc-700",
+          ].join(" ")}
+        >
+          Manual
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode("decklist")}
+          className={[
+            "px-3 py-1 rounded-full text-sm border",
+            mode === "decklist"
+              ? "bg-zinc-900 text-white"
+              : "bg-white text-zinc-700",
+          ].join(" ")}
+        >
+          Decklist
+        </button>
+      </div>
+      {mode === "decklist" && (
+        <span className="text-xs md:w-1/2 mt-2">
+          Note: If you select a winner before adding the decklist code, it will
+          automatically apply "use a decklist that has been shared" points.
+        </span>
+      )}
+    </>
   );
 };
 
@@ -109,6 +117,7 @@ export default function ScorecardPage() {
 
   const handleFormSubmit = async (data: any) => {
     const { picker, submissionMode, ...clean } = data;
+    console.log(clean);
     const payload = {
       ...clean,
       winner: clean["winner"]?.id,

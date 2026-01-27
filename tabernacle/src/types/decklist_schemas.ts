@@ -101,4 +101,7 @@ export const GetDecklistResponseSchema = z.union([
   GetDecklistResponseIdSchema,
 ]);
 
+export type DecklistCodeResponse = z.infer<
+  typeof GetDecklistResponseCodeSchema
+>;
 export type GetDecklistResponse = z.infer<typeof GetDecklistResponseSchema>;
