@@ -122,7 +122,7 @@ function DecklistCodeField() {
         CODE_FIELDS.forEach((field) => {
           setValue(field, res[field]);
         });
-        const curr = getValues("submit-to-discord");
+        const curr = getValues("submit-to-discord") ?? [];
 
         if (
           selectedWinner &&
