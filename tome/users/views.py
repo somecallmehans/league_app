@@ -1,6 +1,8 @@
 import json
 
 from django.core.exceptions import ObjectDoesNotExist
+from rest_framework.exceptions import ValidationError
+
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
@@ -13,8 +15,15 @@ from rest_framework.decorators import (
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from utils.decorators import require_user_code
 from .models import Participants
 from .serializers import ParticipantsSerializer
+from .queries import (
+    get_decklists,
+    post_decklists,
+    get_single_decklist_by_code,
+    get_decklist_by_participant_round,
+)
 
 
 @api_view(["GET"])
@@ -71,3 +80,53 @@ class Login(APIView):
     def get(self, _):
         content = {"message": "Hello, World!"}
         return Response(content)
+
+
+@api_view(["GET", "POST"])
+@require_user_code
+def decklists(request, **kwargs):
+    """Return all current active submitted decklists"""
+
+    if request.method == "GET":
+        out = get_decklists(request.query_params)
+        return Response(out)
+
+    try:
+        pid = kwargs["participant_id"]
+        post_decklists(request.data, pid)
+        return Response(status=status.HTTP_201_CREATED)
+    except ValidationError as e:
+        return Response(
+            {"detail": str(e.detail["url"]), "errors": e.detail},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    except Exception as e:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET"])
+def decklist(request):
+    """Return an individual decklist, shaped for our scoresheet form."""
+
+    params = request.query_params
+    code = params.get("code")
+    participant_id = params.get("participant_id")
+    round_id = params.get("round_id")
+
+    if not code and not participant_id and not round_id:
+        return Response(
+            {"detail": "Details missing to fetch decklist"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if code and len(code) != 4:
+        return Response(
+            {"detail": "Incorrect code format supplied"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if code:
+        payload = get_single_decklist_by_code(code)
+    else:
+        payload = get_decklist_by_participant_round(int(participant_id), int(round_id))
+    return Response(payload, status=status.HTTP_200_OK)

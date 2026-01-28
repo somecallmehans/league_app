@@ -96,12 +96,13 @@ CORS_ALLOWED_ORIGINS = [
     "https://www.commanderleague.xyz",
 ]
 
-CORS_ALLOW_METHODS = ["GET", "OPTIONS", "POST", "DELETE"]
+CORS_ALLOW_METHODS = ["GET", "OPTIONS", "POST", "DELETE", "PUT"]
 
 CORS_ALLOW_HEADERS = [
     "authorization",
     "content-type",
     "x-requested-with",
+    "x-participant-code",
 ]
 
 

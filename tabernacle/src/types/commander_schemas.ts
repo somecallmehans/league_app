@@ -12,6 +12,7 @@ export const CommanderObjectResponseSchema = z.object({
   commander_lookup: z.record(z.string(), Commander),
   commanders: z.array(Commander),
   partners: z.array(Commander),
+  companions: z.array(Commander),
 });
 
 export type CommanderObjectResponse = z.infer<

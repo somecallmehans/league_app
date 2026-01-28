@@ -13,7 +13,7 @@ import {
 } from "@headlessui/react";
 import { SignInResponse } from "../../types/round_schemas";
 
-const textValidate = (val: string | undefined) => {
+export const textValidate = (val: string | undefined) => {
   if (!val) return "Code is required";
 
   if (val.length != 6) return "Code must be 6 characters";
@@ -47,7 +47,6 @@ const SignInForm = ({
 }: SignInFormProps) => {
   const {
     control,
-    register,
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
@@ -87,13 +86,12 @@ const SignInForm = ({
         title=""
         type="text"
         placeholder="Enter code e.g. ABCDEF"
-        register={register}
         control={control}
         errors={errors}
         disabled={isSubmitting}
         classes="text-sm w-full border rounded-lg p-2"
         rules={{
-          validate: (value: string | undefined) => textValidate(value),
+          validate: (value) => textValidate(value as string | undefined),
         }}
         containerClasses=""
       />

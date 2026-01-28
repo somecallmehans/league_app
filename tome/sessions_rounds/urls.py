@@ -9,7 +9,6 @@ from .views import (
     get_unique_session_months,
     get_pods_achievements,
     get_rounds_by_month,
-    reroll_pods,
     get_round_participants,
     get_all_rounds,
     get_participant_recent_pods,
@@ -19,6 +18,8 @@ from .views import (
     delete_signin,
     update_pod_participants,
     delete_pod_participant,
+    get_pod_participants,
+    get_rounds_by_session,
 )
 
 urlpatterns = [
@@ -58,7 +59,6 @@ urlpatterns = [
     path("close_round/", close_round, name="close_round"),
     path("unique_months/", get_unique_session_months, name="unique_months"),
     path("rounds_by_month/<str:mm_yy>/", get_rounds_by_month, name="rounds_by_month"),
-    path("reroll_pods/", reroll_pods, name="reroll_pods"),
     path("signup/", signup, name="signup"),
     path("signin_counts/", signin_counts, name="signin_counts"),
     path("post_signin/", post_signin, name="post_signin"),
@@ -70,6 +70,16 @@ urlpatterns = [
     ),
     path(
         "delete_pod_participant/", delete_pod_participant, name="delete_pod_participant"
+    ),
+    path(
+        "get_pod_participants/<int:pod_id>/",
+        get_pod_participants,
+        name="get_pod_participants",
+    ),
+    path(
+        "get_rounds_by_session/<int:session_id>/",
+        get_rounds_by_session,
+        name="get_rounds_by_session",
     ),
     re_path(r"^get_all_rounds/$", get_all_rounds, name="get_all_rounds"),
     re_path(

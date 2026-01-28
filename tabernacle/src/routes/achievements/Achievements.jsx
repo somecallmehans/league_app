@@ -117,7 +117,10 @@ const AchievementFilters = ({
 export default function AchievementsPage() {
   const dispatch = useDispatch();
   const [sort, setSort] = useState(true);
-  const [showInfo, setShowInfo] = useState(true);
+  const [showInfo, setShowInfo] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return window.matchMedia("(min-width: 640px)").matches;
+  });
 
   const [typeFilter, setTypeFilter] = useState();
   const { data: achievements, isLoading: achievementsLoading } =
@@ -187,7 +190,7 @@ export default function AchievementsPage() {
         showInfo={showInfo}
         setShowInfo={setShowInfo}
       />
-      <TypeInfo showInfo={showInfo} />
+      <TypeInfo showInfo={showInfo} setShowInfo={setShowInfo} />
       {orderedKeys.map((key) => (
         <div key={key} className="my-4">
           <div className="grid md:grid-cols-4 gap-4">

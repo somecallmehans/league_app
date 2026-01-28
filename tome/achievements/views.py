@@ -52,7 +52,6 @@ from achievements.models import (
 from achievements.helpers import (
     calculate_total_points_for_month,
     group_parents_by_point_value,
-    handle_pod_win,
     fetch_scryfall_data,
     fetch_current_commanders,
     normalize_color_identity,
@@ -61,12 +60,14 @@ from achievements.helpers import (
     cascade_soft_delete,
     calculate_monthly_winners,
 )
+from achievements.scoresheet_helpers import POSTScoresheetHelper, GETScoresheetHelper
 from sessions_rounds.helpers import handle_close_round
 from services.scryfall_client import ScryfallClientRequest
 from services.redis_keepalive import redis_keepalive
 
 GET = "GET"
 POST = "POST"
+PUT = "PUT"
 
 scryfall_request = ScryfallClientRequest()
 
@@ -378,125 +379,6 @@ def upsert_achievements(request):
     return Response(serialized, status=status.HTTP_201_CREATED)
 
 
-@api_view([POST])
-@authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
-def upsert_participant_achievements_v2(request):
-    """V2 of the upserting achievements endpoint. Should ideally handle things
-    much more graceful than V1."""
-    body = json.loads(request.body.decode("utf-8"))
-
-    new = body.get("new", [])
-    update = body.get("update", [])
-    winner = body.get("winnerInfo", None)
-    winInfo = body.get("winInfo", None)
-
-    # this should always exist
-    pod = Pods.objects.get(id=winner["pod_id"])
-    pod_participants = PodsParticipants.objects.filter(pods_id=pod.id).values_list(
-        "participants_id", flat=True
-    )
-
-    updated_objects = []
-    created_objs = []
-
-    handle_pod_win(
-        winner=winner,
-        info=winInfo,
-        round_id=pod.rounds_id,
-        participant_ids=pod_participants,
-    )
-
-    if len(update) > 0:
-        update_ids = [x["id"] for x in update]
-        update_objs = ParticipantAchievements.objects.filter(pk__in=update_ids)
-
-        slugs = [x["slug"] for x in update if "slug" in x]
-        slug_to_achievement = {
-            a.slug: a for a in Achievements.objects.filter(slug__in=slugs)
-        }
-
-        update_data = {item["id"]: item for item in update}
-
-        for obj in update_objs:
-            record = update_data.get(obj.id)
-            if record:
-                obj.deleted = record.get("deleted", False)
-                slug = record.get("slug")
-                # participant_id isn't properly getting updated on the PA record
-                if slug:
-                    achievement = slug_to_achievement.get(slug)
-                    if not achievement:
-                        return Response(
-                            {
-                                "error": f"Achievement with slug '{slug}' does not exist."
-                            },
-                            status=status.HTTP_400_BAD_REQUEST,
-                        )
-
-                    obj.achievement = achievement
-                updated_objects.append(obj)
-
-    if len(new) > 0:
-        slugs = [x["slug"] for x in new if "slug" in x]
-        ids = [x["achievement_id"] for x in new if "achievement_id" in x]
-
-        all_achievements = Achievements.objects.filter(
-            Q(slug__in=slugs) | Q(id__in=ids)
-        )
-
-        achievement_dict = {
-            a.slug if a.slug and a.slug != "precon" else a.id: a
-            for a in all_achievements
-        }
-
-        for record in new:
-            if record.get("slug"):
-                achievement = achievement_dict.get(record["slug"])
-                r = ParticipantAchievements(
-                    id=None,
-                    participant_id=record["participant_id"],
-                    achievement_id=achievement.id,
-                    round_id=record["round_id"],
-                    session_id=record["session_id"],
-                    earned_points=achievement.points,
-                )
-                created_objs.append(r)
-                continue
-            achievement = achievement_dict.get(record["achievement_id"])
-            r = ParticipantAchievements(
-                id=None,
-                participant_id=record["participant_id"],
-                achievement_id=record["achievement_id"],
-                round_id=record["round_id"],
-                session_id=record["session_id"],
-                earned_points=achievement.points,
-            )
-            created_objs.append(r)
-
-    WinningCommanders(
-        id=winner.get("id", None),
-        name=winner["commander_name"],
-        colors_id=winner["color_id"],
-        participants_id=winner["participant_id"],
-        pods_id=winner["pod_id"],
-    ).save()
-    with transaction.atomic():
-        if len(updated_objects) > 0:
-            ParticipantAchievements.objects.bulk_update(
-                updated_objects, ["deleted", "achievement"]
-            )
-        if len(created_objs) > 0:
-            ParticipantAchievements.objects.bulk_create(created_objs)
-        if not pod.submitted:
-            pod.submitted = True
-            pod.save()
-
-        handle_close_round(pod.rounds.id)
-
-    return Response({"message": "success"}, status=status.HTTP_201_CREATED)
-
-
 @api_view([GET])
 def get_participant_round_achievements(_, participant_id, round_id):
     """Get all achievements + points for a participant in a particular round."""
@@ -520,11 +402,14 @@ def get_participant_round_achievements(_, participant_id, round_id):
 def get_all_commanders(_):
     """Get and return all valid commanders we have currently."""
     try:
-        commanders = Commanders.objects.filter(deleted=False)
+        commanders = Commanders.objects.filter(
+            deleted=False, is_background=False, is_companion=False
+        )
         partners_backgrounds = Commanders.objects.filter(
             Q(has_partner=True) | Q(is_background=True),
             deleted=False,
         ).distinct("name")
+        companions = Commanders.objects.filter(is_companion=True, deleted=False)
     except Exception as e:
         return Response(
             {"error": f"An unexpected error occurred: {str(e)}"},
@@ -533,11 +418,13 @@ def get_all_commanders(_):
     commander_data = CommandersSerializer(commanders, many=True).data
     commander_lookup = {c["name"]: c for c in commander_data}
     partner_data = CommandersSerializer(partners_backgrounds, many=True).data
+    companion_data = CommandersSerializer(companions, many=True).data
     return Response(
         {
             "commanders": commander_data,
             "partners": partner_data,
             "commander_lookup": commander_lookup,
+            "companions": companion_data,
         }
     )
 
@@ -643,4 +530,70 @@ def upsert_earned_achievements(request):
         session_id=session_id,
         earned_points=point_value,
     )
+    return Response(status=status.HTTP_201_CREATED)
+
+
+@api_view([GET, POST, PUT])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def scoresheet(request, round_id: int, pod_id: int):
+    """Technically V3 of the upsert participant achievements endpoint, but now
+    broken into 3 endpoints (fetch/insert/update) to reduce complexity."""
+
+    if request.method == GET:
+        builder = GETScoresheetHelper(round_id, pod_id)
+        result = builder.build()
+        return Response(result)
+
+    body = request.data
+    builder = POSTScoresheetHelper(round_id, pod_id, **body)
+    result = builder.build()
+
+    with transaction.atomic():
+        pod = Pods.objects.select_for_update().get(id=pod_id)
+
+        if request.method == POST and pod.submitted:
+            return Response(
+                {"message": "Pod already submitted. Use PUT to update."},
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        if request.method == PUT:
+            if not pod.submitted:
+                return Response(
+                    {"message": "Pod not submitted, use POST to insert."},
+                    status=status.HTTP_409_CONFLICT,
+                )
+            ParticipantAchievements.objects.filter(
+                participant_id__in=result.pods_participants,
+                round_id=round_id,
+                session_id=result.session_id,
+                deleted=False,
+            ).select_related("achievement").exclude(
+                achievement__slug="participation"
+            ).update(
+                deleted=True
+            )
+            WinningCommanders.objects.filter(pods_id=pod_id, deleted=False).update(
+                deleted=True
+            )
+
+        ParticipantAchievements.objects.bulk_create(result.records)
+
+        if result.commander_name is not None:
+            WinningCommanders.objects.create(
+                name=result.commander_name,
+                colors_id=result.colors_id,
+                participants_id=result.winner_id,
+                pods_id=pod_id,
+                commander_id=result.commander_id,
+                partner_id=result.partner_id,
+                companion_id=result.companion_id,
+                decklist_id=result.decklist_id,
+            )
+        if not pod.submitted:
+            pod.submitted = True
+            pod.save()
+
+    handle_close_round(round_id)
     return Response(status=status.HTTP_201_CREATED)

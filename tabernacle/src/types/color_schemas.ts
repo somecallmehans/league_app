@@ -16,3 +16,8 @@ export const ColorsResponseSchema = z.object({
 });
 
 export type ColorsResponse = z.infer<typeof ColorsResponseSchema>;
+
+export type SimpleColor = {
+  name: string;
+  symbol: string;
+};

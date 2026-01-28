@@ -15,7 +15,9 @@ export type Tag =
   | "PodsAchievements"
   | "Rounds"
   | "SignedIn"
-  | "Configs";
+  | "Configs"
+  | "Scoresheet"
+  | "Decklists";
 
 export type BaseBQ = BaseQueryFn<
   string | FetchArgs,

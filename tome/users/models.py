@@ -1,9 +1,11 @@
 from datetime import datetime
 
 from django.db import models, IntegrityError, transaction
+from django.db.models import Sum, F
+from django.db.models.functions import Coalesce
 
 from sessions_rounds.models import Rounds, Sessions
-from achievements.models import Achievements
+from achievements.models import Achievements, Commanders
 
 from users.helpers import generate_code
 
@@ -92,3 +94,69 @@ class Users(models.Model):
 
     class Meta:
         db_table = "users"
+
+
+class Decklists(models.Model):
+    name = models.CharField(max_length=255, null=False, blank=False)
+    url = models.TextField(null=False, blank=False)
+    participant = models.ForeignKey(
+        Participants, on_delete=models.CASCADE, blank=True, null=True
+    )
+    code = models.CharField(max_length=10, unique=True, editable=False)
+    deleted = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    give_credit = models.BooleanField(default=False)
+
+    commander = models.ForeignKey(
+        Commanders, related_name="commander_decklists", on_delete=models.CASCADE
+    )
+    partner = models.ForeignKey(
+        Commanders,
+        related_name="partner_decklists",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+    companion = models.ForeignKey(
+        Commanders,
+        related_name="companion_decklists",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+
+    achievement = models.ManyToManyField(
+        Achievements, through="DecklistsAchievements", related_name="decklists"
+    )
+
+    class Meta:
+        db_table = "decklists"
+
+    def save(self, *args, **kwargs):
+        if not self.code:
+            for _ in range(4):
+                code = generate_code(4)
+                try:
+                    self.code = f"DL-{code}"
+                    with transaction.atomic():
+                        return super().save(*args, **kwargs)
+                except IntegrityError:
+                    self.code = None
+            raise IntegrityError(
+                "Failed to generate unique decklist code after 4 attempts"
+            )
+        return super().save(*args, **kwargs)
+
+    @property
+    def points(self) -> int:
+        return self.achievement.annotate(
+            effective_points=Coalesce("point_value", F("parent__point_value"), 0)
+        ).aggregate(total=Coalesce(Sum("effective_points"), 0))["total"]
+
+
+class DecklistsAchievements(models.Model):
+    achievement = models.ForeignKey(Achievements, on_delete=models.CASCADE)
+    decklist = models.ForeignKey(Decklists, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = "decklists_achievements"

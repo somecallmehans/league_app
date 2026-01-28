@@ -64,6 +64,7 @@ class Colors(models.Model):
     symbol = models.CharField(max_length=5)
     slug = models.CharField(max_length=26)
     name = models.CharField(max_length=50)
+    mask = models.PositiveIntegerField(default=0)
 
     class Meta:
         db_table = "colors"
@@ -83,6 +84,19 @@ class ColorFactions(models.Model):
         db_table = "color_factions"
 
 
+class Commanders(models.Model):
+    name = models.CharField(max_length=255)
+    deleted = models.BooleanField(default=False)
+    has_partner = models.BooleanField(default=False)
+    is_background = models.BooleanField(default=False)
+    is_companion = models.BooleanField(default=False)
+
+    colors = models.ForeignKey(Colors, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = "commanders"
+
+
 class WinningCommanders(models.Model):
     name = models.CharField(max_length=255)
     deleted = models.BooleanField(default=False)
@@ -92,18 +106,28 @@ class WinningCommanders(models.Model):
     participants = models.ForeignKey(
         "users.Participants", on_delete=models.CASCADE, null=True, blank=True
     )
+    commander = models.ForeignKey(
+        Commanders,
+        on_delete=models.CASCADE,
+        null=True,
+    )
+    partner = models.ForeignKey(
+        Commanders,
+        related_name="partner",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+    companion = models.ForeignKey(
+        Commanders,
+        related_name="companion",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+    decklist = models.ForeignKey(
+        "users.Decklists", on_delete=models.CASCADE, null=True, blank=True
+    )
 
     class Meta:
         db_table = "winning_commanders"
-
-
-class Commanders(models.Model):
-    name = models.CharField(max_length=255)
-    deleted = models.BooleanField(default=False)
-    has_partner = models.BooleanField(default=False)
-    is_background = models.BooleanField(default=False)
-
-    colors = models.ForeignKey(Colors, on_delete=models.CASCADE)
-
-    class Meta:
-        db_table = "commanders"

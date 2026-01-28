@@ -1,5 +1,5 @@
 import React, { Fragment } from "react";
-
+import { Link } from "react-router-dom";
 import {
   Dialog,
   DialogPanel,
@@ -8,7 +8,10 @@ import {
   TransitionChild,
 } from "@headlessui/react";
 
-import { useGetAchievementRoundQuery } from "../../api/apiSlice";
+import {
+  useGetAchievementRoundQuery,
+  useGetDecklistQuery,
+} from "../../api/apiSlice";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import ColorGrid from "../../components/ColorGrid";
 
@@ -20,8 +23,15 @@ export default function PointsModal({ isOpen, closeModal, selected }) {
     },
     { skip: !selected }
   );
+  const { data: decklist, isLoading: decklistLoading } = useGetDecklistQuery(
+    {
+      participant_id: selected?.participant_id,
+      round_id: selected?.roundId,
+    },
+    { skip: !selected }
+  );
 
-  if (achievementsLoading) {
+  if (achievementsLoading || decklistLoading) {
     return <LoadingSpinner />;
   }
   return (
@@ -56,11 +66,19 @@ export default function PointsModal({ isOpen, closeModal, selected }) {
                   className="mb-2 text-2xl font-medium leading-6 text-gray-900 flex flex-wrap md:no-wrap justify-center md:justify-between"
                 >
                   <span className="text-2xl font-bold">
-                    {selected?.participant}
+                    {selected?.participant}{" "}
+                    {decklist?.url && (
+                      <span className="text-base hover:text-sky-400">
+                        -{" "}
+                        <Link to={decklist.url}>
+                          {decklist.name} // {decklist.code}
+                        </Link>
+                      </span>
+                    )}
                   </span>
                   {selected?.isWinner && (
                     <div className="flex align-middle gap-2">
-                      <span className="text-lg">
+                      <span className="text-base">
                         {selected?.winnerCommander || ""}
                       </span>
                       <ColorGrid
@@ -68,6 +86,7 @@ export default function PointsModal({ isOpen, closeModal, selected }) {
                         colors={selected?.colors}
                         containerClasses="my-auto"
                         submitted
+                        isSmall
                       />
                     </div>
                   )}

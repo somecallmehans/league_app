@@ -5,6 +5,7 @@ import auth from "./helpers/authHelpers";
 import { useGetAllConfigsQuery } from "./api/apiSlice";
 
 import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
 import Home from "./routes/home/Home";
 import Login from "./components/Login";
 import Logout from "./components/Logout";
@@ -16,6 +17,7 @@ import ManagementContainer from "./routes/crud/ManagementContainer";
 import Metrics from "./routes/metrics/MetricsContainer";
 import Pods from "./routes/pods/Pods";
 import HallofFame from "./routes/halloffame/HallofFame";
+import Decklists from "./routes/home/Decklists";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -28,7 +30,7 @@ function App() {
 
   return (
     <>
-      <Navbar loggedIn={loggedIn} setLoggedIn={setLoggedIn} />
+      <Navbar loggedIn={loggedIn} />
       <ToastContainer />
       <Routes>
         <Route path="/" element={<Home />} />
@@ -40,7 +42,8 @@ function App() {
           path="/logout"
           element={<Logout loggedIn={loggedIn} setLoggedIn={setLoggedIn} />}
         />
-        <Route path="/info" element={<Resources />} />
+        <Route path="/faqs" element={<Resources />} />
+        <Route path="/decklists/*" element={<Decklists />} />
         <Route path="/leaderboard" element={<LeaderBoard />} />
         <Route path="/champions/*" element={<HallofFame />} />
         <Route path="/achievements" element={<AchievementsPage />} />
@@ -64,6 +67,7 @@ function App() {
         <Route path="/pods/*" element={<Pods />} />
         <Route path="*" element={<p>404 Error - Nothing here...</p>} />
       </Routes>
+      <Footer />
     </>
   );
 }

@@ -25,20 +25,17 @@ import {
 import {
   UpsertAchievementResponseSchema,
   EMPTY_ACHIEVEMENT_RESPONSE,
-  UpsertEarnedRequest,
-  UpsertEarnedResponse,
   type UpsertAchievementResponse,
   type UpsertAchievementRequest,
   type UpsertParticipantAchievementRequest,
+  type ScoresheetFormRequest,
 } from "../types/achievement_schemas";
 import {
-  RerollPodsResponseSchema,
-  type RerollPodsResponse,
-  type RerollPodsRequest,
   type DeletePodParticipantRequest,
   type UpdatePodParticipantRequest,
 } from "../types/pod_schemas";
 import { type ConfigRequest } from "../types/config_schemas";
+import { type PostDecklistRequest } from "../types/decklist_schemas";
 
 type POST_CREATE_SESSION_BODY = {
   session_date?: string;
@@ -104,27 +101,7 @@ export default (builder: ApiBuilder) => ({
       ),
     invalidatesTags: ["Achievements"],
   }),
-  postUpsertEarnedV2: builder.mutation<
-    UpsertEarnedResponse,
-    UpsertEarnedRequest
-  >({
-    query: (body) => ({
-      url: "upsert_earned_v2/",
-      method: "POST",
-      body: body,
-    }),
-    invalidatesTags: ["Pods", "Earned"],
-  }),
-  postRerollPods: builder.mutation<RerollPodsResponse, RerollPodsRequest>({
-    query: (body) => ({
-      url: "reroll_pods/",
-      method: "POST",
-      body: body,
-    }),
-    transformResponse: (raw: unknown) =>
-      safeParseWithFallback(RerollPodsResponseSchema, raw, []),
-    invalidatesTags: ["Pods", "Participants"],
-  }),
+
   postInsertCommanders: builder.mutation<string, void>({
     query: () => ({
       url: "fetch_new_commanders/",
@@ -197,5 +174,32 @@ export default (builder: ApiBuilder) => ({
       body: body,
     }),
     invalidatesTags: ["Pods", "Participants"],
+  }),
+  insertScoresheet: builder.mutation<void, ScoresheetFormRequest>({
+    query: ({ round_id, pod_id, ...body }) => ({
+      url: `rounds/${round_id}/pods/${pod_id}/scoresheet/`,
+      method: "POST",
+      body: body,
+    }),
+    invalidatesTags: ["Pods", "Earned", "Scoresheet"],
+  }),
+  updateScoresheet: builder.mutation<void, ScoresheetFormRequest>({
+    query: ({ round_id, pod_id, ...body }) => ({
+      url: `rounds/${round_id}/pods/${pod_id}/scoresheet/`,
+      method: "PUT",
+      body: body,
+    }),
+    invalidatesTags: ["Pods", "Earned", "Scoresheet"],
+  }),
+  postDecklist: builder.mutation<void, PostDecklistRequest>({
+    query: ({ code, ...body }) => ({
+      url: "decklists/",
+      method: "POST",
+      body: body,
+      headers: {
+        "x-participant-code": code,
+      },
+    }),
+    invalidatesTags: ["Decklists"],
   }),
 });

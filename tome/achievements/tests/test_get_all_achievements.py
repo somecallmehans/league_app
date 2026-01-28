@@ -5,10 +5,6 @@ from rest_framework import status
 
 from achievements.models import Achievements
 
-from utils.test_helpers import get_ids
-
-ids = get_ids()
-
 
 @pytest.fixture(scope="function")
 def add_one_deleted_achievement() -> None:
@@ -99,7 +95,7 @@ def test_get_all_achievements(client, add_one_deleted_achievement) -> None:
             "name": "Brought snack",
             "parent_id": None,
             "point_value": 2,
-            "slug": "snack",
+            "slug": "bring-snack",
             "full_name": " Brought snack",
             "restrictions": [],
         },

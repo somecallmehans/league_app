@@ -1,7 +1,6 @@
-import React, { useState, Fragment } from "react";
+import { useState, Fragment } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Menu, Transition, Disclosure } from "@headlessui/react";
-import LoginPopover from "./LoginPopover";
 import { navLinks, type Node, type NodeChild } from "../helpers/navTree";
 
 interface DesktopDropdownProps {
@@ -108,10 +107,9 @@ function MobileDisclosure({ link, close, isActive }: MobileDisclosureProps) {
 
 interface NavbarProps {
   loggedIn: boolean;
-  setLoggedIn: () => void;
 }
 
-export default function Navbar({ loggedIn, setLoggedIn }: NavbarProps) {
+export default function Navbar({ loggedIn }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { pathname } = useLocation();
   const filtered = navLinks.filter((l) =>

@@ -54,11 +54,26 @@ def mock_today():
 
 
 @pytest.fixture(autouse=True, scope="function")
-def seed_db(db):
+def seed_db(transactional_db):
     """Seed our test_db based on the contents of our csv files.
 
     Additionally, reset id sequences for various tables."""
     with connection.cursor() as cursor:
+        cursor.execute("SELECT setval('participants_id_seq', 1, false);")
+        cursor.execute("SELECT setval('achievements_id_seq', 1, false);")
+
+        cursor.execute(
+            """
+            TRUNCATE TABLE
+            pods_participants,
+            participant_achievements,
+            winning_commanders,
+            pods,
+            commanders
+            RESTART IDENTITY CASCADE;
+            """
+        )
+
         for file in sorted(Path(SEED_DIRECTORY).iterdir()):
             with file.open() as f:
                 colnames, *_ = f.readlines()
@@ -69,11 +84,3 @@ def seed_db(db):
                 cursor.copy_expert(
                     f"COPY {table_name} ({colnames}) FROM STDIN CSV HEADER", f
                 )
-
-        cursor.execute("SELECT setval('participants_id_seq', 1, false);")
-        cursor.execute("SELECT setval('achievements_id_seq', 1, false);")
-        cursor.execute("TRUNCATE TABLE pods_participants RESTART IDENTITY CASCADE")
-        cursor.execute("TRUNCATE TABLE pods RESTART IDENTITY CASCADE")
-        cursor.execute(
-            "TRUNCATE TABLE participant_achievements RESTART IDENTITY CASCADE"
-        )

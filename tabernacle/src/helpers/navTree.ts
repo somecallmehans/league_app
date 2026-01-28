@@ -15,9 +15,13 @@ export const navLinks: Array<Node> = [
   {
     id: 2,
     name: "Info",
-    to: "/info",
+    to: "",
     admin: false,
     icon: "fa-solid fa-circle-info",
+    children: [
+      { id: "2a", name: "Resources & FAQs", to: "/faqs" },
+      { id: "2b", name: "Submitted Decklists", to: "/decklists" },
+    ],
   },
   {
     id: 3,
