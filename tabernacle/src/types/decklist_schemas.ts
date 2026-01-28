@@ -87,7 +87,7 @@ const GetDecklistResponseCodeSchema = z.object({
 const GetDecklistResponseIdSchema = z.object({
   id: IdSchema,
   name: z.string(),
-  points: z.string(),
+  points: z.number().int().nonnegative(),
   code: z.string(),
   achievements: z.array(
     z.object({

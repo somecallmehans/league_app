@@ -44,6 +44,7 @@ class CommanderResult(NamedTuple):
     commander: Optional[dict]
     partner: Optional[dict]
     participant_id: Optional[int]
+    companion: Optional[int]
 
 
 class GETScoresheetHelper:
@@ -67,36 +68,42 @@ class GETScoresheetHelper:
         """Handle getting colors + names for a logged commander."""
         wc = (
             WinningCommanders.objects.filter(pods_id=self.pod_id, deleted=False)
-            .values("participants_id", "name", "colors_id")
+            .values(
+                "participants_id",
+                "name",
+                "colors_id",
+                "commander_id",
+                "partner_id",
+                "companion_id",
+            )
             .first()
         )
-        if wc is None:
-            return CommanderResult(commander=None, partner=None, participant_id=None)
+        if wc is None or wc.get("name") == DRAW_NAME:
+            return CommanderResult(
+                commander=None, partner=None, participant_id=None, companion=None
+            )
 
-        if wc.get("name") == DRAW_NAME:
-            return CommanderResult(commander=None, partner=None, participant_id=None)
-
-        name_list = wc["name"].split("+")
         commander = (
-            Commanders.objects.filter(name=name_list[0])
+            Commanders.objects.filter(id=wc["commander_id"])
             .values("id", "name", "colors_id")
             .first()
         )
-        if len(name_list) > 1:
+        partner = (
+            Commanders.objects.filter(id=wc.get("partner_id"))
+            .values("id", "name", "colors_id")
+            .first()
+        )
+        companion = (
+            Commanders.objects.filter(id=wc.get("companion_id"))
+            .values("id", "name", "colors_id")
+            .first()
+        )
 
-            partner = (
-                Commanders.objects.filter(name=name_list[1])
-                .values("name", "colors_id")
-                .first()
-            )
-
-            return CommanderResult(
-                commander=commander,
-                partner=partner,
-                participant_id=wc["participants_id"],
-            )
         return CommanderResult(
-            commander=commander, partner=None, participant_id=wc["participants_id"]
+            commander=commander,
+            partner=partner,
+            participant_id=wc["participants_id"],
+            companion=companion,
         )
 
     def build(self):
@@ -159,6 +166,7 @@ class GETScoresheetHelper:
                 "winner": winner_dict,
                 "winner-commander": wc.commander,
                 "partner-commander": wc.partner,
+                "companion-commander": wc.companion,
                 "winner-achievements": [],
             }
         )
@@ -377,6 +385,8 @@ class POSTScoresheetHelper:
 
             if code:
                 decklist = Decklists.objects.get(code=f"DL-{code}")
+                if not decklist:
+                    raise Decklists.DoesNotExist(detail="Decklist code not found")
                 decklist_id = decklist.id
 
             return ScoresheetBuildResult(

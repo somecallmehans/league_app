@@ -117,7 +117,6 @@ export default function ScorecardPage() {
 
   const handleFormSubmit = async (data: any) => {
     const { picker, submissionMode, ...clean } = data;
-    console.log(clean);
     const payload = {
       ...clean,
       winner: clean["winner"]?.id,
@@ -128,7 +127,7 @@ export default function ScorecardPage() {
       "money-pack": normalize(clean["money-pack"]),
       "winner-commander": clean["winner-commander"]?.id,
       "partner-commander": clean["partner-commander"]?.id,
-      "companion-commander": clean["companion-commnader"]?.id,
+      "companion-commander": clean["companion-commander"]?.id,
       "winner-achievements": normalize(clean["winner-achievements"]),
       round_id,
       pod_id,

@@ -46,8 +46,9 @@ class BitOr(Func):
     output_field = IntegerField()
 
 
-def get_decklists(params: str = "") -> list[Decklists]:
+def get_decklists(params: dict = None) -> list[Decklists]:
     """Return decklists based on params"""
+    params = params or {}
     sort_order = params.get("sort_order")
     color_mask = params.get("colors")
     query = (
@@ -190,6 +191,8 @@ def get_single_decklist_by_code(param: str = "") -> Decklists:
         )
         .first()
     )
+    if not query:
+        raise ValidationError({"code": "Decklist not found"})
     a_query = DecklistsAchievements.objects.filter(
         decklist_id=query["id"]
     ).select_related("achievement")

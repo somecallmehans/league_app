@@ -284,11 +284,15 @@ def calculate_color_mask(colors: list[int]) -> tuple[int, int]:
     """
 
     mask_list = Colors.objects.filter(id__in=colors).values_list("mask", flat=True)
-    summed_mask = sum(mask_list)
-    calculated = Colors.objects.filter(mask=summed_mask).values("id", "symbol").first()
+    combined_mask = 0
+    for mask in mask_list:
+        combined_mask |= mask
+    calculated = (
+        Colors.objects.filter(mask=combined_mask).values("id", "symbol").first()
+    )
 
     if calculated is None:
-        raise ValueError(f"No color found for mask: {summed_mask}")
+        raise ValueError(f"No color found for mask: {combined_mask}")
 
     win_colors = len(calculated["symbol"]) if calculated["symbol"] != "c" else 0
 

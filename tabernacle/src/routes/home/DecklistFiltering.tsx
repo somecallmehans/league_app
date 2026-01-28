@@ -137,7 +137,7 @@ export default function DecklistFilters({ params, setParams }: FiltersProps) {
           options={SORTING}
           classes="w-full"
           onChange={(o: { label: string; value: string }) =>
-            setParams({ ...params, sort_order: o.value })
+            setParams({ ...params, sort_order: o?.value ?? null })
           }
           isMulti={false}
           isClearable={true}

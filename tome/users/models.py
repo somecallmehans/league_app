@@ -142,11 +142,14 @@ class Decklists(models.Model):
                         return super().save(*args, **kwargs)
                 except IntegrityError:
                     self.code = None
+            raise IntegrityError(
+                "Failed to generate unique decklist code after 4 attempts"
+            )
         return super().save(*args, **kwargs)
 
     @property
     def points(self) -> int:
-        return self.achievements.annotate(
+        return self.achievement.annotate(
             effective_points=Coalesce("point_value", F("parent__point_value"), 0)
         ).aggregate(total=Coalesce(Sum("effective_points"), 0))["total"]
 
