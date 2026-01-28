@@ -755,7 +755,7 @@ def get_rounds_by_session(_, session_id):
             "roundNumber": r["round_number"],
             "completed": r["completed"],
             "sessionDate": r["session__session_date"],
-            "previousRoundId": rounds[0]["id"] if r["id"] % 2 == 0 else None,
+            "previousRoundId": rounds[0]["id"] if r["round_number"] == 2 else None,
         }
         for r in rounds
     }

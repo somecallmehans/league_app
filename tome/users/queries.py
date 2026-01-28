@@ -169,7 +169,7 @@ def get_decklists(params: dict = None) -> list[Decklists]:
 
 class StubCommander(dict):
     id: Optional[int]
-    name: Optional[int]
+    name: Optional[str]
     color_id: Optional[int]
 
 

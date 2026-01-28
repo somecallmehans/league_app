@@ -304,7 +304,7 @@ class ColorInfo(TypedDict):
     name: str
 
 
-def calculate_color(masks: list[int]) -> Optional[ColorInfo]:
+def calculate_color(masks: list[Optional[int]]) -> Optional[ColorInfo]:
     """
     Take in a list of color masks, sum them and return the associated color info
     """
