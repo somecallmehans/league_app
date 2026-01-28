@@ -113,7 +113,7 @@ function CommanderFields() {
               ...cart,
               {
                 id: 28,
-                name: "Win with a deck that includes one of Ikoria’s “Companions” as a companion",
+                name: 'Win with a deck that includes one of Ikoria\'s "Companions" as a companion',
                 tempId: crypto.randomUUID(),
               },
             ]);

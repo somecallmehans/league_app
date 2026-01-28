@@ -45,7 +45,7 @@ const AchievementCart = ({
 
   const cart = useWatch({ control, name: "achievements" }) ?? [];
   const sum = useMemo(() => {
-    if (!cart) return [];
+    if (!cart) return 0;
     return cart.reduce((acc: number, curr: any) => {
       acc += lookup?.[curr.id] ?? 0;
       return acc;
@@ -319,12 +319,11 @@ export default function DecklistForm() {
                     if (cart.some(({ id }: { id: number }) => id === 28)) {
                       return;
                     }
-                    console.log(cart);
                     setValue("achievements", [
                       ...cart,
                       {
                         id: 28,
-                        name: "Win with a deck that includes one of Ikoria’s “Companions” as a companion",
+                        name: 'Win with a deck that includes one of Ikoria\'s "Companions" as a companion',
                         tempId: crypto.randomUUID(),
                       },
                     ]);
