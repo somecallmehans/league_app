@@ -156,7 +156,7 @@ export default function DecklistForm() {
 
     const payload = {
       ...clean,
-      code: clean["code"].toUpperCase(),
+      code: (clean["code"] ?? "").toUpperCase(),
       commander: clean.commander?.id,
       partner: clean.partner?.id,
       companion: clean.companion?.id,

@@ -22,8 +22,9 @@ export default function useDecklistCart() {
 
   const pointLookup = useMemo(() => {
     if (!achievements) return {};
-    return achievements?.reduce((acc: any, curr) => {
-      acc[curr.id] = curr.points;
+
+    return achievements.reduce<Record<number, number>>((acc, curr) => {
+      acc[curr.id] = curr.points ?? 0;
       return acc;
     }, {});
   }, [achievements]);

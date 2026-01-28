@@ -56,7 +56,7 @@ export default function AchievementModal({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0" />
+          <div className="fixed inset-0 bg-black/25" />
         </TransitionChild>
         <div className="fixed inset-0 overflow-y-auto flex items-center justify-center ">
           <div className="flex w-full max-w-3xl items-center justify-center p-4 text-center">
@@ -79,12 +79,14 @@ export default function AchievementModal({
 
                 <div className="border-t" />
 
-                <div className="divide-y">
-                  {achievements?.map(({ id, name, points }) => (
-                    <LineItem key={id} name={name} points={points} />
-                  ))}
-                  <LineItem name="Color ID Points" points={colorPoints} />
-                </div>
+                {achievements?.length && (
+                  <div className="divide-y">
+                    {achievements?.map(({ id, name, points }) => (
+                      <LineItem key={id} name={name} points={points} />
+                    ))}
+                    <LineItem name="Color ID Points" points={colorPoints} />
+                  </div>
+                )}
 
                 {!achievements?.length && (
                   <div className="py-6 text-sm text-gray-500">
