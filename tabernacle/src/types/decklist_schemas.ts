@@ -89,6 +89,7 @@ const GetDecklistResponseIdSchema = z.object({
   name: z.string(),
   points: z.number().int().nonnegative(),
   code: z.string(),
+  url: z.string(),
   achievements: z.array(
     z.object({
       id: IdSchema,

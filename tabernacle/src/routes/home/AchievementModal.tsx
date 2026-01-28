@@ -79,7 +79,7 @@ export default function AchievementModal({
 
                 <div className="border-t" />
 
-                {achievements?.length && (
+                {achievements?.length > 0 && (
                   <div className="divide-y">
                     {achievements?.map(({ id, name, points }) => (
                       <LineItem key={id} name={name} points={points} />

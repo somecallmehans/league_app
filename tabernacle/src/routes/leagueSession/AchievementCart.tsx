@@ -19,7 +19,7 @@ const CODE_FIELDS = [
 ] as const;
 
 function CommanderFields() {
-  const { control } = useFormContext();
+  const { control, getValues, setValue } = useFormContext();
   const { commanderOptions, partnerOptions, companionOptions } =
     useScorecardInfoCtx();
   const selectedWinner = useWatch({ control, name: "winner" });
@@ -92,6 +92,32 @@ function CommanderFields() {
           getOptionLabel={(option) => option.name}
           getOptionValue={(option) => String(option.id)}
           isOptionDisabled={(o) => o.id === -1}
+          onChange={(selected) => {
+            const cart = getValues("winner-achievements") ?? [];
+            if (!selected) {
+              setValue("companion-commander", null, {
+                shouldDirty: true,
+                shouldValidate: false,
+              });
+              setValue(
+                "winner-achievements",
+                cart.filter(({ id }: { id: number }) => id !== 28)
+              );
+              return;
+            }
+            if (cart.some(({ id }: { id: number }) => id === 28)) {
+              return;
+            }
+
+            setValue("winner-achievements", [
+              ...cart,
+              {
+                id: 28,
+                name: "Win with a deck that includes one of Ikoria’s “Companions” as a companion",
+                tempId: crypto.randomUUID(),
+              },
+            ]);
+          }}
         />
       </div>
     </div>

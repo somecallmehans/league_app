@@ -47,7 +47,7 @@ const AchievementCart = ({
   const sum = useMemo(() => {
     if (!cart) return [];
     return cart.reduce((acc: number, curr: any) => {
-      acc += lookup?.[curr.id];
+      acc += lookup?.[curr.id] ?? 0;
       return acc;
     }, pointLookup[colorLength] || 0);
   }, [cart, lookup]);
@@ -303,7 +303,6 @@ export default function DecklistForm() {
                   disabled={!selectedCommander}
                   onChange={(selected) => {
                     const cart = getValues("achievements") ?? [];
-
                     if (!selected) {
                       setValue("companion", null, {
                         shouldDirty: true,
@@ -317,6 +316,10 @@ export default function DecklistForm() {
                     }
                     // TODO Fix this hack that no one
                     // will care about but me lmao
+                    if (cart.some(({ id }: { id: number }) => id === 28)) {
+                      return;
+                    }
+                    console.log(cart);
                     setValue("achievements", [
                       ...cart,
                       {
