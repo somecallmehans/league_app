@@ -137,7 +137,7 @@ export default function DecklistForm() {
   const {
     control,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
     setValue,
     getValues,
   } = methods;
@@ -360,7 +360,11 @@ export default function DecklistForm() {
                 }}
               />
 
-              <StandardButton title="Submit" type="submit" />
+              <StandardButton
+                title="Submit"
+                type="submit"
+                disabled={isSubmitting}
+              />
             </div>
             {errors && errors?.code && (
               <div className="text-sm text-red-500 flex justify-end">

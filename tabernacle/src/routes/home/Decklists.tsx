@@ -130,21 +130,23 @@ function DecklistContainer() {
 
         <div className="mt-2 text-xs md:text-sm text-gray-700 space-y-2">
           <p>
-            Use the toggles below to sort decklists or filter by color identity.
+            Use the toggles below to sort or filter decklists by color identity.
           </p>
 
           <p>Each card image opens the decklist on Moxfield or Archidekt.</p>
 
           <p>
-            Select the pips on a card to view the achievements earned with that
-            deck.
+            Select the pips on each card to view the achievements earnable with
+            that deck.
           </p>
 
           <p>
             If you win with a shared decklist, submit the
             <span className="font-medium"> DL-XXXX </span>
-            code instead of listing achievements.
+            code on your scorecard instead of listing achievements.
           </p>
+
+          <p className="italic">Editing coming soon!</p>
         </div>
       </details>
       <DecklistFilters params={params} setParams={setParams} />

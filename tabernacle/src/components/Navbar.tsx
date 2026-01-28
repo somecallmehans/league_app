@@ -1,7 +1,6 @@
-import React, { useState, Fragment } from "react";
+import { useState, Fragment } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Menu, Transition, Disclosure } from "@headlessui/react";
-import LoginPopover from "./LoginPopover";
 import { navLinks, type Node, type NodeChild } from "../helpers/navTree";
 
 interface DesktopDropdownProps {

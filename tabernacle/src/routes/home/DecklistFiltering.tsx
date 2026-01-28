@@ -58,7 +58,7 @@ const ColorCheckbox = ({
     pointer-events-none absolute top-1.5 left-3
     flex items-center justify-center
     text-sm font-semibold tracking-wide
-    text-black/75
+    text-black/60
     opacity-0 scale-75
     peer-checked:opacity-100 peer-checked:scale-100
     transition-all duration-150 ease-out

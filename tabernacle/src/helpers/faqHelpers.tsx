@@ -250,33 +250,33 @@ export const faqInfo = [
       </div>
     ),
   },
-  {
-    id: 2,
-    title: "Are proxies allowed?",
-    Component: () => (
-      <div className="py-2">
-        <p className="mb-2">
-          Players are allowed to use any number of proxies during league games.
-          Two of these proxies may be of comparable quality to “basic land with
-          sharpie writing.” The rest must be visually distinct from one another
-          such that players can easily distinguish them from across the table.
-        </p>
-        <p className="mb-2">
-          <a
-            className="text-sky-500 hover:text-sky-300"
-            href="https://mtgprint.net/"
-            target="_blank"
-            rel="noreferrer"
-          >
-            MTG Print
-          </a>{" "}
-          is a useful resource for formatting proxy prints and Mimic’s Market
-          offers color printing at a reasonable price! League participants also
-          periodically order high-quality proxies as a group - ask around!
-        </p>
-      </div>
-    ),
-  },
+  // {
+  //   id: 2,
+  //   title: "Are proxies allowed?",
+  //   Component: () => (
+  //     <div className="py-2">
+  //       <p className="mb-2">
+  //         Players are allowed to use any number of proxies during league games.
+  //         Two of these proxies may be of comparable quality to “basic land with
+  //         sharpie writing.” The rest must be visually distinct from one another
+  //         such that players can easily distinguish them from across the table.
+  //       </p>
+  //       <p className="mb-2">
+  //         <a
+  //           className="text-sky-500 hover:text-sky-300"
+  //           href="https://mtgprint.net/"
+  //           target="_blank"
+  //           rel="noreferrer"
+  //         >
+  //           MTG Print
+  //         </a>{" "}
+  //         is a useful resource for formatting proxy prints and Mimic’s Market
+  //         offers color printing at a reasonable price! League participants also
+  //         periodically order high-quality proxies as a group - ask around!
+  //       </p>
+  //     </div>
+  //   ),
+  // },
   {
     id: 3,
     title: "Does it cost money to participate?",

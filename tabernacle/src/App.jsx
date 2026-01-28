@@ -5,6 +5,7 @@ import auth from "./helpers/authHelpers";
 import { useGetAllConfigsQuery } from "./api/apiSlice";
 
 import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
 import Home from "./routes/home/Home";
 import Login from "./components/Login";
 import Logout from "./components/Logout";
@@ -66,6 +67,7 @@ function App() {
         <Route path="/pods/*" element={<Pods />} />
         <Route path="*" element={<p>404 Error - Nothing here...</p>} />
       </Routes>
+      <Footer />
     </>
   );
 }
