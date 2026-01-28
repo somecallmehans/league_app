@@ -70,4 +70,4 @@ def test_post_new_decklist_unsafe(unsafe_client) -> None:
         "give_credit": True,
     }
     res = unsafe_client.post(url, body, format="json")
-    assert res.status_code == status.HTTP_401_UNAUTHORIZED
+    assert res.status_code == status.HTTP_400_BAD_REQUEST

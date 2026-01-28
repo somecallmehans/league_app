@@ -31,8 +31,10 @@ DRAWID = 140
 @pytest.fixture(scope="function")
 def build_state() -> None:
     Colors.objects.create(id=RED, symbol="r", slug="red", name="red", mask=8)
-    Commanders.objects.create(id=CID, name=COMMANDER, colors_id=ids.GREEN)
-    Commanders.objects.create(id=PID, name=PARTNER, colors_id=RED, is_background=True)
+    commander = Commanders.objects.create(id=CID, name=COMMANDER, colors_id=ids.GREEN)
+    partner = Commanders.objects.create(
+        id=PID, name=PARTNER, colors_id=RED, is_background=True
+    )
     Achievements.objects.bulk_create(
         [
             Achievements(id=AID2, name="Lend deck", slug="lend-deck", point_value=2),
@@ -198,6 +200,8 @@ def build_state() -> None:
         colors_id=ids.GRUUL,
         participants_id=ids.P3,
         pods_id=POD_ID,
+        commander_id=commander.id,
+        partner_id=partner.id,
     )
 
     Pods.objects.filter(id=POD_ID).update(submitted=True)
@@ -256,9 +260,13 @@ def build_single_state() -> None:
         session_id=ids.SESSION_THIS_MONTH_OPEN,
         earned_points=3,
     )
-    Commanders.objects.create(name="TEST GUY", colors_id=ids.GRUUL)
+    commander = Commanders.objects.create(name="TEST GUY", colors_id=ids.GRUUL)
     WinningCommanders.objects.create(
-        name="TEST GUY", colors_id=ids.GRUUL, pods_id=POD_ID, participants_id=ids.P3
+        name="TEST GUY",
+        colors_id=ids.GRUUL,
+        pods_id=POD_ID,
+        participants_id=ids.P3,
+        commander_id=commander.id,
     )
 
 
@@ -291,6 +299,7 @@ def test_get_scoresheet_one_commander(
         "winner": {"id": ids.P3, "name": "Fern Penvarden"},
         "winner-commander": {"colors_id": ids.GRUUL, "name": "TEST GUY", "id": 1},
         "partner-commander": None,
+        "companion-commander": None,
         "last-in-order": False,
         "commander-damage": False,
         "lose-the-game-effect": False,
@@ -346,7 +355,12 @@ def test_get_scoresheet_two_commanders(
             "name": "Wilson, Refined Grizzly",
             "id": CID,
         },
-        "partner-commander": {"colors_id": 10000, "name": "Tavern Brawler"},
+        "partner-commander": {
+            "colors_id": 10000,
+            "name": "Tavern Brawler",
+            "id": PID,
+        },
+        "companion-commander": None,
         "last-in-order": True,
         "commander-damage": True,
         "lose-the-game-effect": True,
@@ -398,6 +412,7 @@ def test_get_scoresheet_draw(
         "winner": None,
         "winner-commander": None,
         "partner-commander": None,
+        "companion-commander": None,
         "last-in-order": False,
         "commander-damage": False,
         "lose-the-game-effect": False,
