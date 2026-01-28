@@ -14,7 +14,7 @@ from rest_framework.decorators import (
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Prefetch, Exists, OuterRef, F
+from django.db.models import Prefetch, Exists, OuterRef
 from django.utils import timezone
 
 from .models import Sessions, Rounds, Pods, PodsParticipants, RoundSignups
@@ -747,7 +747,7 @@ def get_rounds_by_session(_, session_id):
     rounds = list(
         Rounds.objects.filter(session_id=session_id, deleted=False)
         .values("round_number", "completed", "session__session_date", "id")
-        .order_by("id")
+        .order_by("round_number")
     )
 
     out = {
