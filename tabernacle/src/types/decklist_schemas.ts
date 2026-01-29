@@ -12,6 +12,7 @@ export type ScryfallImage = z.infer<typeof ScryfallImageSchema>;
 export const DecklistColorSchema = z.object({
   name: z.string(),
   symbol: z.string(),
+  points: z.number(),
 });
 export type DecklistColor = z.infer<typeof DecklistColorSchema>;
 
