@@ -44,13 +44,18 @@ const AchievementCart = ({
   const { achievements, lookup } = useDecklistCart();
 
   const cart = useWatch({ control, name: "achievements" }) ?? [];
+
+  const basePoints = pointLookup[colorLength] ?? 0;
+
   const sum = useMemo(() => {
-    if (!cart) return 0;
-    return cart.reduce((acc: number, curr: any) => {
-      acc += lookup?.[curr.id] ?? 0;
-      return acc;
-    }, pointLookup[colorLength] || 0);
-  }, [cart, lookup]);
+    const cartPoints =
+      cart?.reduce(
+        (acc: number, curr: any) => acc + (lookup?.[curr.id] ?? 0),
+        0
+      ) ?? 0;
+
+    return basePoints + cartPoints;
+  }, [cart, lookup, basePoints]);
 
   return (
     <div className="flex flex-col">
@@ -62,12 +67,13 @@ const AchievementCart = ({
         Points
       </h2>
       <div className="border-t mb-2" />
-      <div className="flex justify-between gap-2 mb-2">
+      <div className="flex flex-col justify-between mb-2">
+        <span className="text-sm">Type to search and add achievements</span>
         <Selector
           name="picker"
           options={achievements ?? []}
           control={control}
-          placeholder="Deck Building Achievements"
+          placeholder="Deckbuilding Achievements"
           getOptionLabel={(option) => option.name}
           getOptionValue={(option) => String(option.id)}
           containerClasses="grow mt-2"
@@ -186,8 +192,9 @@ export default function DecklistForm() {
           </p>
 
           <p>
-            Select any <span>deckbuilding achievements</span> your deck earns.
-            Color identity achievements are added automatically.
+            Search for and choose any <span>deckbuilding achievements</span>{" "}
+            your deck earns. Color identity achievements are added
+            automatically.
           </p>
 
           <p>
@@ -203,7 +210,7 @@ export default function DecklistForm() {
           </p>
         </div>
       </details>
-      <div className="mx-auto h-[50vh]">
+      <div className="mx-auto w-full">
         <FormProvider {...methods}>
           <form onSubmit={handleSubmit(handleFormSubmit)}>
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2 h-full">

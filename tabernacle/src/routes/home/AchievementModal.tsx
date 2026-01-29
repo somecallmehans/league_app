@@ -58,7 +58,7 @@ export default function AchievementModal({
         >
           <div className="fixed inset-0 bg-black/25" />
         </TransitionChild>
-        <div className="fixed inset-0 overflow-y-auto flex items-center justify-center ">
+        <div className="fixed inset-0 overflow-y-auto flex items-center justify-center">
           <div className="flex w-full max-w-3xl items-center justify-center p-4 text-center">
             <TransitionChild
               as="div"
