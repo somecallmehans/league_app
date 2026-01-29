@@ -29,7 +29,7 @@ function App() {
   usePageTracking();
 
   return (
-    <>
+    <div className="min-h-screen flex flex-col">
       <Navbar loggedIn={loggedIn} />
       <ToastContainer />
       <Routes>
@@ -68,7 +68,7 @@ function App() {
         <Route path="*" element={<p>404 Error - Nothing here...</p>} />
       </Routes>
       <Footer />
-    </>
+    </div>
   );
 }
 
