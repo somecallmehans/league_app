@@ -47,9 +47,6 @@ const DecklistCard = ({
     partner_img,
     companion_img
   );
-  const colorPoints =
-    color?.symbol === "c" ? 5 : (pointLookup[color?.symbol.length] ?? 0);
-  const totalPoints = points + colorPoints;
   const pName = participant_name ? `by ${participant_name}` : "";
 
   return (
@@ -80,7 +77,7 @@ const DecklistCard = ({
         </div>
 
         <div className="flex justify-between">
-          <span>{totalPoints} Points </span>
+          <span>{points} Points </span>
           <span className="font-bold">{code}</span>
         </div>
 
@@ -91,7 +88,7 @@ const DecklistCard = ({
       </div>
       <AchievementModal
         achievements={achievements}
-        colorPoints={colorPoints}
+        colorPoints={color.points}
         isOpen={open}
         closeModal={() => setOpen(!open)}
       />

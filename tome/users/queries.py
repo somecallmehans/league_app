@@ -21,8 +21,8 @@ scryfall_request = ScryfallClientRequest()
 
 
 SORT_MAP = {
-    "points_desc": ("-points", "-created_at", "id"),
-    "points_asc": ("points", "-created_at", "id"),
+    # "points_desc": ("-points", "-created_at", "id"),
+    # "points_asc": ("points", "-created_at", "id"),
     "newest": ("-created_at", "id"),
     "oldest": ("created_at", "id"),
     "name_asc": ("name", "id"),
@@ -30,6 +30,14 @@ SORT_MAP = {
 }
 
 COLOR_BITS = {"W": 1, "U": 2, "B": 4, "R": 8, "G": 16, "C": 0}
+COLOR_POINTS: dict[int, int] = {
+    5: 0,
+    4: 1,
+    3: 2,
+    2: 3,
+    1: 4,
+    0: 5,
+}
 
 
 class BitAnd(Func):
@@ -103,7 +111,7 @@ def get_decklists(params: dict = None) -> list[Decklists]:
             }
         )
 
-    order_by = SORT_MAP.get(sort_order, SORT_MAP["points_desc"])
+    order_by = SORT_MAP.get(sort_order, SORT_MAP["newest"])
     if color_mask is not None:
         try:
             mask_int = int(color_mask)
@@ -138,8 +146,16 @@ def get_decklists(params: dict = None) -> list[Decklists]:
             if name
         ]
     )
+
     for qu in query:
         give_credit = qu["give_credit"]
+        color = calculate_color(
+            [
+                qu["commander__colors__mask"],
+                qu.get("partner__colors__mask") or -1,
+            ]
+        )
+        color_points = COLOR_POINTS[color.symbol_length]
         out.append(
             {
                 "id": qu["id"],
@@ -153,16 +169,20 @@ def get_decklists(params: dict = None) -> list[Decklists]:
                 "partner_img": commander_images.get(qu["partner__name"]),
                 "companion_name": qu.get("companion__name"),
                 "companion_img": commander_images.get(qu["companion__name"]),
-                "color": calculate_color(
-                    [
-                        qu["commander__colors__mask"],
-                        qu.get("partner__colors__mask") or -1,
-                    ]
-                ),
-                "points": qu["points"],
+                "color": {
+                    "symbol": color.symbol,
+                    "name": color.name,
+                    "points": color_points,
+                },
+                "points": qu["points"] + color_points,
                 "achievements": ach_by_decklist.get(qu["id"], []),
             }
         )
+
+    if sort_order == "points_desc":
+        out = sorted(out, key=lambda x: x["points"], reverse=True)
+    elif sort_order == "points_asc":
+        out = sorted(out, key=lambda x: x["points"])
 
     return list(out)
 

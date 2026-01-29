@@ -314,7 +314,7 @@ def calculate_color(masks: list[Optional[int]]) -> Optional[ColorInfo]:
         if m is not None and m >= 0:
             combined |= m
 
-    color = Colors.objects.filter(mask=combined).values("symbol", "name").first()
+    color = Colors.objects.filter(mask=combined).first()
     if color is None:
         return None
     return color
