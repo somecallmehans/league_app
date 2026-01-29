@@ -4,7 +4,6 @@ import { Route, Routes, Link } from "react-router-dom";
 import { type SimpleColor } from "../../types/color_schemas";
 import { useGetDecklistsQuery } from "../../api/apiSlice";
 import { compileImgUrls, type Image } from "../../helpers/imgHelpers";
-import { pointLookup } from "./DecklistForm";
 
 import PageTitle from "../../components/PageTitle";
 import StandardButton from "../../components/Button";
@@ -51,39 +50,46 @@ const DecklistCard = ({
 
   return (
     <div
-      className="w-full overflow-hidden rounded-xl border bg-white shadow-sm
-          transition-transform duration-200 ease-out md:hover:scale-[1.02]"
+      className="w-full overflow-hidden rounded-xl border border-stone-350 bg-stone-250 shadow-sm
+          transition-transform duration-200 ease-out md:hover:scale-[1.02] h-full flex flex-col"
     >
+      <div className="min-w-0">
+        <div className="text-sm bg-gradient-to-r from-stone-100 to-stone-250 text-stone-900 sm:text-base font-bold text-center p-1 overflow-hidden truncate">
+          {name}
+        </div>
+      </div>
       <Link to={url}>
-        <div className="relative w-full aspect-[4/3] sm:aspect-[4/3] bg-zinc-200 overflow-hidden">
+        <div className="relative w-full aspect-[4/3] sm:aspect-[4/3] overflow-hidden">
           <DecklistImages name={name} imgs={imgs} />
         </div>
       </Link>
+      <div className="px-2 pt-2 pb-3 sm:pb-4">
+        <div className="grid gap-2">
+          <div className="flex gap-2">
+            <div className="min-w-0 flex-1 flex flex-col justify-center items-center gap-0.5">
+              <div className="text-lg sm:text-xl font-semibold leading-tight">
+                {points} Points
+              </div>
 
-      <div className="pb-3 px-2 pt-2 sm:pb-4">
-        <div className="text-sm font-semibold flex justify-between">
-          <div className="text-base sm:text-lg truncate w-3/4">{name}</div>
-          <div className="flex items-center gap-2 group">
-            <i className="fa fa-arrow-up-right-from-square text-sky-500 invisible group-hover:visible" />
-            <ColorGrid
-              colors={color?.name}
-              action={() => setOpen(true)}
-              noHover
-              show
-              submitted
-              isSmall
-            />
+              <div className="text-base sm:text-lg font-medium text-stone-900 leading-tight whitespace-nowrap">
+                {code}
+              </div>
+
+              <div className="text-xs min-h-[1rem] text-stone-900 leading-tight">
+                {pName ?? ""}
+              </div>
+            </div>
           </div>
         </div>
-
-        <div className="flex justify-between">
-          <span>{points} Points </span>
-          <span className="font-bold">{code}</span>
-        </div>
-
-        <div className="text-xs min-h-[1rem]">{pName ?? ""}</div>
       </div>
-      <div className="pt-2 text-center text-[10px] text-slate-400">
+      <ColorGrid
+        colors={color?.name}
+        action={() => setOpen(true)}
+        show
+        submitted
+        noHover={false}
+      />
+      <div className="mt-auto pt-2 text-center text-[8px] text-slate-400">
         Card art by {artists.join(", ")}
       </div>
       <AchievementModal
