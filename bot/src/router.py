@@ -252,3 +252,6 @@ async def handle_drop(uid):
     except Exception:
         pass
     return _ephemeral(f"❌ {msg}")
+
+async def handle_edit_decklist_url(uid):
+    """Step 1"""
