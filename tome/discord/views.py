@@ -244,3 +244,35 @@ def drop_user(request):
     return Response(
         {"date": next_session.session_date}, status=status.HTTP_202_ACCEPTED
     )
+
+
+@require_service_token
+@api_view([POST])
+def fetch_decklist_url(request):
+    """
+    This endpoint is responsible for a couple of things:
+    1. Take in the user's discord_id, validate they are a user. Additionally
+    we can validate that they have decklists to edit before we ship them a token
+    2. Generate a unique token and store it in the backend. Token TTL
+    is 30 minutes
+    3. Return a constructed url: www.{ENV_ADDRESS}/decklists/token
+    """
+
+    body = json.loads(request.body.decode("utf-8"))
+    duid: str = body.get("discord_user_id")
+
+    try:
+        participant = Participants.objects.filter(discord_user_id=duid).get()
+    except Participants.DoesNotExist:
+        return Response(
+            {
+                "message": "Participant is currently not linked. Run /link to connect to your league history."
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    
+    # Check if we have an active token. If yes, revoke it and issue a new one
+    
+
+    # CREATE TOKEN
+

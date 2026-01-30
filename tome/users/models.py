@@ -3,6 +3,8 @@ from datetime import datetime
 from django.db import models, IntegrityError, transaction
 from django.db.models import Sum, F
 from django.db.models.functions import Coalesce
+from django.utils import timezone
+
 
 from sessions_rounds.models import Rounds, Sessions
 from achievements.models import Achievements, Commanders
@@ -160,3 +162,23 @@ class DecklistsAchievements(models.Model):
 
     class Meta:
         db_table = "decklists_achievements"
+
+
+class EditToken(models.Model):
+    owner = models.ForeignKey(
+        Participants,
+        on_delete=models.CASCADE,
+        related_name="edit_tokens",
+        db_index=True,
+    )
+    token_hash = models.CharField(max_length=64, unique=True)
+    expires_at = models.DateTimeField(db_index=True)
+    revoked_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_valid(self) -> bool:
+        now = timezone.now()
+        return self.revoked_at is None and now < self.expires_at
+
+    class Meta:
+        db_table = "edit_tokens"
