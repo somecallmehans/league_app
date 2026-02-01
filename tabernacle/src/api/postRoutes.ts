@@ -202,4 +202,11 @@ export default (builder: ApiBuilder) => ({
     }),
     invalidatesTags: ["Decklists"],
   }),
+  exchangeTokens: builder.mutation<void, { code: string }>({
+    query: (body) => ({
+      url: "exchange/",
+      method: "POST",
+      body,
+    }),
+  }),
 });

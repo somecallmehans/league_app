@@ -12,6 +12,8 @@ import DecklistImages from "./DecklistImages";
 import ColorGrid from "../../components/ColorGrid";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import DecklistFilters from "./DecklistFiltering";
+import Gatekeeper from "./DecklistEditGatekeeper";
+import EditDecklists from "./EditDecklists";
 import AchievementModal, { type Achievement } from "./AchievementModal";
 
 type DecklistProps = {
@@ -122,9 +124,14 @@ function DecklistContainer() {
     <div className="p-2 md:p-8">
       <div className="flex justify-between items-center">
         <PageTitle title="Decklists" />
-        <Link to={`new`}>
-          <StandardButton title="New" />
-        </Link>
+        <div>
+          <Link to="new">
+            <StandardButton title="New" />
+          </Link>
+          <Link to="gatekeeper">
+            <StandardButton title="Edit" />
+          </Link>
+        </div>
       </div>
       <details className="w-full md:w-3/4 mb-3">
         <summary className="cursor-pointer text-lg font-medium text-gray-800">
@@ -193,6 +200,8 @@ export default function DecklistsRouter() {
     <Routes>
       <Route path="/" element={<DecklistContainer />} />
       <Route path="/new" element={<DecklistForm />} />
+      <Route path="/gatekeeper" element={<Gatekeeper />} />
+      <Route path="/edit" element={<EditDecklists />} />
     </Routes>
   );
 }

@@ -11,6 +11,7 @@ import { BaseBQ } from "./baseApiTypes";
 
 const baseQuery = fetchBaseQuery({
   baseUrl: import.meta.env.VITE_API_URL,
+  credentials: "include",
   prepareHeaders: (headers) => {
     const token = getTokenRaw();
     if (token) {
@@ -147,6 +148,8 @@ export const {
   useGetDecklistsQuery,
   useGetDecklistQuery,
   useLazyGetDecklistQuery,
+  useVerifyDecklistSessionQuery,
+  useGetParticipantDecklistsQuery,
 
   // POSTS
   usePostCreateSessionMutation,
@@ -164,6 +167,7 @@ export const {
   useInsertScoresheetMutation,
   useUpdateScoresheetMutation,
   usePostDecklistMutation,
+  useExchangeTokensMutation,
 
   // AUTH
   useLoginMutation,

@@ -293,4 +293,13 @@ export default (builder: ApiBuilder) => ({
       }
     },
   }),
+  verifyDecklistSession: builder.query<
+    { expires_at?: number; active: boolean },
+    void
+  >({
+    query: () => "verify_token/",
+  }),
+  getParticipantDecklists: builder.query<GetDecklistsResponse, void>({
+    query: () => "participant_decklists/",
+  }),
 });

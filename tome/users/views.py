@@ -1,7 +1,8 @@
 import json
 
 from django.core.exceptions import ObjectDoesNotExist
-from rest_framework.exceptions import ValidationError, AuthenticationFailed
+from django.conf import settings
+from rest_framework.exceptions import ValidationError, AuthenticationFailed, ParseError
 
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -24,6 +25,7 @@ from .queries import (
     get_single_decklist_by_code,
     get_decklist_by_participant_round,
     get_valid_edit_token_or_fail,
+    validate_session_token_or_fail,
 )
 
 
@@ -133,6 +135,24 @@ def decklist(request):
     return Response(payload, status=status.HTTP_200_OK)
 
 
+@api_view(["GET"])
+def verify_session_token(request):
+    """This endpoint is called by out edit decklists gatekeeper to see whether
+    we have an active session token or not. Return 200 if the token is valid."""
+
+    try:
+        token = validate_session_token_or_fail(request)
+    except ParseError as e:
+        return Response({"active": False})
+    except AuthenticationFailed as e:
+        return Response({"detail": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+    return Response(
+        {"active": True, "expires_at": int(token.expires_at.timestamp())},
+        status=status.HTTP_200_OK,
+    )
+
+
 @api_view(["POST"])
 def exchange_tokens(request):
     """Take in an edit token, validate, and return a session token attached
@@ -154,8 +174,8 @@ def exchange_tokens(request):
 
     resp = Response(
         {
+            "active": True,
             "expires_at": int(session.expires_at.timestamp()),
-            "decklists": get_decklists(params=None, owner_id=owner.id),
         }
     )
 
@@ -164,9 +184,25 @@ def exchange_tokens(request):
         value=session.session_id,
         max_age=30 * 60,
         httponly=True,
-        secure=True,
+        secure=False,
         samesite="Lax",
-        path="/decklists",
+        path="/",
     )
 
     return resp
+
+
+@api_view(["GET"])
+def get_user_decklists(request):
+    """Validate the cookie, if it's legit return the decklists for the user."""
+
+    try:
+        token = validate_session_token_or_fail(request)
+    except ParseError as e:
+        return Response({"active": False})
+    except AuthenticationFailed as e:
+        return Response({"detail": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+    decklists = get_decklists(params=None, owner_id=token.owner_id)
+
+    return Response(decklists)

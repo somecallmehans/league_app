@@ -2,7 +2,8 @@ import re
 from typing import Optional
 from urllib.parse import urlparse
 from django.utils import timezone
-from rest_framework.exceptions import AuthenticationFailed
+
+from rest_framework.exceptions import AuthenticationFailed, ParseError
 
 from collections import defaultdict
 from better_profanity import profanity
@@ -11,10 +12,18 @@ from rest_framework.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Func, F, IntegerField, Value, Sum
 from django.db.models.functions import Coalesce
+from django.http import HttpRequest
+
 
 from achievements.helpers import calculate_color
 
-from .models import Decklists, DecklistsAchievements, EditToken, Participants
+from .models import (
+    Decklists,
+    DecklistsAchievements,
+    EditToken,
+    Participants,
+    SessionToken,
+)
 from .helpers import hash_code
 from achievements.models import WinningCommanders
 from sessions_rounds.models import PodsParticipants
@@ -400,3 +409,20 @@ def get_valid_edit_token_or_fail(raw: str) -> Participants:
     token.save(update_fields=["used_at"])
 
     return token.owner
+
+
+def validate_session_token_or_fail(request: HttpRequest) -> SessionToken:
+    """Validate that our session token is still valid"""
+    raw = request.COOKIES.get("edit_decklist_session")
+    if not raw:
+        raise ParseError("No code found")
+
+    token = SessionToken.objects.filter(session_id=raw).first()
+
+    if not token:
+        raise AuthenticationFailed("Invalid code")
+
+    if not token.is_valid():
+        raise AuthenticationFailed("Code expired or already used")
+
+    return token

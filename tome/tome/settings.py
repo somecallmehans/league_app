@@ -89,15 +89,13 @@ WSGI_APPLICATION = "tome.wsgi.application"
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
-    "http://localhost:3000",
     "https://commander-league-web-app-frontend.onrender.com",
     "https://mtg-commander-league.xyz",
     "https://commanderleague.xyz",
     "https://www.commanderleague.xyz",
 ]
-
 CORS_ALLOW_METHODS = ["GET", "OPTIONS", "POST", "DELETE", "PUT"]
-
+CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = [
     "authorization",
     "content-type",
