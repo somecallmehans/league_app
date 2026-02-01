@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Count, Q
 from utils.decorators import require_service_token
 
-from users.models import Participants
+from users.models import Participants, EditToken
 from sessions_rounds.models import Sessions, RoundSignups, Rounds, Pods
 
 from configs.configs import get_round_caps
@@ -248,14 +248,10 @@ def drop_user(request):
 
 @require_service_token
 @api_view([POST])
-def fetch_decklist_url(request):
+def issue_edit_token(request):
     """
-    This endpoint is responsible for a couple of things:
-    1. Take in the user's discord_id, validate they are a user. Additionally
-    we can validate that they have decklists to edit before we ship them a token
-    2. Generate a unique token and store it in the backend. Token TTL
-    is 30 minutes
-    3. Return a constructed url: www.{ENV_ADDRESS}/decklists/token
+    This endpoint validates the user is linked, then if yes we revoke/issue a new
+    edit token.
     """
 
     body = json.loads(request.body.decode("utf-8"))
@@ -270,9 +266,7 @@ def fetch_decklist_url(request):
             },
             status=status.HTTP_400_BAD_REQUEST,
         )
-    
-    # Check if we have an active token. If yes, revoke it and issue a new one
-    
 
-    # CREATE TOKEN
+    code = EditToken.mint(owner=participant)
 
+    return Response({"code": code}, status=status.HTTP_201_CREATED)

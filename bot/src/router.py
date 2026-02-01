@@ -253,5 +253,40 @@ async def handle_drop(uid):
         pass
     return _ephemeral(f"❌ {msg}")
 
+
 async def handle_edit_decklist_url(uid):
-    """Step 1"""
+    """Handle issuing a URL for users to edit their stored decklists."""
+
+    async with httpx.AsyncClient(timeout=10) as http:
+        resp = await http.post(
+            f"{API_BASE}api/discord/issue_token/",
+            headers={"Authorization": f"X-SERVICE-TOKEN {SERVICE_TOKEN}"},
+            json={"discord_user_id": uid},
+        )
+    res = resp.json()
+
+    if resp.status_code == 400:
+        return {
+            "type": 4,
+            "data": {
+                "flags": EPHEMERAL,
+                "content": f"It doesn't look like your discord account is linked to your league history. Run /link to connect.",
+            },
+        }
+
+    if resp.status_code == 201:
+        return {
+            "type": 4,
+            "data": {
+                "flags": EPHEMERAL,
+                "content": f"Your edit code: **{res['code']}**. You can enter this code at <URL> to access and edit your decklists. You can use this code for the next 30 minutes.",
+            },
+        }
+
+    return {
+        "type": 4,
+        "data": {
+            "flags": EPHEMERAL,
+            "content": f"Something went wrong.",
+        },
+    }
