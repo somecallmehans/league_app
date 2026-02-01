@@ -30,7 +30,9 @@ const CodeEntry = () => {
     try {
       await exchange({ code: trimmed }).unwrap();
       const verifyRes = await dispatch(
-        apiSlice.endpoints.verifyDecklistSession.initiate(undefined)
+        apiSlice.endpoints.verifyDecklistSession.initiate(undefined, {
+          forceRefetch: true,
+        })
       ).unwrap();
 
       if (!verifyRes.active) {

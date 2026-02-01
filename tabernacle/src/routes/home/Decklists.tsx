@@ -29,7 +29,7 @@ type DecklistProps = {
   achievements: Achievement[];
 };
 
-const DecklistCard = ({
+export const DecklistCard = ({
   name,
   commander_img,
   partner_img,
