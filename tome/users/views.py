@@ -1,7 +1,7 @@
 import json
 
 from django.core.exceptions import ObjectDoesNotExist
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, AuthenticationFailed
 
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -16,13 +16,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from utils.decorators import require_user_code
-from .models import Participants
+from .models import Participants, SessionToken
 from .serializers import ParticipantsSerializer
 from .queries import (
     get_decklists,
     post_decklists,
     get_single_decklist_by_code,
     get_decklist_by_participant_round,
+    get_valid_edit_token_or_fail,
 )
 
 
@@ -88,7 +89,7 @@ def decklists(request, **kwargs):
     """Return all current active submitted decklists"""
 
     if request.method == "GET":
-        out = get_decklists(request.query_params)
+        out = get_decklists(params=request.query_params, owner_id=None)
         return Response(out)
 
     try:
@@ -130,3 +131,42 @@ def decklist(request):
     else:
         payload = get_decklist_by_participant_round(int(participant_id), int(round_id))
     return Response(payload, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+def exchange_tokens(request):
+    """Take in an edit token, validate, and return a session token attached
+    to a cookie."""
+
+    code = (request.data.get("code") or "").strip()
+
+    if not code:
+        return Response(
+            {"detail": "Code is required"}, status=status.HTTP_400_BAD_REQUEST
+        )
+
+    try:
+        owner = get_valid_edit_token_or_fail(code)
+    except AuthenticationFailed as e:
+        return Response({"detail": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+    session = SessionToken.mint(owner=owner)
+
+    resp = Response(
+        {
+            "expires_at": int(session.expires_at.timestamp()),
+            "decklists": get_decklists(params=None, owner_id=owner.id),
+        }
+    )
+
+    resp.set_cookie(
+        key="edit_decklist_session",
+        value=session.session_id,
+        max_age=30 * 60,
+        httponly=True,
+        secure=True,
+        samesite="Lax",
+        path="/decklists",
+    )
+
+    return resp

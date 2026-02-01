@@ -1,17 +1,21 @@
 import re
 from typing import Optional
 from urllib.parse import urlparse
+from django.utils import timezone
+from rest_framework.exceptions import AuthenticationFailed
 
 from collections import defaultdict
 from better_profanity import profanity
 from rest_framework.exceptions import ValidationError
 
+from django.db import transaction
 from django.db.models import Func, F, IntegerField, Value, Sum
 from django.db.models.functions import Coalesce
 
 from achievements.helpers import calculate_color
 
-from .models import Decklists, DecklistsAchievements
+from .models import Decklists, DecklistsAchievements, EditToken, Participants
+from .helpers import hash_code
 from achievements.models import WinningCommanders
 from sessions_rounds.models import PodsParticipants
 from services.scryfall_client import ScryfallClientRequest
@@ -54,7 +58,7 @@ class BitOr(Func):
     output_field = IntegerField()
 
 
-def get_decklists(params: dict = None) -> list[Decklists]:
+def get_decklists(params: dict = None, owner_id: int = None) -> list[Decklists]:
     """Return decklists based on params"""
     params = params or {}
     sort_order = params.get("sort_order")
@@ -132,6 +136,9 @@ def get_decklists(params: dict = None) -> list[Decklists]:
                 matched_mask=BitAnd(F("combined_mask"), Value(mask_int))
             ).filter(matched_mask=mask_int)
     query = query.order_by(*order_by)
+
+    if owner_id is not None:
+        query = query.filter(participant_id=owner_id)
 
     out = []
     commander_images = scryfall_request.get_commander_image_urls(
@@ -368,3 +375,28 @@ def post_decklists(body, pid) -> None:
         )
     except ValidationError as e:
         raise
+
+
+@transaction.atomic
+def get_valid_edit_token_or_fail(raw: str) -> Participants:
+    """Take in a raw token, then validate it or fail."""
+
+    code_hash = hash_code(raw)
+
+    token = (
+        EditToken.objects.select_for_update()
+        .select_related("owner")
+        .filter(code_hash=code_hash)
+        .first()
+    )
+
+    if not token:
+        raise AuthenticationFailed("Invalid code")
+
+    if not token.is_valid():
+        raise AuthenticationFailed("Code expired or already used")
+
+    token.used_at = timezone.now()
+    token.save(update_fields=["used_at"])
+
+    return token.owner

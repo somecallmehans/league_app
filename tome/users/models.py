@@ -12,7 +12,7 @@ from django.utils import timezone
 from sessions_rounds.models import Rounds, Sessions
 from achievements.models import Achievements, Commanders
 
-from users.helpers import generate_code
+from users.helpers import generate_code, hash_code
 
 
 class Participants(models.Model):
@@ -189,7 +189,6 @@ class EditToken(models.Model):
 
     @staticmethod
     def mint(owner, ttl_minutes=30, revoke_existing=True):
-
         if revoke_existing:
             # default true, this will no-op if there is not an existing token
             EditToken.objects.filter(
@@ -200,11 +199,10 @@ class EditToken(models.Model):
             ).update(revoked_at=timezone.now())
 
         raw = secrets.token_urlsafe(16)
-        code_hash = hashlib.sha256(raw.encode()).hexdigest()
 
         EditToken.objects.create(
             owner=owner,
-            code_hash=code_hash,
+            code_hash=hash_code(raw),
             expires_at=timezone.now() + timedelta(minutes=ttl_minutes),
         )
 
@@ -233,7 +231,11 @@ class SessionToken(models.Model):
         return self.revoked_at is None and now < self.expires_at
 
     @staticmethod
-    def mint(owner, ttl_minutes=30):
+    def mint(owner, ttl_minutes=30, revoke_existing=True):
+        if revoke_existing:
+            SessionToken.objects.filter(
+                owner=owner, revoked_at__isnull=True, expires_at__gt=timezone.now()
+            ).update(revoked_at=timezone.now())
         raw = secrets.token_urlsafe(32)
         return SessionToken.objects.create(
             owner=owner,
