@@ -209,24 +209,68 @@ class StubCommander(dict):
     color_id: Optional[int]
 
 
+def get_single_decklist() -> Decklists:
+    """Base return a decklist"""
+    return Decklists.objects.filter(deleted=False).values(
+        "id",
+        "name",
+        "url",
+        "give_credit",
+        "commander_id",
+        "commander__name",
+        "commander__colors_id",
+        "partner_id",
+        "partner__name",
+        "partner__colors_id",
+        "companion_id",
+        "companion__name",
+        "companion__colors_id",
+    )
+
+
+def get_single_decklist_by_id(id) -> Decklists:
+    """Return a single decklist + achievements by its id"""
+    query = get_single_decklist()
+    query = query.filter(id=id).first()
+
+    a_query = DecklistsAchievements.objects.filter(decklist_id=id).select_related(
+        "achievement"
+    )
+
+    payload = {
+        "name": query["name"],
+        "url": query["url"],
+        "commander": StubCommander(
+            id=query["commander_id"],
+            name=query["commander__name"],
+            color_id=query["commander__colors_id"],
+        ),
+        "partner": StubCommander(
+            id=query["partner_id"],
+            name=query["partner__name"],
+            color_id=query["partner__colors_id"],
+        ),
+        "companion": StubCommander(
+            id=query["companion_id"],
+            name=query["companion__name"],
+            color_id=query["companion__colors_id"],
+        ),
+        "give_credit": query["give_credit"],
+        "achievements": [],
+    }
+
+    for row in a_query:
+        payload["achievements"].append(
+            {"id": row.achievement_id, "name": row.achievement.full_name}
+        )
+
+    return payload
+
+
 def get_single_decklist_by_code(param: str = "") -> Decklists:
     code = f"DL-{param}"
-    query = (
-        Decklists.objects.filter(deleted=False, code=code)
-        .values(
-            "id",
-            "commander_id",
-            "commander__name",
-            "commander__colors_id",
-            "partner_id",
-            "partner__name",
-            "partner__colors_id",
-            "companion_id",
-            "companion__name",
-            "companion__colors_id",
-        )
-        .first()
-    )
+    query = get_single_decklist()
+    query = query.filter(code=code).first()
     if not query:
         raise ValidationError({"code": "Decklist not found"})
     a_query = DecklistsAchievements.objects.filter(
@@ -411,14 +455,35 @@ def get_valid_edit_token_or_fail(raw: str) -> Participants:
     return token.owner
 
 
-def validate_session_token_or_fail(request: HttpRequest) -> SessionToken:
+@transaction.atomic
+def get_session_token_or_none(request: HttpRequest) -> SessionToken:
+    """For the polling endpoint, similarily validates the session
+    but also handles revocation."""
+    raw = request.COOKIES.get("edit_decklist_session")
+    if not raw:
+        raise ParseError("No code found")
+
+    token = SessionToken.objects.filter(session_id=raw).first()
+    if not token:
+        raise AuthenticationFailed("Invalid code")
+
+    if token.expires_at < timezone.now() and token.revoked_at is None:
+        token.revoked_at = timezone.now()
+        token.save(update_fields=["revoked_at"])
+
+    if not token.is_valid():
+        return None
+
+    return token
+
+
+def require_session_token(request: HttpRequest) -> SessionToken:
     """Validate that our session token is still valid"""
     raw = request.COOKIES.get("edit_decklist_session")
     if not raw:
         raise ParseError("No code found")
 
     token = SessionToken.objects.filter(session_id=raw).first()
-
     if not token:
         raise AuthenticationFailed("Invalid code")
 

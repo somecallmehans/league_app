@@ -25,7 +25,9 @@ from .queries import (
     get_single_decklist_by_code,
     get_decklist_by_participant_round,
     get_valid_edit_token_or_fail,
-    validate_session_token_or_fail,
+    require_session_token,
+    get_session_token_or_none,
+    get_single_decklist_by_id,
 )
 
 
@@ -136,16 +138,37 @@ def decklist(request):
 
 
 @api_view(["GET"])
+def decklist_by_id(request):
+    """Take in a decklist_id and return the data for editing. Also check to ensure
+    there is a session active and it's still valid, otherwise 401."""
+    try:
+        require_session_token(request)
+    except ParseError as e:
+        return Response({"active": False})
+    except AuthenticationFailed as e:
+        return Response({"detail": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+    decklist_id = request.query_params.get("decklist_id")
+
+    payload = get_single_decklist_by_id(decklist_id)
+
+    return Response(payload)
+
+
+@api_view(["GET"])
 def verify_session_token(request):
     """This endpoint is called by out edit decklists gatekeeper to see whether
     we have an active session token or not. Return 200 if the token is valid."""
 
     try:
-        token = validate_session_token_or_fail(request)
+        token = get_session_token_or_none(request)
     except ParseError as e:
         return Response({"active": False})
     except AuthenticationFailed as e:
         return Response({"detail": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+    if not token:
+        return Response({"active": False})
 
     return Response(
         {"active": True, "expires_at": int(token.expires_at.timestamp())},
@@ -197,7 +220,7 @@ def get_user_decklists(request):
     """Validate the cookie, if it's legit return the decklists for the user."""
 
     try:
-        token = validate_session_token_or_fail(request)
+        token = require_session_token(request)
     except ParseError as e:
         return Response({"active": False})
     except AuthenticationFailed as e:
