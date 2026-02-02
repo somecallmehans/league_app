@@ -1,4 +1,5 @@
 import re
+import uuid
 from typing import Optional
 from urllib.parse import urlparse
 from django.utils import timezone
@@ -261,7 +262,11 @@ def get_single_decklist_by_id(id) -> Decklists:
 
     for row in a_query:
         payload["achievements"].append(
-            {"id": row.achievement_id, "name": row.achievement.full_name}
+            {
+                "id": row.achievement_id,
+                "name": row.achievement.full_name,
+                "tempId": str(uuid.uuid4()),
+            }
         )
 
     return payload

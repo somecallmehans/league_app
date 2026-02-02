@@ -4,7 +4,8 @@ from django.db.models.functions import Coalesce
 
 from sessions_rounds.models import Rounds, PodsParticipants, Pods
 from achievements.models import Achievements, Commanders, WinningCommanders
-from users.models import ParticipantAchievements, Decklists, DecklistsAchievements
+from users.models import ParticipantAchievements, Decklists
+from users.queries import StubCommander
 
 from achievements.helpers import calculate_color_mask
 
@@ -41,7 +42,7 @@ class ScoresheetBuildResult(NamedTuple):
 
 
 class CommanderResult(NamedTuple):
-    commander: Optional[dict]
+    commander: Optional[StubCommander]
     partner: Optional[dict]
     participant_id: Optional[int]
     companion: Optional[int]
@@ -92,18 +93,30 @@ class GETScoresheetHelper:
             Commanders.objects.filter(id=wc.get("partner_id"))
             .values("id", "name", "colors_id")
             .first()
-        )
+        ) or {}
         companion = (
             Commanders.objects.filter(id=wc.get("companion_id"))
             .values("id", "name", "colors_id")
             .first()
-        )
+        ) or {}
 
         return CommanderResult(
-            commander=commander,
-            partner=partner,
+            commander=StubCommander(
+                id=commander["id"],
+                name=commander["name"],
+                color_id=commander["colors_id"],
+            ),
+            partner=StubCommander(
+                id=partner.get("id"),
+                name=partner.get("name"),
+                color_id=partner.get("colors_id"),
+            ),
             participant_id=wc["participants_id"],
-            companion=companion,
+            companion=StubCommander(
+                id=companion.get("id"),
+                name=companion.get("name"),
+                color_id=companion.get("colors_id"),
+            ),
         )
 
     def build(self):

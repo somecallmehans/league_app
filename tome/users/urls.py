@@ -9,6 +9,7 @@ from .views import (
     verify_session_token,
     get_user_decklists,
     decklist_by_id,
+    update_decklist,
 )
 
 urlpatterns = [
@@ -18,6 +19,7 @@ urlpatterns = [
     path("decklist/", decklist, name="decklist"),
     path("decklists/", decklists, name="decklists"),
     path("decklist_by_id/", decklist_by_id, name="decklist_by_id"),
+    path("update_decklist/", update_decklist, name="update_decklist"),
     path("exchange/", exchange_tokens, name="exchange_tokens"),
     path("verify_token/", verify_session_token, name="verify_session_token"),
     path("participant_decklists/", get_user_decklists, name="get_user_decklists"),

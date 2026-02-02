@@ -1,7 +1,7 @@
 import json
 
 from django.core.exceptions import ObjectDoesNotExist
-from django.conf import settings
+from django.db import transaction
 from rest_framework.exceptions import ValidationError, AuthenticationFailed, ParseError
 
 from rest_framework.response import Response
@@ -17,7 +17,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from utils.decorators import require_user_code
-from .models import Participants, SessionToken
+from .models import Participants, SessionToken, Decklists, DecklistsAchievements
 from .serializers import ParticipantsSerializer
 from .queries import (
     get_decklists,
@@ -229,3 +229,73 @@ def get_user_decklists(request):
     decklists = get_decklists(params=None, owner_id=token.owner_id)
 
     return Response(decklists)
+
+
+@api_view(["PUT"])
+def update_decklist(request):
+    """Validate the cookie, then update the provided decklist."""
+
+    try:
+        token = require_session_token(request)
+    except ParseError as e:
+        return Response({"active": False})
+    except AuthenticationFailed as e:
+        return Response({"detail": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+    body = request.data or {}
+
+    decklist_id = body.get("id")
+    if not decklist_id:
+        return Response(
+            {"detail": "Decklist id is required"}, status=status.HTTP_400_BAD_REQUEST
+        )
+
+    update_fields = {
+        "name": body.get("name"),
+        "url": body.get("url"),
+        "commander_id": body.get("commander"),
+        "partner_id": body.get("partner"),
+        "companion_id": body.get("companion"),
+        "give_credit": body.get("give_credit", False),
+    }
+
+    update_fields = {k: v for k, v in update_fields.items()}
+
+    achievements = body.get("achievements", [])
+    if achievements is None:
+        achievements = []
+
+    achievement_ids = []
+    for a in achievements:
+        if isinstance(a, int):
+            achievement_ids.append(a)
+        elif isinstance(a, dict) and a.get("id") is not None:
+            achievement_ids.append(int(a["id"]))
+
+    with transaction.atomic():
+        deck = (
+            Decklists.objects.select_for_update()
+            .filter(id=decklist_id, deleted=False, participant_id=token.owner_id)
+            .first()
+        )
+        if not deck:
+            return Response(
+                {"detail": "Decklist not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        for field, value in update_fields.items():
+            setattr(deck, field, value)
+
+        deck.save()
+
+        DecklistsAchievements.objects.filter(decklist_id=deck.id).delete()
+
+        if achievement_ids:
+            DecklistsAchievements.objects.bulk_create(
+                [
+                    DecklistsAchievements(decklist_id=deck.id, achievement_id=aid)
+                    for aid in achievement_ids
+                ]
+            )
+
+    return Response(status=status.HTTP_204_NO_CONTENT)

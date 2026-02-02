@@ -6,7 +6,7 @@ export type Id = z.infer<typeof IdSchema>;
 const DecklistCommanderSchema = z.object({
   id: IdSchema,
   name: z.string(),
-  colors_id: IdSchema,
+  color_id: IdSchema,
 });
 
 export const ScryfallImageSchema = z.object({

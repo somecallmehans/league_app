@@ -303,8 +303,10 @@ export default (builder: ApiBuilder) => ({
   }),
   getParticipantDecklists: builder.query<GetDecklistsResponse, void>({
     query: () => "participant_decklists/",
+    providesTags: ["PersonalDecklists"],
   }),
   getDecklistById: builder.query<SingleDecklist, { decklist_id: string }>({
     query: ({ decklist_id }) => `decklist_by_id/?decklist_id=${decklist_id}`,
+    providesTags: ["PersonalDecklists"],
   }),
 });

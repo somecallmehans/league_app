@@ -137,9 +137,9 @@ const AchievementCart = ({
 export type DecklistFormValues = {
   name: string;
   url: string;
-  commander: { id: number; name: string; colors_id: number } | null;
-  partner: { id: number; name: string; colors_id: number } | null;
-  companion: { id: number; name: string; colors_id: number } | null;
+  commander: { id: number; name: string; color_id: number } | null;
+  partner: { id: number; name: string; color_id: number } | null;
+  companion: { id: number; name: string; color_id: number } | null;
   achievements: Array<{ id: number; name: string; tempId?: string }>;
   give_credit: boolean;
 
@@ -188,8 +188,8 @@ export function DecklistForm({
   const selectedPartner = useWatch({ control, name: "partner" });
 
   const { colorLength, colorName } = useCommanderColors(
-    selectedCommander?.colors_id,
-    selectedPartner?.colors_id
+    selectedCommander?.color_id,
+    selectedPartner?.color_id
   );
 
   useEffect(() => {

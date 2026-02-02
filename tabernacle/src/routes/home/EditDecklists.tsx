@@ -6,15 +6,20 @@ import {
   useVerifyDecklistSessionQuery,
   useGetParticipantDecklistsQuery,
   useGetDecklistByIdQuery,
+  useUpdateDecklistMutation,
 } from "../../api/apiSlice";
 import { useCountdown } from "../../hooks";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { DecklistCard } from "./Decklists";
 import PageTitle from "../../components/PageTitle";
 import { DecklistForm } from "./DecklistForm";
+import { normalize } from "../leagueSession/ScorecardPage";
 
 export const EditDecklistFormWrapper = () => {
   const { decklist_id } = useParams();
+  const navigate = useNavigate();
+
+  const [updateDecklist] = useUpdateDecklistMutation();
   const decklistOrSkip = decklist_id ? { decklist_id } : skipToken;
   const { data: decklist, isLoading: dLoading } =
     useGetDecklistByIdQuery(decklistOrSkip);
@@ -23,7 +28,24 @@ export const EditDecklistFormWrapper = () => {
     return <LoadingSpinner />;
   }
 
-  const handleUpdate = () => console.log("UPDATE");
+  const handleUpdate = async (data: any) => {
+    const { picker, code, ...clean } = data;
+    const payload = {
+      ...clean,
+      id: decklist_id,
+      commander: clean.commander?.id,
+      partner: clean.partner?.id,
+      companion: clean.companion?.id,
+      achievements: normalize(clean?.achievements) ?? [],
+    };
+
+    try {
+      await updateDecklist(payload).unwrap();
+      navigate(-1);
+    } catch (error) {
+      console.error("Failed to submit decklist.", error);
+    }
+  };
 
   return (
     <DecklistForm

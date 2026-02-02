@@ -107,6 +107,7 @@ export const apiSlice = createApi({
     "Configs",
     "Scoresheet",
     "Decklists",
+    "PersonalDecklists",
   ] as const,
   endpoints: (builder) => ({
     ...getRoutes(builder),
@@ -169,6 +170,7 @@ export const {
   useUpdateScoresheetMutation,
   usePostDecklistMutation,
   useExchangeTokensMutation,
+  useUpdateDecklistMutation,
 
   // AUTH
   useLoginMutation,

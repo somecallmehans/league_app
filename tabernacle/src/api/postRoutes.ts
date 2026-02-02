@@ -209,4 +209,12 @@ export default (builder: ApiBuilder) => ({
       body,
     }),
   }),
+  updateDecklist: builder.mutation<void, void>({
+    query: (body) => ({
+      url: "update_decklist/",
+      method: "PUT",
+      body: body,
+    }),
+    invalidatesTags: ["Decklists", "PersonalDecklists"],
+  }),
 });
