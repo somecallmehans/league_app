@@ -1,7 +1,13 @@
-import { z } from "zod";
+import { string, z } from "zod";
 
 export const IdSchema = z.number().int().positive();
 export type Id = z.infer<typeof IdSchema>;
+
+const DecklistCommanderSchema = z.object({
+  id: IdSchema,
+  name: z.string(),
+  colors_id: IdSchema,
+});
 
 export const ScryfallImageSchema = z.object({
   url: z.string(),
@@ -47,6 +53,27 @@ export type DecklistSummary = z.infer<typeof DecklistSummarySchema>;
 
 export const GetDecklistsResponseSchema = z.array(DecklistSummarySchema);
 export type GetDecklistsResponse = z.infer<typeof GetDecklistsResponseSchema>;
+
+export const SingleDecklistSchema = z.object({
+  name: z.string().min(1),
+  url: z.string().min(1),
+
+  commander: DecklistCommanderSchema,
+  partner: DecklistCommanderSchema,
+  companion: DecklistCommanderSchema,
+
+  give_credit: z.boolean(),
+
+  achievements: z.array(
+    z.object({
+      id: IdSchema,
+      name: z.string(),
+      tempId: z.string().optional(),
+    })
+  ),
+});
+
+export type SingleDecklist = z.infer<typeof SingleDecklistSchema>;
 
 export const PostDecklistRequestSchema = z.object({
   name: z.string().min(1),
@@ -98,6 +125,7 @@ const GetDecklistResponseIdSchema = z.object({
     })
   ),
 });
+
 export const GetDecklistResponseSchema = z.union([
   GetDecklistResponseCodeSchema,
   GetDecklistResponseIdSchema,

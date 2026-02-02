@@ -17,10 +17,8 @@ function calculateTimeLeft(target: number | undefined): Countdown | null {
   const diff = target - curr_time;
 
   if (diff <= 0) {
-    return { minutes: 0, seconds: 0, styles: "" };
+    return { minutes: 0, seconds: "00", styles: "" };
   }
-
-  console.log(diff);
 
   const minutes = Math.floor((diff / 60) % 60);
   const seconds = Math.floor(diff % 60);
@@ -54,7 +52,7 @@ export default function useCountdown(target: number | undefined) {
   }, [target]);
 
   if (!target) {
-    return { minutes: 0, seconds: 0, styles: "" };
+    return { minutes: 0, seconds: "00", styles: "" };
   }
 
   const styles =

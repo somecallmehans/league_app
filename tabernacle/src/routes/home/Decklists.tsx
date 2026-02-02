@@ -13,7 +13,7 @@ import ColorGrid from "../../components/ColorGrid";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import DecklistFilters from "./DecklistFiltering";
 import Gatekeeper from "./DecklistEditGatekeeper";
-import EditDecklists from "./EditDecklists";
+import EditDecklists, { EditDecklistFormWrapper } from "./EditDecklists";
 import AchievementModal, { type Achievement } from "./AchievementModal";
 
 type DecklistProps = {
@@ -202,6 +202,7 @@ export default function DecklistsRouter() {
       <Route path="/new" element={<DecklistForm />} />
       <Route path="/gatekeeper" element={<Gatekeeper />} />
       <Route path="/edit" element={<EditDecklists />} />
+      <Route path="/edit/:decklist_id" element={<EditDecklistFormWrapper />} />
     </Routes>
   );
 }

@@ -1,15 +1,38 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { skipToken } from "@reduxjs/toolkit/query";
 
 import {
   useVerifyDecklistSessionQuery,
   useGetParticipantDecklistsQuery,
+  useGetDecklistByIdQuery,
 } from "../../api/apiSlice";
 import { useCountdown } from "../../hooks";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { DecklistCard } from "./Decklists";
 import PageTitle from "../../components/PageTitle";
+import { DecklistForm } from "./DecklistForm";
+
+export const EditDecklistFormWrapper = () => {
+  const { decklist_id } = useParams();
+  const decklistOrSkip = decklist_id ? { decklist_id } : skipToken;
+  const { data: decklist, isLoading: dLoading } =
+    useGetDecklistByIdQuery(decklistOrSkip);
+
+  if (dLoading) {
+    return <LoadingSpinner />;
+  }
+
+  const handleUpdate = () => console.log("UPDATE");
+
+  return (
+    <DecklistForm
+      mode="edit"
+      initialValues={decklist}
+      onSubmit={handleUpdate}
+    />
+  );
+};
 
 export default function EditDecklistsPage() {
   const navigate = useNavigate();
@@ -19,8 +42,7 @@ export default function EditDecklistsPage() {
     isFetching,
     isError,
   } = useVerifyDecklistSessionQuery(undefined, {
-    refetchOnMountOrArgChange: true,
-    refetchOnFocus: true,
+    pollingInterval: 15_000,
   });
 
   const canFetchDecklists = verification?.active === true;
@@ -39,19 +61,21 @@ export default function EditDecklistsPage() {
     }
   }, [checking, isError, verification?.active, navigate]);
 
-  if (checking) {
+  if (isLoading) {
     return <LoadingSpinner />;
+  }
+
+  if (verification?.active === false) {
+    return null;
   }
 
   return (
     <div className="p-2 md:p-8">
       <div className="flex justify-between items-center">
         <PageTitle title="Edit Decklists" />
-        {minutes && seconds && (
-          <span className={`text-3xl ${styles}`}>
-            {minutes}:{seconds}
-          </span>
-        )}
+        <span className={`text-3xl ${styles}`}>
+          {minutes}:{seconds}
+        </span>
       </div>
       <details className="w-full md:w-3/4 mb-3">
         <summary className="cursor-pointer text-lg font-medium text-gray-800">
@@ -86,7 +110,7 @@ export default function EditDecklistsPage() {
               points={points}
               participant_name={participant_name}
               code={code}
-              url={"REPLACE WITH URL TO EDIT"}
+              url={`${id}`}
               achievements={achievements}
             />
           )

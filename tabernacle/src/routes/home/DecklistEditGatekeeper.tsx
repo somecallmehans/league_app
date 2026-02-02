@@ -8,6 +8,7 @@ import {
   useExchangeTokensMutation,
   useVerifyDecklistSessionQuery,
 } from "../../api/apiSlice";
+import { useGoBack } from "../../hooks";
 import LoadingSpinner from "../../components/LoadingSpinner";
 
 const CodeEntry = () => {
@@ -16,6 +17,7 @@ const CodeEntry = () => {
   const [code, setCode] = useState<string>("");
   const [exchange, { isLoading }] = useExchangeTokensMutation();
   const [error, setError] = useState<string | null>(null);
+  const Back = useGoBack("/");
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,13 +69,16 @@ const CodeEntry = () => {
 
         {error ? <div className="text-sm text-red-600">{error}</div> : null}
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="rounded-md bg-zinc-900 px-3 py-2 text-white disabled:opacity-60"
-        >
-          {isLoading ? "Verifying..." : "Continue"}
-        </button>
+        <div className="flex gap-2">
+          <Back />
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="rounded-md grow bg-zinc-900 px-4 py-2 text-white disabled:opacity-60"
+          >
+            {isLoading ? "Verifying..." : "Continue"}
+          </button>
+        </div>
       </form>
     </div>
   );
