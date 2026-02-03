@@ -272,10 +272,10 @@ export const ScoresheetFormResponseSchema = ScoresheetBase.extend({
   ...IdListFieldsResponse,
   winner: IdName.nullable(),
   "winner-commander": z
-    .object({ id: z.number(), name: z.string(), colors_id: z.number() })
+    .object({ id: z.number(), name: z.string(), color_id: z.number() })
     .nullable(),
   "partner-commander": z
-    .object({ id: z.number(), name: z.string(), colors_id: z.number() })
+    .object({ id: z.number(), name: z.string(), color_id: z.number() })
     .nullable(),
   "winner-achievements": z.array(IdName),
   meta: z.object({ isSubmitted: z.boolean() }),

@@ -3,7 +3,7 @@ import { z } from "zod";
 const Commander = z.object({
   id: z.number(),
   name: z.string(),
-  colors_id: z.number(),
+  color_id: z.number(),
   has_partner: z.boolean(),
   is_background: z.boolean(),
 });

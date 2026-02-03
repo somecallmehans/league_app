@@ -31,19 +31,19 @@ def build_state() -> None:
     Pods.objects.create(id=POD_2_ID, rounds_id=ids.R1_SESSION_THIS_MONTH_CLOSED)
     WinningCommanders.objects.create(
         name=WINNING_COMMANDER_NAME,
-        colors_id=ids.GRUUL,
+        color_id=ids.GRUUL,
         pods_id=POD_1_ID,
         participants_id=ids.P1,
     )
     WinningCommanders.objects.create(
         name="Stangg, Echo Warrior",
-        colors_id=ids.GRUUL,
+        color_id=ids.GRUUL,
         pods_id=POD_1_ID,
         participants_id=ids.P2,
     )
     WinningCommanders.objects.create(
         name="Hashaton, Scarab's Fist",
-        colors_id=ids.ESPER,
+        color_id=ids.ESPER,
         pods_id=POD_2_ID,
         participants_id=ids.P1,
     )

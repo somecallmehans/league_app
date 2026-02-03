@@ -90,7 +90,7 @@ def build_pods_and_winner():
         name="Stangg, Echo Warrior",
         pods_id=POD_ID,
         participants_id=ids.P2,
-        colors_id=ids.GRUUL,
+        color_id=ids.GRUUL,
     )
 
 

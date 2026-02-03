@@ -76,9 +76,9 @@ def get_decklists(params: dict = None, owner_id: int = None) -> list[Decklists]:
     query = (
         Decklists.objects.filter(deleted=False)
         .select_related(
-            "commander__colors",
-            "partner__colors",
-            "companion__colors",
+            "commander__color",
+            "partner__color",
+            "companion__color",
             "participant",
         )
         .annotate(
@@ -101,10 +101,10 @@ def get_decklists(params: dict = None, owner_id: int = None) -> list[Decklists]:
             "give_credit",
             "commander_id",
             "commander__name",
-            "commander__colors__mask",
+            "commander__color__mask",
             "partner_id",
             "partner__name",
-            "partner__colors__mask",
+            "partner__color__mask",
             "companion_id",
             "companion__name",
             "participant__name",
@@ -134,8 +134,8 @@ def get_decklists(params: dict = None, owner_id: int = None) -> list[Decklists]:
 
         query = query.annotate(
             combined_mask=BitOr(
-                F("commander__colors__mask"),
-                Coalesce(F("partner__colors__mask"), Value(0)),
+                F("commander__color__mask"),
+                Coalesce(F("partner__color__mask"), Value(0)),
             )
         )
 
@@ -168,8 +168,8 @@ def get_decklists(params: dict = None, owner_id: int = None) -> list[Decklists]:
         give_credit = qu["give_credit"]
         color = calculate_color(
             [
-                qu["commander__colors__mask"],
-                qu.get("partner__colors__mask") or -1,
+                qu["commander__color__mask"],
+                qu.get("partner__color__mask") or -1,
             ]
         )
         color_points = COLOR_POINTS[color.symbol_length]
@@ -219,13 +219,13 @@ def get_single_decklist() -> Decklists:
         "give_credit",
         "commander_id",
         "commander__name",
-        "commander__colors_id",
+        "commander__color_id",
         "partner_id",
         "partner__name",
-        "partner__colors_id",
+        "partner__color_id",
         "companion_id",
         "companion__name",
-        "companion__colors_id",
+        "companion__color_id",
     )
 
 
@@ -244,17 +244,17 @@ def get_single_decklist_by_id(id) -> Decklists:
         "commander": StubCommander(
             id=query["commander_id"],
             name=query["commander__name"],
-            color_id=query["commander__colors_id"],
+            color_id=query["commander__color_id"],
         ),
         "partner": StubCommander(
             id=query["partner_id"],
             name=query["partner__name"],
-            color_id=query["partner__colors_id"],
+            color_id=query["partner__color_id"],
         ),
         "companion": StubCommander(
             id=query["companion_id"],
             name=query["companion__name"],
-            color_id=query["companion__colors_id"],
+            color_id=query["companion__color_id"],
         ),
         "give_credit": query["give_credit"],
         "achievements": [],
@@ -287,17 +287,17 @@ def get_single_decklist_by_code(param: str = "") -> Decklists:
         "winner-commander": StubCommander(
             id=query["commander_id"],
             name=query["commander__name"],
-            color_id=query["commander__colors_id"],
+            color_id=query["commander__color_id"],
         ),
         "partner-commander": StubCommander(
             id=query["partner_id"],
             name=query["partner__name"],
-            color_id=query["partner__colors_id"],
+            color_id=query["partner__color_id"],
         ),
         "companion-commander": StubCommander(
             id=query["companion_id"],
             name=query["companion__name"],
-            color_id=query["companion__colors_id"],
+            color_id=query["companion__color_id"],
         ),
     }
 

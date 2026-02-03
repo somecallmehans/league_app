@@ -31,7 +31,7 @@ DRAW_NAME = "END IN DRAW"
 class ScoresheetBuildResult(NamedTuple):
     records: list[ParticipantAchievements]
     commander_name: Optional[str]
-    colors_id: Optional[int]
+    color_id: Optional[int]
     session_id: int
     winner_id: Optional[int]
     pods_participants: list[int]
@@ -72,7 +72,7 @@ class GETScoresheetHelper:
             .values(
                 "participants_id",
                 "name",
-                "colors_id",
+                "color_id",
                 "commander_id",
                 "partner_id",
                 "companion_id",
@@ -86,17 +86,17 @@ class GETScoresheetHelper:
 
         commander = (
             Commanders.objects.filter(id=wc["commander_id"])
-            .values("id", "name", "colors_id")
+            .values("id", "name", "color_id")
             .first()
         )
         partner = (
             Commanders.objects.filter(id=wc.get("partner_id"))
-            .values("id", "name", "colors_id")
+            .values("id", "name", "color_id")
             .first()
         ) or {}
         companion = (
             Commanders.objects.filter(id=wc.get("companion_id"))
-            .values("id", "name", "colors_id")
+            .values("id", "name", "color_id")
             .first()
         ) or {}
 
@@ -104,18 +104,18 @@ class GETScoresheetHelper:
             commander=StubCommander(
                 id=commander["id"],
                 name=commander["name"],
-                color_id=commander["colors_id"],
+                color_id=commander["color_id"],
             ),
             partner=StubCommander(
                 id=partner.get("id"),
                 name=partner.get("name"),
-                color_id=partner.get("colors_id"),
+                color_id=partner.get("color_id"),
             ),
             participant_id=wc["participants_id"],
             companion=StubCommander(
                 id=companion.get("id"),
                 name=companion.get("name"),
-                color_id=companion.get("colors_id"),
+                color_id=companion.get("color_id"),
             ),
         )
 
@@ -322,17 +322,17 @@ class POSTScoresheetHelper:
         c2 = Commanders.objects.filter(id=partner_commander).first()
         c3 = Commanders.objects.filter(id=companion_commander).first()
 
-        color_ids = [c1.colors_id]
+        color_ids = [c1.color_id]
         name_list = [c1.name]
 
         if c2:
             name_list.append(c2.name)
-            color_ids.append(c2.colors_id)
+            color_ids.append(c2.color_id)
 
         if c3:
             name_list.append(c3.name)
 
-        win_colors, colors_id = calculate_color_mask(color_ids)
+        win_colors, color_id = calculate_color_mask(color_ids)
 
         self.records.append(
             ParticipantAchievements(
@@ -346,7 +346,7 @@ class POSTScoresheetHelper:
 
         out_name = "+".join(name_list)
 
-        return out_name, colors_id
+        return out_name, color_id
 
     def build_draw(self):
         """Build records for all participants in the event of a draw."""

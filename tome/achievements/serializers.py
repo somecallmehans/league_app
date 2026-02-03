@@ -117,13 +117,13 @@ class ColorsSerializer(serializers.ModelSerializer):
 
 
 class WinningCommandersSerializer(serializers.ModelSerializer):
-    colors = ColorsSerializer(read_only=True)
+    color = ColorsSerializer(read_only=True)
     pods = PodsSerializer(read_only=True)
     participants = ParticipantsSerializer(read_only=True)
 
     class Meta:
         model = WinningCommanders
-        fields = ["id", "name", "deleted", "colors", "pods", "participants"]
+        fields = ["id", "name", "deleted", "color", "pods", "participants"]
 
     @staticmethod
     def by_pods(pods):
@@ -141,4 +141,4 @@ class WinningCommandersSerializer(serializers.ModelSerializer):
 class CommandersSerializer(serializers.ModelSerializer):
     class Meta:
         model = Commanders
-        fields = ["id", "name", "colors_id", "has_partner", "is_background"]
+        fields = ["id", "name", "color_id", "has_partner", "is_background"]

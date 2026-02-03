@@ -31,9 +31,9 @@ DRAWID = 140
 @pytest.fixture(scope="function")
 def build_state() -> None:
     Colors.objects.create(id=RED, symbol="r", slug="red", name="red", mask=8)
-    commander = Commanders.objects.create(id=CID, name=COMMANDER, colors_id=ids.GREEN)
+    commander = Commanders.objects.create(id=CID, name=COMMANDER, color_id=ids.GREEN)
     partner = Commanders.objects.create(
-        id=PID, name=PARTNER, colors_id=RED, is_background=True
+        id=PID, name=PARTNER, color_id=RED, is_background=True
     )
     Achievements.objects.bulk_create(
         [
@@ -197,7 +197,7 @@ def build_state() -> None:
 
     WinningCommanders.objects.create(
         name=f"{COMMANDER}+{PARTNER}",
-        colors_id=ids.GRUUL,
+        color_id=ids.GRUUL,
         participants_id=ids.P3,
         pods_id=POD_ID,
         commander_id=commander.id,
@@ -245,7 +245,7 @@ def draw_state() -> None:
     ParticipantAchievements.objects.bulk_create(records)
     WinningCommanders.objects.create(
         name="END IN DRAW",
-        colors_id=None,
+        color_id=None,
         participants_id=None,
         pods_id=POD_ID,
     )
@@ -260,10 +260,10 @@ def build_single_state() -> None:
         session_id=ids.SESSION_THIS_MONTH_OPEN,
         earned_points=3,
     )
-    commander = Commanders.objects.create(name="TEST GUY", colors_id=ids.GRUUL)
+    commander = Commanders.objects.create(name="TEST GUY", color_id=ids.GRUUL)
     WinningCommanders.objects.create(
         name="TEST GUY",
-        colors_id=ids.GRUUL,
+        color_id=ids.GRUUL,
         pods_id=POD_ID,
         participants_id=ids.P3,
         commander_id=commander.id,
@@ -297,7 +297,7 @@ def test_get_scoresheet_one_commander(
         "money-pack": [],
         "knock-out": [],
         "winner": {"id": ids.P3, "name": "Fern Penvarden"},
-        "winner-commander": {"colors_id": ids.GRUUL, "name": "TEST GUY", "id": 1},
+        "winner-commander": {"color_id": ids.GRUUL, "name": "TEST GUY", "id": 1},
         "partner-commander": None,
         "companion-commander": None,
         "last-in-order": False,
@@ -351,12 +351,12 @@ def test_get_scoresheet_two_commanders(
         ],
         "winner": {"id": ids.P3, "name": "Fern Penvarden"},
         "winner-commander": {
-            "colors_id": 11,
+            "color_id": 11,
             "name": "Wilson, Refined Grizzly",
             "id": CID,
         },
         "partner-commander": {
-            "colors_id": 10000,
+            "color_id": 10000,
             "name": "Tavern Brawler",
             "id": PID,
         },

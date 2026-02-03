@@ -250,14 +250,17 @@ def update_decklist(request):
             {"detail": "Decklist id is required"}, status=status.HTTP_400_BAD_REQUEST
         )
 
-    update_fields = {
-        "name": body.get("name"),
-        "url": body.get("url"),
-        "commander_id": body.get("commander"),
-        "partner_id": body.get("partner"),
-        "companion_id": body.get("companion"),
-        "give_credit": body.get("give_credit", False),
-    }
+    if body.get("deleted"):
+        update_fields = {"deleted": body.get("deleted")}
+    else:
+        update_fields = {
+            "name": body.get("name"),
+            "url": body.get("url"),
+            "commander_id": body.get("commander"),
+            "partner_id": body.get("partner"),
+            "companion_id": body.get("companion"),
+            "give_credit": body.get("give_credit", False),
+        }
 
     update_fields = {k: v for k, v in update_fields.items()}
 
