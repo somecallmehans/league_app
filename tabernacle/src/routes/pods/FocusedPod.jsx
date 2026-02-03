@@ -54,7 +54,7 @@ const PodSquare = ({ participants, handleOnClick, winnerInfo, submitted }) => {
         <ColorGrid
           submitted={submitted}
           show={isWinner(participant_id)}
-          colors={winnerInfo?.colors?.name}
+          colors={winnerInfo?.color?.name}
           containerClasses="mt-2"
           endInDraw={winnerInfo?.name === "END IN DRAW"}
           action={() =>
@@ -63,7 +63,7 @@ const PodSquare = ({ participants, handleOnClick, winnerInfo, submitted }) => {
               round_points,
               participant_id,
               winnerInfo?.name,
-              winnerInfo?.colors?.name,
+              winnerInfo?.color?.name,
               participant_id === winnerInfo?.participants?.id
             )
           }

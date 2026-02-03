@@ -80,7 +80,7 @@ const PodGrouping = ({
           [3, 5].includes(participants?.length) &&
           index === participants?.length - 1
         }
-        colors={winnerInfo?.colors?.name}
+        colors={winnerInfo?.color?.name}
         winnerId={winnerInfo?.participants?.id}
         winnerCommander={winnerInfo?.name}
         submitted={submitted}
