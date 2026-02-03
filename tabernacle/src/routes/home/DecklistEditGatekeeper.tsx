@@ -55,7 +55,8 @@ const CodeEntry = () => {
     <div className="mx-auto max-w-md p-4">
       <h1 className="text-xl font-semibold">Unlock decklist editing</h1>
       <p className="mt-2 text-sm text-zinc-600">
-        Paste the code you received from Discord. It expires after 30 minutes.
+        Paste the code you received from Discord by running the /editdecklist
+        command. It expires after 30 minutes.
       </p>
 
       <form onSubmit={onSubmit} className="mt-4 grid gap-3">
@@ -63,7 +64,7 @@ const CodeEntry = () => {
           value={code}
           onChange={(e) => setCode(e.target.value)}
           className="w-full rounded-md border border-zinc-300 px-3 py-2"
-          placeholder="e.g. ABCD-EFGH-1234"
+          placeholder="e.g. aBcdE123423"
           autoComplete="one-time-code"
         />
 
