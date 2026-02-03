@@ -9,7 +9,6 @@ export default function useCommanderColors(
 
   if (!primary || isLoading)
     return { colorName: undefined, colorId: -1, colorLength: -1 };
-  console.log(colors);
   const colorId = getCommanderColorId(colors, primary, secondary);
   const colorName = colors?.idObj[colorId]?.name?.toLowerCase();
   const colorSymbol = colors?.idObj[colorId]?.symbol;

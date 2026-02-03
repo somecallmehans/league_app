@@ -52,11 +52,21 @@ export default function useCountdown(target: number | undefined) {
   }, [target]);
 
   if (!target) {
-    return { minutes: 0, seconds: "00", styles: "" };
+    return () => (
+      <div className="">
+        <span>--:--</span>
+      </div>
+    );
   }
 
   const styles =
     timeLeft && timeLeft?.minutes < 1 ? "text-red-500" : "text-green-500";
 
-  return { ...timeLeft, styles };
+  return () => (
+    <div className={`text-4xl ${styles}`}>
+      <span>
+        {timeLeft?.minutes}:{timeLeft?.seconds}
+      </span>
+    </div>
+  );
 }

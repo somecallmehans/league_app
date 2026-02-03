@@ -75,7 +75,8 @@ export const SingleDecklistSchema = z.object({
 
 export type SingleDecklist = z.infer<typeof SingleDecklistSchema>;
 
-export const PostDecklistRequestSchema = z.object({
+export const PostDecklistSchema = z.object({
+  id: IdSchema.optional(),
   name: z.string().min(1),
   url: z.string().min(1),
 
@@ -85,11 +86,26 @@ export const PostDecklistRequestSchema = z.object({
 
   achievements: z.array(IdSchema).optional(),
   give_credit: z.boolean().optional(),
+});
 
+export const DeleteDecklistSchema = z.object({
+  id: IdSchema,
+  deleted: z.boolean(),
+});
+
+export const PostDecklistRequestSchema = PostDecklistSchema.extend({
   code: z.string(),
 });
 
+export const UpdateDecklistRequestSchema = z.union([
+  PostDecklistSchema,
+  DeleteDecklistSchema,
+]);
+export type UpdateDecklistRequest = z.infer<typeof UpdateDecklistRequestSchema>;
+
 export type PostDecklistRequest = z.infer<typeof PostDecklistRequestSchema>;
+export type PutDecklistRequestFull = z.infer<typeof PostDecklistSchema>;
+export type DeleteDecklistRequest = z.infer<typeof DeleteDecklistSchema>;
 
 export const PostDecklistResponseSchema = z.void();
 export type PostDecklistResponse = z.infer<typeof PostDecklistResponseSchema>;
@@ -97,7 +113,7 @@ export type PostDecklistResponse = z.infer<typeof PostDecklistResponseSchema>;
 const CommanderSchema = z.object({
   id: IdSchema,
   name: z.string(),
-  colors_id: z.number(),
+  color_id: z.number(),
 });
 
 const GetDecklistResponseCodeSchema = z.object({

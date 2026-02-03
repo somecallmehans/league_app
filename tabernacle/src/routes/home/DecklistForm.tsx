@@ -152,12 +152,16 @@ interface DecklistFormProps {
   initialValues?: DecklistFormValues;
   mode: DecklistFormMode;
   onSubmit: (values: any) => Promise<void> | void;
+  onDelete?: (values: any) => Promise<void> | void;
+  wrapperClasses?: string;
 }
 
 export function DecklistForm({
   mode,
   initialValues,
   onSubmit,
+  onDelete,
+  wrapperClasses = "px-4 py-8 md:p-8 h-auto mb-4",
 }: DecklistFormProps) {
   const { commanderOptions, partnerOptions, companionOptions } =
     useCommanderOptions();
@@ -201,7 +205,7 @@ export function DecklistForm({
   const showCode = mode === "create";
 
   return (
-    <div className="px-4 py-8 md:p-8 h-auto mb-4">
+    <div className={`${wrapperClasses}`}>
       <Back />
       <details className="w-full md:w-3/4 my-2">
         <summary className="cursor-pointer text-lg font-medium text-gray-800">
@@ -396,6 +400,14 @@ export function DecklistForm({
                 type="submit"
                 disabled={isSubmitting}
               />
+              {!showCode ? (
+                <StandardButton
+                  title="Delete"
+                  type="button"
+                  action={onDelete}
+                  className="bg-red-500 text-white data-[hover]:bg-red-600"
+                />
+              ) : null}
             </div>
             {showCode && errors && errors?.code && (
               <div className="text-sm text-red-500 flex justify-end">

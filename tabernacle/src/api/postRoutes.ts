@@ -35,7 +35,10 @@ import {
   type UpdatePodParticipantRequest,
 } from "../types/pod_schemas";
 import { type ConfigRequest } from "../types/config_schemas";
-import { type PostDecklistRequest } from "../types/decklist_schemas";
+import {
+  type PostDecklistRequest,
+  type UpdateDecklistRequest,
+} from "../types/decklist_schemas";
 
 type POST_CREATE_SESSION_BODY = {
   session_date?: string;
@@ -209,7 +212,7 @@ export default (builder: ApiBuilder) => ({
       body,
     }),
   }),
-  updateDecklist: builder.mutation<void, void>({
+  updateDecklist: builder.mutation<void, UpdateDecklistRequest>({
     query: (body) => ({
       url: "update_decklist/",
       method: "PUT",

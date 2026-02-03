@@ -1,26 +1,47 @@
-import { useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { skipToken } from "@reduxjs/toolkit/query";
 
 import {
-  useVerifyDecklistSessionQuery,
   useGetParticipantDecklistsQuery,
   useGetDecklistByIdQuery,
   useUpdateDecklistMutation,
 } from "../../api/apiSlice";
-import { useCountdown } from "../../hooks";
+import { useEditDecklistGate } from "../../hooks";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { DecklistCard } from "./Decklists";
 import PageTitle from "../../components/PageTitle";
 import { DecklistForm } from "./DecklistForm";
 import { normalize } from "../leagueSession/ScorecardPage";
 
+type WrapperProps = {
+  title: string;
+  countdown: React.ReactNode;
+  children: React.ReactNode;
+};
+
+const EditPageWrapper = ({ title, countdown, children }: WrapperProps) => {
+  return (
+    <div className="p-2 md:p-8">
+      <div className="flex justify-between ">
+        <PageTitle title={title} />
+        {countdown}
+      </div>
+
+      {children}
+    </div>
+  );
+};
+
 export const EditDecklistFormWrapper = () => {
+  const [isDeleting, setIsDeleting] = useState(false);
   const { decklist_id } = useParams();
+  const { Countdown, initialLoading, isActive } = useEditDecklistGate();
   const navigate = useNavigate();
 
   const [updateDecklist] = useUpdateDecklistMutation();
-  const decklistOrSkip = decklist_id ? { decklist_id } : skipToken;
+  const decklistOrSkip =
+    decklist_id && !isDeleting ? { decklist_id } : skipToken;
   const { data: decklist, isLoading: dLoading } =
     useGetDecklistByIdQuery(decklistOrSkip);
 
@@ -43,62 +64,52 @@ export const EditDecklistFormWrapper = () => {
       await updateDecklist(payload).unwrap();
       navigate(-1);
     } catch (error) {
-      console.error("Failed to submit decklist.", error);
+      console.error("Failed to edit decklist.", error);
     }
   };
 
+  const handleDelete = async () => {
+    if (!decklist_id) return;
+    const payload = {
+      id: +decklist_id,
+      deleted: true,
+    };
+    try {
+      setIsDeleting(true);
+      await updateDecklist(payload).unwrap();
+      navigate(-1);
+    } catch (error) {
+      setIsDeleting(false);
+      console.error("Failed to delete decklist.", error);
+    }
+  };
+
+  if (!initialLoading && !isActive) return null;
+
   return (
-    <DecklistForm
-      mode="edit"
-      initialValues={decklist}
-      onSubmit={handleUpdate}
-    />
+    <EditPageWrapper title="Edit Decklist" countdown={<Countdown />}>
+      <DecklistForm
+        mode="edit"
+        initialValues={decklist}
+        onSubmit={handleUpdate}
+        onDelete={handleDelete}
+        wrapperClasses=""
+      />
+    </EditPageWrapper>
   );
 };
 
 export default function EditDecklistsPage() {
-  const navigate = useNavigate();
-  const {
-    data: verification,
-    isLoading,
-    isFetching,
-    isError,
-  } = useVerifyDecklistSessionQuery(undefined, {
-    pollingInterval: 15_000,
-  });
-
-  const canFetchDecklists = verification?.active === true;
+  const { Countdown, initialLoading, isActive } = useEditDecklistGate();
 
   const { data: decklists } = useGetParticipantDecklistsQuery(
-    canFetchDecklists ? undefined : skipToken
+    isActive ? undefined : skipToken
   );
 
-  const { minutes, seconds, styles } = useCountdown(verification?.expires_at);
-  const checking = isLoading || isFetching;
-
-  useEffect(() => {
-    if (checking) return;
-    if (isError || verification?.active === false) {
-      navigate("/decklists/gatekeeper", { replace: true });
-    }
-  }, [checking, isError, verification?.active, navigate]);
-
-  if (isLoading) {
-    return <LoadingSpinner />;
-  }
-
-  if (verification?.active === false) {
-    return null;
-  }
+  if (!initialLoading && !isActive) return null;
 
   return (
-    <div className="p-2 md:p-8">
-      <div className="flex justify-between items-center">
-        <PageTitle title="Edit Decklists" />
-        <span className={`text-3xl ${styles}`}>
-          {minutes}:{seconds}
-        </span>
-      </div>
+    <EditPageWrapper title="Edit Decklist" countdown={<Countdown />}>
       <details className="w-full md:w-3/4 mb-3">
         <summary className="cursor-pointer text-lg font-medium text-gray-800">
           Click here for page information
@@ -138,6 +149,6 @@ export default function EditDecklistsPage() {
           )
         )}
       </div>
-    </div>
+    </EditPageWrapper>
   );
 }
