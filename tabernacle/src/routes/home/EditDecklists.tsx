@@ -102,11 +102,14 @@ export const EditDecklistFormWrapper = () => {
 export default function EditDecklistsPage() {
   const { Countdown, initialLoading, isActive } = useEditDecklistGate();
 
-  const { data: decklists } = useGetParticipantDecklistsQuery(
-    isActive ? undefined : skipToken
-  );
+  const { data: decklists, isLoading: dLoading } =
+    useGetParticipantDecklistsQuery(isActive ? undefined : skipToken);
 
   if (!initialLoading && !isActive) return null;
+
+  if (dLoading) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <EditPageWrapper title="Edit Decklist" countdown={<Countdown />}>

@@ -1,4 +1,5 @@
 import json
+import logging
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
@@ -29,6 +30,8 @@ from .queries import (
     get_session_token_or_none,
     get_single_decklist_by_id,
 )
+
+logger = logging.getLogger(__name__)
 
 
 @api_view(["GET"])
@@ -182,7 +185,7 @@ def exchange_tokens(request):
     to a cookie."""
 
     code = (request.data.get("code") or "").strip()
-
+    logger.info("Received request to exchange tokens")
     if not code:
         return Response(
             {"detail": "Code is required"}, status=status.HTTP_400_BAD_REQUEST
@@ -193,6 +196,8 @@ def exchange_tokens(request):
     except AuthenticationFailed as e:
         return Response({"detail": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
+    logger.info("Token verified, minting new session")
+
     session = SessionToken.mint(owner=owner)
 
     resp = Response(
@@ -202,6 +207,7 @@ def exchange_tokens(request):
         }
     )
 
+    
     resp.set_cookie(
         key="edit_decklist_session",
         value=session.session_id,
@@ -226,6 +232,7 @@ def get_user_decklists(request):
     except AuthenticationFailed as e:
         return Response({"detail": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
+    logger.info(f"Token validated for {token.owner_id}, returning decklists")
     decklists = get_decklists(params=None, owner_id=token.owner_id)
 
     return Response(decklists)
@@ -235,20 +242,28 @@ def get_user_decklists(request):
 def update_decklist(request):
     """Validate the cookie, then update the provided decklist."""
 
+    logger.info("Update decklist request received")
     try:
         token = require_session_token(request)
     except ParseError as e:
+        logger.error("Token could not be validated.")
         return Response({"active": False})
     except AuthenticationFailed as e:
+        logger.error("Token could not be validated.")
         return Response({"detail": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
     body = request.data or {}
 
     decklist_id = body.get("id")
     if not decklist_id:
+        logger.error("Decklist id not provided in request")
         return Response(
             {"detail": "Decklist id is required"}, status=status.HTTP_400_BAD_REQUEST
         )
+
+    logger.info(
+        f"Token validated, beginning update for decklist {decklist_id} for owner {token.owner_id}"
+    )
 
     if body.get("deleted"):
         update_fields = {"deleted": body.get("deleted")}
@@ -301,4 +316,5 @@ def update_decklist(request):
                 ]
             )
 
+    logger.info("Decklist successfully edited")
     return Response(status=status.HTTP_204_NO_CONTENT)

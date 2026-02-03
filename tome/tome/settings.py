@@ -181,6 +181,16 @@ LOGGING = {
             "level": "DEBUG",
             "propagate": False,
         },
+        "users": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+        "discord": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
     },
 }
 
