@@ -41,7 +41,7 @@ export const EditDecklistFormWrapper = () => {
 
   const [updateDecklist] = useUpdateDecklistMutation();
   const decklistOrSkip =
-    decklist_id && !isDeleting ? { decklist_id } : skipToken;
+    decklist_id && !isDeleting && isActive ? { decklist_id } : skipToken;
   const { data: decklist, isLoading: dLoading } =
     useGetDecklistByIdQuery(decklistOrSkip);
 

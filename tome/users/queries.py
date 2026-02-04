@@ -380,35 +380,36 @@ def _normalize_url(raw: str) -> str:
     return raw
 
 
-def validate_inputs(name: str, url: str) -> None:
+def validate_inputs(name: Optional[str], url: Optional[str]) -> None:
     """Check both inputs for 1. profanity and 2. make sure urls are on our allow list"""
 
-    if profanity.contains_profanity(name):
+    if name and profanity.contains_profanity(name):
         raise ValidationError({"url": "Name cannot contain profanity"})
-    if profanity.contains_profanity(url):
+    if url and profanity.contains_profanity(url):
         raise ValidationError({"url": "URL cannot contain profanity"})
 
-    normalized = _normalize_url(url)
-    parsed = urlparse(normalized)
+    if url:
+        normalized = _normalize_url(url)
+        parsed = urlparse(normalized)
 
-    if parsed.scheme not in {"http", "https"}:
-        raise ValidationError(
-            {"url": "URL must start with http:// or https:// (or omit it)."}
-        )
-    if not parsed.netloc:
-        raise ValidationError({"url": "Please enter a valid URL (missing domain)."})
-    if parsed.username or parsed.password:
-        raise ValidationError(
-            {"url": "URLs with embedded credentials are not allowed."}
-        )
+        if parsed.scheme not in {"http", "https"}:
+            raise ValidationError(
+                {"url": "URL must start with http:// or https:// (or omit it)."}
+            )
+        if not parsed.netloc:
+            raise ValidationError({"url": "Please enter a valid URL (missing domain)."})
+        if parsed.username or parsed.password:
+            raise ValidationError(
+                {"url": "URLs with embedded credentials are not allowed."}
+            )
 
-    host = (parsed.hostname or "").lower()
-    if host not in ALLOWED_HOSTS:
-        raise ValidationError(
-            {
-                "url": "That site isn’t supported. Please use an approved decklist URL (Moxfield/Archidekt)."
-            }
-        )
+        host = (parsed.hostname or "").lower()
+        if host not in ALLOWED_HOSTS:
+            raise ValidationError(
+                {
+                    "url": "That site isn’t supported. Please use an approved decklist URL (Moxfield/Archidekt)."
+                }
+            )
 
 
 def post_decklists(body, pid) -> None:
@@ -463,7 +464,7 @@ def get_valid_edit_token_or_fail(raw: str) -> Participants:
 
 
 @transaction.atomic
-def get_session_token_or_none(request: HttpRequest) -> SessionToken:
+def maybe_get_session_token(request: HttpRequest) -> SessionToken:
     """For the polling endpoint, similarily validates the session
     but also handles revocation."""
     raw = request.COOKIES.get("edit_decklist_session")

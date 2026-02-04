@@ -278,8 +278,16 @@ def issue_edit_token(request):
 
     logger.info(f"Edit decklist request received from {duid}")
 
+    if not duid:
+        return Response(
+            {"message": "discord_user_id is required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
     try:
-        participant = Participants.objects.filter(discord_user_id=duid).get()
+        participant = Participants.objects.filter(
+            discord_user_id=duid, deleted=False
+        ).get()
     except Participants.DoesNotExist:
         logger.error("Participant is not currently linked.")
         return Response(

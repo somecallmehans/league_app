@@ -34,7 +34,14 @@ export default function useEditDecklistGate(opts: Options = {}) {
     if (isError || verification?.active === false || optimisticExpiration) {
       navigate(redirectTo, { replace: true });
     }
-  }, [initialLoading, isError, verification?.active, navigate]);
+  }, [
+    initialLoading,
+    isError,
+    verification?.active,
+    navigate,
+    optimisticExpiration,
+    redirectTo,
+  ]);
 
   return {
     verification,

@@ -28,8 +28,9 @@ from .queries import (
     get_decklist_by_participant_round,
     get_valid_edit_token_or_fail,
     require_session_token,
-    get_session_token_or_none,
+    maybe_get_session_token,
     get_single_decklist_by_id,
+    validate_inputs,
 )
 
 logger = logging.getLogger(__name__)
@@ -165,7 +166,7 @@ def verify_session_token(request):
     we have an active session token or not. Return 200 if the token is valid."""
 
     try:
-        token = get_session_token_or_none(request)
+        token = maybe_get_session_token(request)
     except ParseError as e:
         return Response({"active": False})
     except AuthenticationFailed as e:
@@ -268,6 +269,7 @@ def update_decklist(request):
     if body.get("deleted"):
         update_fields = {"deleted": body.get("deleted")}
     else:
+        validate_inputs(body.get("name"), body.get("url"))
         update_fields = {
             "name": body.get("name"),
             "url": body.get("url"),
