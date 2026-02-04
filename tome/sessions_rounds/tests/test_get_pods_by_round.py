@@ -208,7 +208,7 @@ def test_get_pods_by_round_with_winner(
             ],
             "submitted": True,
             "winner_info": {
-                "colors": {
+                "color": {
                     "id": 12,
                     "name": "red green",
                     "slug": "red-green",

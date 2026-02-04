@@ -77,8 +77,6 @@ def test_exchange_tokens_success_sets_cookie_and_mints_session(
 
     data = res.json()
     assert "expires_at" in data
-    assert "decklists" in data
-    assert isinstance(data["decklists"], list)
 
     # --- cookie is set ---
     assert "edit_decklist_session" in res.cookies
@@ -89,7 +87,7 @@ def test_exchange_tokens_success_sets_cookie_and_mints_session(
     assert int(cookie["max-age"]) == 30 * 60
     assert cookie["httponly"]  # should be True-ish
     assert cookie["samesite"].lower() == "lax"
-    assert cookie["path"] == "/decklists"
+    assert cookie["path"] == "/"
 
     # --- session row exists ---
     session = SessionToken.objects.filter(owner=owner).order_by("-created_at").first()

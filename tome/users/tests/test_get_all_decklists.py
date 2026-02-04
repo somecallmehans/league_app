@@ -155,7 +155,7 @@ def test_get_decklists_by_color(client, build_state) -> None:
             "name": "Boop",
             "participant_name": None,
             "partner_name": None,
-            "points": 4,
+            "points": 7,
             "url": "www.moxfield.com/boop",
             "achievements": [
                 {

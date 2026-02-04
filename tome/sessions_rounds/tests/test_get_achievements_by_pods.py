@@ -97,7 +97,7 @@ def build_pods_and_winner():
 EXPECTED_WINNER = {
     "id": CMDR_ID,
     "name": "Stangg, Echo Warrior",
-    "colors": {"id": ids.GRUUL, "name": "red green"},
+    "color": {"id": ids.GRUUL, "name": "red green"},
     "pods": {"id": POD_ID},
     "participants": {"id": ids.P2, "name": "Trenna Thain"},
 }
