@@ -43,9 +43,9 @@ class ScoresheetBuildResult(NamedTuple):
 
 class CommanderResult(NamedTuple):
     commander: Optional[StubCommander]
-    partner: Optional[dict]
+    partner: Optional[StubCommander]
     participant_id: Optional[int]
-    companion: Optional[int]
+    companion: Optional[StubCommander]
 
 
 class GETScoresheetHelper:

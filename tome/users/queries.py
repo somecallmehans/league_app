@@ -234,6 +234,9 @@ def get_single_decklist_by_id(id) -> Decklists:
     query = get_single_decklist()
     query = query.filter(id=id).first()
 
+    if not query:
+        raise ValidationError({"id": "Decklist not found"})
+
     a_query = DecklistsAchievements.objects.filter(decklist_id=id).select_related(
         "achievement"
     )

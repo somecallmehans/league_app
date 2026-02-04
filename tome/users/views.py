@@ -1,6 +1,7 @@
 import json
 import logging
 
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from rest_framework.exceptions import ValidationError, AuthenticationFailed, ParseError
@@ -207,13 +208,12 @@ def exchange_tokens(request):
         }
     )
 
-    
     resp.set_cookie(
         key="edit_decklist_session",
         value=session.session_id,
         max_age=30 * 60,
         httponly=True,
-        secure=False,
+        secure=not settings.DEBUG,
         samesite="Lax",
         path="/",
     )

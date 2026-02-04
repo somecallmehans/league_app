@@ -24,9 +24,9 @@ def add_participant_with_code() -> None:
 
 @pytest.fixture(scope="function")
 def client(settings):
-    settings.SERVICE_TOKEN = "test-token"
+    settings.SERVICE_TOKEN = "test-token"  # noqa: S105
     api = APIClient()
-    api.credentials(HTTP_AUTHORIZATION="X-SERVICE-TOKEN test-token")
+    api.credentials(HTTP_AUTHORIZATION="X-SERVICE-TOKEN test-token")  # noqa: S105
     return api
 
 
@@ -55,7 +55,7 @@ def test_post_revoke_and_create_token(client, add_participant_with_code) -> None
 
     assert res.status_code == status.HTTP_201_CREATED
 
-    tokens = EditToken.objects.filter(owner_id=PID)
+    tokens = list(EditToken.objects.filter(owner_id=PID).order_by("created_at"))
 
     assert tokens[0].revoked_at is not None
     assert tokens[1].revoked_at is None

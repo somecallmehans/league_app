@@ -185,7 +185,9 @@ class EditToken(models.Model):
 
     def is_valid(self) -> bool:
         now = timezone.now()
-        return self.revoked_at is None and now < self.expires_at
+        return (
+            self.revoked_at is None and self.used_at is None and now < self.expires_at
+        )
 
     @staticmethod
     def mint(owner, ttl_minutes=30, revoke_existing=True):

@@ -244,7 +244,7 @@ def drop_user(request):
         .first()
     )
     if not next_session:
-        logger.error(f"Sign ins are not open")
+        logger.error("Sign ins are not open")
         return Response(
             {"message": "Sign-ins not open"}, status=status.HTTP_400_BAD_REQUEST
         )
