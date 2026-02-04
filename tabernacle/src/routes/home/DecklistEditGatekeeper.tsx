@@ -92,7 +92,7 @@ export default function Gatekeeper() {
     if (data && data?.active) {
       navigate("/decklists/edit", { replace: true });
     }
-  }, [data?.expires_at, navigate]);
+  }, [data?.active, navigate]);
 
   if (isVerifying) {
     return <LoadingSpinner />;

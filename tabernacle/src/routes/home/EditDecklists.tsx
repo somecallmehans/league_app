@@ -50,10 +50,11 @@ export const EditDecklistFormWrapper = () => {
   }
 
   const handleUpdate = async (data: any) => {
+    if (!decklist_id) return;
     const { picker, code, ...clean } = data;
     const payload = {
       ...clean,
-      id: decklist_id,
+      id: +decklist_id,
       commander: clean.commander?.id,
       partner: clean.partner?.id,
       companion: clean.companion?.id,
@@ -119,7 +120,7 @@ export default function EditDecklistsPage() {
         </summary>
 
         <div className="mt-2 text-xs md:text-sm text-gray-700 space-y-2">
-          <p>Select your decklist to edit it's achievements, name, etc.</p>
+          <p>Select your decklist to edit its achievements, name, etc.</p>
         </div>
       </details>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-5">
