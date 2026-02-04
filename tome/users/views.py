@@ -148,12 +148,16 @@ def decklist_by_id(request):
     there is a session active and it's still valid, otherwise 401."""
     try:
         require_session_token(request)
-    except ParseError as e:
+    except ParseError:
         return Response({"active": False})
     except AuthenticationFailed as e:
         return Response({"detail": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
     decklist_id = request.query_params.get("decklist_id")
+    if not decklist_id:
+        return Response(
+            {"detail": "decklist_id is required"}, status=status.HTTP_400_BAD_REQUEST
+        )
 
     payload = get_single_decklist_by_id(decklist_id)
 
