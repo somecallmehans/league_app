@@ -263,14 +263,17 @@ async def handle_edit_decklist_url(uid):
             headers={"Authorization": f"X-SERVICE-TOKEN {SERVICE_TOKEN}"},
             json={"discord_user_id": uid},
         )
-    res = resp.json()
+    try:
+        res = resp.json()
+    except ValueError:
+        res = {}
 
     if resp.status_code == 400:
         return {
             "type": 4,
             "data": {
                 "flags": EPHEMERAL,
-                "content": f"It doesn't look like your discord account is linked to your league history. Run /link to connect.",
+                "content": "It doesn't look like your discord account is linked to your league history. Run /link to connect.",
             },
         }
 
@@ -281,9 +284,9 @@ async def handle_edit_decklist_url(uid):
                 "flags": EPHEMERAL,
                 "content": (
                     f"Your edit code: **{res['code']}**\n\n"
-                    f"[Click here to edit your decklists]"
-                    f"(https://commanderleague.xyz/decklists/gatekeeper)\n\n"
-                    f"You can use this code for the next 30 minutes."
+                    "[Click here to edit your decklists]"
+                    "(https://commanderleague.xyz/decklists/gatekeeper)\n\n"
+                    "You can use this code for the next 30 minutes."
                 ),
             },
         }
@@ -292,6 +295,6 @@ async def handle_edit_decklist_url(uid):
         "type": 4,
         "data": {
             "flags": EPHEMERAL,
-            "content": f"Something went wrong.",
+            "content": "Something went wrong.",
         },
     }
