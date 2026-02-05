@@ -32,8 +32,8 @@ DRAWID = 140
 @pytest.fixture(scope="function")
 def build_state() -> None:
     Colors.objects.create(id=RED, symbol="r", slug="red", name="red", mask=8)
-    Commanders.objects.create(id=CID, name=COMMANDER, colors_id=ids.GREEN)
-    Commanders.objects.create(id=PID, name=PARTNER, colors_id=RED, is_background=True)
+    Commanders.objects.create(id=CID, name=COMMANDER, color_id=ids.GREEN)
+    Commanders.objects.create(id=PID, name=PARTNER, color_id=RED, is_background=True)
     Achievements.objects.bulk_create(
         [
             Achievements(id=AID2, name="Lend deck", slug="lend-deck", point_value=2),
@@ -210,7 +210,7 @@ def build_inserted_state(client, build_state) -> dict:
 
     WinningCommanders.objects.create(
         name=f"{COMMANDER}+{PARTNER}",
-        colors_id=ids.GRUUL,
+        color_id=ids.GRUUL,
         participants_id=ids.P3,
         pods_id=POD_ID,
     )
@@ -283,13 +283,13 @@ def test_update_scoresheet(
 
     winning_commander = (
         WinningCommanders.objects.filter(pods_id=POD_ID, deleted=False)
-        .values("name", "colors_id", "participants_id")
+        .values("name", "color_id", "participants_id")
         .first()
     )
 
     assert winning_commander["participants_id"] == new_winner_id
     assert winning_commander["name"] == f"{COMMANDER}+{PARTNER}"
-    assert winning_commander["colors_id"] == ids.GRUUL
+    assert winning_commander["color_id"] == ids.GRUUL
 
 
 def test_update_scoresheet_draw(

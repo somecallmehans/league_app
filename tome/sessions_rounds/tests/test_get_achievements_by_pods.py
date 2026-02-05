@@ -90,14 +90,14 @@ def build_pods_and_winner():
         name="Stangg, Echo Warrior",
         pods_id=POD_ID,
         participants_id=ids.P2,
-        colors_id=ids.GRUUL,
+        color_id=ids.GRUUL,
     )
 
 
 EXPECTED_WINNER = {
     "id": CMDR_ID,
     "name": "Stangg, Echo Warrior",
-    "colors": {"id": ids.GRUUL, "name": "red green"},
+    "color": {"id": ids.GRUUL, "name": "red green"},
     "pods": {"id": POD_ID},
     "participants": {"id": ids.P2, "name": "Trenna Thain"},
 }

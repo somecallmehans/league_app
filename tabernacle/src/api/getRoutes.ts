@@ -64,6 +64,7 @@ import { type ConfigsTransformed } from "../types/config_schemas";
 import {
   type GetDecklistsResponse,
   type GetDecklistResponse,
+  type SingleDecklist,
 } from "../types/decklist_schemas";
 import { type DecklistParams } from "../routes/home/Decklists";
 
@@ -292,5 +293,20 @@ export default (builder: ApiBuilder) => ({
         return `decklist/?participant_id=${participant_id}&round_id=${round_id}`;
       }
     },
+  }),
+  verifyDecklistSession: builder.query<
+    { expires_at?: number; active: boolean },
+    void
+  >({
+    query: () => "verify_token/",
+    extraOptions: { skipRefresh: true },
+  }),
+  getParticipantDecklists: builder.query<GetDecklistsResponse, void>({
+    query: () => "participant_decklists/",
+    providesTags: ["PersonalDecklists"],
+  }),
+  getDecklistById: builder.query<SingleDecklist, { decklist_id: string }>({
+    query: ({ decklist_id }) => `decklist_by_id/?decklist_id=${decklist_id}`,
+    providesTags: ["PersonalDecklists"],
   }),
 });

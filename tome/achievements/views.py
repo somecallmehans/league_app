@@ -461,7 +461,7 @@ def fetch_and_insert_commanders(_):
             color_id = color_map.get(color_key)
 
             if color_id is not None:
-                records.append(Commanders(name=commander, colors_id=color_id))
+                records.append(Commanders(name=commander, color_id=color_id))
             else:
                 print(
                     f"Warning: No matching color_id for {commander.name} with colors {commander.colors}"
@@ -583,7 +583,7 @@ def scoresheet(request, round_id: int, pod_id: int):
         if result.commander_name is not None:
             WinningCommanders.objects.create(
                 name=result.commander_name,
-                colors_id=result.colors_id,
+                color_id=result.color_id,
                 participants_id=result.winner_id,
                 pods_id=pod_id,
                 commander_id=result.commander_id,

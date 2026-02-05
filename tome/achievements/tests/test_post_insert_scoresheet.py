@@ -30,8 +30,8 @@ DRAWID = 140
 @pytest.fixture(scope="function")
 def build_state() -> None:
     Colors.objects.create(id=RED, symbol="r", slug="red", name="red", mask=8)
-    Commanders.objects.create(id=CID, name=COMMANDER, colors_id=ids.GREEN)
-    Commanders.objects.create(id=PID, name=PARTNER, colors_id=RED, is_background=True)
+    Commanders.objects.create(id=CID, name=COMMANDER, color_id=ids.GREEN)
+    Commanders.objects.create(id=PID, name=PARTNER, color_id=RED, is_background=True)
     Achievements.objects.bulk_create(
         [
             Achievements(id=AID2, name="Lend deck", slug="lend-deck", point_value=2),
@@ -133,12 +133,12 @@ def test_insert_scoresheet(client, get_slug, get_achievements, build_state) -> N
 
     winning_commander = (
         WinningCommanders.objects.filter(participants_id=winner_id, pods_id=POD_ID)
-        .values("name", "colors_id")
+        .values("name", "color_id")
         .first()
     )
 
     assert winning_commander["name"] == f"{COMMANDER}+{PARTNER}"
-    assert winning_commander["colors_id"] == ids.GRUUL
+    assert winning_commander["color_id"] == ids.GRUUL
 
 
 def test_insert_scoresheet_draw(

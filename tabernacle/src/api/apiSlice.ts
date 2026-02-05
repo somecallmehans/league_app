@@ -11,6 +11,7 @@ import { BaseBQ } from "./baseApiTypes";
 
 const baseQuery = fetchBaseQuery({
   baseUrl: import.meta.env.VITE_API_URL,
+  credentials: "include",
   prepareHeaders: (headers) => {
     const token = getTokenRaw();
     if (token) {
@@ -62,7 +63,7 @@ export function getErrorMessage(err: MaybeRTKQError): string {
 const baseQueryWithReauth: BaseBQ = async (args, api, extraOptions) => {
   let result = await baseQuery(args, api, extraOptions);
 
-  if (result.error?.status === 401) {
+  if (result.error?.status === 401 && !extraOptions?.skipRefresh) {
     const refreshResult = await baseQuery(
       {
         url: "api/token/refresh/",
@@ -106,6 +107,7 @@ export const apiSlice = createApi({
     "Configs",
     "Scoresheet",
     "Decklists",
+    "PersonalDecklists",
   ] as const,
   endpoints: (builder) => ({
     ...getRoutes(builder),
@@ -147,6 +149,9 @@ export const {
   useGetDecklistsQuery,
   useGetDecklistQuery,
   useLazyGetDecklistQuery,
+  useVerifyDecklistSessionQuery,
+  useGetParticipantDecklistsQuery,
+  useGetDecklistByIdQuery,
 
   // POSTS
   usePostCreateSessionMutation,
@@ -164,6 +169,8 @@ export const {
   useInsertScoresheetMutation,
   useUpdateScoresheetMutation,
   usePostDecklistMutation,
+  useExchangeTokensMutation,
+  useUpdateDecklistMutation,
 
   // AUTH
   useLoginMutation,

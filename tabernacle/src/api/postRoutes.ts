@@ -35,7 +35,10 @@ import {
   type UpdatePodParticipantRequest,
 } from "../types/pod_schemas";
 import { type ConfigRequest } from "../types/config_schemas";
-import { type PostDecklistRequest } from "../types/decklist_schemas";
+import {
+  type PostDecklistRequest,
+  type UpdateDecklistRequest,
+} from "../types/decklist_schemas";
 
 type POST_CREATE_SESSION_BODY = {
   session_date?: string;
@@ -201,5 +204,20 @@ export default (builder: ApiBuilder) => ({
       },
     }),
     invalidatesTags: ["Decklists"],
+  }),
+  exchangeTokens: builder.mutation<void, { code: string }>({
+    query: (body) => ({
+      url: "exchange/",
+      method: "POST",
+      body,
+    }),
+  }),
+  updateDecklist: builder.mutation<void, UpdateDecklistRequest>({
+    query: (body) => ({
+      url: "update_decklist/",
+      method: "PUT",
+      body: body,
+    }),
+    invalidatesTags: ["Decklists", "PersonalDecklists"],
   }),
 });

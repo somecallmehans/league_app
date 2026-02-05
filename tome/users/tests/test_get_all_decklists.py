@@ -20,10 +20,10 @@ def build_state() -> None:
     """Build some decklists"""
 
     partner = Commanders.objects.create(
-        name="Master Chef", is_background=True, colors_id=ids.GREEN
+        name="Master Chef", is_background=True, color_id=ids.GREEN
     )
     companion = Commanders.objects.create(
-        name="Umori, the Collector", has_partner=True, colors_id=ids.COLORLESS
+        name="Umori, the Collector", has_partner=True, color_id=ids.COLORLESS
     )
 
     Colors.objects.create(
@@ -155,7 +155,7 @@ def test_get_decklists_by_color(client, build_state) -> None:
             "name": "Boop",
             "participant_name": None,
             "partner_name": None,
-            "points": 4,
+            "points": 7,
             "url": "www.moxfield.com/boop",
             "achievements": [
                 {

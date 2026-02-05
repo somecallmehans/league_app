@@ -15,7 +15,7 @@ export const WinnerSchema = z.object({
   id: z.number(),
   name: z.string(),
   deleted: z.boolean(),
-  colors: ColorSchema.nullable().optional(),
+  color: ColorSchema.nullable().optional(),
   pods: StubPodSchema.nullable().optional(),
   participants: ParticipantSchema.nullable().optional(),
   round_points: z.number().nullable().optional(),

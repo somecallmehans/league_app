@@ -57,7 +57,7 @@ def build_pods():
             name=WINNERS_LIST[idx][0],
             pods=pod,
             participants_id=WINNERS_LIST[idx][1],
-            colors_id=ids.GRUUL,
+            color_id=ids.GRUUL,
         )
         PodsParticipants.objects.bulk_create(
             PodsParticipants(pods=pod, participants_id=pid)
@@ -182,7 +182,7 @@ def build_pods_last_month():
             name=WINNERS_LIST[idx][0],
             pods=pod,
             participants_id=WINNERS_LIST[idx][1],
-            colors_id=ids.GRUUL,
+            color_id=ids.GRUUL,
         )
         PodsParticipants.objects.bulk_create(
             PodsParticipants(pods=pod, participants_id=pid)

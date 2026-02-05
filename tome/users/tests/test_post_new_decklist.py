@@ -49,7 +49,7 @@ def test_post_new_decklist(safe_client) -> None:
     parsed_get = get_res.json()
 
     for p in parsed_get:
-        assert p["points"] == 14
+        assert p["points"] == 17
         assert p["name"] == NEW_NAME
         assert p["commander_name"] == "Yarus, Roar of the Old Gods"
 

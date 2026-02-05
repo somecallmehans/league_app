@@ -162,7 +162,7 @@ def build_pods_and_winners():
         name="Stangg, Echo Warrior",
         pods_id=POD_1,
         participants_id=ids.P2,
-        colors_id=ids.GRUUL,
+        color_id=ids.GRUUL,
     )
 
 
@@ -208,7 +208,7 @@ def test_get_pods_by_round_with_winner(
             ],
             "submitted": True,
             "winner_info": {
-                "colors": {
+                "color": {
                     "id": 12,
                     "name": "red green",
                     "slug": "red-green",

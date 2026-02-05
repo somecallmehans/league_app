@@ -63,7 +63,7 @@ class MetricsCalculator:
         try:
             color_pie = {}
             for winner in winners:
-                symbol = winner["colors__symbol"]
+                symbol = winner["color__symbol"]
                 color_pie[symbol] = color_pie.get(symbol, 0) + 1
             self.metrics["color_pie"] = color_pie
         except (KeyError, TypeError) as e:
@@ -274,8 +274,8 @@ class MetricsCalculator:
 
             winners = list(
                 WinningCommanders.objects.filter(winners_filters)
-                .select_related("colors", "participants", "pods")
-                .values("name", "colors__symbol", "participants__name")
+                .select_related("color", "participants", "pods")
+                .values("name", "color__symbol", "participants__name")
             )
             achievements = list(
                 ParticipantAchievements.objects.filter(achievement_filters)

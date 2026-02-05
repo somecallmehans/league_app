@@ -42,8 +42,8 @@ export default function WinnerFields() {
   const partner = useWatch({ control, name: "partner-commander" });
 
   const { colorName } = useCommanderColors(
-    commander?.colors_id,
-    partner?.colors_id
+    commander?.color_id,
+    partner?.color_id
   );
 
   return (

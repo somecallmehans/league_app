@@ -252,3 +252,51 @@ async def handle_drop(uid):
     except Exception:
         pass
     return _ephemeral(f"❌ {msg}")
+
+
+async def handle_edit_decklist_url(uid):
+    """Handle issuing a URL for users to edit their stored decklists."""
+
+    async with httpx.AsyncClient(timeout=10) as http:
+        resp = await http.post(
+            f"{API_BASE}api/discord/issue_token/",
+            headers={"Authorization": f"X-SERVICE-TOKEN {SERVICE_TOKEN}"},
+            json={"discord_user_id": uid},
+        )
+    try:
+        res = resp.json()
+    except ValueError:
+        res = {}
+
+    if resp.status_code == 400:
+        res = resp.json()
+        msg = res["message"]
+        return {
+            "type": 4,
+            "data": {
+                "flags": EPHEMERAL,
+                "content": msg,
+            },
+        }
+
+    if resp.status_code == 201:
+        return {
+            "type": 4,
+            "data": {
+                "flags": EPHEMERAL,
+                "content": (
+                    f"Your edit code: **{res['code']}**\n\n"
+                    "[Click here to edit your decklists]"
+                    "(https://commanderleague.xyz/decklists/gatekeeper)\n\n"
+                    "You can use this code for the next 30 minutes."
+                ),
+            },
+        }
+
+    return {
+        "type": 4,
+        "data": {
+            "flags": EPHEMERAL,
+            "content": "Something went wrong.",
+        },
+    }

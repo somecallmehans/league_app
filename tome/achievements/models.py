@@ -78,7 +78,7 @@ class Colors(models.Model):
 
 class ColorFactions(models.Model):
     name = models.CharField(max_length=50)
-    colors = models.ForeignKey(Colors, on_delete=models.CASCADE)
+    color = models.ForeignKey(Colors, on_delete=models.CASCADE)
 
     class Meta:
         db_table = "color_factions"
@@ -91,7 +91,7 @@ class Commanders(models.Model):
     is_background = models.BooleanField(default=False)
     is_companion = models.BooleanField(default=False)
 
-    colors = models.ForeignKey(Colors, on_delete=models.CASCADE)
+    color = models.ForeignKey(Colors, on_delete=models.CASCADE)
 
     class Meta:
         db_table = "commanders"
@@ -101,7 +101,7 @@ class WinningCommanders(models.Model):
     name = models.CharField(max_length=255)
     deleted = models.BooleanField(default=False)
 
-    colors = models.ForeignKey(Colors, on_delete=models.CASCADE, null=True, blank=True)
+    color = models.ForeignKey(Colors, on_delete=models.CASCADE, null=True, blank=True)
     pods = models.ForeignKey("sessions_rounds.Pods", on_delete=models.CASCADE)
     participants = models.ForeignKey(
         "users.Participants", on_delete=models.CASCADE, null=True, blank=True

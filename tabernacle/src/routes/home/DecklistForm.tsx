@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   useForm,
@@ -134,18 +134,57 @@ const AchievementCart = ({
   );
 };
 
-export default function DecklistForm() {
+export type DecklistFormValues = {
+  name: string;
+  url: string;
+  commander: { id: number; name: string; color_id: number } | null;
+  partner: { id: number; name: string; color_id: number } | null;
+  companion: { id: number; name: string; color_id: number } | null;
+  achievements: Array<{ id: number; name: string; tempId?: string }>;
+  give_credit: boolean;
+
+  code?: string;
+};
+
+type DecklistFormMode = "create" | "edit";
+
+interface DecklistFormProps {
+  initialValues?: DecklistFormValues;
+  mode: DecklistFormMode;
+  onSubmit: (values: any) => Promise<void> | void;
+  onDelete?: (values: any) => Promise<void> | void;
+  wrapperClasses?: string;
+}
+
+export function DecklistForm({
+  mode,
+  initialValues,
+  onSubmit,
+  onDelete,
+  wrapperClasses = "px-4 py-8 md:p-8 h-auto mb-4",
+}: DecklistFormProps) {
   const { commanderOptions, partnerOptions, companionOptions } =
     useCommanderOptions();
-  const [postDecklist] = usePostDecklistMutation();
-  const navigate = useNavigate();
-  const methods = useForm();
+
+  const methods = useForm({
+    defaultValues: initialValues ?? {
+      name: "",
+      url: "",
+      commander: null,
+      partner: null,
+      companion: null,
+      achievements: [],
+      give_credit: false,
+      ...(mode === "create" ? { code: "" } : {}),
+    },
+  });
   const {
     control,
     handleSubmit,
     formState: { errors, isSubmitting },
     setValue,
     getValues,
+    reset,
   } = methods;
   const Back = useGoBack("/");
 
@@ -153,32 +192,20 @@ export default function DecklistForm() {
   const selectedPartner = useWatch({ control, name: "partner" });
 
   const { colorLength, colorName } = useCommanderColors(
-    selectedCommander?.colors_id,
-    selectedPartner?.colors_id
+    selectedCommander?.color_id,
+    selectedPartner?.color_id
   );
 
-  const handleFormSubmit = async (data: any) => {
-    const { picker, ...clean } = data;
-
-    const payload = {
-      ...clean,
-      code: (clean["code"] ?? "").toUpperCase(),
-      commander: clean.commander?.id,
-      partner: clean.partner?.id,
-      companion: clean.companion?.id,
-      achievements: normalize(clean?.achievements) ?? [],
-    };
-
-    try {
-      await postDecklist(payload).unwrap();
-      navigate(-1);
-    } catch (error) {
-      console.error("Failed to submit decklist.", error);
+  useEffect(() => {
+    if (mode === "edit" && initialValues) {
+      reset(initialValues, { keepDirty: false });
     }
-  };
+  }, [mode, initialValues, reset]);
+
+  const showCode = mode === "create";
 
   return (
-    <div className="px-4 py-8 md:p-8 h-auto mb-4">
+    <div className={`${wrapperClasses}`}>
       <Back />
       <details className="w-full md:w-3/4 my-2">
         <summary className="cursor-pointer text-lg font-medium text-gray-800">
@@ -212,7 +239,7 @@ export default function DecklistForm() {
       </details>
       <div className="mx-auto w-full">
         <FormProvider {...methods}>
-          <form onSubmit={handleSubmit(handleFormSubmit)}>
+          <form onSubmit={handleSubmit(onSubmit)}>
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2 h-full">
               <div className="flex flex-col h-full">
                 <div className="flex items-center gap-2">
@@ -353,27 +380,36 @@ export default function DecklistForm() {
                   />
                 )}
               />
-              <TextInput
-                name="code"
-                defaultValue=""
-                placeholder="User code"
-                control={control}
-                type="text"
-                containerClasses="w-full md:w-48"
-                classes="text-sm w-full border rounded-lg p-2"
-                rules={{
-                  validate: (value) =>
-                    textValidate(value as string | undefined),
-                }}
-              />
-
+              {showCode ? (
+                <TextInput
+                  name="code"
+                  defaultValue=""
+                  placeholder="User code"
+                  control={control}
+                  type="text"
+                  containerClasses="w-full md:w-48"
+                  classes="text-sm w-full border rounded-lg p-2"
+                  rules={{
+                    validate: (value) =>
+                      textValidate(value as string | undefined),
+                  }}
+                />
+              ) : null}
               <StandardButton
                 title="Submit"
                 type="submit"
                 disabled={isSubmitting}
               />
+              {!showCode ? (
+                <StandardButton
+                  title="Delete"
+                  type="button"
+                  action={onDelete}
+                  className="bg-red-500 text-white data-[hover]:bg-red-600"
+                />
+              ) : null}
             </div>
-            {errors && errors?.code && (
+            {showCode && errors && errors?.code && (
               <div className="text-sm text-red-500 flex justify-end">
                 {errors?.code?.message?.toString()}
               </div>
@@ -383,4 +419,29 @@ export default function DecklistForm() {
       </div>
     </div>
   );
+}
+
+export default function DecklistFormWrapper() {
+  const [postDecklist] = usePostDecklistMutation();
+  const navigate = useNavigate();
+  const handleFormSubmit = async (data: any) => {
+    const { picker, ...clean } = data;
+
+    const payload = {
+      ...clean,
+      code: (clean["code"] ?? "").toUpperCase(),
+      commander: clean.commander?.id,
+      partner: clean.partner?.id,
+      companion: clean.companion?.id,
+      achievements: normalize(clean?.achievements) ?? [],
+    };
+
+    try {
+      await postDecklist(payload).unwrap();
+      navigate(-1);
+    } catch (error) {
+      console.error("Failed to submit decklist.", error);
+    }
+  };
+  return <DecklistForm mode="create" onSubmit={handleFormSubmit} />;
 }

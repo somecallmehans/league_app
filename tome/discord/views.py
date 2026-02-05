@@ -1,4 +1,5 @@
 import json
+import logging
 from datetime import date
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -7,10 +8,12 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Count, Q
 from utils.decorators import require_service_token
 
-from users.models import Participants
+from users.models import Participants, EditToken, Decklists
 from sessions_rounds.models import Sessions, RoundSignups, Rounds, Pods
 
 from configs.configs import get_round_caps
+
+logger = logging.getLogger(__name__)
 
 GET = "GET"
 POST = "POST"
@@ -135,6 +138,8 @@ def signin(request):
     duid: str = body.get("discord_user_id")
     rounds: list[int] = body.get("rounds")
 
+    logger.info(f"Received signin request for {duid}")
+
     pid = (
         Participants.objects.filter(deleted=False, discord_user_id=duid)
         .values_list("id", flat=True)
@@ -144,12 +149,15 @@ def signin(request):
     round_started = Pods.objects.filter(rounds_id__in=rounds).exists()
 
     if round_started:
+        logger.error(f"Signin failed for {duid}, round has started")
         return Response(
             {"message": "Round has started, sign ins are closed."},
             status=status.HTTP_208_ALREADY_REPORTED,
         )
 
     if not pid:
+        logger.error(f"Signin failed for {duid}, participant not linked")
+
         return Response(
             {
                 "message": "Participant is currently not linked. Run /link to connect to your league history."
@@ -162,6 +170,8 @@ def signin(request):
     ).exists()
 
     if has_signed_in:
+        logger.error(f"Signin failed for {duid}, user already signed in")
+
         return Response(
             {"message": "User has already signed in."},
             status=status.HTTP_208_ALREADY_REPORTED,
@@ -194,6 +204,7 @@ def signin(request):
         RoundSignups(participant_id=pid, round_id=rid) for rid in rounds
     )
 
+    logger.info(f"Successfully signed in {duid}")
     return Response({"message": "Successfully added"}, status=status.HTTP_201_CREATED)
 
 
@@ -206,6 +217,8 @@ def drop_user(request):
     body = json.loads(request.body.decode("utf-8"))
     duid = body.get("discord_user_id")
 
+    logger.info(f"Drop request received from user {duid}")
+
     if not duid:
         return Response(
             {"message": "Discord user id not provided."},
@@ -215,6 +228,8 @@ def drop_user(request):
     target = Participants.objects.filter(discord_user_id=duid).first()
 
     if not target:
+        logger.error(f"Error, user not linked: {duid}")
+
         return Response(
             {"message": "User is not linked"}, status=status.HTTP_400_BAD_REQUEST
         )
@@ -229,6 +244,7 @@ def drop_user(request):
         .first()
     )
     if not next_session:
+        logger.error("Sign ins are not open")
         return Response(
             {"message": "Sign-ins not open"}, status=status.HTTP_400_BAD_REQUEST
         )
@@ -241,6 +257,62 @@ def drop_user(request):
 
     RoundSignups.objects.filter(participant_id=target.id, round_id__in=rids).delete()
 
+    logger.info(
+        f"User successfully dropped from rounds on {next_session.session_date}, duid: {duid}"
+    )
     return Response(
         {"date": next_session.session_date}, status=status.HTTP_202_ACCEPTED
     )
+
+
+@require_service_token
+@api_view([POST])
+def issue_edit_token(request):
+    """
+    This endpoint validates the user is linked, then if yes we revoke/issue a new
+    edit token.
+    """
+
+    body = json.loads(request.body.decode("utf-8"))
+    duid: str = body.get("discord_user_id")
+
+    logger.info(f"Edit decklist request received from {duid}")
+
+    if not duid:
+        return Response(
+            {"message": "discord_user_id is required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        participant = Participants.objects.filter(
+            discord_user_id=duid, deleted=False
+        ).get()
+    except Participants.DoesNotExist:
+        logger.error("Participant is not currently linked.")
+        return Response(
+            {
+                "message": "It looks like you haven't linked your discord to your league history.\n\n"
+                "Run /link to connect to your league history."
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if not Decklists.objects.filter(participant=participant, deleted=False).exists():
+        logger.error(f"User with DU_ID: {duid} does not have any decklists")
+        return Response(
+            {
+                "message": (
+                    "It doesn't look like you have any decklists to edit.\n\n"
+                    "[Click here to make a new decklist.]"
+                    "(https://commanderleague.xyz/decklists/new)\n\n"
+                    "Don't forget to get your unique code via /mycode\n"
+                )
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    code = EditToken.mint(owner=participant)
+
+    logger.info(f"Participant verified, returning edit token. User {duid}")
+    return Response({"code": code}, status=status.HTTP_201_CREATED)

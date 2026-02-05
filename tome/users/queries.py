@@ -1,17 +1,31 @@
 import re
+import uuid
 from typing import Optional
 from urllib.parse import urlparse
+from django.utils import timezone
+
+from rest_framework.exceptions import AuthenticationFailed, ParseError
 
 from collections import defaultdict
 from better_profanity import profanity
 from rest_framework.exceptions import ValidationError
 
+from django.db import transaction
 from django.db.models import Func, F, IntegerField, Value, Sum
 from django.db.models.functions import Coalesce
+from django.http import HttpRequest
+
 
 from achievements.helpers import calculate_color
 
-from .models import Decklists, DecklistsAchievements
+from .models import (
+    Decklists,
+    DecklistsAchievements,
+    EditToken,
+    Participants,
+    SessionToken,
+)
+from .helpers import hash_code
 from achievements.models import WinningCommanders
 from sessions_rounds.models import PodsParticipants
 from services.scryfall_client import ScryfallClientRequest
@@ -54,7 +68,7 @@ class BitOr(Func):
     output_field = IntegerField()
 
 
-def get_decklists(params: dict = None) -> list[Decklists]:
+def get_decklists(params: dict = None, owner_id: int = None) -> list[Decklists]:
     """Return decklists based on params"""
     params = params or {}
     sort_order = params.get("sort_order")
@@ -62,9 +76,9 @@ def get_decklists(params: dict = None) -> list[Decklists]:
     query = (
         Decklists.objects.filter(deleted=False)
         .select_related(
-            "commander__colors",
-            "partner__colors",
-            "companion__colors",
+            "commander__color",
+            "partner__color",
+            "companion__color",
             "participant",
         )
         .annotate(
@@ -87,10 +101,10 @@ def get_decklists(params: dict = None) -> list[Decklists]:
             "give_credit",
             "commander_id",
             "commander__name",
-            "commander__colors__mask",
+            "commander__color__mask",
             "partner_id",
             "partner__name",
-            "partner__colors__mask",
+            "partner__color__mask",
             "companion_id",
             "companion__name",
             "participant__name",
@@ -120,8 +134,8 @@ def get_decklists(params: dict = None) -> list[Decklists]:
 
         query = query.annotate(
             combined_mask=BitOr(
-                F("commander__colors__mask"),
-                Coalesce(F("partner__colors__mask"), Value(0)),
+                F("commander__color__mask"),
+                Coalesce(F("partner__color__mask"), Value(0)),
             )
         )
 
@@ -132,6 +146,9 @@ def get_decklists(params: dict = None) -> list[Decklists]:
                 matched_mask=BitAnd(F("combined_mask"), Value(mask_int))
             ).filter(matched_mask=mask_int)
     query = query.order_by(*order_by)
+
+    if owner_id is not None:
+        query = query.filter(participant_id=owner_id)
 
     out = []
     commander_images = scryfall_request.get_commander_image_urls(
@@ -151,8 +168,8 @@ def get_decklists(params: dict = None) -> list[Decklists]:
         give_credit = qu["give_credit"]
         color = calculate_color(
             [
-                qu["commander__colors__mask"],
-                qu.get("partner__colors__mask") or -1,
+                qu["commander__color__mask"],
+                qu.get("partner__color__mask") or -1,
             ]
         )
         color_points = COLOR_POINTS[color.symbol_length]
@@ -172,7 +189,6 @@ def get_decklists(params: dict = None) -> list[Decklists]:
                 "color": {
                     "symbol": color.symbol,
                     "name": color.name,
-                    "points": color_points,
                 },
                 "points": qu["points"] + color_points,
                 "achievements": ach_by_decklist.get(qu["id"], []),
@@ -193,24 +209,75 @@ class StubCommander(dict):
     color_id: Optional[int]
 
 
+def get_single_decklist() -> Decklists:
+    """Base return a decklist"""
+    return Decklists.objects.filter(deleted=False).values(
+        "id",
+        "name",
+        "url",
+        "give_credit",
+        "commander_id",
+        "commander__name",
+        "commander__color_id",
+        "partner_id",
+        "partner__name",
+        "partner__color_id",
+        "companion_id",
+        "companion__name",
+        "companion__color_id",
+    )
+
+
+def get_single_decklist_by_id(id) -> Decklists:
+    """Return a single decklist + achievements by its id"""
+    query = get_single_decklist()
+    query = query.filter(id=id).first()
+
+    if not query:
+        raise ValidationError({"id": "Decklist not found"})
+
+    a_query = DecklistsAchievements.objects.filter(decklist_id=id).select_related(
+        "achievement"
+    )
+
+    payload = {
+        "name": query["name"],
+        "url": query["url"],
+        "commander": StubCommander(
+            id=query["commander_id"],
+            name=query["commander__name"],
+            color_id=query["commander__color_id"],
+        ),
+        "partner": StubCommander(
+            id=query["partner_id"],
+            name=query["partner__name"],
+            color_id=query["partner__color_id"],
+        ),
+        "companion": StubCommander(
+            id=query["companion_id"],
+            name=query["companion__name"],
+            color_id=query["companion__color_id"],
+        ),
+        "give_credit": query["give_credit"],
+        "achievements": [],
+    }
+
+    for row in a_query:
+        payload["achievements"].append(
+            {
+                "id": row.achievement_id,
+                "name": row.achievement.full_name,
+                "tempId": str(uuid.uuid4()),
+            }
+        )
+
+    return payload
+
+
 def get_single_decklist_by_code(param: str = "") -> Decklists:
     code = f"DL-{param}"
-    query = (
-        Decklists.objects.filter(deleted=False, code=code)
-        .values(
-            "id",
-            "commander_id",
-            "commander__name",
-            "commander__colors_id",
-            "partner_id",
-            "partner__name",
-            "partner__colors_id",
-            "companion_id",
-            "companion__name",
-            "companion__colors_id",
-        )
-        .first()
-    )
+    query = get_single_decklist()
+    query = query.filter(code=code).first()
     if not query:
         raise ValidationError({"code": "Decklist not found"})
     a_query = DecklistsAchievements.objects.filter(
@@ -222,17 +289,17 @@ def get_single_decklist_by_code(param: str = "") -> Decklists:
         "winner-commander": StubCommander(
             id=query["commander_id"],
             name=query["commander__name"],
-            color_id=query["commander__colors_id"],
+            color_id=query["commander__color_id"],
         ),
         "partner-commander": StubCommander(
             id=query["partner_id"],
             name=query["partner__name"],
-            color_id=query["partner__colors_id"],
+            color_id=query["partner__color_id"],
         ),
         "companion-commander": StubCommander(
             id=query["companion_id"],
             name=query["companion__name"],
-            color_id=query["companion__colors_id"],
+            color_id=query["companion__color_id"],
         ),
     }
 
@@ -313,35 +380,36 @@ def _normalize_url(raw: str) -> str:
     return raw
 
 
-def validate_inputs(name: str, url: str) -> None:
+def validate_inputs(name: Optional[str], url: Optional[str]) -> None:
     """Check both inputs for 1. profanity and 2. make sure urls are on our allow list"""
 
-    if profanity.contains_profanity(name):
+    if name and profanity.contains_profanity(name):
         raise ValidationError({"url": "Name cannot contain profanity"})
-    if profanity.contains_profanity(url):
+    if url and profanity.contains_profanity(url):
         raise ValidationError({"url": "URL cannot contain profanity"})
 
-    normalized = _normalize_url(url)
-    parsed = urlparse(normalized)
+    if url:
+        normalized = _normalize_url(url)
+        parsed = urlparse(normalized)
 
-    if parsed.scheme not in {"http", "https"}:
-        raise ValidationError(
-            {"url": "URL must start with http:// or https:// (or omit it)."}
-        )
-    if not parsed.netloc:
-        raise ValidationError({"url": "Please enter a valid URL (missing domain)."})
-    if parsed.username or parsed.password:
-        raise ValidationError(
-            {"url": "URLs with embedded credentials are not allowed."}
-        )
+        if parsed.scheme not in {"http", "https"}:
+            raise ValidationError(
+                {"url": "URL must start with http:// or https:// (or omit it)."}
+            )
+        if not parsed.netloc:
+            raise ValidationError({"url": "Please enter a valid URL (missing domain)."})
+        if parsed.username or parsed.password:
+            raise ValidationError(
+                {"url": "URLs with embedded credentials are not allowed."}
+            )
 
-    host = (parsed.hostname or "").lower()
-    if host not in ALLOWED_HOSTS:
-        raise ValidationError(
-            {
-                "url": "That site isn’t supported. Please use an approved decklist URL (Moxfield/Archidekt)."
-            }
-        )
+        host = (parsed.hostname or "").lower()
+        if host not in ALLOWED_HOSTS:
+            raise ValidationError(
+                {
+                    "url": "That site isn’t supported. Please use an approved decklist URL (Moxfield/Archidekt)."
+                }
+            )
 
 
 def post_decklists(body, pid) -> None:
@@ -368,3 +436,66 @@ def post_decklists(body, pid) -> None:
         )
     except ValidationError as e:
         raise
+
+
+@transaction.atomic
+def get_valid_edit_token_or_fail(raw: str) -> Participants:
+    """Take in a raw token, then validate it or fail."""
+
+    code_hash = hash_code(raw)
+
+    token = (
+        EditToken.objects.select_for_update()
+        .select_related("owner")
+        .filter(code_hash=code_hash)
+        .first()
+    )
+
+    if not token:
+        raise AuthenticationFailed("Invalid code")
+
+    if not token.is_valid():
+        raise AuthenticationFailed("Code expired or already used")
+
+    token.used_at = timezone.now()
+    token.save(update_fields=["used_at"])
+
+    return token.owner
+
+
+@transaction.atomic
+def maybe_get_session_token(request: HttpRequest) -> SessionToken:
+    """For the polling endpoint, similarily validates the session
+    but also handles revocation."""
+    raw = request.COOKIES.get("edit_decklist_session")
+    if not raw:
+        raise ParseError("No code found")
+
+    token = SessionToken.objects.filter(session_id=raw).first()
+    if not token:
+        raise AuthenticationFailed("Invalid code")
+
+    if token.expires_at < timezone.now() and token.revoked_at is None:
+        token.revoked_at = timezone.now()
+        token.save(update_fields=["revoked_at"])
+
+    if not token.is_valid():
+        return None
+
+    return token
+
+
+def require_session_token(request: HttpRequest) -> SessionToken:
+    """Validate that our session token is still valid"""
+    raw = request.COOKIES.get("edit_decklist_session")
+    if not raw:
+        raise ParseError("No code found")
+
+    token = SessionToken.objects.filter(session_id=raw).first()
+    if not token:
+        raise AuthenticationFailed("Invalid code")
+
+    if not token.is_valid():
+        raise AuthenticationFailed("Code expired or already used")
+
+    return token

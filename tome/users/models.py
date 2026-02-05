@@ -1,13 +1,18 @@
-from datetime import datetime
+import secrets
+import hashlib
+
+from datetime import datetime, timedelta
 
 from django.db import models, IntegrityError, transaction
 from django.db.models import Sum, F
 from django.db.models.functions import Coalesce
+from django.utils import timezone
+
 
 from sessions_rounds.models import Rounds, Sessions
 from achievements.models import Achievements, Commanders
 
-from users.helpers import generate_code
+from users.helpers import generate_code, hash_code
 
 
 class Participants(models.Model):
@@ -160,3 +165,85 @@ class DecklistsAchievements(models.Model):
 
     class Meta:
         db_table = "decklists_achievements"
+
+
+class EditToken(models.Model):
+    """These are the tokens we issue to users to 'log in' to complete edits
+    on the website."""
+
+    owner = models.ForeignKey(
+        Participants,
+        on_delete=models.CASCADE,
+        related_name="edit_tokens",
+        db_index=True,
+    )
+    code_hash = models.CharField(max_length=64, unique=True)
+    expires_at = models.DateTimeField(db_index=True)
+    used_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    revoked_at = models.DateTimeField(null=True, blank=True, db_index=True)
+
+    def is_valid(self) -> bool:
+        now = timezone.now()
+        return (
+            self.revoked_at is None and self.used_at is None and now < self.expires_at
+        )
+
+    @staticmethod
+    def mint(owner, ttl_minutes=30, revoke_existing=True):
+        if revoke_existing:
+            # default true, this will no-op if there is not an existing token
+            EditToken.objects.filter(
+                owner=owner,
+                used_at__isnull=True,
+                revoked_at__isnull=True,
+                expires_at__gt=timezone.now(),
+            ).update(revoked_at=timezone.now())
+
+        raw = secrets.token_urlsafe(16)
+
+        EditToken.objects.create(
+            owner=owner,
+            code_hash=hash_code(raw),
+            expires_at=timezone.now() + timedelta(minutes=ttl_minutes),
+        )
+
+        return raw
+
+    class Meta:
+        db_table = "edit_tokens"
+
+
+class SessionToken(models.Model):
+    """These tokens are issued upon receiving a valid edit token."""
+
+    owner = models.ForeignKey(
+        Participants,
+        on_delete=models.CASCADE,
+        related_name="session_tokens",
+        db_index=True,
+    )
+    session_id = models.CharField(max_length=64, unique=True, db_index=True)
+    expires_at = models.DateTimeField(db_index=True)
+    revoked_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_valid(self) -> bool:
+        now = timezone.now()
+        return self.revoked_at is None and now < self.expires_at
+
+    @staticmethod
+    def mint(owner, ttl_minutes=30, revoke_existing=True):
+        if revoke_existing:
+            SessionToken.objects.filter(
+                owner=owner, revoked_at__isnull=True, expires_at__gt=timezone.now()
+            ).update(revoked_at=timezone.now())
+        raw = secrets.token_urlsafe(32)
+        return SessionToken.objects.create(
+            owner=owner,
+            session_id=raw,
+            expires_at=timezone.now() + timedelta(minutes=ttl_minutes),
+        )
+
+    class Meta:
+        db_table = "session_tokens"

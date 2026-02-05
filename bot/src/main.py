@@ -17,6 +17,7 @@ from .router import (
     handle_signin_confirm,
     handle_signin_select,
     handle_drop,
+    handle_edit_decklist_url,
 )
 from .constants import PING, APP_COMMAND, APP_COMMAND_AUTOCOMPLETE, MESSAGE
 
@@ -106,6 +107,10 @@ async def interactions(req: Request):
 
         if name == "drop":
             return await handle_drop(user_id)
+
+        if name == "editdecklist":
+            logger.info(f"Attempting edit decklist request for {user_id}")
+            return await handle_edit_decklist_url(user_id)
 
     if t == MESSAGE:
         data = payload.get("data") or {}
