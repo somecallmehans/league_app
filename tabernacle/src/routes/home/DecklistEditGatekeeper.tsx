@@ -56,7 +56,7 @@ const CodeEntry = () => {
       <h1 className="text-xl font-semibold">Unlock decklist editing</h1>
       <p className="mt-2 text-sm text-zinc-600">
         Paste the code you received from Discord by running the /editdecklist
-        command. It expires after 30 minutes.
+        command. You will have 30 minutes to make any edits to your decklists.
       </p>
 
       <form onSubmit={onSubmit} className="mt-4 grid gap-3">

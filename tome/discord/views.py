@@ -8,7 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Count, Q
 from utils.decorators import require_service_token
 
-from users.models import Participants, EditToken
+from users.models import Participants, EditToken, Decklists
 from sessions_rounds.models import Sessions, RoundSignups, Rounds, Pods
 
 from configs.configs import get_round_caps
@@ -292,7 +292,22 @@ def issue_edit_token(request):
         logger.error("Participant is not currently linked.")
         return Response(
             {
-                "message": "Participant is currently not linked. Run /link to connect to your league history."
+                "message": "It looks like you haven't linked your discord to your league history.\n\n"
+                "Run /link to connect to your league history."
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if not Decklists.objects.filter(participant=participant, deleted=False).exists():
+        logger.error(f"User with DU_ID: {duid} does not have any decklists")
+        return Response(
+            {
+                "message": (
+                    "It doesn't look like you have any decklists to edit.\n\n"
+                    "[Click here to make a new decklist.]"
+                    "(https://commanderleague.xyz/decklists/new)\n\n"
+                    "Don't forget to get your unique code via /mycode\n"
+                )
             },
             status=status.HTTP_400_BAD_REQUEST,
         )

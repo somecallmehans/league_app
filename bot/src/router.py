@@ -269,11 +269,13 @@ async def handle_edit_decklist_url(uid):
         res = {}
 
     if resp.status_code == 400:
+        res = resp.json()
+        msg = res["message"]
         return {
             "type": 4,
             "data": {
                 "flags": EPHEMERAL,
-                "content": "It doesn't look like your discord account is linked to your league history. Run /link to connect.",
+                "content": msg,
             },
         }
 
