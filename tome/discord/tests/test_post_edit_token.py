@@ -3,9 +3,11 @@ import pytest
 from rest_framework.test import APIClient
 from django.urls import reverse
 from rest_framework import status
+from utils.test_helpers import get_ids
 
+ids = get_ids()
 
-from users.models import Participants, EditToken
+from users.models import Participants, EditToken, Decklists
 
 PID = 5555
 
@@ -13,12 +15,19 @@ PID = 5555
 @pytest.fixture(scope="function")
 def add_participant_with_code() -> None:
     """Add one participant with a code + id"""
-    Participants.objects.create(
+    p = Participants.objects.create(
         id=PID,
         name="Cody Codeson",
         deleted=False,
         discord_user_id="1234567",
         code="BBBBBB",
+    )
+    Decklists.objects.create(
+        name="TEST!",
+        url="www.moxfield.com/1234",
+        participant=p,
+        code="DL-AAAA",
+        commander_id=ids.YARUS,
     )
 
 
