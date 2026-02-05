@@ -189,6 +189,7 @@ def get_decklists(params: dict = None, owner_id: int = None) -> list[Decklists]:
                 "color": {
                     "symbol": color.symbol,
                     "name": color.name,
+                    "points": color_points,
                 },
                 "points": qu["points"] + color_points,
                 "achievements": ach_by_decklist.get(qu["id"], []),
