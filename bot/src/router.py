@@ -269,8 +269,7 @@ async def handle_edit_decklist_url(uid):
         res = {}
 
     if resp.status_code == 400:
-        res = resp.json()
-        msg = res["message"]
+        msg = res.get("message", "Something went wrong.")
         return {
             "type": 4,
             "data": {
