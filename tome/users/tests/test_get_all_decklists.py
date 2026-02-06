@@ -148,7 +148,7 @@ def test_get_decklists_by_color(client, build_state) -> None:
     assert parsed_res == [
         {
             "code": "DL-C3D4",
-            "color": {"name": "red green", "symbol": "rg"},
+            "color": {"name": "red green", "symbol": "rg", "points": 3},
             "commander_name": "Yarus, Roar of the Old Gods",
             "companion_name": "Umori, the Collector",
             "id": 2,
