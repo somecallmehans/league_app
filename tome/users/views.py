@@ -202,7 +202,7 @@ def exchange_tokens(request):
     except AuthenticationFailed as e:
         return Response({"detail": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
-    logger.info("Token verified, minting new session")
+    logger.info(f"Token verified, minting new session for {owner.id}")
 
     session = SessionToken.mint(owner=owner)
 
