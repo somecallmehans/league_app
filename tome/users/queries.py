@@ -210,9 +210,9 @@ class StubCommander(dict):
     color_id: Optional[int]
 
 
-def get_single_decklist() -> Decklists:
+def get_single_decklist(store_id: int) -> Decklists:
     """Base return a decklist"""
-    return Decklists.objects.filter(deleted=False).values(
+    return Decklists.objects.filter(deleted=False, store_id=store_id).values(
         "id",
         "name",
         "url",
@@ -275,9 +275,9 @@ def get_single_decklist_by_id(id) -> Decklists:
     return payload
 
 
-def get_single_decklist_by_code(param: str = "") -> Decklists:
+def get_single_decklist_by_code(store_id: int, param: str = "") -> Decklists:
     code = f"DL-{param}"
-    query = get_single_decklist()
+    query = get_single_decklist(store_id)
     query = query.filter(code=code).first()
     if not query:
         raise ValidationError({"code": "Decklist not found"})
@@ -312,7 +312,9 @@ def get_single_decklist_by_code(param: str = "") -> Decklists:
     return payload
 
 
-def get_decklist_by_participant_round(participant_id: int, round_id: int) -> Decklists:
+def get_decklist_by_participant_round(
+    participant_id: int, round_id: int, store_id: int
+) -> Decklists:
     pod_id = (
         PodsParticipants.objects.filter(
             participants_id=participant_id, pods__rounds_id=round_id
@@ -323,13 +325,18 @@ def get_decklist_by_participant_round(participant_id: int, round_id: int) -> Dec
 
     try:
         winning_commander = WinningCommanders.objects.filter(
-            participants_id=participant_id, pods_id=pod_id, deleted=False
+            participants_id=participant_id,
+            pods_id=pod_id,
+            store_id=store_id,
+            deleted=False,
         ).get()
         if not winning_commander.decklist_id:
             return {"achievements": [], "url": "", "id": "", "name": "", "code": ""}
 
         decklist = (
-            Decklists.objects.filter(id=winning_commander.decklist_id)
+            Decklists.objects.filter(
+                id=winning_commander.decklist_id, store_id=store_id, deleted=False
+            )
             .values("id", "name", "url", "code")
             .first()
         )

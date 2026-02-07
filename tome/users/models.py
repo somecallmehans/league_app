@@ -112,6 +112,7 @@ class Decklists(models.Model):
     deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     give_credit = models.BooleanField(default=False)
+    store = models.ForeignKey("stores.Store", on_delete=models.CASCADE, null=True)
 
     commander = models.ForeignKey(
         Commanders, related_name="commander_decklists", on_delete=models.CASCADE

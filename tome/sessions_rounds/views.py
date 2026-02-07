@@ -207,20 +207,26 @@ def get_round_participants(_, round):
 
 
 @api_view([GET])
-def get_pods(_, round):
+def get_pods(request, round, **kwargs):
     """Get the pods that were made for a given round."""
     try:
-        round_obj = Rounds.objects.get(id=round)
+        round_obj = Rounds.objects.get(
+            id=round, deleted=False, session__store_id=request.store_id
+        )
     except ObjectDoesNotExist:
         return Response(
             {"message": "Round not found"}, status=status.HTTP_400_BAD_REQUEST
         )
 
-    pods = Pods.objects.filter(rounds_id=round, deleted=False)
+    pods = Pods.objects.filter(
+        rounds_id=round, store_id=request.store_id, deleted=False
+    )
     pod_ids = pods.values_list("id", flat=True)
-    winners_by_pod = WinningCommandersSerializer.by_pods(pods)
+    winners_by_pod = WinningCommandersSerializer.by_pods(pods, request.store_id)
 
-    pods_participants = PodsParticipants.objects.filter(pods_id__in=pod_ids)
+    pods_participants = PodsParticipants.objects.filter(
+        pods_id__in=pod_ids, pods__store_id=request.store_id
+    )
 
     serialized_participants = PodsParticipantsSerializer(
         pods_participants,
@@ -325,12 +331,15 @@ def close_round(request):
 
 
 @api_view([GET])
-def get_rounds_by_month(_, mm_yy):
+def get_rounds_by_month(request, mm_yy, **kwargs):
     """Get all rounds for a given month.
     Return a dict where keys are dates and val is a list of rounds."""
     rounds = (
         Rounds.objects.filter(
-            session__month_year=mm_yy, session__deleted=False, deleted=False
+            session__month_year=mm_yy,
+            session__deleted=False,
+            session__store_id=request.store_id,
+            deleted=False,
         )
         .select_related("session")
         .annotate(
@@ -502,7 +511,7 @@ def signup(request):
 
 
 @api_view([GET])
-def signin_counts(request):
+def signin_counts(request, **kwargs):
     """Return a count and 2 lists of currently signed in users."""
     round_one = request.query_params.get("round_one")
     round_two = request.query_params.get("round_two")
@@ -514,7 +523,9 @@ def signin_counts(request):
         )
 
     query = (
-        RoundSignups.objects.filter(round_id__in=[round_one, round_two])
+        RoundSignups.objects.filter(
+            round_id__in=[round_one, round_two], store_id=request.store_id
+        )
         .select_related("participant")
         .values("participant_id", "participant__name", "round_id")
     )

@@ -391,10 +391,13 @@ def upsert_achievements(request):
 
 
 @api_view([GET])
-def get_participant_round_achievements(_, participant_id, round_id):
+def get_participant_round_achievements(request, participant_id, round_id, **kwargs):
     """Get all achievements + points for a participant in a particular round."""
     achievements = ParticipantAchievements.objects.select_related("achievement").filter(
-        participant_id=participant_id, round_id=round_id, deleted=False
+        participant_id=participant_id,
+        round_id=round_id,
+        store_id=request.store_id,
+        deleted=False,
     )
 
     out = [

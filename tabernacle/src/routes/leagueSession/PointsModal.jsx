@@ -65,8 +65,13 @@ export default function PointsModal({ isOpen, closeModal, selected }) {
                   as="h3"
                   className="mb-2 text-2xl font-medium leading-6 text-gray-900 flex flex-wrap md:no-wrap justify-center md:justify-between"
                 >
-                  <span className="text-2xl font-bold">
-                    {selected?.participant}{" "}
+                  <div className="text-2xl font-bold">
+                    <div className="flex flex-col">
+                      {selected?.participant}{" "}
+                      <span className="text-base">
+                        {selected?.winnerCommander || ""}
+                      </span>
+                    </div>
                     {decklist?.url && (
                       <span className="text-base hover:text-sky-400">
                         -{" "}
@@ -75,12 +80,9 @@ export default function PointsModal({ isOpen, closeModal, selected }) {
                         </Link>
                       </span>
                     )}
-                  </span>
+                  </div>
                   {selected?.isWinner && (
                     <div className="flex align-middle gap-2">
-                      <span className="text-base">
-                        {selected?.winnerCommander || ""}
-                      </span>
                       <ColorGrid
                         show
                         colors={selected?.colors}

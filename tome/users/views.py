@@ -115,13 +115,14 @@ def decklists(request, **kwargs):
 
 
 @api_view(["GET"])
-def decklist(request):
+def decklist(request, **kwargs):
     """Return an individual decklist, shaped for our scoresheet form."""
 
     params = request.query_params
     code = params.get("code")
     participant_id = params.get("participant_id")
     round_id = params.get("round_id")
+    store_id = request.store_id
 
     if not code and not participant_id and not round_id:
         return Response(
@@ -136,9 +137,11 @@ def decklist(request):
         )
 
     if code:
-        payload = get_single_decklist_by_code(code)
+        payload = get_single_decklist_by_code(store_id, code)
     else:
-        payload = get_decklist_by_participant_round(int(participant_id), int(round_id))
+        payload = get_decklist_by_participant_round(
+            int(participant_id), int(round_id), store_id
+        )
     return Response(payload, status=status.HTTP_200_OK)
 
 
