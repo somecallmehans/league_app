@@ -16,6 +16,7 @@ class Config(models.Model):
     scope_kind = models.CharField(
         max_length=16, choices=Scope.choices, default=Scope.GLOBAL, db_index=True
     )
+    store = models.ForeignKey("stores.Store", on_delete=models.CASCADE, null=True)
 
     class Meta:
         db_table = "configs"

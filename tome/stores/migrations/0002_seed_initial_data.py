@@ -8,7 +8,7 @@ def create_data(apps, schema_editor):
 
     StoreModel.objects.create(
         name="The Money Store",
-        slug="moneystore",
+        slug="moneystore-stage",
         external_url="https://www.youtube.com/watch?v=dQw4w9WgXcQ",
         discord_channel_id=1300613593397727305,
     )

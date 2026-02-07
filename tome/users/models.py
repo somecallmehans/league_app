@@ -1,5 +1,4 @@
 import secrets
-import hashlib
 
 from datetime import datetime, timedelta
 
@@ -77,6 +76,7 @@ class Participants(models.Model):
 class ParticipantAchievements(models.Model):
     participant = models.ForeignKey(Participants, on_delete=models.CASCADE)
     achievement = models.ForeignKey(Achievements, on_delete=models.CASCADE)
+    store = models.ForeignKey("stores.Store", on_delete=models.CASCADE, null=True)
     round = models.ForeignKey(Rounds, on_delete=models.CASCADE)
     session = models.ForeignKey(Sessions, on_delete=models.CASCADE)
     deleted = models.BooleanField(default=False)
@@ -86,19 +86,20 @@ class ParticipantAchievements(models.Model):
         db_table = "participant_achievements"
 
 
-class Users(models.Model):
+# Unused as of 2/6/26, could drop
+# class Users(models.Model):
 
-    username = None
-    name = models.CharField(max_length=100, unique=True)
-    email = models.EmailField(max_length=100, unique=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    admin = models.BooleanField(default=False)
-    deleted = models.BooleanField(default=False)
-    active = models.BooleanField(default=True)
-    password = models.CharField(max_length=50)
+#     username = None
+#     name = models.CharField(max_length=100, unique=True)
+#     email = models.EmailField(max_length=100, unique=True)
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     admin = models.BooleanField(default=False)
+#     deleted = models.BooleanField(default=False)
+#     active = models.BooleanField(default=True)
+#     password = models.CharField(max_length=50)
 
-    class Meta:
-        db_table = "users"
+#     class Meta:
+#         db_table = "users"
 
 
 class Decklists(models.Model):

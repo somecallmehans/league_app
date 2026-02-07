@@ -24,7 +24,7 @@ class Store(models.Model):
 
 
 class StoreParticipant(models.Model):
-    participant = models.ForeignKey(Participants, on_delete=models.CASCADE)
+    participant = models.ForeignKey("users.Participants", on_delete=models.CASCADE)
     store = models.ForeignKey(Store, on_delete=models.CASCADE)
 
     class Meta:
