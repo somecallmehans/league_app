@@ -50,20 +50,21 @@ INSTALLED_APPS = [
     "sessions_rounds",
     "discord",
     "configs",
+    "stores",
     "rest_framework",
     "rest_framework.authtoken",
     "corsheaders",
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = "tome.urls"
@@ -90,10 +91,15 @@ WSGI_APPLICATION = "tome.wsgi.application"
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "https://commander-league-web-app-frontend.onrender.com",
-    "https://mtg-commander-league.xyz",
     "https://commanderleague.xyz",
     "https://www.commanderleague.xyz",
 ]
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^http://.*\.localhost:5173$",
+    r"^http://localhost:5173$",
+]
+
 CORS_ALLOW_METHODS = ["GET", "OPTIONS", "POST", "DELETE", "PUT"]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = [
