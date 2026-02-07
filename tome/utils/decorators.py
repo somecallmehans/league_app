@@ -46,3 +46,15 @@ def require_user_code(func):
         return func(request, *args, **kwargs)
 
     return wrapper
+
+
+def require_store(view_func):
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if getattr(request, "store_id", None) is None:
+            return Response(
+                {"detail": "Store context required"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        return view_func(request, *args, **kwargs)
+
+    return _wrapped

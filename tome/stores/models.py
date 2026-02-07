@@ -1,8 +1,6 @@
 from django.conf import settings
 from django.db import models
 
-from users.models import Participants
-
 
 class Store(models.Model):
     name = models.CharField(max_length=255, null=False, blank=False)

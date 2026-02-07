@@ -8,9 +8,18 @@ import getRoutes from "./getRoutes";
 import postRoutes from "./postRoutes";
 import authRoutes from "./authRoutes";
 import { BaseBQ } from "./baseApiTypes";
+import { getStoreSlug } from "../helpers/helpers";
+
+const storeSlug = getStoreSlug();
+
+const urlResolver = () => {
+  const slug = getStoreSlug();
+  if (slug) return `${import.meta.env.VITE_API_URL}s/${storeSlug}/`;
+  return import.meta.env.VITE_API_URL;
+};
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: import.meta.env.VITE_API_URL,
+  baseUrl: urlResolver(),
   credentials: "include",
   prepareHeaders: (headers) => {
     const token = getTokenRaw();

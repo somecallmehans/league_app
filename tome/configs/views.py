@@ -1,4 +1,5 @@
 import json
+from django.db.models import Q
 from rest_framework import status
 from rest_framework.decorators import (
     api_view,
@@ -16,10 +17,12 @@ POST = "POST"
 
 
 @api_view([GET])
-def get_all_configs(_):
+def get_all_configs(request, **kwargs):
     """Get all of the current configs"""
 
-    configs = Config.objects.all().values("name", "key", "value", "description")
+    configs = Config.objects.filter(
+        Q(store_id=request.store_id) | Q(store__isnull=True)
+    ).values("name", "key", "value", "description")
 
     return Response(configs)
 

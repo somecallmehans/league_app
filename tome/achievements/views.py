@@ -190,7 +190,7 @@ def get_achievements_with_restrictions(_):
 
 
 @api_view([GET])
-def get_achievements_by_participant_month(_, mm_yy=None):
+def get_achievements_by_participant_month(request, **kwargs):
     """Calculate the total points earned by a participant in a given month
 
     Originally this endpoint was meant for much more given the name but it's
@@ -198,6 +198,8 @@ def get_achievements_by_participant_month(_, mm_yy=None):
     it's true purpose sometime in the future."""
 
     today = datetime.today()
+
+    mm_yy = kwargs["mm_yy"]
 
     if mm_yy == "new" or mm_yy == None:
         mm_yy = today.strftime("%m-%y")

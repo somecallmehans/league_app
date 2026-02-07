@@ -1,5 +1,8 @@
 from django.db import models
 
+from django.db.models import Q
+from django.db.models.constraints import CheckConstraint
+
 
 class Config(models.Model):
     class Scope(models.TextChoices):
@@ -20,3 +23,13 @@ class Config(models.Model):
 
     class Meta:
         db_table = "configs"
+        constraints = [
+            CheckConstraint(
+                check=~Q(scope_kind="shop") | Q(store_id__isnull=False),
+                name="configs_store_required_for_shop_scope",
+            ),
+            CheckConstraint(
+                check=~Q(scope_kind="global") | Q(store_id__isnull=True),
+                name="configs_store_null_for_global_scope",
+            ),
+        ]
