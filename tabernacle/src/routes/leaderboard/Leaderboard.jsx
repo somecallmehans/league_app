@@ -101,7 +101,7 @@ export default function Leaderboard() {
             label: monthStr(month),
             value: month,
           }))}
-          classes="md:w-1/2 mb-4"
+          classes="mb-4"
           onChange={(obj) => {
             setSelectedMonth(obj.value);
           }}

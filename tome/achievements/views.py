@@ -217,16 +217,20 @@ def get_achievements_by_participant_month(request, **kwargs):
 
 
 @api_view([GET])
-def get_league_monthly_winners(_):
+def get_league_monthly_winners(request, **kwargs):
     """
     For each month, retrieve the top point earner for the given month + related commander info.
     """
     first_of_current_month = timezone.localdate().replace(day=1)
-    return Response(calculate_monthly_winners(cutoff=first_of_current_month))
+    return Response(
+        calculate_monthly_winners(
+            cutoff=first_of_current_month, store_id=request.store_id
+        )
+    )
 
 
 @api_view([GET])
-def get_league_monthly_winner_info(_, mm_yy, participant_id):
+def get_league_monthly_winner_info(request, mm_yy, participant_id, **kwargs):
     """
     For the provided month/participant, retrieve any relevant info
     about their participation in that month (points earned, commanders for the rounds
@@ -235,15 +239,17 @@ def get_league_monthly_winner_info(_, mm_yy, participant_id):
     # Get the rounds for the given month
     rounds = {
         r["id"]: r
-        for r in Rounds.objects.filter(session__month_year=mm_yy, deleted=False).values(
-            "id", "round_number", "starts_at"
-        )
+        for r in Rounds.objects.filter(
+            session__month_year=mm_yy, session__store_id=request.store_id, deleted=False
+        ).values("id", "round_number", "starts_at")
     }
 
     # Get the rounds and pods that the player appeared in
     played_round_ids = set(
         PodsParticipants.objects.filter(
-            participants_id=participant_id, pods__rounds_id__in=list(rounds.keys())
+            participants_id=participant_id,
+            pods__rounds_id__in=list(rounds.keys()),
+            pods__store_id=request.store_id,
         ).values_list("pods__rounds_id", flat=True)
     )
 
@@ -255,6 +261,7 @@ def get_league_monthly_winner_info(_, mm_yy, participant_id):
                 participant_id=participant_id,
                 round_id__in=played_round_ids,
                 deleted=False,
+                store_id=request.store_id,
             )
             .values("round_id")
             .annotate(total_points=Coalesce(Sum("earned_points"), 0))
@@ -270,6 +277,7 @@ def get_league_monthly_winner_info(_, mm_yy, participant_id):
                 deleted=False,
                 participants_id=participant_id,
                 pods__rounds_id__in=list(rounds.keys()),
+                store_id=request.store_id,
             )
             .values("pods__rounds_id")
             .annotate(cmd_name=Max("name"))

@@ -60,12 +60,13 @@ def calculate_total_points_for_month(sessions, store_id):
     ]
 
 
-def calculate_monthly_winners(cutoff):
+def calculate_monthly_winners(cutoff, store_id):
     pa_qs = ParticipantAchievements.objects.filter(
         participant__deleted=False,
         session__deleted=False,
         deleted=False,
         session__session_date__lt=cutoff,
+        store_id=store_id,
     ).select_related("session")
     base = pa_qs.values("session__month_year", "participant_id").annotate(
         participant_name=Max("participant__name"),
