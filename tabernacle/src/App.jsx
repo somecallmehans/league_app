@@ -46,7 +46,7 @@ function App() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar loggedIn={loggedIn} />
+      <Navbar loggedIn={loggedIn} isStore={!!storeSlug} />
       <ToastContainer />
       <Routes>
         <Route path="/" element={<Home />} />

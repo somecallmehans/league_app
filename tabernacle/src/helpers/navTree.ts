@@ -1,3 +1,5 @@
+export type NavScope = "apex" | "store" | "both";
+
 export type NodeChild = {
   id: string;
   name: string;
@@ -12,7 +14,7 @@ export type Node = {
   icon: string;
   children?: Array<NodeChild>;
   hideWhenLoggedIn?: boolean;
-  storeRoute: boolean;
+  scope: NavScope;
 };
 
 export const navLinks: Array<Node> = [
@@ -22,7 +24,7 @@ export const navLinks: Array<Node> = [
     to: "/",
     admin: false,
     icon: "fa-solid fa-house",
-    storeRoute: false,
+    scope: "both",
   },
   {
     id: 2,
@@ -38,7 +40,7 @@ export const navLinks: Array<Node> = [
         to: "/decklists",
       },
     ],
-    storeRoute: true,
+    scope: "store",
   },
   {
     id: 21,
@@ -46,7 +48,7 @@ export const navLinks: Array<Node> = [
     to: "/faqs",
     admin: false,
     icon: "fa-solid fa-circle-info",
-    storeRoute: false,
+    scope: "apex",
   },
   {
     id: 3,
@@ -58,7 +60,7 @@ export const navLinks: Array<Node> = [
       { id: "3a", name: "Leaderboard", to: "/leaderboard" },
       { id: "3b", name: "Champions", to: "/champions" },
     ],
-    storeRoute: true,
+    scope: "store",
   },
   {
     id: 8,
@@ -66,7 +68,7 @@ export const navLinks: Array<Node> = [
     to: "/pods",
     admin: false,
     icon: "fa-solid fa-landmark",
-    storeRoute: true,
+    scope: "store",
   },
   {
     id: 4,
@@ -74,7 +76,7 @@ export const navLinks: Array<Node> = [
     to: "/achievements",
     admin: false,
     icon: "fa-solid fa-star",
-    storeRoute: false,
+    scope: "both",
   },
   {
     id: 7,
@@ -82,7 +84,7 @@ export const navLinks: Array<Node> = [
     to: "/metrics",
     icon: "fa-solid fa-square-poll-vertical",
     admin: false,
-    storeRoute: true,
+    scope: "store",
   },
   {
     id: 9,
@@ -92,7 +94,7 @@ export const navLinks: Array<Node> = [
     icon: "fa-solid fa-lock",
     hideWhenLoggedIn: true,
     children: [{ id: "9a", name: "Login", to: "/login" }],
-    storeRoute: true,
+    scope: "store",
   },
   {
     id: 10,
@@ -105,6 +107,6 @@ export const navLinks: Array<Node> = [
       { id: "10b", name: "Management", to: "/management" },
       { id: "10c", name: "Logout", to: "/logout" },
     ],
-    storeRoute: true,
+    scope: "store",
   },
 ];

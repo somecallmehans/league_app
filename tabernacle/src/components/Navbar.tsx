@@ -110,18 +110,16 @@ function MobileDisclosure({ link, close, isActive }: MobileDisclosureProps) {
 
 interface NavbarProps {
   loggedIn: boolean;
+  isStore: boolean;
 }
 
-export default function Navbar({ loggedIn }: NavbarProps) {
+export default function Navbar({ loggedIn, isStore }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { pathname } = useLocation();
   const filtered = navLinks
     .filter((l) => {
-      if (!storeSlug) {
-        return !l.storeRoute;
-      } else {
-        return true;
-      }
+      if (l.scope === "both") return true;
+      return isStore ? l.scope === "store" : l.scope === "apex";
     })
     .filter((l) =>
       loggedIn
