@@ -33,13 +33,14 @@ def group_parents_by_point_value(parent_dict):
     return dict(grouped_by_points)
 
 
-def calculate_total_points_for_month(sessions):
+def calculate_total_points_for_month(sessions, store_id):
     earned_achievements = (
         ParticipantAchievements.objects.filter(
             session_id__in=sessions,
             participant__deleted=False,
             session__deleted=False,
             deleted=False,
+            store_id=store_id,
         )
         .select_related("participant")
         .values("id", "earned_points", "participant_id", "participant__name")

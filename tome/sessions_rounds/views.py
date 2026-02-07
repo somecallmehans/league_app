@@ -55,9 +55,13 @@ def all_sessions(_):
 
 
 @api_view([GET])
-def get_unique_session_months(request):
+def get_unique_session_months(request, **kwargs):
     """Get a list of unique month-years for sessions."""
-    months = Sessions.objects.filter(deleted=False).values("month_year").distinct()
+    months = (
+        Sessions.objects.filter(deleted=False, store_id=request.store_id)
+        .values("month_year")
+        .distinct()
+    )
 
     sorted_months = sorted(
         [m["month_year"] for m in months],

@@ -204,11 +204,12 @@ def get_achievements_by_participant_month(request, **kwargs):
     if mm_yy == "new" or mm_yy == None:
         mm_yy = today.strftime("%m-%y")
 
-    session_ids = Sessions.objects.filter(month_year=mm_yy, deleted=False).values_list(
-        "id", flat=True
-    )
+    store_id = request.store_id
+    session_ids = Sessions.objects.filter(
+        month_year=mm_yy, deleted=False, store_id=store_id
+    ).values_list("id", flat=True)
 
-    res = calculate_total_points_for_month(session_ids)
+    res = calculate_total_points_for_month(session_ids, store_id)
 
     res.sort(key=lambda x: x["total_points"], reverse=True)
 
