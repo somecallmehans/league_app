@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import PrivateRoute from "./routes/routeHelper";
 import auth from "./helpers/authHelpers";
 import { useGetAllConfigsQuery } from "./api/apiSlice";
@@ -20,12 +20,28 @@ import HallofFame from "./routes/halloffame/HallofFame";
 import Decklists from "./routes/home/Decklists";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { getStoreSlug } from "./helpers/helpers";
 
 import { usePageTracking } from "./hooks";
 
+const NotFoundPage = ({ storeSlug }) => {
+  if (!storeSlug) return <Navigate to="/" replace />;
+  return (
+    <div className="text-3xl flex h-96 w-full items-center justify-center">
+      <span>Page Not Found</span>
+    </div>
+  );
+};
+
+function RequireStore({ storeSlug }) {
+  if (!storeSlug) return <Navigate to="/" replace />;
+  return <Outlet />;
+}
+
 function App() {
+  const storeSlug = getStoreSlug();
   const [loggedIn, setLoggedIn] = useState(!!auth.getToken());
-  useGetAllConfigsQuery();
+  useGetAllConfigsQuery(undefined, { skip: !storeSlug });
   usePageTracking();
 
   return (
@@ -34,38 +50,40 @@ function App() {
       <ToastContainer />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route
-          path="/login"
-          element={<Login loggedIn={loggedIn} setLoggedIn={setLoggedIn} />}
-        />
-        <Route
-          path="/logout"
-          element={<Logout loggedIn={loggedIn} setLoggedIn={setLoggedIn} />}
-        />
         <Route path="/faqs" element={<Resources />} />
-        <Route path="/decklists/*" element={<Decklists />} />
-        <Route path="/leaderboard" element={<LeaderBoard />} />
-        <Route path="/champions/*" element={<HallofFame />} />
         <Route path="/achievements" element={<AchievementsPage />} />
-        <Route path="/metrics/*" element={<Metrics />} />
-        <Route
-          path="/management"
-          element={
-            <PrivateRoute loggedIn={loggedIn}>
-              <ManagementContainer />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/league-session/*"
-          element={
-            <PrivateRoute loggedIn={loggedIn}>
-              <LeagueRouter />
-            </PrivateRoute>
-          }
-        />
-        <Route path="/pods/*" element={<Pods />} />
-        <Route path="*" element={<p>404 Error - Nothing here...</p>} />
+        <Route element={<RequireStore storeSlug={storeSlug} />}>
+          <Route
+            path="/login"
+            element={<Login loggedIn={loggedIn} setLoggedIn={setLoggedIn} />}
+          />
+          <Route
+            path="/logout"
+            element={<Logout loggedIn={loggedIn} setLoggedIn={setLoggedIn} />}
+          />
+          <Route path="/decklists/*" element={<Decklists />} />
+          <Route path="/leaderboard" element={<LeaderBoard />} />
+          <Route path="/champions/*" element={<HallofFame />} />
+          <Route path="/metrics/*" element={<Metrics />} />
+          <Route
+            path="/management"
+            element={
+              <PrivateRoute loggedIn={loggedIn}>
+                <ManagementContainer />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/league-session/*"
+            element={
+              <PrivateRoute loggedIn={loggedIn}>
+                <LeagueRouter />
+              </PrivateRoute>
+            }
+          />
+          <Route path="/pods/*" element={<Pods />} />
+        </Route>
+        <Route path="*" element={<NotFoundPage storeSlug={storeSlug} />} />
       </Routes>
       <Footer />
     </div>

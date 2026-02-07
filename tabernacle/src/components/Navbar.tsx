@@ -2,6 +2,9 @@ import { useState, Fragment } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Menu, Transition, Disclosure } from "@headlessui/react";
 import { navLinks, type Node, type NodeChild } from "../helpers/navTree";
+import { getStoreSlug } from "../helpers/helpers";
+
+const storeSlug = getStoreSlug();
 
 interface DesktopDropdownProps {
   link: Node;
@@ -112,9 +115,19 @@ interface NavbarProps {
 export default function Navbar({ loggedIn }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { pathname } = useLocation();
-  const filtered = navLinks.filter((l) =>
-    loggedIn ? l.admin === true || (!l.admin && !l.hideWhenLoggedIn) : !l.admin
-  );
+  const filtered = navLinks
+    .filter((l) => {
+      if (!storeSlug) {
+        return !l.storeRoute;
+      } else {
+        return true;
+      }
+    })
+    .filter((l) =>
+      loggedIn
+        ? l.admin === true || (!l.admin && !l.hideWhenLoggedIn)
+        : !l.admin
+    );
 
   const isActive = (to: string | undefined) => pathname === to;
   return (

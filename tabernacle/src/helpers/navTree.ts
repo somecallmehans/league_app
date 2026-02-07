@@ -1,4 +1,8 @@
-export type NodeChild = { id: string; name: string; to: string };
+export type NodeChild = {
+  id: string;
+  name: string;
+  to: string;
+};
 
 export type Node = {
   id: number;
@@ -8,10 +12,18 @@ export type Node = {
   icon: string;
   children?: Array<NodeChild>;
   hideWhenLoggedIn?: boolean;
+  storeRoute: boolean;
 };
 
 export const navLinks: Array<Node> = [
-  { id: 1, name: "Home", to: "/", admin: false, icon: "fa-solid fa-house" },
+  {
+    id: 1,
+    name: "Home",
+    to: "/",
+    admin: false,
+    icon: "fa-solid fa-house",
+    storeRoute: false,
+  },
   {
     id: 2,
     name: "Info",
@@ -20,8 +32,21 @@ export const navLinks: Array<Node> = [
     icon: "fa-solid fa-circle-info",
     children: [
       { id: "2a", name: "Resources & FAQs", to: "/faqs" },
-      { id: "2b", name: "Submitted Decklists", to: "/decklists" },
+      {
+        id: "2b",
+        name: "Submitted Decklists",
+        to: "/decklists",
+      },
     ],
+    storeRoute: true,
+  },
+  {
+    id: 21,
+    name: "Info",
+    to: "/faqs",
+    admin: false,
+    icon: "fa-solid fa-circle-info",
+    storeRoute: false,
   },
   {
     id: 3,
@@ -33,6 +58,7 @@ export const navLinks: Array<Node> = [
       { id: "3a", name: "Leaderboard", to: "/leaderboard" },
       { id: "3b", name: "Champions", to: "/champions" },
     ],
+    storeRoute: true,
   },
   {
     id: 8,
@@ -40,6 +66,7 @@ export const navLinks: Array<Node> = [
     to: "/pods",
     admin: false,
     icon: "fa-solid fa-landmark",
+    storeRoute: true,
   },
   {
     id: 4,
@@ -47,6 +74,7 @@ export const navLinks: Array<Node> = [
     to: "/achievements",
     admin: false,
     icon: "fa-solid fa-star",
+    storeRoute: false,
   },
   {
     id: 7,
@@ -54,6 +82,7 @@ export const navLinks: Array<Node> = [
     to: "/metrics",
     icon: "fa-solid fa-square-poll-vertical",
     admin: false,
+    storeRoute: true,
   },
   {
     id: 9,
@@ -63,6 +92,7 @@ export const navLinks: Array<Node> = [
     icon: "fa-solid fa-lock",
     hideWhenLoggedIn: true,
     children: [{ id: "9a", name: "Login", to: "/login" }],
+    storeRoute: true,
   },
   {
     id: 10,
@@ -75,5 +105,6 @@ export const navLinks: Array<Node> = [
       { id: "10b", name: "Management", to: "/management" },
       { id: "10c", name: "Logout", to: "/logout" },
     ],
+    storeRoute: true,
   },
 ];
