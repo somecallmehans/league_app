@@ -219,7 +219,8 @@ def exchange_tokens(request):
         max_age=30 * 60,
         httponly=True,
         secure=not settings.DEBUG,
-        samesite="None",
+        samesite="Lax",
+        domain=settings.COOKIE_DOMAIN,
         path="/",
     )
 

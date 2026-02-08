@@ -88,9 +88,8 @@ WSGI_APPLICATION = "tome.wsgi.application"
 
 
 CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:5173",
     "http://localhost:5173",
-    "https://commander-league-web-app-frontend.onrender.com",
-    "https://mtg-commander-league.xyz",
     "https://commanderleague.xyz",
     "https://www.commanderleague.xyz",
 ]
@@ -234,3 +233,15 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+COOKIE_DOMAIN = os.getenv("COOKIE_DOMAIN") or None
+
+
+SESSION_COOKIE_DOMAIN = COOKIE_DOMAIN
+CSRF_COOKIE_DOMAIN = COOKIE_DOMAIN
+
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SAMESITE = "Lax"
