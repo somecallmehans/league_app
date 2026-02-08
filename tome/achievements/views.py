@@ -130,7 +130,7 @@ def get_achievement_types(_, **kwargs):
 
 
 @api_view([GET])
-def get_achievements_with_restrictions(_):
+def get_achievements_with_restrictions(_, **kwargs):
     """Get achievements with their restrictions and put them in a map, raw list, and parents only."""
 
     parent_map = defaultdict(lambda: {"children": []})
@@ -495,7 +495,7 @@ def fetch_and_insert_commanders(_):
 @api_view([POST])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def upsert_earned_achievements(request):
+def upsert_earned_achievements(request, **kwargs):
     """
     Responsible for either inserting an achievement
     or updating an existing one (primarily deleting)
@@ -506,7 +506,9 @@ def upsert_earned_achievements(request):
     id = body.get("id", [])
 
     if id:
-        achievement = ParticipantAchievements.objects.filter(id=id).first()
+        achievement = ParticipantAchievements.objects.filter(
+            id=id, store_id=request.store_id
+        ).first()
         if not achievement:
             return Response(
                 {"message": "Achievement with given ID not found."},
@@ -534,7 +536,9 @@ def upsert_earned_achievements(request):
     point_value = achievement.points
 
     session_id = (
-        Rounds.objects.filter(id=round_id).values_list("session_id", flat=True).first()
+        Rounds.objects.filter(id=round_id, session__store_id=request.store_id)
+        .values_list("session_id", flat=True)
+        .first()
     )
 
     ParticipantAchievements.objects.create(
@@ -543,6 +547,7 @@ def upsert_earned_achievements(request):
         round_id=round_id,
         session_id=session_id,
         earned_points=point_value,
+        store_id=request.store_id, 
     )
     return Response(status=status.HTTP_201_CREATED)
 

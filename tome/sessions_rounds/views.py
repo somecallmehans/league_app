@@ -74,7 +74,7 @@ def get_unique_session_months(request, **kwargs):
 
 
 @api_view([GET, POST])
-def sessions_and_rounds(request, mm_yy=None):
+def sessions_and_rounds(request, mm_yy=None, **kwargs):
     """Get or create a sessions/rounds for today."""
 
     if mm_yy is None or mm_yy == "new":
@@ -94,7 +94,7 @@ def sessions_and_rounds(request, mm_yy=None):
         session_date = date.fromisoformat(sess_date_str)
         mm_yy = session_date.strftime("%m-%y")
         new_session = Sessions.objects.create(
-            month_year=mm_yy, session_date=session_date
+            month_year=mm_yy, session_date=session_date, store_id=request.store_id
         )
 
         tz = timezone.get_current_timezone()
@@ -121,6 +121,7 @@ def sessions_and_rounds(request, mm_yy=None):
 
         return Response(session, status=status.HTTP_201_CREATED)
     try:
+        # TODO: Do we even ever hit this? Check
         session_data = Sessions.objects.filter(month_year=mm_yy, deleted=False).latest(
             "session_date"
         )
@@ -146,7 +147,7 @@ def sessions_and_rounds_by_date(request):
 @api_view([POST])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def begin_round(request):
+def begin_round(request, **kwargs):
     """Begin a round. Request expects a round_id, session_id, and a list of participants.
     If a participant in the list does not have an id, it will be created.
 
@@ -169,7 +170,10 @@ def begin_round(request):
         )
 
     round_service = RoundInformationService(
-        participants=participants, session_id=session_id, round_id=round_id
+        participants=participants,
+        session_id=session_id,
+        round_id=round_id,
+        store_id=request.store_id,
     )
 
     all_participants = list(round_service.build_participants_and_achievements())
@@ -182,7 +186,10 @@ def begin_round(request):
     )
 
     pods = PodsParticipantsSerializer(
-        generate_pods(participants=all_participants, round_id=round_id), many=True
+        generate_pods(
+            participants=all_participants, round_id=round_id, store_id=request.store_id
+        ),
+        many=True,
     ).data
     return Response(pods, status=status.HTTP_201_CREATED)
 
@@ -373,17 +380,21 @@ def get_rounds_by_month(request, mm_yy, **kwargs):
 @api_view([GET])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def get_all_rounds(_, participant_id=None):
+def get_all_rounds(request, participant_id=None, **kwargs):
     """
     Get all of the rounds that have happened. If we have a participant_id, get
     all of the rounds that occurred after that participant was created (by day)
     """
 
-    filters = {"deleted": False}
+    filters = {"deleted": False, "session__store_id": request.store_id}
 
     if participant_id:
         participant = (
-            Participants.objects.filter(id=participant_id).values("created_at").first()
+            Participants.objects.filter(
+                id=participant_id, storeparticipant__store_id=request.store_id
+            )
+            .values("created_at")
+            .first()
         )
         if participant is None:
             return Response(
@@ -562,7 +573,7 @@ def signin_counts(request, **kwargs):
 @api_view([POST])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def post_signin(request):
+def post_signin(request, **kwargs):
     """Post a signed in user from the lobby. Accepts a round_id and a participant_id"""
     body = json.loads(request.body.decode("utf-8"))
     rid = body.get("round_id")
@@ -575,8 +586,7 @@ def post_signin(request):
         )
 
     _, created = RoundSignups.objects.get_or_create(
-        round_id=rid,
-        participant_id=pid,
+        round_id=rid, participant_id=pid, store_id=request.store_id
     )
 
     if not created:
@@ -590,7 +600,7 @@ def post_signin(request):
 @api_view([DELETE])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def delete_signin(request):
+def delete_signin(request, **kwargs):
     """Remove a signed in user from lobby."""
     body = json.loads(request.body.decode("utf-8"))
 
@@ -613,7 +623,7 @@ def delete_signin(request):
         )
 
     deleted_count, _ = RoundSignups.objects.filter(
-        round_id=rid, participant_id=pid
+        round_id=rid, participant_id=pid, store_id=request.store_id
     ).delete()
 
     if deleted_count == 0:

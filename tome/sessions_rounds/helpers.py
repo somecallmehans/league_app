@@ -2,7 +2,7 @@ from users.models import Participants, ParticipantAchievements
 from users.serializers import ParticipantsSerializer
 from achievements.models import Achievements
 from sessions_rounds.models import Pods, PodsParticipants, Rounds, Sessions
-
+from stores.models import StoreParticipant
 from users.helpers import generate_code
 
 
@@ -53,7 +53,7 @@ def make_bridge_records(ids: list, pods: list):
     return records
 
 
-def generate_pods(participants, round_id):
+def generate_pods(participants, round_id, store_id):
     """
     Generate pods with the following rules:
     - Prefer pods of 4
@@ -77,7 +77,7 @@ def generate_pods(participants, round_id):
             pods_needed = length // 4
 
         new_pods = Pods.objects.bulk_create(
-            [Pods(rounds_id=round_id) for _ in range(pods_needed)]
+            [Pods(rounds_id=round_id, store_id=store_id) for _ in range(pods_needed)]
         )
 
         records = make_bridge_records(ids, new_pods)
@@ -115,10 +115,11 @@ def handle_close_round(round_id):
 
 
 class RoundInformationService:
-    def __init__(self, participants, session_id, round_id):
+    def __init__(self, participants, session_id, round_id, store_id):
         self.participants = participants
         self.session_id = session_id
         self.round_id = round_id
+        self.store_id = store_id
         self.participation_achievement = Achievements.objects.get(
             slug=PARTICIPATION_ACHIEVEMENT, deleted=False
         )
@@ -145,6 +146,9 @@ class RoundInformationService:
                 Participants(name=p["name"], code=generate_code())
                 for p in self.new_participants
             )
+            StoreParticipant.objects.bulk_create(
+                [StoreParticipant(store_id=self.store_id, participant=n) for n in new]
+            )
             self.existing_participants.extend(
                 ParticipantsSerializer(new, many=True).data
             )
@@ -170,6 +174,7 @@ class RoundInformationService:
                     session_id=self.session_id,
                     achievement_id=self.participation_achievement.id,
                     earned_points=self.participation_achievement.points,
+                    store_id=self.store_id,
                 )
                 for ep in self.existing_participants
             )

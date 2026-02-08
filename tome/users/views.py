@@ -20,6 +20,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from utils.decorators import require_user_code
 from .models import Participants, SessionToken, Decklists, DecklistsAchievements
+from stores.models import StoreParticipant
 from .serializers import ParticipantsSerializer
 from .queries import (
     get_decklists,
@@ -48,7 +49,7 @@ def get_all_participants(request, id=None, **kwargs):
 @api_view(["POST"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def upsert_participant(request):
+def upsert_participant(request, **kwargs):
     body = json.loads(request.body.decode("utf-8"))
     id = body.get("id", None)
     name = body.get("name", None)
@@ -77,6 +78,7 @@ def upsert_participant(request):
         )
 
     participant = Participants.objects.create(name=name)
+    StoreParticipant.objects.create(participant=participant, store_id=request.store_id)
     serializer = ParticipantsSerializer(participant)
 
     return Response(serializer.data, status=status.HTTP_201_CREATED)
