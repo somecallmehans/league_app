@@ -73,7 +73,7 @@ scryfall_request = ScryfallClientRequest()
 
 
 @api_view([GET])
-def get_achievements_with_restrictions_v2(_):
+def get_achievements_with_restrictions_v2(_, **kwargs):
     """Get achievements with their restrictions but do it much cleaner than the original endpoint."""
 
     achievements = (
@@ -122,7 +122,7 @@ def get_achievements_with_restrictions_v2(_):
 
 
 @api_view([GET])
-def get_achievement_types(_):
+def get_achievement_types(_, **kwargs):
     """Get all of the current achievement types."""
 
     types = AchievementType.objects.all()

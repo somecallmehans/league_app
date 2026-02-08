@@ -7,11 +7,11 @@ from .helpers import MetricsCalculator, IndividualMetricsCalculator, calculate_b
 
 
 @api_view(["GET"])
-def get_all_metrics(request):
+def get_all_metrics(request, **kwargs):
     """Get all of the metrics we want and gather them in a nice object."""
     try:
         period = request.query_params.get("period")
-        calculator = MetricsCalculator()
+        calculator = MetricsCalculator(store_id=request.store_id)
         metrics = calculator.build_metrics(period)
         return Response(metrics, status=status.HTTP_200_OK)
     except Exception as e:

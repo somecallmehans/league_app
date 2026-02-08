@@ -56,8 +56,9 @@ def calculate_full_name(child, parent):
 
 
 class MetricsCalculator:
-    def __init__(self):
+    def __init__(self, store_id: int):
         self.metrics = {}
+        self.store_id = store_id
 
     def build_color_pie(self, winners):
         try:
@@ -147,7 +148,7 @@ class MetricsCalculator:
         try:
             last_draw = (
                 ParticipantAchievements.objects.filter(
-                    achievement__slug="end-draw", deleted=False
+                    achievement__slug="end-draw", store_id=self.store_id, deleted=False
                 )
                 .select_related("round")
                 .order_by("-round__created_at")
@@ -262,8 +263,10 @@ class MetricsCalculator:
         try:
             start, end = get_bounds(period)
 
-            winners_filters = Q(deleted=False) & ~Q(name="END IN DRAW")
-            achievement_filters = Q(deleted=False)
+            winners_filters = (
+                Q(deleted=False) & ~Q(name="END IN DRAW") & Q(store_id=self.store_id)
+            )
+            achievement_filters = Q(deleted=False) & Q(store_id=self.store_id)
             if start is not None:
                 winners_filters &= Q(pods__rounds__created_at__gte=start) & Q(
                     pods__rounds__created_at__lt=end
