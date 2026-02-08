@@ -60,13 +60,13 @@ class MetricsCalculator:
         self.metrics = {}
         self.store_id = store_id
 
-    def build_color_pie(self, winners):
+    def build_color_pie(self, winners) -> None:
         try:
             color_pie = {}
             for winner in winners:
                 symbol = winner["color__symbol"]
                 color_pie[symbol] = color_pie.get(symbol, 0) + 1
-            self.metrics["color_pie"] = color_pie
+            self.metrics["color_pie"] = color_pie if color_pie else None
         except (KeyError, TypeError) as e:
             print(f"Error building color pie: {e}")
 
@@ -296,6 +296,9 @@ class MetricsCalculator:
                     "round__starts_at",
                 )
             )
+
+            if not winners and not achievements:
+                return None
 
         except Exception as e:
             print(f"Error fetching data to build metrics: {e}")
