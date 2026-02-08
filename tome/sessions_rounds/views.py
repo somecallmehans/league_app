@@ -41,9 +41,11 @@ DELETE = "DELETE"
 
 
 @api_view([GET])
-def all_sessions(_):
+def all_sessions(request, **kwargs):
     """Get all sessions that are not deleted, including their rounds info."""
-    data = Sessions.objects.filter(deleted=False).order_by("-session_date")
+    data = Sessions.objects.filter(deleted=False, store_id=request.store_id).order_by(
+        "-session_date"
+    )
     sessions = SessionSerializer(data, many=True).data
 
     session_map = defaultdict(list)
@@ -756,11 +758,13 @@ def get_pod_participants(_, pod_id):
 @api_view([GET])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def get_rounds_by_session(_, session_id):
+def get_rounds_by_session(request, session_id, **kwargs):
     """Return the rounds associated with a given session."""
 
     rounds = list(
-        Rounds.objects.filter(session_id=session_id, deleted=False)
+        Rounds.objects.filter(
+            session_id=session_id, session__store_id=request.store_id, deleted=False
+        )
         .values("round_number", "completed", "session__session_date", "id")
         .order_by("round_number")
     )

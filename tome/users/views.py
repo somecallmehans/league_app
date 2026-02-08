@@ -37,12 +37,11 @@ logger = logging.getLogger(__name__)
 
 
 @api_view(["GET"])
-def get_all_participants(_, id=None):
-    filters = {"deleted": False}
+def get_all_participants(request, id=None, **kwargs):
+    filters = {"deleted": False, "storeparticipant__store_id": request.store_id}
     if id:
         filters["id"] = id
     data = list(Participants.objects.filter(**filters).values("id", "name"))
-    # participants = ParticipantsSerializer(data, many=True).data
     return Response(data, status=status.HTTP_200_OK)
 
 
