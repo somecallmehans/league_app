@@ -21,21 +21,31 @@ type AchievementModalProps = {
 
 type LineItemProps = {
   name: string;
-  points: number;
+  points: number | string;
 };
 
-const LineItem = ({ name, points }: LineItemProps) => (
-  <div className="grid grid-cols-4 gap-4 items-center py-3">
-    <div className="col-span-3 text-gray-800">
-      <div className="font-medium leading-snug">{name}</div>
-    </div>
+const LineItem = ({ name, points }: LineItemProps) => {
+  return (
+    <div className="grid grid-cols-4 gap-4 items-center py-3">
+      <div className="col-span-3 text-gray-800">
+        <div className="font-medium leading-snug">{name}</div>
+      </div>
 
-    <div className="col-span-1 text-right whitespace-nowrap">
-      <span className="font-bold text-gray-700">{points}</span>{" "}
-      <span className="text-gray-500">point{points === 1 ? "" : "s"}</span>
+      <div className="col-span-1 text-right whitespace-nowrap">
+        {typeof points === "number" ? (
+          <>
+            <span className="font-bold text-gray-700">{points}</span>{" "}
+            <span className="text-gray-500">
+              point{points === 1 ? "" : "s"}
+            </span>
+          </>
+        ) : (
+          <span className="font-bold text-gray-700">{points}</span>
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default function AchievementModal({
   isOpen,

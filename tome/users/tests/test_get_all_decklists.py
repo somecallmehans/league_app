@@ -164,7 +164,40 @@ def test_get_decklists_by_color(client, build_state) -> None:
                     "points": 4,
                 },
             ],
-        }
+        },
+        {
+            "achievements": [
+                {
+                    "id": 26,
+                    "name": "Win with a deck that has no instants or sorceries",
+                    "points": 5,
+                },
+                {
+                    "id": 30,
+                    "name": "Win via commander damage",
+                    "points": 1,
+                },
+                {
+                    "id": 27,
+                    "name": "Win with no creatures except your commander",
+                    "points": 4,
+                },
+            ],
+            "code": "DL-A1B2",
+            "color": {
+                "name": "green",
+                "points": 4,
+                "symbol": "g",
+            },
+            "commander_name": "Fynn, the Fangbearer",
+            "companion_name": None,
+            "id": 1,
+            "name": "Beep",
+            "participant_name": None,
+            "partner_name": None,
+            "points": 14,
+            "url": "www.moxfield.com/beep",
+        },
     ]
 
 

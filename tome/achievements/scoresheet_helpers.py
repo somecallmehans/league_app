@@ -324,6 +324,8 @@ class POSTScoresheetHelper:
 
     def build_win_colors(self):
         """Build the winning commander record."""
+        winner_achievements = getattr(self, "winner-achievements", [])
+        is_precon = 2 in winner_achievements
         winner_commander = getattr(self, "winner-commander", None)
         partner_commander = getattr(self, "partner-commander", None)
         companion_commander = getattr(self, "companion-commander", None)
@@ -346,16 +348,17 @@ class POSTScoresheetHelper:
 
         win_colors, color_id = calculate_color_mask(color_ids)
 
-        self.records.append(
-            ParticipantAchievements(
-                participant_id=self.winner,
-                achievement_id=self.ids_by_slug[f"win-{win_colors}-colors"],
-                round_id=self.round_id,
-                session_id=self.session_id,
-                earned_points=self.points_by_slug[f"win-{win_colors}-colors"],
-                store_id=self.store_id,
+        if not is_precon:
+            self.records.append(
+                ParticipantAchievements(
+                    participant_id=self.winner,
+                    achievement_id=self.ids_by_slug[f"win-{win_colors}-colors"],
+                    round_id=self.round_id,
+                    session_id=self.session_id,
+                    earned_points=self.points_by_slug[f"win-{win_colors}-colors"],
+                    store_id=self.store_id,
+                )
             )
-        )
 
         out_name = "+".join(name_list)
 

@@ -143,8 +143,11 @@ def get_decklists(params: dict = None, owner_id: int = None) -> list[Decklists]:
             query = query.filter(combined_mask=0)
         else:
             query = query.annotate(
-                matched_mask=BitAnd(F("combined_mask"), Value(mask_int))
-            ).filter(matched_mask=mask_int)
+                subset_mask=BitAnd(F("combined_mask"), Value(mask_int))
+            ).filter(
+                subset_mask=F("combined_mask"),
+                combined_mask__gt=0,
+            )
     query = query.order_by(*order_by)
 
     if owner_id is not None:
@@ -172,7 +175,11 @@ def get_decklists(params: dict = None, owner_id: int = None) -> list[Decklists]:
                 qu.get("partner__color__mask") or -1,
             ]
         )
-        color_points = COLOR_POINTS[color.symbol_length]
+        achievements = ach_by_decklist.get(qu["id"], [])
+        has_precon = any(ach["id"] == 2 for ach in achievements)
+        color_points = COLOR_POINTS[color.symbol_length] if not has_precon else 0
+        id_points = COLOR_POINTS[color.symbol_length] if not has_precon else "Precon"
+
         out.append(
             {
                 "id": qu["id"],
@@ -189,10 +196,10 @@ def get_decklists(params: dict = None, owner_id: int = None) -> list[Decklists]:
                 "color": {
                     "symbol": color.symbol,
                     "name": color.name,
-                    "points": color_points,
+                    "points": id_points,
                 },
                 "points": qu["points"] + color_points,
-                "achievements": ach_by_decklist.get(qu["id"], []),
+                "achievements": achievements,
             }
         )
 
