@@ -16,6 +16,44 @@ import Gatekeeper from "./DecklistEditGatekeeper";
 import EditDecklists, { EditDecklistFormWrapper } from "./EditDecklists";
 import AchievementModal, { type Achievement } from "./AchievementModal";
 
+const Callout = () => (
+  <div className="my-3 rounded-lg border border-sky-100 bg-sky-50/60 p-3 sm:p-4">
+    <div className="flex items-start gap-2">
+      <div className="w-full">
+        <p className="text-xs sm:text-sm font-semibold text-sky-800">
+          Decklist submissions are optional
+        </p>
+
+        <div className="mt-2 space-y-1.5 text-xs sm:text-sm text-sky-700">
+          <div className="flex gap-2">
+            <span className="shrink-0 text-sky-400">–</span>
+            <span>
+              Submitting a decklist is <span className="font-bold">not</span>{" "}
+              required to participate in Commander League.
+            </span>
+          </div>
+
+          <div className="flex gap-2">
+            <span className="shrink-0 text-sky-400">–</span>
+            <span>
+              You earn <span className="font-bold">extra points</span> for
+              winning with a submitted list.
+            </span>
+          </div>
+
+          <div className="flex gap-2">
+            <span className="shrink-0 text-sky-400">–</span>
+            <span>
+              Please only submit a list you have personally curated, and be sure
+              to add any qualifying achievements!
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 type DecklistProps = {
   name: string;
   commander_img: Image[];
@@ -122,14 +160,30 @@ function DecklistContainer() {
 
   return (
     <div className="p-2 md:p-8">
-      <div className="flex justify-between items-center">
+      <div className="flex items-start justify-between gap-2">
         <PageTitle title="Decklists" />
-        <div>
+        <div className="flex gap-1 sm:gap-2">
           <Link to="new">
-            <StandardButton title="New" />
+            <StandardButton
+              title="New"
+              className="
+              bg-sky-600 text-white data-[hover]:bg-sky-500 data-[active]:bg-sky-700
+          text-xs sm:text-sm
+          px-2 py-1 sm:px-4 sm:py-2
+          min-w-[3.5rem] sm:min-w-24 md:min-w-40
+        "
+            />
           </Link>
           <Link to="gatekeeper">
-            <StandardButton title="Edit" />
+            <StandardButton
+              title="Edit"
+              className="
+          bg-sky-600 text-white data-[hover]:bg-sky-500 data-[active]:bg-sky-700
+          text-xs sm:text-sm
+          px-2 py-1 sm:px-4 sm:py-2
+          min-w-[3.5rem] sm:min-w-24 md:min-w-40
+        "
+            />
           </Link>
         </div>
       </div>
@@ -155,11 +209,11 @@ function DecklistContainer() {
             <span className="font-medium"> DL-XXXX </span>
             code on your scorecard instead of listing achievements.
           </p>
-
-          <p className="italic">Editing coming soon!</p>
         </div>
       </details>
+
       <DecklistFilters params={params} setParams={setParams} />
+      <Callout />
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-5">
         {decklists?.map(
           ({
