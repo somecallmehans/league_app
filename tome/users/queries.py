@@ -143,8 +143,11 @@ def get_decklists(params: dict = None, owner_id: int = None) -> list[Decklists]:
             query = query.filter(combined_mask=0)
         else:
             query = query.annotate(
-                matched_mask=BitAnd(F("combined_mask"), Value(mask_int))
-            ).filter(matched_mask=mask_int)
+                subset_mask=BitAnd(F("combined_mask"), Value(mask_int))
+            ).filter(
+                subset_mask=F("combined_mask"),
+                combined_mask__gt=0,
+            )
     query = query.order_by(*order_by)
 
     if owner_id is not None:
