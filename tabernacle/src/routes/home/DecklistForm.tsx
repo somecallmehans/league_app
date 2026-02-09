@@ -46,8 +46,9 @@ const AchievementCart = ({
   const { achievements, lookup } = useDecklistCart();
 
   const cart = useWatch({ control, name: "achievements" }) ?? [];
-
-  const basePoints = pointLookup[colorLength] ?? 0;
+  const basePoints = !cart.some((car: any) => car.id === 2)
+    ? (pointLookup[colorLength] ?? 0)
+    : 0;
 
   const sum = useMemo(() => {
     const cartPoints =

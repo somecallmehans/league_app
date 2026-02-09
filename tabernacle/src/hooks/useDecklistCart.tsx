@@ -15,7 +15,7 @@ export default function useDecklistCart() {
   const filteredAchievements = useMemo(() => {
     if (!achievements) return [];
     return achievements
-      .filter(({ slug }) => !slug)
+      .filter(({ slug }) => !slug || slug === "precon")
       .filter(({ id }) => !achievementsObj?.parents.includes(id))
       .map((a) => ({ id: a.id, name: a.full_name }));
   }, [achievements, achievementsObj]);
