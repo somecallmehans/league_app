@@ -1,4 +1,6 @@
 import { useMemo, useEffect } from "react";
+import { toast } from "react-toastify";
+
 import { useNavigate } from "react-router-dom";
 import {
   useForm,
@@ -425,7 +427,12 @@ export default function DecklistFormWrapper() {
   const [postDecklist] = usePostDecklistMutation();
   const navigate = useNavigate();
   const handleFormSubmit = async (data: any) => {
-    const { picker, ...clean } = data;
+    const { picker, achievements, ...clean } = data;
+
+    if (achievements.length === 0) {
+      toast.error("Must add at least 1 achievement to submit a decklist.");
+      return;
+    }
 
     const payload = {
       ...clean,
@@ -433,7 +440,7 @@ export default function DecklistFormWrapper() {
       commander: clean.commander?.id,
       partner: clean.partner?.id,
       companion: clean.companion?.id,
-      achievements: normalize(clean?.achievements) ?? [],
+      achievements: normalize(achievements) ?? [],
     };
 
     try {
