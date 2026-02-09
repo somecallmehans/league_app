@@ -86,7 +86,7 @@ def test_exchange_tokens_success_sets_cookie_and_mints_session(
     # Max-Age comes through in the cookie morsel
     assert int(cookie["max-age"]) == 30 * 60
     assert cookie["httponly"]  # should be True-ish
-    assert cookie["samesite"].lower() == "none"
+    assert cookie["samesite"].lower() == "lax"
     assert cookie["path"] == "/"
 
     # --- session row exists ---
