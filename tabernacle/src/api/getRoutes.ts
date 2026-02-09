@@ -134,18 +134,18 @@ export default (builder: ApiBuilder) => ({
     transformResponse: (raw: unknown) =>
       safeParseWithFallback(MetricSchema, raw, EMPTY_METRIC),
   }),
-  getPodsAchievements: builder.query<PodAchievementResponse, { pod: Id }>({
-    query: ({ pod }) => `pods_achievements/${pod}/`,
-    providesTags: (result, error, { pod }) => [
-      { type: "PodsAchievements", id: `$${pod}` },
-    ],
-    transformResponse: (raw: unknown) =>
-      safeParseWithFallback(
-        PodAchievementResponseSchema,
-        raw,
-        EMPTY_PODACHIEVEMENT
-      ),
-  }),
+  // getPodsAchievements: builder.query<PodAchievementResponse, { pod: Id }>({
+  //   query: ({ pod }) => `pods_achievements/${pod}/`,
+  //   providesTags: (result, error, { pod }) => [
+  //     { type: "PodsAchievements", id: `$${pod}` },
+  //   ],
+  //   transformResponse: (raw: unknown) =>
+  //     safeParseWithFallback(
+  //       PodAchievementResponseSchema,
+  //       raw,
+  //       EMPTY_PODACHIEVEMENT
+  //     ),
+  // }),
   getAchievementRound: builder.query<
     EarnedAchievementSubListResponse,
     { participant_id: Id; round_id: Id }

@@ -51,16 +51,19 @@ class CommanderResult(NamedTuple):
 class GETScoresheetHelper:
     """Tab to assemble and return achievements for a given round/pod"""
 
-    def __init__(self, round_id, pod_id):
+    def __init__(self, round_id: int, pod_id: int, store_id: int):
         self.round_id = round_id
         self.pod_id = pod_id
+        self.store_id = store_id
         self.session_id = (
-            Rounds.objects.filter(id=round_id)
+            Rounds.objects.filter(id=round_id, session__store_id=store_id)
             .values_list("session_id", flat=True)
             .first()
         )
         self.pod_participants = list(
-            PodsParticipants.objects.filter(pods_id=self.pod_id)
+            PodsParticipants.objects.filter(
+                pods_id=self.pod_id, pods__store_id=store_id
+            )
             .select_related("participants")
             .values("participants_id", "participants__name")
         )
@@ -68,7 +71,9 @@ class GETScoresheetHelper:
     def handle_commander(self):
         """Handle getting colors + names for a logged commander."""
         wc = (
-            WinningCommanders.objects.filter(pods_id=self.pod_id, deleted=False)
+            WinningCommanders.objects.filter(
+                pods_id=self.pod_id, deleted=False, store_id=self.store_id
+            )
             .values(
                 "participants_id",
                 "name",
@@ -121,7 +126,7 @@ class GETScoresheetHelper:
 
     def build(self):
         is_submitted = (
-            Pods.objects.filter(id=self.pod_id)
+            Pods.objects.filter(id=self.pod_id, store_id=self.store_id)
             .values_list("submitted", flat=True)
             .first()
         )
@@ -129,7 +134,9 @@ class GETScoresheetHelper:
             return {"meta": {"isSubmitted": is_submitted}}
 
         participant_rows = list(
-            PodsParticipants.objects.filter(pods_id=self.pod_id)
+            PodsParticipants.objects.filter(
+                pods_id=self.pod_id, pods__store_id=self.store_id
+            )
             .select_related("participants")
             .values("participants_id", "participants__name")
         )
@@ -143,6 +150,7 @@ class GETScoresheetHelper:
             round_id=self.round_id,
             session_id=self.session_id,
             deleted=False,
+            store_id=self.store_id,
         ).select_related("achievement", "achievement__parent")
 
         earned = [
@@ -222,12 +230,12 @@ class POSTScoresheetHelper:
     """Special class to help tabulate and assign points
     for a scoresheet."""
 
-    def __init__(self, round_id, pod_id, **kwargs):
+    def __init__(self, round_id, pod_id, store_id, **kwargs):
         self.records: list[ParticipantAchievements] = []
         for key, value in kwargs.items():
             setattr(self, key, value)
         self.session_id = (
-            Rounds.objects.filter(id=round_id)
+            Rounds.objects.filter(id=round_id, session__store_id=store_id)
             .values_list("session_id", flat=True)
             .first()
         )
@@ -235,10 +243,11 @@ class POSTScoresheetHelper:
             slug__isnull=False, deleted=False
         ).values("id", "slug", "point_value")
         self.pod_participants = PodsParticipants.objects.filter(
-            pods_id=pod_id
+            pods_id=pod_id, pods__store_id=store_id
         ).values_list("participants_id", flat=True)
         self.round_id = round_id
         self.pod_id = pod_id
+        self.store_id = store_id
 
     def build_slug_dicts(self):
         """Compose our slugged achievements into dicts, one
@@ -276,6 +285,7 @@ class POSTScoresheetHelper:
                         round_id=self.round_id,
                         session_id=self.session_id,
                         earned_points=self.points_by_slug[poa],
+                        store_id=self.store_id,
                     )
                 )
 
@@ -294,6 +304,7 @@ class POSTScoresheetHelper:
                         round_id=self.round_id,
                         session_id=self.session_id,
                         earned_points=self.points_by_slug[ws],
+                        store_id=self.store_id,
                     )
                 )
 
@@ -307,6 +318,7 @@ class POSTScoresheetHelper:
                     round_id=self.round_id,
                     session_id=self.session_id,
                     earned_points=points_dict[wa],
+                    store_id=self.store_id,
                 )
             )
 
@@ -341,6 +353,7 @@ class POSTScoresheetHelper:
                 round_id=self.round_id,
                 session_id=self.session_id,
                 earned_points=self.points_by_slug[f"win-{win_colors}-colors"],
+                store_id=self.store_id,
             )
         )
 
@@ -358,6 +371,7 @@ class POSTScoresheetHelper:
                 round_id=self.round_id,
                 session_id=self.session_id,
                 earned_points=self.points_by_slug["end-draw"],
+                store_id=self.store_id,
             )
             for p in self.pod_participants
         )
@@ -397,7 +411,9 @@ class POSTScoresheetHelper:
             decklist_id = None
 
             if code:
-                decklist = Decklists.objects.get(code=f"DL-{code}")
+                decklist = Decklists.objects.get(
+                    code=f"DL-{code}", store_id=self.store_id
+                )
                 if not decklist:
                     raise Decklists.DoesNotExist(detail="Decklist code not found")
                 decklist_id = decklist.id

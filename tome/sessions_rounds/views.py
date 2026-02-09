@@ -20,6 +20,7 @@ from django.utils import timezone
 from .models import Sessions, Rounds, Pods, PodsParticipants, RoundSignups
 from users.models import ParticipantAchievements, Participants
 from achievements.models import WinningCommanders, Achievements
+from stores.models import StoreParticipant
 
 from .serializers import SessionSerializer, PodsParticipantsSerializer
 from achievements.serializers import WinningCommandersSerializer
@@ -195,11 +196,12 @@ def begin_round(request, **kwargs):
 
 
 @api_view([GET])
-def get_round_participants(_, round):
+def get_round_participants(request, round, **kwargs):
     """Take in a round id and return all participants who
     are assigned to pods for that given round."""
+    store_id = request.store_id
     try:
-        round_obj = Rounds.objects.get(id=round)
+        round_obj = Rounds.objects.get(id=round, session__store_id=store_id)
     except ObjectDoesNotExist:
         return Response(
             {"message": "Round not found for given id"},
@@ -207,7 +209,9 @@ def get_round_participants(_, round):
         )
 
     participants = Participants.objects.filter(
-        podsparticipants__pods__rounds=round_obj, podsparticipants__pods__deleted=False
+        podsparticipants__pods__rounds=round_obj,
+        podsparticipants__pods__deleted=False,
+        storeparticipant__store_id=store_id,
     )
 
     return Response(
@@ -270,73 +274,74 @@ def get_pods(request, round, **kwargs):
     return Response(pod_map, status=status.HTTP_200_OK)
 
 
-@api_view([GET])
-def get_pods_achievements(_, pod):
-    """Get all of the achievements earned for a pod
+# TODO: Delete this
+# @api_view([GET])
+# def get_pods_achievements(_, pod):
+#     """Get all of the achievements earned for a pod
 
-    this data is used to populate the initial values
-    of the scorecard form."""
-    try:
-        pod_obj = Pods.objects.filter(id=pod, deleted=False).first()
-    except ObjectDoesNotExist:
-        return Response({"message": "No pod found"}, status=status.HTTP_400_BAD_REQUEST)
+#     this data is used to populate the initial values
+#     of the scorecard form."""
+#     try:
+#         pod_obj = Pods.objects.filter(id=pod, deleted=False).first()
+#     except ObjectDoesNotExist:
+#         return Response({"message": "No pod found"}, status=status.HTTP_400_BAD_REQUEST)
 
-    participant_achievements = ParticipantAchievements.objects.filter(
-        round_id=pod_obj.rounds_id,
-        deleted=False,
-        participant__in=PodsParticipants.objects.filter(
-            pods_id=pod_obj.id, pods__deleted=False
-        ).values_list("participants", flat=True),
-    )
-    achievement_data = ParticipantsAchievementsFullModelSerializer().to_dict(
-        participant_achievements
-    )
+#     participant_achievements = ParticipantAchievements.objects.filter(
+#         round_id=pod_obj.rounds_id,
+#         deleted=False,
+#         participant__in=PodsParticipants.objects.filter(
+#             pods_id=pod_obj.id, pods__deleted=False
+#         ).values_list("participants", flat=True),
+#     )
+#     achievement_data = ParticipantsAchievementsFullModelSerializer().to_dict(
+#         participant_achievements
+#     )
 
-    winner_data = WinningCommandersSerializer.by_pods([pod])
-    return Response(
-        {
-            "pod_achievements": achievement_data,
-            "winning_commander": winner_data.get(pod, None),
-        },
-        status=status.HTTP_200_OK,
-    )
+#     winner_data = WinningCommandersSerializer.by_pods([pod])
+#     return Response(
+#         {
+#             "pod_achievements": achievement_data,
+#             "winning_commander": winner_data.get(pod, None),
+#         },
+#         status=status.HTTP_200_OK,
+#     )
 
+# TODO: Delete this
+# @api_view([POST])
+# @authentication_classes([JWTAuthentication])
+# @permission_classes([IsAuthenticated])
+# def close_round(request):
+#     """Close a round. Endpoint expects a round_id and a session_id
+#     Essentially flipping the associated round 'closed' flag to true
 
-@api_view([POST])
-@authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
-def close_round(request):
-    """Close a round. Endpoint expects a round_id and a session_id
-    Essentially flipping the associated round 'closed' flag to true
+#     If the received round is a second round, also flip the session flag to true.
 
-    If the received round is a second round, also flip the session flag to true.
+#     NOTE 6/22/25: Unexpected, but the powers that be whom submit scores totally ignore
+#     the "close round" button this endpoint is attached to. Even though it blinks bright red, afaik
+#     they have never touched it. And in the 8~ months this app has been active, there hasn't been
+#     any ill effects or any notable reason for a round or session to be marked closed/submitted
+#     other than that being something that made sense to me in August 2024
 
-    NOTE 6/22/25: Unexpected, but the powers that be whom submit scores totally ignore
-    the "close round" button this endpoint is attached to. Even though it blinks bright red, afaik
-    they have never touched it. And in the 8~ months this app has been active, there hasn't been
-    any ill effects or any notable reason for a round or session to be marked closed/submitted
-    other than that being something that made sense to me in August 2024
+#     For that reason, this endpoint will soon be deprecated in favor of a check whenever
+#     a pod gets submitted to see whether a round should be closed or not based on if any pods are
+#     still active/open or not.
+#     """
+#     body = json.loads(request.body.decode("utf-8"))
+#     round = body.get("round", None)
+#     session = body.get("session", None)
 
-    For that reason, this endpoint will soon be deprecated in favor of a check whenever
-    a pod gets submitted to see whether a round should be closed or not based on if any pods are
-    still active/open or not.
-    """
-    body = json.loads(request.body.decode("utf-8"))
-    round = body.get("round", None)
-    session = body.get("session", None)
+#     if not round or not session:
+#         return Response(
+#             {"message": "Session/Round information not provided"},
+#             status=status.HTTP_400_BAD_REQUEST,
+#         )
 
-    if not round or not session:
-        return Response(
-            {"message": "Session/Round information not provided"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+#     Rounds.objects.filter(id=round["id"]).update(completed=True)
 
-    Rounds.objects.filter(id=round["id"]).update(completed=True)
+#     if round["round_number"] != 1:
+#         Sessions.objects.filter(id=session).update(closed=True)
 
-    if round["round_number"] != 1:
-        Sessions.objects.filter(id=session).update(closed=True)
-
-    return Response(status=status.HTTP_201_CREATED)
+#     return Response(status=status.HTTP_201_CREATED)
 
 
 @api_view([GET])
@@ -491,16 +496,20 @@ def get_participant_recent_pods(_, participant_id, mm_yy=None):
 
 
 @api_view([POST])
-def signup(request):
+def signup(request, **kwargs):
     """Allows users to pre-signup for a round using their code that should be linked
     to them via discord."""
     body = json.loads(request.body.decode("utf-8"))
     code: str = body.get("code")
     rounds: list[int] = body.get("rounds")
+    store_id: int = request.store_id
 
     pid = (
         Participants.objects.filter(
-            code=code, deleted=False, discord_user_id__isnull=False
+            code=code,
+            deleted=False,
+            discord_user_id__isnull=False,
+            storeparticipant__store_id=store_id,
         )
         .values_list("id", flat=True)
         .first()
@@ -517,7 +526,8 @@ def signup(request):
         return Response({"message": "User has already signed in."})
 
     RoundSignups.objects.bulk_create(
-        RoundSignups(participant_id=pid, round_id=rid) for rid in rounds
+        RoundSignups(participant_id=pid, round_id=rid, store_id=store_id)
+        for rid in rounds
     )
 
     return Response({"message": "Successfully added"}, status=status.HTTP_201_CREATED)
@@ -638,7 +648,7 @@ def delete_signin(request, **kwargs):
 @api_view([POST])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def update_pod_participants(request):
+def update_pod_participants(request, **kwargs):
     """Take in a participant and a pod, and if there's space/user is not in another pod already
     then add said participant to that pod."""
 
@@ -646,6 +656,7 @@ def update_pod_participants(request):
     pod_id = body.get("pod_id")
     pid = body.get("participant_id")
     rid = body.get("round_id")
+    store_id = request.store_id
 
     if not pod_id or not rid:
         return Response(
@@ -661,6 +672,7 @@ def update_pod_participants(request):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         new = Participants.objects.create(name=name)
+        StoreParticipant.objects.create(store_id=store_id, participant_id=new.id)
         pid = new.id
 
     pod_count = PodsParticipants.objects.filter(pods_id=pod_id).count()
@@ -671,10 +683,10 @@ def update_pod_participants(request):
         )
 
     in_target = PodsParticipants.objects.filter(
-        pods_id=pod_id, participants_id=pid
+        pods_id=pod_id, participants_id=pid, pods__store_id=store_id
     ).exists()
     in_round = PodsParticipants.objects.filter(
-        pods__rounds_id=rid, participants_id=pid
+        pods__rounds_id=rid, participants_id=pid, pods__store_id=store_id
     ).exists()
 
     if in_target or in_round:
@@ -685,7 +697,11 @@ def update_pod_participants(request):
     part = Achievements.objects.get(slug="participation")
     has_participation = (
         ParticipantAchievements.objects.filter(
-            participant_id=pid, round_id=rid, achievement_id=part.id, deleted=False
+            participant_id=pid,
+            round_id=rid,
+            achievement_id=part.id,
+            deleted=False,
+            store_id=store_id,
         )
         .select_related("achievements")
         .exists()
@@ -699,6 +715,7 @@ def update_pod_participants(request):
             achievement_id=part.id,
             session_id=sid,
             earned_points=part.point_value,
+            store_id=store_id,
         )
 
     PodsParticipants.objects.create(participants_id=pid, pods_id=pod_id)
@@ -709,11 +726,12 @@ def update_pod_participants(request):
 @api_view([DELETE])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def delete_pod_participant(request):
+def delete_pod_participant(request, **kwargs):
     """Take in a participant and a pod and delete that combo from the podsparticipants table."""
     body = json.loads(request.body.decode("utf-8"))
     pod_id = body.get("pod_id")
     pid = body.get("participant_id")
+    store_id = request.store_id
 
     if not pod_id or not pid:
         return Response(
@@ -721,7 +739,9 @@ def delete_pod_participant(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    target_pod = PodsParticipants.objects.filter(pods_id=pod_id)
+    target_pod = PodsParticipants.objects.filter(
+        pods_id=pod_id, pods__store_id=store_id
+    )
 
     if len(target_pod) <= 3:
         return Response(
@@ -732,7 +752,9 @@ def delete_pod_participant(request):
     PodsParticipants.objects.filter(participants_id=pid, pods_id=pod_id).delete()
 
     session_round = (
-        Pods.objects.filter(id=pod_id).values("rounds_id", "rounds__session_id").first()
+        Pods.objects.filter(id=pod_id, store_id=store_id)
+        .values("rounds_id", "rounds__session_id")
+        .first()
     )
 
     ParticipantAchievements.objects.filter(
@@ -740,6 +762,7 @@ def delete_pod_participant(request):
         round_id=session_round["rounds_id"],
         session_id=session_round["rounds__session_id"],
         achievement__slug="participation",
+        store_id=store_id,
     ).update(deleted=True)
 
     return Response(
@@ -750,12 +773,12 @@ def delete_pod_participant(request):
 @api_view([GET])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def get_pod_participants(_, pod_id):
+def get_pod_participants(request, pod_id, **kwargs):
     """Get all participants for a given pod_id."""
-
-    participants_qs = PodsParticipants.objects.filter(pods_id=pod_id).values(
-        "participants_id", "participants__name"
-    )
+    store_id = request.store_id
+    participants_qs = PodsParticipants.objects.filter(
+        pods_id=pod_id, pods__store_id=store_id
+    ).values("participants_id", "participants__name")
 
     participants = [
         {"id": row["participants_id"], "name": row["participants__name"]}

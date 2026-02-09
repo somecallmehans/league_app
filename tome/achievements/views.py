@@ -312,7 +312,7 @@ def get_league_monthly_winner_info(request, mm_yy, participant_id, **kwargs):
 
 
 @api_view([GET])
-def get_colors(_):
+def get_colors(_, **kwargs):
     """Get all of the color combinations."""
     colors_objects = Colors.objects.all()
     colors = [
@@ -413,7 +413,7 @@ def get_participant_round_achievements(request, participant_id, round_id, **kwar
 
 
 @api_view([GET])
-def get_all_commanders(_):
+def get_all_commanders(_, **kwargs):
     """Get and return all valid commanders we have currently."""
     try:
         commanders = Commanders.objects.filter(
@@ -547,7 +547,7 @@ def upsert_earned_achievements(request, **kwargs):
         round_id=round_id,
         session_id=session_id,
         earned_points=point_value,
-        store_id=request.store_id, 
+        store_id=request.store_id,
     )
     return Response(status=status.HTTP_201_CREATED)
 
@@ -555,21 +555,21 @@ def upsert_earned_achievements(request, **kwargs):
 @api_view([GET, POST, PUT])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def scoresheet(request, round_id: int, pod_id: int):
+def scoresheet(request, round_id: int, pod_id: int, **kwargs):
     """Technically V3 of the upsert participant achievements endpoint, but now
     broken into 3 endpoints (fetch/insert/update) to reduce complexity."""
-
+    store_id: int = request.store_id
     if request.method == GET:
-        builder = GETScoresheetHelper(round_id, pod_id)
+        builder = GETScoresheetHelper(round_id, pod_id, store_id)
         result = builder.build()
         return Response(result)
 
     body = request.data
-    builder = POSTScoresheetHelper(round_id, pod_id, **body)
+    builder = POSTScoresheetHelper(round_id, pod_id, store_id, **body)
     result = builder.build()
 
     with transaction.atomic():
-        pod = Pods.objects.select_for_update().get(id=pod_id)
+        pod = Pods.objects.select_for_update().get(id=pod_id, store_id=store_id)
 
         if request.method == POST and pod.submitted:
             return Response(
@@ -588,14 +588,15 @@ def scoresheet(request, round_id: int, pod_id: int):
                 round_id=round_id,
                 session_id=result.session_id,
                 deleted=False,
+                store_id=store_id,
             ).select_related("achievement").exclude(
                 achievement__slug="participation"
             ).update(
                 deleted=True
             )
-            WinningCommanders.objects.filter(pods_id=pod_id, deleted=False).update(
-                deleted=True
-            )
+            WinningCommanders.objects.filter(
+                pods_id=pod_id, store_id=store_id, deleted=False
+            ).update(deleted=True)
 
         ParticipantAchievements.objects.bulk_create(result.records)
 
@@ -609,6 +610,7 @@ def scoresheet(request, round_id: int, pod_id: int):
                 partner_id=result.partner_id,
                 companion_id=result.companion_id,
                 decklist_id=result.decklist_id,
+                store_id=store_id,
             )
         if not pod.submitted:
             pod.submitted = True
