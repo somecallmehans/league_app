@@ -10,13 +10,13 @@ def create_data(apps, schema_editor):
         name="The Money Store",
         slug="moneystore-stage",
         external_url="https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-        discord_channel_id=1300613593397727305,
+        discord_guild_id=1300613593397727305,
     )
     StoreModel.objects.create(
         name="Mimic's Market",
         slug="mimicsmarket",
         external_url="https://mimicsmarket.com/",
-        discord_channel_id=1203058271620038756,
+        discord_guild_id=1123750208937938964,
     )
 
 

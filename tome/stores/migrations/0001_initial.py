@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
                 ("name", models.CharField(max_length=255)),
                 ("slug", models.SlugField(max_length=255)),
                 ("external_url", models.URLField()),
-                ("discord_channel_id", models.BigIntegerField(unique=True)),
+                ("discord_guild_id", models.BigIntegerField(unique=True)),
                 ("is_active", models.BooleanField(default=True)),
                 ("deleted", models.BooleanField(default=False)),
             ],

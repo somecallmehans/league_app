@@ -18,7 +18,7 @@ const validation = (val, name) => {
   return undefined;
 };
 
-const ConfigRow = ({ name, configKey, value, description }) => {
+const ConfigRow = ({ name, configKey, value, description, isGlobal }) => {
   const [updateConfig] = useUpdateConfigMutation();
   const {
     control,
@@ -71,6 +71,7 @@ const ConfigRow = ({ name, configKey, value, description }) => {
             {...register(configKey, {
               validate: (val) => validation(val, name),
             })}
+            disabled={isGlobal}
             defaultValue={value}
             type="text"
             className="
@@ -86,8 +87,9 @@ const ConfigRow = ({ name, configKey, value, description }) => {
             w-full sm:w-auto
             px-3 py-1 rounded
             bg-sky-500 hover:bg-sky-400 text-white
-            disabled:opacity-50
+            disabled:bg-slate-400
           "
+            disabled={isGlobal}
           >
             Save
           </button>
@@ -103,13 +105,14 @@ export default function Page() {
 
   return (
     <div className="bg-white flex flex-col gap-2 rounded-lg p-4 shadow-md border">
-      {configs?.map(({ name, key, value, description }) => (
+      {configs?.map(({ name, key, value, description, scope_kind }) => (
         <ConfigRow
           key={key}
           configKey={key}
           name={name}
           value={value}
           description={description}
+          isGlobal={scope_kind === "global"}
         />
       ))}
     </div>

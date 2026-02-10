@@ -10,7 +10,7 @@ class Config(models.Model):
         SHOP = "shop", "Shop"
 
     key = models.SlugField(max_length=64)
-    value = models.JSONField()
+    value = models.TextField()
     description = models.CharField(max_length=255, blank=True, default="")
     name = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)

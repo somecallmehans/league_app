@@ -6,7 +6,7 @@ class Store(models.Model):
     name = models.CharField(max_length=255, null=False, blank=False)
     slug = models.SlugField(max_length=255, null=False, blank=False)
     external_url = models.URLField(null=False, blank=False)
-    discord_channel_id = models.BigIntegerField(unique=True)
+    discord_guild_id = models.BigIntegerField(unique=True)
     is_active = models.BooleanField(default=True)
     deleted = models.BooleanField(default=False)
 

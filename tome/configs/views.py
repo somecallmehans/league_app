@@ -20,9 +20,11 @@ POST = "POST"
 def get_all_configs(request, **kwargs):
     """Get all of the current configs"""
 
-    configs = Config.objects.filter(
-        Q(store_id=request.store_id) | Q(store__isnull=True)
-    ).values("name", "key", "value", "description")
+    configs = (
+        Config.objects.filter(Q(store_id=request.store_id) | Q(store__isnull=True))
+        .values("name", "key", "value", "description", "scope_kind")
+        .order_by("id")
+    )
 
     return Response(configs)
 
@@ -30,7 +32,7 @@ def get_all_configs(request, **kwargs):
 @api_view([POST])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def update_config(request, key):
+def update_config(request, key, **kwargs):
     """Update a config."""
 
     if not key:

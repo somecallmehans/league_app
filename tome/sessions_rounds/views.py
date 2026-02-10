@@ -558,7 +558,7 @@ def signin_counts(request, **kwargs):
         round_two: {"participants": [], "count": 0, "is_full": False},
     }
 
-    cap1, cap2 = get_round_caps()
+    cap1, cap2 = get_round_caps(request.store_id)
 
     for q in query:
         if q["round_id"] == int(round_one):
