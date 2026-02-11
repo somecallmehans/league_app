@@ -10,6 +10,7 @@ from utils.decorators import require_service_token, require_discord_store
 
 from users.models import Participants, EditToken, Decklists
 from sessions_rounds.models import Sessions, RoundSignups, Rounds, Pods
+from stores.models import Store
 
 from configs.configs import get_round_caps
 
@@ -340,6 +341,7 @@ def issue_edit_token(request):
         )
 
     code = EditToken.mint(owner=participant)
+    store = Store.objects.filter(id=request.store_id).get()
 
     logger.info(f"Participant verified, returning edit token. User {duid}")
-    return Response({"code": code}, status=status.HTTP_201_CREATED)
+    return Response({"code": code, "slug": store.slug}, status=status.HTTP_201_CREATED)

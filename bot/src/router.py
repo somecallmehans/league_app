@@ -299,8 +299,9 @@ async def handle_edit_decklist_url(uid: int, guild_id: int):
                 "content": msg,
             },
         }
-
     if resp.status_code == 201:
+        slug = res["slug"]
+        url = "{slug}.commanderleague.xyz/decklists/gatekeeper".format(slug=slug)
         return {
             "type": 4,
             "data": {
@@ -308,7 +309,7 @@ async def handle_edit_decklist_url(uid: int, guild_id: int):
                 "content": (
                     f"Your edit code: **{res['code']}**\n\n"
                     "[Click here to edit your decklists]"
-                    "(https://commanderleague.xyz/decklists/gatekeeper)\n\n"
+                    f"(https://" + url + ")\n\n"
                     "You can use this code for the next 30 minutes."
                 ),
             },
