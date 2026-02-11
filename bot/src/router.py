@@ -8,11 +8,15 @@ SELECTIONS = {}
 TTL = 15 * 60
 
 
-async def get_code(discord_user_id: int):
+async def get_code(discord_user_id: int, guild_id: int):
     async with httpx.AsyncClient(timeout=10) as http:
         url = f"{API_BASE}api/discord/mycode/{discord_user_id}/"
         res = await http.get(
-            url, headers={"Authorization": f"X-SERVICE-TOKEN {SERVICE_TOKEN}"}
+            url,
+            headers={
+                "Authorization": f"X-SERVICE-TOKEN {SERVICE_TOKEN}",
+                "X-DISCORD-GUILD-ID": str(guild_id),
+            },
         )
         if res.status_code == 200:
             return res.json()
@@ -20,8 +24,8 @@ async def get_code(discord_user_id: int):
     return None
 
 
-async def handle_getcode(user_id: int):
-    data = await get_code(user_id)
+async def handle_getcode(user_id: int, guild_id: int):
+    data = await get_code(user_id, guild_id)
     if not data:
         return {
             "type": 4,
@@ -39,19 +43,22 @@ async def handle_getcode(user_id: int):
     }
 
 
-async def search_unlinked(query: str):
+async def search_unlinked(query: str, guild_id: int):
     if not query:
         return []
     async with httpx.AsyncClient(timeout=10) as http:
         r = await http.get(
             f"{API_BASE}api/discord/search/{query}/",
-            headers={"Authorization": f"X-SERVICE-TOKEN {SERVICE_TOKEN}"},
+            headers={
+                "Authorization": f"X-SERVICE-TOKEN {SERVICE_TOKEN}",
+                "X-DISCORD-GUILD-ID": str(guild_id),
+            },
         )
         return r.json() if r.status_code == 200 else []
 
 
-async def handle_link_autocomplete(query: str):
-    res = await search_unlinked(query)
+async def handle_link_autocomplete(query: str, guild_id: int):
+    res = await search_unlinked(query, guild_id)
     choices = [
         {
             "name": r["name"],
@@ -62,22 +69,25 @@ async def handle_link_autocomplete(query: str):
     return {"type": 8, "data": {"choices": choices}}
 
 
-async def link(discord_user_id: int, participant_id: int):
+async def link(discord_user_id: int, participant_id: int, guild_id: int):
     url = f"{API_BASE}api/discord/link/"
     async with httpx.AsyncClient(timeout=10) as http:
         res = await http.post(
             url,
             json={"discord_user_id": discord_user_id, "participant_id": participant_id},
-            headers={"Authorization": f"X-SERVICE-TOKEN {SERVICE_TOKEN}"},
+            headers={
+                "Authorization": f"X-SERVICE-TOKEN {SERVICE_TOKEN}",
+                "X-DISCORD-GUILD-ID": str(guild_id),
+            },
         )
         return res
 
 
-async def handle_link(user_id: int, participant_value: str):
+async def handle_link(user_id: int, participant_value: str, guild_id: int):
     val = participant_value.split(":")
     name = val[0]
     pid = int(val[1])
-    res = await link(user_id, pid)
+    res = await link(user_id, pid, guild_id)
     if res.status_code == 201:
         code = res.json()["code"]
         msg = f"Successfully linked **{name}** to your Discord account. Your login code is **{code}**, and you can access it any time with the /mycode command in this channel."
@@ -110,7 +120,10 @@ async def handle_signin(uid, guild_id):
     async with httpx.AsyncClient(timeout=10) as http:
         r = await http.get(
             f"{API_BASE}api/discord/next_session/",
-            headers={"Authorization": f"X-SERVICE-TOKEN {SERVICE_TOKEN}"},
+            headers={
+                "Authorization": f"X-SERVICE-TOKEN {SERVICE_TOKEN}",
+                "X-DISCORD-GUILD-ID": str(guild_id),
+            },
         )
         if r.status_code != 200:
             return _ephemeral("Couldn't find an upcoming session.")
@@ -203,7 +216,10 @@ async def handle_signin_confirm(uid, guild_id):
     async with httpx.AsyncClient(timeout=10) as http:
         r = await http.post(
             f"{API_BASE}api/discord/signin/",
-            headers={"Authorization": f"X-SERVICE-TOKEN {SERVICE_TOKEN}"},
+            headers={
+                "Authorization": f"X-SERVICE-TOKEN {SERVICE_TOKEN}",
+                "X-DISCORD-GUILD-ID": str(guild_id),
+            },
             json={"discord_user_id": uid, "rounds": round_ids},
         )
     if r.status_code == 201 or r.status_code == 200:
@@ -224,13 +240,16 @@ async def handle_signin_confirm(uid, guild_id):
     return _ephemeral(f"❌ {msg}")
 
 
-async def handle_drop(uid):
+async def handle_drop(uid, guild_id):
     """Handle dropping a participant from their league rounds."""
 
     async with httpx.AsyncClient(timeout=10) as http:
         r = await http.post(
             f"{API_BASE}api/discord/drop/",
-            headers={"Authorization": f"X-SERVICE-TOKEN {SERVICE_TOKEN}"},
+            headers={
+                "Authorization": f"X-SERVICE-TOKEN {SERVICE_TOKEN}",
+                "X-DISCORD-GUILD-ID": str(guild_id),
+            },
             json={"discord_user_id": uid},
         )
 
@@ -254,13 +273,16 @@ async def handle_drop(uid):
     return _ephemeral(f"❌ {msg}")
 
 
-async def handle_edit_decklist_url(uid):
+async def handle_edit_decklist_url(uid: int, guild_id: int):
     """Handle issuing a URL for users to edit their stored decklists."""
 
     async with httpx.AsyncClient(timeout=10) as http:
         resp = await http.post(
             f"{API_BASE}api/discord/issue_token/",
-            headers={"Authorization": f"X-SERVICE-TOKEN {SERVICE_TOKEN}"},
+            headers={
+                "Authorization": f"X-SERVICE-TOKEN {SERVICE_TOKEN}",
+                "X-DISCORD-GUILD-ID": str(guild_id),
+            },
             json={"discord_user_id": uid},
         )
     try:

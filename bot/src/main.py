@@ -70,12 +70,13 @@ async def interactions(req: Request):
     if t == APP_COMMAND_AUTOCOMPLETE:
         data = payload.get("data") or {}
         options = data.get("options") or []
+        guild_id = payload.get("guild_id")
         q = ""
         if options and isinstance(options, list):
             first = options[0] or {}
             if isinstance(first, dict):
                 q = first.get("value") or ""
-        return await handle_link_autocomplete(q)
+        return await handle_link_autocomplete(q, guild_id)
 
     if t == APP_COMMAND:
         data = payload.get("data") or {}
@@ -86,8 +87,8 @@ async def interactions(req: Request):
         guild_id = payload.get("guild_id")
 
         if name == "mycode":
-            logger.info(f"Getting code for {user_id}")
-            return await handle_getcode(user_id)
+            logger.info(f"Getting code for {user_id} at guild {guild_id}")
+            return await handle_getcode(user_id, guild_id)
 
         if name == "link":
             data = payload.get("data") or {}
@@ -99,18 +100,18 @@ async def interactions(req: Request):
                     q = first.get("value") or ""
 
             logger.info(f"Handling linking for {user_id} with value {q}")
-            return await handle_link(user_id, q)
+            return await handle_link(user_id, q, guild_id)
 
         if name == "signin":
             logger.info(f"Attempting sign in for {user_id}")
             return await handle_signin(user_id, guild_id)
 
         if name == "drop":
-            return await handle_drop(user_id)
+            return await handle_drop(user_id, guild_id)
 
         if name == "editdecklist":
             logger.info(f"Attempting edit decklist request for {user_id}")
-            return await handle_edit_decklist_url(user_id)
+            return await handle_edit_decklist_url(user_id, guild_id)
 
     if t == MESSAGE:
         data = payload.get("data") or {}

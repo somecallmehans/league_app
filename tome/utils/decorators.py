@@ -7,6 +7,7 @@ from rest_framework import status
 from django.conf import settings
 
 from users.models import Participants
+from stores.models import Store
 
 
 def require_service_token(func):
@@ -58,3 +59,25 @@ def require_store(view_func):
         return view_func(request, *args, **kwargs)
 
     return _wrapped
+
+
+def require_discord_store(func):
+    @wraps(func)
+    def wrapper(request, *args, **kwargs):
+        guild_id = request.headers.get("X-DISCORD-GUILD-ID", "")
+        if not guild_id:
+            return Response(
+                {"detail": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED
+            )
+        store = Store.objects.filter(
+            discord_guild_id=guild_id, is_active=True, deleted=False
+        ).first()
+        if not store:
+            return Response(
+                {"detail": "Store not found, invalid request"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        request.store_id = store.id
+        return func(request, *args, **kwargs)
+
+    return wrapper

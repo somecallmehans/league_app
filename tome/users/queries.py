@@ -68,13 +68,17 @@ class BitOr(Func):
     output_field = IntegerField()
 
 
-def get_decklists(params: dict = None, owner_id: int = None) -> list[Decklists]:
+def get_decklists(
+    store_id: int,
+    params: dict = None,
+    owner_id: int = None,
+) -> list[Decklists]:
     """Return decklists based on params"""
     params = params or {}
     sort_order = params.get("sort_order")
     color_mask = params.get("colors")
     query = (
-        Decklists.objects.filter(deleted=False)
+        Decklists.objects.filter(deleted=False, store_id=store_id)
         .select_related(
             "commander__color",
             "partner__color",
@@ -112,8 +116,10 @@ def get_decklists(params: dict = None, owner_id: int = None) -> list[Decklists]:
             "points",
         )
     )
-
-    ach_query = DecklistsAchievements.objects.all().select_related("achievement")
+    ids = [q["id"] for q in query]
+    ach_query = DecklistsAchievements.objects.filter(
+        decklist_id__in=ids
+    ).select_related("achievement")
     ach_by_decklist = defaultdict(list)
 
     for row in ach_query:
@@ -236,9 +242,9 @@ def get_single_decklist(store_id: int) -> Decklists:
     )
 
 
-def get_single_decklist_by_id(id) -> Decklists:
+def get_single_decklist_by_id(id, store_id) -> Decklists:
     """Return a single decklist + achievements by its id"""
-    query = get_single_decklist()
+    query = get_single_decklist(store_id)
     query = query.filter(id=id).first()
 
     if not query:
@@ -427,7 +433,7 @@ def validate_inputs(name: Optional[str], url: Optional[str]) -> None:
             )
 
 
-def post_decklists(body, pid) -> None:
+def post_decklists(body, pid, store_id) -> None:
     """Post a new decklist"""
     achievements = body.get("achievements", [])
 
@@ -441,6 +447,7 @@ def post_decklists(body, pid) -> None:
             partner_id=body.get("partner", None),
             companion_id=body.get("companion", None),
             give_credit=body.get("give_credit", False),
+            store_id=store_id,
         )
 
         DecklistsAchievements.objects.bulk_create(

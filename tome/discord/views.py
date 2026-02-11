@@ -6,7 +6,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Count, Q
-from utils.decorators import require_service_token
+from utils.decorators import require_service_token, require_discord_store
 
 from users.models import Participants, EditToken, Decklists
 from sessions_rounds.models import Sessions, RoundSignups, Rounds, Pods
@@ -20,11 +20,16 @@ POST = "POST"
 
 
 @require_service_token
+@require_discord_store
 @api_view([GET])
-def mycode(_, discord_user_id):
+def mycode(request, discord_user_id):
     """Take in a users discord id, return their code."""
+
     code = (
-        Participants.objects.filter(discord_user_id=discord_user_id, deleted=False)
+        Participants.objects.filter(
+            discord_user_id=discord_user_id,
+            deleted=False,
+        )
         .values("code")
         .first()
     )
@@ -39,13 +44,17 @@ def mycode(_, discord_user_id):
 
 
 @require_service_token
+@require_discord_store
 @api_view([GET])
-def search(_, query):
+def search(request, query):
     """Take in the string we're looking for and search against users who
     are currently unlinked."""
     q = (query or "").strip()
     matched_participants = Participants.objects.filter(
-        Q(name__icontains=q), discord_user_id=None, deleted=False
+        Q(name__icontains=q),
+        discord_user_id=None,
+        deleted=False,
+        storeparticipant__store_id=request.store_id,
     ).values("id", "name")
 
     return Response(list(matched_participants))
@@ -53,6 +62,7 @@ def search(_, query):
 
 @csrf_exempt
 @require_service_token
+@require_discord_store
 @api_view([POST])
 def link(request):
     """Take in the a user id + the discord id. Add the discord id to the users row."""
@@ -80,8 +90,9 @@ def link(request):
 
 
 @require_service_token
+@require_discord_store
 @api_view([GET])
-def next_session(_):
+def next_session(request):
     """Return the next upcoming session with its rounds."""
 
     next_session = (
@@ -89,6 +100,7 @@ def next_session(_):
             closed=False,
             deleted=False,
             session_date__gte=date.today(),
+            store_id=request.store_id,
         )
         .order_by("session_date")
         .first()
@@ -104,13 +116,15 @@ def next_session(_):
         .order_by("round_number")[:2]
     )
     counts_qs = (
-        RoundSignups.objects.filter(round_id__in=[r["id"] for r in rounds])
+        RoundSignups.objects.filter(
+            round_id__in=[r["id"] for r in rounds], store_id=request.store_id
+        )
         .values("round_id")
         .annotate(user_count=Count("participant_id", distinct=True))
     )
     current = {row["round_id"]: row["user_count"] for row in counts_qs}
 
-    cap1, cap2 = get_round_caps()
+    cap1, cap2 = get_round_caps(store_id=request.store_id)
 
     for r in rounds:
         cap = cap1 if r["round_number"] == 1 else cap2
@@ -131,6 +145,7 @@ def next_session(_):
 
 @csrf_exempt
 @require_service_token
+@require_discord_store
 @api_view([POST])
 def signin(request):
     """Sign in a user via discord."""
@@ -146,7 +161,9 @@ def signin(request):
         .first()
     )
 
-    round_started = Pods.objects.filter(rounds_id__in=rounds).exists()
+    round_started = Pods.objects.filter(
+        rounds_id__in=rounds, store_id=request.store_id
+    ).exists()
 
     if round_started:
         logger.error(f"Signin failed for {duid}, round has started")
@@ -166,7 +183,7 @@ def signin(request):
         )
 
     has_signed_in = RoundSignups.objects.filter(
-        participant_id=pid, round_id__in=rounds
+        participant_id=pid, round_id__in=rounds, store_id=request.store_id
     ).exists()
 
     if has_signed_in:
@@ -178,16 +195,18 @@ def signin(request):
         )
 
     round_numbers = dict(
-        Rounds.objects.filter(id__in=rounds).values_list("id", "round_number")
+        Rounds.objects.filter(
+            id__in=rounds, session__store_id=request.store_id
+        ).values_list("id", "round_number")
     )
     counts_qs = (
-        RoundSignups.objects.filter(round_id__in=rounds)
+        RoundSignups.objects.filter(round_id__in=rounds, store_id=request.store_id)
         .values("round_id")
         .annotate(user_count=Count("participant_id", distinct=True))
     )
     current_counts = {row["round_id"]: row["user_count"] for row in counts_qs}
 
-    cap1, cap2 = get_round_caps()
+    cap1, cap2 = get_round_caps(request.store_id)
 
     def cap_for(rid: int) -> int:
         rn = round_numbers.get(rid)
@@ -201,7 +220,8 @@ def signin(request):
         )
 
     RoundSignups.objects.bulk_create(
-        RoundSignups(participant_id=pid, round_id=rid) for rid in rounds
+        RoundSignups(participant_id=pid, round_id=rid, store_id=request.store_id)
+        for rid in rounds
     )
 
     logger.info(f"Successfully signed in {duid}")
@@ -209,6 +229,7 @@ def signin(request):
 
 
 @require_service_token
+@require_discord_store
 @api_view([POST])
 def drop_user(request):
     """Take in a discord user id and check if that user is registered for the next
@@ -239,6 +260,7 @@ def drop_user(request):
             closed=False,
             deleted=False,
             session_date__gte=date.today(),
+            store_id=request.store_id,
         )
         .order_by("session_date")
         .first()
@@ -255,7 +277,9 @@ def drop_user(request):
         .order_by("round_number")[:2]
     )
 
-    RoundSignups.objects.filter(participant_id=target.id, round_id__in=rids).delete()
+    RoundSignups.objects.filter(
+        participant_id=target.id, round_id__in=rids, store_id=request.store_id
+    ).delete()
 
     logger.info(
         f"User successfully dropped from rounds on {next_session.session_date}, duid: {duid}"
@@ -266,6 +290,7 @@ def drop_user(request):
 
 
 @require_service_token
+@require_discord_store
 @api_view([POST])
 def issue_edit_token(request):
     """
@@ -298,7 +323,9 @@ def issue_edit_token(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    if not Decklists.objects.filter(participant=participant, deleted=False).exists():
+    if not Decklists.objects.filter(
+        participant=participant, deleted=False, store_id=request.store_id
+    ).exists():
         logger.error(f"User with DU_ID: {duid} does not have any decklists")
         return Response(
             {

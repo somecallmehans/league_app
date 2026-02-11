@@ -99,12 +99,14 @@ def decklists(request, **kwargs):
     """Return all current active submitted decklists"""
 
     if request.method == "GET":
-        out = get_decklists(params=request.query_params, owner_id=None)
+        out = get_decklists(
+            params=request.query_params, owner_id=None, store_id=request.store_id
+        )
         return Response(out)
 
     try:
         pid = kwargs["participant_id"]
-        post_decklists(request.data, pid)
+        post_decklists(request.data, pid, store_id=request.store_id)
         return Response(status=status.HTTP_201_CREATED)
     except ValidationError as e:
         return Response(
@@ -147,7 +149,7 @@ def decklist(request, **kwargs):
 
 
 @api_view(["GET"])
-def decklist_by_id(request):
+def decklist_by_id(request, **kwargs):
     """Take in a decklist_id and return the data for editing. Also check to ensure
     there is a session active and it's still valid, otherwise 401."""
     try:
@@ -163,13 +165,13 @@ def decklist_by_id(request):
             {"detail": "decklist_id is required"}, status=status.HTTP_400_BAD_REQUEST
         )
 
-    payload = get_single_decklist_by_id(decklist_id)
+    payload = get_single_decklist_by_id(decklist_id, request.store_id)
 
     return Response(payload)
 
 
 @api_view(["GET"])
-def verify_session_token(request):
+def verify_session_token(request, **kwargs):
     """This endpoint is called by out edit decklists gatekeeper to see whether
     we have an active session token or not. Return 200 if the token is valid."""
 
@@ -190,7 +192,7 @@ def verify_session_token(request):
 
 
 @api_view(["POST"])
-def exchange_tokens(request):
+def exchange_tokens(request, **kwargs):
     """Take in an edit token, validate, and return a session token attached
     to a cookie."""
 
@@ -216,14 +218,13 @@ def exchange_tokens(request):
             "expires_at": int(session.expires_at.timestamp()),
         }
     )
-
     resp.set_cookie(
         key="edit_decklist_session",
         value=session.session_id,
         max_age=30 * 60,
         httponly=True,
         secure=not settings.DEBUG,
-        samesite="Lax",
+        samesite=settings.SAMESITE,
         domain=settings.COOKIE_DOMAIN,
         path="/",
     )
@@ -232,7 +233,7 @@ def exchange_tokens(request):
 
 
 @api_view(["GET"])
-def get_user_decklists(request):
+def get_user_decklists(request, **kwargs):
     """Validate the cookie, if it's legit return the decklists for the user."""
 
     try:
@@ -243,7 +244,9 @@ def get_user_decklists(request):
         return Response({"detail": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
     logger.info(f"Token validated for {token.owner_id}, returning decklists")
-    decklists = get_decklists(params=None, owner_id=token.owner_id)
+    decklists = get_decklists(
+        params=None, owner_id=token.owner_id, store_id=request.store_id
+    )
 
     return Response(decklists)
 
