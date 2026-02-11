@@ -147,14 +147,16 @@ async def announcements(req: Request):
     data = await req.json()
 
     session_date = data.get("session_date", "the next round of league")
+    slug = data.get("slug")
+    url = f"{slug}.commanderleague.xyz/pods"
 
     message = (
         f"**Commander League!**\n\n"
         f"Sign-ups for **{session_date}** are now open!\n\n"
         f"**How to Sign Up:**\n"
         f"- Type `/signin` in this channel to register for the new round.\n"
-        f"- Or sign in on our website using your unique code:\n"
-        f"   https://commanderleague.xyz/pods\n\n"
+        f"- Or sign in on our website using your unique code: \n\n"
+        f"   https://" + url + "\n\n"
         f"**Never Signed In With Discord?**\n"
         f"If you haven’t linked your Discord account yet, run `/link` first, then use `/signin` to register.\n\n"
         f"**New to Commander League?**\n"

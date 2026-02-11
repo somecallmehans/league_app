@@ -20,12 +20,11 @@ from django.utils import timezone
 from .models import Sessions, Rounds, Pods, PodsParticipants, RoundSignups
 from users.models import ParticipantAchievements, Participants
 from achievements.models import WinningCommanders, Achievements
-from stores.models import StoreParticipant
+from stores.models import StoreParticipant, Store
 
 from .serializers import SessionSerializer, PodsParticipantsSerializer
 from achievements.serializers import WinningCommandersSerializer
 from users.serializers import (
-    ParticipantsAchievementsFullModelSerializer,
     ParticipantsSerializer,
 )
 from .helpers import (
@@ -116,8 +115,12 @@ def sessions_and_rounds(request, mm_yy=None, **kwargs):
         Rounds.objects.create(session=new_session, round_number=1, starts_at=r1_dt)
         Rounds.objects.create(session=new_session, round_number=2, starts_at=r2_dt)
         session = SessionSerializer(new_session).data
+        store = Store.objects.filter(id=request.store_id).first()
 
-        payload = {"session_date": new_session.session_date.strftime("%A, %B %-d %Y")}
+        payload = {
+            "session_date": new_session.session_date.strftime("%A, %B %-d %Y"),
+            "slug": store.slug,
+        }
         bot_announcement(payload)
 
         return Response(session, status=status.HTTP_201_CREATED)

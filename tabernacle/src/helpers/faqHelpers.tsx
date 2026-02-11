@@ -84,29 +84,29 @@ export const resourceInfo: ResourceInfo[] = [
     ),
   },
   //
-  {
-    id: 3,
-    title: "Decklist Point Tracker (by redwizard42)",
-    Component: () => (
-      <div className="py-2">
-        <p className="mb-2">
-          A tool for tallying the number of deckbuilding achievements a deck is
-          worth. Click <b>file</b> -{">"} <b>Make a copy</b> to create a copy
-          for personal use.
-        </p>
-        <p className="mb-2">
-          <a
-            className="text-sky-500 hover:text-sky-300"
-            href="https://docs.google.com/spreadsheets/d/1_5DisOFwnczODFYLu01vRSJ839GmUvJ7dNyVkvP5A3c/edit?gid=0#gid=0"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Link to the spreadsheet tool.
-          </a>
-        </p>
-      </div>
-    ),
-  },
+  // {
+  //   id: 3,
+  //   title: "Decklist Point Tracker (by redwizard42)",
+  //   Component: () => (
+  //     <div className="py-2">
+  //       <p className="mb-2">
+  //         A tool for tallying the number of deckbuilding achievements a deck is
+  //         worth. Click <b>file</b> -{">"} <b>Make a copy</b> to create a copy
+  //         for personal use.
+  //       </p>
+  //       <p className="mb-2">
+  //         <a
+  //           className="text-sky-500 hover:text-sky-300"
+  //           href="https://docs.google.com/spreadsheets/d/1_5DisOFwnczODFYLu01vRSJ839GmUvJ7dNyVkvP5A3c/edit?gid=0#gid=0"
+  //           target="_blank"
+  //           rel="noreferrer"
+  //         >
+  //           Link to the spreadsheet tool.
+  //         </a>
+  //       </p>
+  //     </div>
+  //   ),
+  // },
 ];
 
 export const faqInfo = [

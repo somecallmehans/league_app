@@ -328,12 +328,14 @@ def issue_edit_token(request):
         participant=participant, deleted=False, store_id=request.store_id
     ).exists():
         logger.error(f"User with DU_ID: {duid} does not have any decklists")
+        store = Store.objects.filter(id=request.store_id).first()
+        url = f"{store.slug}.commanderleague.xyz/decklists/new"
         return Response(
             {
                 "message": (
                     "It doesn't look like you have any decklists to edit.\n\n"
                     "[Click here to make a new decklist.]"
-                    "(https://commanderleague.xyz/decklists/new)\n\n"
+                    "(https://" + url + ")\n\n"
                     "Don't forget to get your unique code via /mycode\n"
                 )
             },
