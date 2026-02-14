@@ -37,7 +37,7 @@ const Callout = () => (
             <span className="shrink-0 text-sky-400">–</span>
             <span>
               You earn <span className="font-bold">extra points</span> for
-              winning with a submitted list.
+              participating with a submitted list.
             </span>
           </div>
 
