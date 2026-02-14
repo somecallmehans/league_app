@@ -134,6 +134,7 @@ export default (builder: ApiBuilder) => ({
     transformResponse: (raw: unknown) =>
       safeParseWithFallback(MetricSchema, raw, EMPTY_METRIC),
   }),
+  // TODO: Delete
   // getPodsAchievements: builder.query<PodAchievementResponse, { pod: Id }>({
   //   query: ({ pod }) => `pods_achievements/${pod}/`,
   //   providesTags: (result, error, { pod }) => [

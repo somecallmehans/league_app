@@ -29,11 +29,12 @@ from users.serializers import (
 )
 from .helpers import (
     generate_pods,
-    get_participants_total_scores,
+    # get_participants_total_scores,
     RoundInformationService,
 )
 from configs.configs import get_round_caps
 from services.discord_client import bot_announcement
+from utils.decorators import require_store
 
 GET = "GET"
 POST = "POST"
@@ -41,6 +42,7 @@ DELETE = "DELETE"
 
 
 @api_view([GET])
+@require_store
 def all_sessions(request, **kwargs):
     """Get all sessions that are not deleted, including their rounds info."""
     data = Sessions.objects.filter(deleted=False, store_id=request.store_id).order_by(
@@ -57,6 +59,7 @@ def all_sessions(request, **kwargs):
 
 
 @api_view([GET])
+@require_store
 def get_unique_session_months(request, **kwargs):
     """Get a list of unique month-years for sessions."""
     months = (
@@ -74,6 +77,7 @@ def get_unique_session_months(request, **kwargs):
 
 
 @api_view([GET, POST])
+@require_store
 def sessions_and_rounds(request, mm_yy=None, **kwargs):
     """Get or create a sessions/rounds for today."""
 
@@ -138,19 +142,21 @@ def sessions_and_rounds(request, mm_yy=None, **kwargs):
     return Response(session, status=status.HTTP_200_OK)
 
 
-@api_view([GET])
-def sessions_and_rounds_by_date(request):
-    """Get participants total scores by session month."""
+# TODO: Delete
+# @api_view([GET])
+# def sessions_and_rounds_by_date(request):
+#     """Get participants total scores by session month."""
 
-    mm_yy = request.GET.get("mm_yy")
-    participants = get_participants_total_scores(mm_yy=mm_yy)
+#     mm_yy = request.GET.get("mm_yy")
+#     participants = get_participants_total_scores(store_id=request.store_id, mm_yy=mm_yy)
 
-    return Response(participants, status=status.HTTP_200_OK)
+#     return Response(participants, status=status.HTTP_200_OK)
 
 
 @api_view([POST])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
+@require_store
 def begin_round(request, **kwargs):
     """Begin a round. Request expects a round_id, session_id, and a list of participants.
     If a participant in the list does not have an id, it will be created.
@@ -199,6 +205,7 @@ def begin_round(request, **kwargs):
 
 
 @api_view([GET])
+@require_store
 def get_round_participants(request, round, **kwargs):
     """Take in a round id and return all participants who
     are assigned to pods for that given round."""
@@ -223,6 +230,7 @@ def get_round_participants(request, round, **kwargs):
 
 
 @api_view([GET])
+@require_store
 def get_pods(request, round, **kwargs):
     """Get the pods that were made for a given round."""
     try:
@@ -247,7 +255,11 @@ def get_pods(request, round, **kwargs):
     serialized_participants = PodsParticipantsSerializer(
         pods_participants,
         many=True,
-        context={"round_id": round, "mm_yy": round_obj.session.month_year},
+        context={
+            "round_id": round,
+            "mm_yy": round_obj.session.month_year,
+            "store_id": request.store_id,
+        },
     ).data
 
     pod_map = defaultdict(lambda: {"participants": []})
@@ -421,7 +433,7 @@ def get_all_rounds(request, participant_id=None, **kwargs):
 
 
 @api_view([GET])
-def get_participant_recent_pods(_, participant_id, mm_yy=None):
+def get_participant_recent_pods(request, participant_id, mm_yy=None, **kwargs):
     """
     Get pods for the given participant for all of the rounds they were apart of
     this month.
@@ -445,6 +457,7 @@ def get_participant_recent_pods(_, participant_id, mm_yy=None):
             deleted=False,
             rounds__session__month_year=mm_yy,
             podsparticipants__participants=participant,
+            store_id=request.store_id,
         )
         .select_related("rounds")
         .prefetch_related(
@@ -456,7 +469,9 @@ def get_participant_recent_pods(_, participant_id, mm_yy=None):
     )
 
     winners = WinningCommanders.objects.filter(
-        pods_id__in=[p.id for p in participant_pods], deleted=False
+        pods_id__in=[p.id for p in participant_pods],
+        deleted=False,
+        store_id=request.store_id,
     ).values("pods_id", "participants_id", "name")
 
     winners_dict = {w["pods_id"]: w for w in winners}

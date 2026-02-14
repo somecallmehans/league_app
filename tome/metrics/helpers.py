@@ -316,8 +316,9 @@ class MetricsCalculator:
 
 
 class IndividualMetricsCalculator:
-    def __init__(self, participant_id):
+    def __init__(self, participant_id, store_id):
         self.participant_id = participant_id
+        self.store_id = store_id
         self.participant_achievements = []
         self.participant_pods = []
         self.participant_obj = None
@@ -328,7 +329,9 @@ class IndividualMetricsCalculator:
         try:
             self.participant_achievements = (
                 ParticipantAchievements.objects.filter(
-                    participant_id=self.participant_id, deleted=False
+                    participant_id=self.participant_id,
+                    store_id=self.store_id,
+                    deleted=False,
                 )
                 .select_related("achievement")
                 .select_related("round")
@@ -353,7 +356,9 @@ class IndividualMetricsCalculator:
         This will act as our 'attendance' record."""
         try:
             self.participant_pods = PodsParticipants.objects.filter(
-                participants_id=self.participant_id, pods__deleted=False
+                participants_id=self.participant_id,
+                pods__store_id=self.store_id,
+                pods__deleted=False,
             ).select_related("pods")
         except BaseException as e:
             print(f"Exception raised in individual metrics calculator attendance: {e}")
@@ -369,9 +374,9 @@ class IndividualMetricsCalculator:
 
     def fetch_sessions(self):
         """Fetch all existing sessions."""
-        self.sessions = Sessions.objects.filter(deleted=False).values(
-            "id", "month_year"
-        )
+        self.sessions = Sessions.objects.filter(
+            deleted=False, store_id=self.store_id
+        ).values("id", "month_year")
 
     def make_sessions_dict_by_month_year(self):
         """Make a dict of sessions by month_year."""
@@ -458,7 +463,7 @@ class IndividualMetricsCalculator:
         self.fetch_sessions()
 
         win_count = WinningCommanders.objects.filter(
-            participants_id=self.participant_id, deleted=False
+            participants_id=self.participant_id, store_id=self.store_id, deleted=False
         ).count()
 
         return {
@@ -473,10 +478,11 @@ class IndividualMetricsCalculator:
         }
 
 
-def calculate_badges(pid):
+def calculate_badges(pid, store_id):
     earned_exists = ParticipantAchievements.objects.filter(
         deleted=False,
         participant_id=pid,
+        store_id=store_id,
         achievement_id=OuterRef("pk"),
     )
 

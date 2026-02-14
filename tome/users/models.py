@@ -39,26 +39,23 @@ class Participants(models.Model):
     def total_points(self):
         return self.get_total_points()
 
-    def get_total_points(self, mm_yy=None):
+    def get_total_points(self, store_id, mm_yy=None):
         if mm_yy is None:
             today = datetime.today()
             mm_yy = today.strftime("%m-%y")
-        return self._calculate_points(month_year=mm_yy)
+        return self._calculate_points(store_id=store_id, month_year=mm_yy)
 
-    def get_round_points(self, round_id=None):
+    def get_round_points(self, store_id, round_id=None):
         if round_id is None:
             return None
-        return self._calculate_points(round_id=round_id)
+        return self._calculate_points(store_id=store_id, round_id=round_id)
 
-    def _calculate_points(self, month_year=None, round_id=None):
+    def _calculate_points(self, store_id, month_year=None, round_id=None):
         """
         This internal method handles both total points (by month-year)
         and round points by determining which filter to apply.
         """
-        filters = {
-            "participant": self.id,
-            "deleted": False,
-        }
+        filters = {"participant": self.id, "deleted": False, "store_id": store_id}
 
         if month_year:
             filters["session__month_year"] = month_year

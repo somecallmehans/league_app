@@ -45,10 +45,14 @@ class PodsParticipantsSerializer(serializers.ModelSerializer):
 
     def get_round_points(self, obj):
         round_id = self.context.get("round_id")
+        store_id = self.context["store_id"]
         if round_id:
-            return obj.participants.get_round_points(round_id=round_id)
+            return obj.participants.get_round_points(
+                store_id=store_id, round_id=round_id
+            )
         return 0
 
     def get_total_points(self, obj):
         mm_yy = self.context.get("mm_yy", None)
-        return obj.participants.get_total_points(mm_yy=mm_yy)
+        store_id = self.context["store_id"]
+        return obj.participants.get_total_points(mm_yy=mm_yy, store_id=store_id)

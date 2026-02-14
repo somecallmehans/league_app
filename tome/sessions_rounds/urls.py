@@ -3,7 +3,7 @@ from .views import (
     sessions_and_rounds,
     begin_round,
     # close_round,
-    sessions_and_rounds_by_date,
+    # sessions_and_rounds_by_date,
     all_sessions,
     get_pods,
     get_unique_session_months,
@@ -33,12 +33,14 @@ urlpatterns = [
         get_participant_recent_pods,
         name="get_participant_recent_pods",
     ),
-    path(
-        "sessions_by_date/<str:mm_yy>/",
-        sessions_and_rounds_by_date,
-        name="sessions-and-rounds-by-date",
-    ),
+    # TODO: Delete
+    # path(
+    #     "sessions_by_date/<str:mm_yy>/",
+    #     sessions_and_rounds_by_date,
+    #     name="sessions-and-rounds-by-date",
+    # ),
     path("pods/<int:round>/", get_pods, name="pods"),
+    # TODO: Delete
     # path(
     #     "pods_achievements/<int:pod>/",
     #     get_pods_achievements,

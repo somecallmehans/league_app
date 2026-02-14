@@ -64,6 +64,7 @@ from achievements.scoresheet_helpers import POSTScoresheetHelper, GETScoresheetH
 from sessions_rounds.helpers import handle_close_round
 from services.scryfall_client import ScryfallClientRequest
 from services.redis_keepalive import redis_keepalive
+from utils.decorators import require_store
 
 GET = "GET"
 POST = "POST"
@@ -73,6 +74,7 @@ scryfall_request = ScryfallClientRequest()
 
 
 @api_view([GET])
+@require_store
 def get_achievements_with_restrictions_v2(_, **kwargs):
     """Get achievements with their restrictions but do it much cleaner than the original endpoint."""
 
@@ -122,6 +124,7 @@ def get_achievements_with_restrictions_v2(_, **kwargs):
 
 
 @api_view([GET])
+@require_store
 def get_achievement_types(_, **kwargs):
     """Get all of the current achievement types."""
 
@@ -130,6 +133,7 @@ def get_achievement_types(_, **kwargs):
 
 
 @api_view([GET])
+@require_store
 def get_achievements_with_restrictions(_, **kwargs):
     """Get achievements with their restrictions and put them in a map, raw list, and parents only."""
 
@@ -190,6 +194,7 @@ def get_achievements_with_restrictions(_, **kwargs):
 
 
 @api_view([GET])
+@require_store
 def get_achievements_by_participant_month(request, **kwargs):
     """Calculate the total points earned by a participant in a given month
 
@@ -217,6 +222,7 @@ def get_achievements_by_participant_month(request, **kwargs):
 
 
 @api_view([GET])
+@require_store
 def get_league_monthly_winners(request, **kwargs):
     """
     For each month, retrieve the top point earner for the given month + related commander info.
@@ -230,6 +236,7 @@ def get_league_monthly_winners(request, **kwargs):
 
 
 @api_view([GET])
+@require_store
 def get_league_monthly_winner_info(request, mm_yy, participant_id, **kwargs):
     """
     For the provided month/participant, retrieve any relevant info
@@ -391,6 +398,7 @@ def upsert_achievements(request):
 
 
 @api_view([GET])
+@require_store
 def get_participant_round_achievements(request, participant_id, round_id, **kwargs):
     """Get all achievements + points for a participant in a particular round."""
     achievements = ParticipantAchievements.objects.select_related("achievement").filter(
@@ -495,6 +503,7 @@ def fetch_and_insert_commanders(_):
 @api_view([POST])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
+@require_store
 def upsert_earned_achievements(request, **kwargs):
     """
     Responsible for either inserting an achievement
@@ -555,6 +564,7 @@ def upsert_earned_achievements(request, **kwargs):
 @api_view([GET, POST, PUT])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
+@require_store
 def scoresheet(request, round_id: int, pod_id: int, **kwargs):
     """Technically V3 of the upsert participant achievements endpoint, but now
     broken into 3 endpoints (fetch/insert/update) to reduce complexity."""

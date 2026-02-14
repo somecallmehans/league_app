@@ -6,6 +6,7 @@ from rest_framework.decorators import (
     permission_classes,
     authentication_classes,
 )
+from utils.decorators import require_store
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.response import Response
@@ -17,6 +18,7 @@ POST = "POST"
 
 
 @api_view([GET])
+@require_store
 def get_all_configs(request, **kwargs):
     """Get all of the current configs"""
 
@@ -32,6 +34,7 @@ def get_all_configs(request, **kwargs):
 @api_view([POST])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
+@require_store
 def update_config(request, key, **kwargs):
     """Update a config."""
 
@@ -41,7 +44,7 @@ def update_config(request, key, **kwargs):
         )
 
     try:
-        target = Config.objects.get(key=key)
+        target = Config.objects.get(key=key, store_id=request.store_id)
     except Config.DoesNotExist:
         return Response(
             {"message": "Config not found"}, status=status.HTTP_404_NOT_FOUND
