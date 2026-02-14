@@ -74,7 +74,6 @@ scryfall_request = ScryfallClientRequest()
 
 
 @api_view([GET])
-@require_store
 def get_achievements_with_restrictions_v2(_, **kwargs):
     """Get achievements with their restrictions but do it much cleaner than the original endpoint."""
 
@@ -124,7 +123,6 @@ def get_achievements_with_restrictions_v2(_, **kwargs):
 
 
 @api_view([GET])
-@require_store
 def get_achievement_types(_, **kwargs):
     """Get all of the current achievement types."""
 
@@ -133,7 +131,6 @@ def get_achievement_types(_, **kwargs):
 
 
 @api_view([GET])
-@require_store
 def get_achievements_with_restrictions(_, **kwargs):
     """Get achievements with their restrictions and put them in a map, raw list, and parents only."""
 

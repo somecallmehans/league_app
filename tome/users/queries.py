@@ -69,7 +69,6 @@ class BitOr(Func):
 
 
 def get_decklists(
-    store_id: int,
     params: dict = None,
     owner_id: int = None,
 ) -> list[Decklists]:
@@ -78,7 +77,7 @@ def get_decklists(
     sort_order = params.get("sort_order")
     color_mask = params.get("colors")
     query = (
-        Decklists.objects.filter(deleted=False, store_id=store_id)
+        Decklists.objects.filter(deleted=False)
         .select_related(
             "commander__color",
             "partner__color",

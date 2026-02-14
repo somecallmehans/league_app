@@ -35,10 +35,6 @@ class Participants(models.Model):
                     self.code = None
         return super().save(*args, **kwargs)
 
-    @property
-    def total_points(self):
-        return self.get_total_points()
-
     def get_total_points(self, store_id, mm_yy=None):
         if mm_yy is None:
             today = datetime.today()

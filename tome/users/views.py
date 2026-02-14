@@ -99,9 +99,7 @@ def decklists(request, **kwargs):
     """Return all current active submitted decklists"""
 
     if request.method == "GET":
-        out = get_decklists(
-            params=request.query_params, owner_id=None, store_id=request.store_id
-        )
+        out = get_decklists(params=request.query_params, owner_id=None)
         return Response(out)
 
     try:
@@ -244,9 +242,7 @@ def get_user_decklists(request, **kwargs):
         return Response({"detail": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
     logger.info(f"Token validated for {token.owner_id}, returning decklists")
-    decklists = get_decklists(
-        params=None, owner_id=token.owner_id, store_id=request.store_id
-    )
+    decklists = get_decklists(params=None, owner_id=token.owner_id)
 
     return Response(decklists)
 

@@ -2,9 +2,6 @@ import { useState, Fragment } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Menu, Transition, Disclosure } from "@headlessui/react";
 import { navLinks, type Node, type NodeChild } from "../helpers/navTree";
-import { getStoreSlug } from "../helpers/helpers";
-
-const storeSlug = getStoreSlug();
 
 interface DesktopDropdownProps {
   link: Node;

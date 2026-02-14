@@ -3,8 +3,10 @@ import React from "react";
 import { useMonthYear } from "../../hooks";
 import { useGetAchievementsForMonthQuery } from "../../api/apiSlice";
 import { LeaderboardGrid } from "../leaderboard/Leaderboard";
-
+import { getStoreSlug } from "../../helpers/helpers";
 import Tooltip from "../../components/Tooltip";
+
+const storeSlug = getStoreSlug();
 
 const HomeSection = ({ title, children }) => (
   <section className="bg-white bg-opacity-10 backdrop-blur-md rounded-lg p-6 mb-4 shadow-lg border">
@@ -110,7 +112,7 @@ const HomeLeaderboard = () => {
 
   const { data: achievementsForMonth } = useGetAchievementsForMonthQuery(
     selectedMonth,
-    { skip: !selectedMonth }
+    { skip: !selectedMonth || !storeSlug }
   );
 
   if (!achievementsForMonth || achievementsForMonth.length == 0) return null;

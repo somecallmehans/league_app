@@ -1,3 +1,8 @@
+from datetime import datetime
+
+from django.db.models import Sum, Q
+from django.db.models.functions import Coalesce
+
 from users.models import Participants, ParticipantAchievements
 from users.serializers import ParticipantsSerializer
 from achievements.models import Achievements
@@ -149,8 +154,22 @@ class RoundInformationService:
     def get_participants(self):
         """Get un-serialized Participants objects."""
         try:
+            today = datetime.today()
+            mm_yy = today.strftime("%m-%y")
             self.participant_data = Participants.objects.filter(
                 id__in=[ep["id"] for ep in self.existing_participants]
+            ).annotate(
+                total_points=Coalesce(
+                    Sum(
+                        "participantachievements__earned_points",
+                        filter=Q(
+                            participantachievements__deleted=False,
+                            participantachievements__store_id=self.store_id,
+                            participantachievements__session__month_year=mm_yy,
+                        ),
+                    ),
+                    0,
+                )
             )
         except Exception as e:
             print(f"Error found while fetching participant data in round service: {e}")
