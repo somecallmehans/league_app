@@ -88,16 +88,6 @@ def generate_pods(participants, round_id, store_id):
         raise Exception
 
 
-# TODO: Delete
-# def get_participants_total_scores(mm_yy):
-#     data = Participants.objects.filter(deleted=False)
-#     participants = ParticipantsSerializer(
-#         data, many=True, context={"mm_yy": mm_yy}
-#     ).data
-#     participants_with_points = [p for p in participants if p["total_points"] != 0]
-#     return participants_with_points.sort(key=lambda x: x["total_points"], reverse=True)
-
-
 def handle_close_round(round_id):
     """
     If all pods in the round are submitted, mark the round as completed.

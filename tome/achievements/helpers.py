@@ -99,47 +99,6 @@ def calculate_monthly_winners(cutoff, store_id):
     return list(sorted)
 
 
-# TODO: Delete
-# def all_participant_achievements_for_month(session):
-#     data = ParticipantAchievements.objects.filter(
-#         session=session, participant__deleted=False, deleted=False
-#     ).select_related("participant", "achievement", "round")
-
-#     achievements_by_participant = defaultdict(list)
-#     for pa in data:
-#         achievements_by_participant[pa.participant].append(
-#             {
-#                 "name": pa.achievement.full_name,
-#                 "round": pa.round,
-#                 "earned_id": pa.id,
-#                 "earned_points": pa.earned_points,
-#             }
-#         )
-
-#     result = []
-#     for participant, achievements in achievements_by_participant.items():
-#         participant_data = ParticipantsSerializer(
-#             participant, context={"mm_yy": session.month_year}
-#         ).data
-
-#         point_sum = sum([x["earned_points"] for x in achievements])
-
-#         achievements_data = [
-#             {
-#                 "name": achievement["name"],
-#                 "round": RoundsSerializer(achievement["round"]).data,
-#                 "earned_id": achievement["earned_id"],
-#                 "earned_points": achievement["earned_points"],
-#             }
-#             for achievement in achievements
-#         ]
-#         participant_data["achievements"] = achievements_data
-#         participant_data["session_points"] = point_sum
-#         result.append(participant_data)
-
-#     return result
-
-
 class ScryfallCommanderData:
     def __init__(self, name, colors):
         self.name = name

@@ -142,17 +142,6 @@ def sessions_and_rounds(request, mm_yy=None, **kwargs):
     return Response(session, status=status.HTTP_200_OK)
 
 
-# TODO: Delete
-# @api_view([GET])
-# def sessions_and_rounds_by_date(request):
-#     """Get participants total scores by session month."""
-
-#     mm_yy = request.GET.get("mm_yy")
-#     participants = get_participants_total_scores(store_id=request.store_id, mm_yy=mm_yy)
-
-#     return Response(participants, status=status.HTTP_200_OK)
-
-
 @api_view([POST])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
@@ -287,76 +276,6 @@ def get_pods(request, round, **kwargs):
         )
 
     return Response(pod_map, status=status.HTTP_200_OK)
-
-
-# TODO: Delete this
-# @api_view([GET])
-# def get_pods_achievements(_, pod):
-#     """Get all of the achievements earned for a pod
-
-#     this data is used to populate the initial values
-#     of the scorecard form."""
-#     try:
-#         pod_obj = Pods.objects.filter(id=pod, deleted=False).first()
-#     except ObjectDoesNotExist:
-#         return Response({"message": "No pod found"}, status=status.HTTP_400_BAD_REQUEST)
-
-#     participant_achievements = ParticipantAchievements.objects.filter(
-#         round_id=pod_obj.rounds_id,
-#         deleted=False,
-#         participant__in=PodsParticipants.objects.filter(
-#             pods_id=pod_obj.id, pods__deleted=False
-#         ).values_list("participants", flat=True),
-#     )
-#     achievement_data = ParticipantsAchievementsFullModelSerializer().to_dict(
-#         participant_achievements
-#     )
-
-#     winner_data = WinningCommandersSerializer.by_pods([pod])
-#     return Response(
-#         {
-#             "pod_achievements": achievement_data,
-#             "winning_commander": winner_data.get(pod, None),
-#         },
-#         status=status.HTTP_200_OK,
-#     )
-
-# TODO: Delete this
-# @api_view([POST])
-# @authentication_classes([JWTAuthentication])
-# @permission_classes([IsAuthenticated])
-# def close_round(request):
-#     """Close a round. Endpoint expects a round_id and a session_id
-#     Essentially flipping the associated round 'closed' flag to true
-
-#     If the received round is a second round, also flip the session flag to true.
-
-#     NOTE 6/22/25: Unexpected, but the powers that be whom submit scores totally ignore
-#     the "close round" button this endpoint is attached to. Even though it blinks bright red, afaik
-#     they have never touched it. And in the 8~ months this app has been active, there hasn't been
-#     any ill effects or any notable reason for a round or session to be marked closed/submitted
-#     other than that being something that made sense to me in August 2024
-
-#     For that reason, this endpoint will soon be deprecated in favor of a check whenever
-#     a pod gets submitted to see whether a round should be closed or not based on if any pods are
-#     still active/open or not.
-#     """
-#     body = json.loads(request.body.decode("utf-8"))
-#     round = body.get("round", None)
-#     session = body.get("session", None)
-
-#     if not round or not session:
-#         return Response(
-#             {"message": "Session/Round information not provided"},
-#             status=status.HTTP_400_BAD_REQUEST,
-#         )
-
-#     Rounds.objects.filter(id=round["id"]).update(completed=True)
-
-#     if round["round_number"] != 1:
-#         Sessions.objects.filter(id=session).update(closed=True)
-
-#     return Response(status=status.HTTP_201_CREATED)
 
 
 @api_view([GET])
