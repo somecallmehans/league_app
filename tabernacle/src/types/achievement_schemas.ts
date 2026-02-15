@@ -127,16 +127,6 @@ export const PodAchievementSchema = z.object({
   slug: z.string().nullable(),
 });
 
-export const PodAchievementResponseSchema = z.object({
-  pod_achievements: z.array(PodAchievementSchema).default([]),
-  winning_commander: WinnerSchema.nullable().default(null),
-});
-export type PodAchievementResponse = z.infer<
-  typeof PodAchievementResponseSchema
->;
-export const EMPTY_PODACHIEVEMENT: PodAchievementResponse =
-  PodAchievementResponseSchema.parse({});
-
 export const EarnedAchievementStubSchema = z.object({
   id: z.number(),
   full_name: z.string(),

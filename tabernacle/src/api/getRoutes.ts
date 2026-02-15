@@ -7,9 +7,6 @@ import {
 import {
   AchievementListResponseSchema,
   AchievementObjectResponseSchema,
-  PodAchievementResponse,
-  PodAchievementResponseSchema,
-  EMPTY_PODACHIEVEMENT,
   EarnedAchievementStubListResponseSchema,
   AchievementTypeListResponseSchema,
   type AchievementListResponse,

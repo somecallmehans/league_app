@@ -1,6 +1,7 @@
 import React from "react";
 
 import { useMonthYear } from "../../hooks";
+import { useConfig } from "../../hooks/useConfigs";
 import { useGetAchievementsForMonthQuery } from "../../api/apiSlice";
 import { LeaderboardGrid } from "../leaderboard/Leaderboard";
 import { getStoreSlug } from "../../helpers/helpers";
@@ -28,9 +29,9 @@ const CodeOfConduct = () => (
       tolerated, nor will cheating.
     </p>
     <p className="leading-relaxed mt-4">
-      Respecting fellow participants also requires maintaining a basic standard
-      of cleanliness. Mimic’s Market sells artisanal soaps if you would like to
-      go above and beyond in this regard!
+      Respecting fellow participants also means maintaining a basic standard of
+      cleanliness. A little preparation goes a long way toward making the table
+      comfortable for everyone!
     </p>
   </HomeSection>
 );
@@ -44,31 +45,46 @@ const SuddenDeathContent = () => (
   </div>
 );
 
-const LeagueSchedule = () => (
-  <HomeSection title="League Schedule">
-    <p className="leading-relaxed">
-      Each league begins on the first Sunday of the month, repeats weekly, and
-      concludes on the month’s final Sunday.
-    </p>
-    <ul className="list-disc pl-5 mt-4">
-      <li>
-        <b className="text-sky-500">Round One:</b> 1:30 PM
-      </li>
-      <li>
-        <b className="text-sky-500">Round Two:</b> 3:30 PM
-      </li>
-    </ul>
-    <p className="leading-relaxed mt-4">
-      Pod assignments for round one are random. In round two, pod assignments
-      are ranked by league standings.
-    </p>
-    <Tooltip content={<SuddenDeathContent />} direction="top">
-      <div className="text-sky-400 text-black text-center py-2 mt-4 rounded-lg font-bold">
-        Sudden Death Rules Apply After 90 Minutes
-      </div>
-    </Tooltip>
-  </HomeSection>
-);
+const LeagueSchedule = () => {
+  const roundDay = useConfig("round_day");
+  const roundOneStart = useConfig("round_one_start");
+  const roundTwoStart = useConfig("round_two_start");
+
+  return (
+    <HomeSection title="League Schedule">
+      {roundDay && roundOneStart && roundTwoStart ? (
+        <>
+          <p className="leading-relaxed">
+            Each league begins on the first Sunday of the month, repeats weekly,
+            and concludes on the month’s final Sunday.
+          </p>
+          <ul className="list-disc pl-5 mt-4">
+            <li>
+              <b className="text-sky-500">Round One:</b> 1:30 PM
+            </li>
+            <li>
+              <b className="text-sky-500">Round Two:</b> 3:30 PM
+            </li>
+          </ul>
+          <p className="leading-relaxed mt-4">
+            Pod assignments for round one are random. In round two, pod
+            assignments are ranked by league standings.
+          </p>
+          <Tooltip content={<SuddenDeathContent />} direction="top">
+            <div className="text-sky-400 text-black text-center py-2 mt-4 rounded-lg font-bold">
+              Sudden Death Rules Apply After 90 Minutes
+            </div>
+          </Tooltip>
+        </>
+      ) : (
+        <p>
+          Check with your LGS for their league schedule- if they don't have one,
+          reach out and let's get one started!
+        </p>
+      )}
+    </HomeSection>
+  );
+};
 
 const Description = () => (
   <HomeSection title="What is Commander League?">

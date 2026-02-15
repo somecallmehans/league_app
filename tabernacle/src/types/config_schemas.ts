@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export interface Config {
   key: string;
-  value: unknown;
+  value: string;
   description?: string;
   name: string;
 }
