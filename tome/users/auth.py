@@ -4,6 +4,16 @@ from stores.models import Store, StoreUserAccess
 
 
 class StoreTokenObtainPairSerializer(TokenObtainPairSerializer):
+
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+
+        token["is_superuser"] = user.is_superuser
+        token["is_staff"] = user.is_staff
+
+        return token
+
     def validate(self, attrs):
         data = super().validate(attrs)
 
@@ -17,12 +27,15 @@ class StoreTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         user = self.user
 
-        allowed = StoreUserAccess.objects.filter(
-            user=user,
-            store=store,
-            is_active=True,
-            role__in=["admin", "staff"],
-        ).exists()
+        allowed = (
+            user.is_superuser
+            or StoreUserAccess.objects.filter(
+                user=user,
+                store=store,
+                is_active=True,
+                role__in=["admin", "staff"],
+            ).exists()
+        )
 
         if not allowed:
             raise serializers.ValidationError(
@@ -30,5 +43,8 @@ class StoreTokenObtainPairSerializer(TokenObtainPairSerializer):
             )
 
         data["store"] = {"id": store.id, "slug": store.slug, "name": store.name}
+
+        data["is_superuser"] = user.is_superuser
+        data["is_staff"] = user.is_staff
 
         return data

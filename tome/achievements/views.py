@@ -31,6 +31,7 @@ from rest_framework.decorators import (
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from utils.permissions import IsSuperUser
 from .models import Achievements, Colors, Restrictions, AchievementType
 
 from users.models import ParticipantAchievements
@@ -339,7 +340,7 @@ def get_colors(_, **kwargs):
 
 @api_view([POST])
 @authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsSuperUser])
 def upsert_achievements(request):
     """Create or update an achievement. Name is required."""
     body = json.loads(request.body.decode("utf-8"))
@@ -450,7 +451,7 @@ def get_all_commanders(_, **kwargs):
 
 @api_view([POST])
 @authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsSuperUser])
 def fetch_and_insert_commanders(_):
     """
     Query scryfall and see if any new commanders have been added.

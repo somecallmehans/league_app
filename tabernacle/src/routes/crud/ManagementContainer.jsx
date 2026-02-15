@@ -1,4 +1,5 @@
 import React from "react";
+import auth from "../../helpers/authHelpers.ts";
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import PageTitle from "../../components/PageTitle";
 
@@ -24,31 +25,42 @@ const ReusableTab = ({ name }) => (
 );
 
 const CrudTabPanel = () => {
+  const isSuper = auth.isSuperuser();
+
   return (
     <TabGroup>
       <TabList className="flex flex-wrap justify-center md:justify-start gap-2 sm:gap-4 mb-4">
         <ReusableTab name="Participants" />
-        <ReusableTab name="Achievements" />
         <ReusableTab name="Update Points" />
-        <ReusableTab name="Update Commanders" />
         <ReusableTab name="League Configuration" />
+        {isSuper && (
+          <>
+            <ReusableTab name="Achievements" />
+            <ReusableTab name="Update Commanders" />
+          </>
+        )}
       </TabList>
       <TabPanels className="mt-4">
         <TabPanel>
           <ParticipantPage />
         </TabPanel>
         <TabPanel>
-          <AchievementPage />
-        </TabPanel>
-        <TabPanel>
           <UpdatePoints />
         </TabPanel>
-        <TabPanel>
-          <InsertCommanderPage />
-        </TabPanel>
+
         <TabPanel>
           <LeagueConfiguration />
         </TabPanel>
+        {isSuper && (
+          <>
+            <TabPanel>
+              <AchievementPage />
+            </TabPanel>
+            <TabPanel>
+              <InsertCommanderPage />
+            </TabPanel>
+          </>
+        )}
       </TabPanels>
     </TabGroup>
   );
