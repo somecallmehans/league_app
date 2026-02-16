@@ -9,7 +9,7 @@ import LoadingSpinner from "../../components/LoadingSpinner";
 
 const validation = (val, name) => {
   const casted = +val;
-  if (casted >= 40) {
+  if (casted >= 99) {
     return `Too many participants for ${name}`;
   } else if (casted < 3) {
     return `Not enough participants for ${name}`;

@@ -55,15 +55,15 @@ const LeagueSchedule = () => {
       {roundDay && roundOneStart && roundTwoStart ? (
         <>
           <p className="leading-relaxed">
-            Each league begins on the first Sunday of the month, repeats weekly,
-            and concludes on the month’s final Sunday.
+            Each league begins on the first {roundDay} of the month, repeats
+            weekly, and concludes on the month’s final {roundDay}.
           </p>
           <ul className="list-disc pl-5 mt-4">
             <li>
-              <b className="text-sky-500">Round One:</b> 1:30 PM
+              <b className="text-sky-500">Round One:</b> {roundOneStart} PM
             </li>
             <li>
-              <b className="text-sky-500">Round Two:</b> 3:30 PM
+              <b className="text-sky-500">Round Two:</b> {roundTwoStart} PM
             </li>
           </ul>
           <p className="leading-relaxed mt-4">
