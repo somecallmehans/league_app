@@ -416,9 +416,9 @@ class POSTScoresheetHelper:
             if code:
                 decklist = Decklists.objects.get(
                     code=f"DL-{code}", store_id=self.store_id
-                )
+                ).first()
                 if not decklist:
-                    raise Decklists.DoesNotExist(detail="Decklist code not found")
+                    raise NotFound(detail="Decklist code not found")
                 decklist_id = decklist.id
 
             return ScoresheetBuildResult(

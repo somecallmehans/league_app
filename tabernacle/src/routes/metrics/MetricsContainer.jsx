@@ -193,8 +193,6 @@ function Page() {
   const { data: metrics, isLoading: metricsLoading } =
     useGetMetricsQuery(period);
 
-  console.log(metrics);
-
   if (metricsLoading) {
     return <LoadingSpinner />;
   }
@@ -262,7 +260,6 @@ function Page() {
           leftIcon={<i className="fa-solid fa-star text-yellow-500" />}
           rightIcon={<i className="fa-solid fa-star text-yellow-500" />}
         >
-          {console.log(overall_points)}
           <TopFiveList
             data={overall_points}
             list={Object.keys(overall_points)}
