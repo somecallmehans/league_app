@@ -28,7 +28,9 @@ def test_post_signin_from_lobby(client) -> None:
 @pytest.fixture(scope="function")
 def build_state() -> None:
     RoundSignups.objects.create(
-        participant_id=ids.P4, round_id=ids.R2_SESSION_THIS_MONTH_OPEN
+        participant_id=ids.P4,
+        round_id=ids.R2_SESSION_THIS_MONTH_OPEN,
+        store_id=ids.MIMICS_ID,
     )
 
 

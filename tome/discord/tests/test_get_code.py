@@ -11,7 +11,7 @@ from users.models import Participants
 def add_participant_with_code() -> None:
     """Add one participant with a code + id"""
     Participants.objects.create(
-        name="Cody Codeson", deleted=False, discord_user_id="1234567", code="BBBBBB"
+        name="Cody Codeson", deleted=False, discord_user_id=1234567, code="BBBBBB"
     )
 
 
@@ -19,7 +19,10 @@ def add_participant_with_code() -> None:
 def client(settings):
     settings.SERVICE_TOKEN = "test-token"
     api = APIClient()
-    api.credentials(HTTP_AUTHORIZATION="X-SERVICE-TOKEN test-token")
+    api.credentials(
+        HTTP_AUTHORIZATION="X-SERVICE-TOKEN test-token",
+        HTTP_X_DISCORD_GUILD_ID="1123750208937938964",
+    )
     return api
 
 

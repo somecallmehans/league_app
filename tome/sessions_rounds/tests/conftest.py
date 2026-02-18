@@ -40,6 +40,7 @@ def populate_participation() -> None:
                 round_id=ids.R1_SESSION_THIS_MONTH_OPEN,
                 session_id=ids.SESSION_THIS_MONTH_OPEN,
                 earned_points=3,
+                store_id=ids.MIMICS_ID,
             )
             for pid in ALL_PARTICIPANTS
         ]
@@ -54,9 +55,21 @@ def build_pods_participants(request, base_participants_list) -> None:
 
     pods = Pods.objects.bulk_create(
         [
-            Pods(rounds_id=round_id, submitted=False),
-            Pods(rounds_id=round_id, submitted=False),
-            Pods(rounds_id=round_id, submitted=False),
+            Pods(
+                rounds_id=round_id,
+                submitted=False,
+                store_id=ids.MIMICS_ID,
+            ),
+            Pods(
+                rounds_id=round_id,
+                submitted=False,
+                store_id=ids.MIMICS_ID,
+            ),
+            Pods(
+                rounds_id=round_id,
+                submitted=False,
+                store_id=ids.MIMICS_ID,
+            ),
         ]
     )
 
@@ -87,6 +100,7 @@ def populate_other_achievements(request) -> None:
                 round_id=round_id,
                 session_id=session_id,
                 earned_points=5,
+                store_id=ids.MIMICS_ID,
             ),
             ParticipantAchievements(
                 participant_id=ids.P1,
@@ -94,6 +108,7 @@ def populate_other_achievements(request) -> None:
                 round_id=round_id,
                 session_id=session_id,
                 earned_points=8,
+                store_id=ids.MIMICS_ID,
             ),
             ParticipantAchievements(
                 participant_id=ids.P3,
@@ -101,6 +116,7 @@ def populate_other_achievements(request) -> None:
                 round_id=round_id,
                 session_id=session_id,
                 earned_points=6,
+                store_id=ids.MIMICS_ID,
             ),
             ParticipantAchievements(
                 participant_id=ids.P3,
@@ -108,6 +124,7 @@ def populate_other_achievements(request) -> None:
                 round_id=round_id,
                 session_id=session_id,
                 earned_points=12,
+                store_id=ids.MIMICS_ID,
             ),
             ParticipantAchievements(
                 participant_id=ids.P6,
@@ -115,6 +132,7 @@ def populate_other_achievements(request) -> None:
                 round_id=round_id,
                 session_id=session_id,
                 earned_points=6,
+                store_id=ids.MIMICS_ID,
             ),
             ParticipantAchievements(
                 participant_id=ids.P6,
@@ -122,6 +140,7 @@ def populate_other_achievements(request) -> None:
                 round_id=round_id,
                 session_id=session_id,
                 earned_points=3,
+                store_id=ids.MIMICS_ID,
             ),
             ParticipantAchievements(
                 participant_id=ids.P8,
@@ -129,6 +148,7 @@ def populate_other_achievements(request) -> None:
                 round_id=round_id,
                 session_id=session_id,
                 earned_points=2,
+                store_id=ids.MIMICS_ID,
             ),
             ParticipantAchievements(
                 participant_id=ids.P9,
@@ -136,6 +156,7 @@ def populate_other_achievements(request) -> None:
                 round_id=round_id,
                 session_id=session_id,
                 earned_points=3,
+                store_id=ids.MIMICS_ID,
             ),
         ]
     )

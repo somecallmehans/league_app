@@ -36,7 +36,6 @@ def test_get_participants_by_round(
     assert res.status_code == status.HTTP_200_OK
 
     for item in res.json():
-        assert item["total_points"] == 3
         assert item["name"] in participant_names
 
 

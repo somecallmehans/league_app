@@ -173,14 +173,14 @@ def test_get_decklists_by_color(client, build_state) -> None:
                     "points": 5,
                 },
                 {
-                    "id": 30,
-                    "name": "Win via commander damage",
-                    "points": 1,
-                },
-                {
                     "id": 27,
                     "name": "Win with no creatures except your commander",
                     "points": 4,
+                },
+                {
+                    "id": 30,
+                    "name": "Win via commander damage",
+                    "points": 1,
                 },
             ],
             "code": "DL-A1B2",

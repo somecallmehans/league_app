@@ -22,6 +22,7 @@ def populate_achievements_for_participants() -> None:
                 round_id=ids.R1_SESSION_THIS_MONTH_CLOSED,
                 session_id=ids.SESSION_THIS_MONTH_CLOSED,
                 earned_points=achievement[1],
+                store_id=ids.MIMICS_ID,
             )
             for achievement in [(ids.CMDR_DMG, 3), (ids.KILL_TABLE, 5)]
         ]
@@ -35,6 +36,7 @@ def populate_achievements_for_participants() -> None:
                 round_id=ids.R1_SESSION_THIS_MONTH_OPEN,
                 session_id=ids.SESSION_THIS_MONTH_OPEN,
                 earned_points=achievement[1],
+                store_id=ids.MIMICS_ID,
             )
             for achievement in [(ids.ALL_BASICS, 10), (ids.KNOCK_OUT, 3)]
         ]
@@ -49,6 +51,7 @@ def populate_achievements_for_participants() -> None:
                 round_id=ids.R1_SESSION_THIS_MONTH_CLOSED,
                 session_id=ids.SESSION_THIS_MONTH_CLOSED,
                 earned_points=achievement[1],
+                store_id=ids.MIMICS_ID,
             )
             for achievement in [
                 (ids.NO_CREATURES, 6),
@@ -67,6 +70,7 @@ def populate_achievements_for_participants() -> None:
                 round_id=ids.R1_SESSION_THIS_MONTH_OPEN,
                 session_id=ids.SESSION_THIS_MONTH_OPEN,
                 earned_points=achievement[1],
+                store_id=ids.MIMICS_ID,
             )
             for achievement in [(ids.NO_LANDS, 6)]
         ]
@@ -129,6 +133,7 @@ def populate_achievements_for_participants_last_month() -> None:
                 round_id=ids.R1_SESSION_LAST_MONTH,
                 session_id=ids.SESSION_LAST_MONTH,
                 earned_points=achievement[1],
+                store_id=ids.MIMICS_ID,
             )
             for achievement in [
                 (ids.CMDR_DMG, 3),
@@ -147,6 +152,7 @@ def populate_achievements_for_participants_last_month() -> None:
                 round_id=ids.R2_SESSION_LAST_MONTH,
                 session_id=ids.SESSION_LAST_MONTH,
                 earned_points=achievement[1],
+                store_id=ids.MIMICS_ID,
             )
             for achievement in [
                 (ids.NO_CREATURES, 6),
@@ -165,6 +171,7 @@ def populate_achievements_for_participants_last_month() -> None:
                 round_id=ids.R2_SESSION_LAST_MONTH,
                 session_id=ids.SESSION_LAST_MONTH,
                 earned_points=achievement[1],
+                store_id=ids.MIMICS_ID,
             )
             for achievement in [(ids.NO_LANDS, 6)]
         ]

@@ -280,6 +280,7 @@ class MetricsCalculator:
                 .select_related("color", "participants", "pods")
                 .values("name", "color__symbol", "participants__name")
             )
+
             achievements = list(
                 ParticipantAchievements.objects.filter(achievement_filters)
                 .select_related("achievement", "participant", "round")

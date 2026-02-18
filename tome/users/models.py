@@ -79,20 +79,20 @@ class ParticipantAchievements(models.Model):
         db_table = "participant_achievements"
 
 
-# Unused as of 2/6/26, could drop
-# class Users(models.Model):
+# Needed for tests
+class Users(models.Model):
 
-#     username = None
-#     name = models.CharField(max_length=100, unique=True)
-#     email = models.EmailField(max_length=100, unique=True)
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     admin = models.BooleanField(default=False)
-#     deleted = models.BooleanField(default=False)
-#     active = models.BooleanField(default=True)
-#     password = models.CharField(max_length=50)
+    username = None
+    name = models.CharField(max_length=100, unique=True)
+    email = models.EmailField(max_length=100, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    admin = models.BooleanField(default=False)
+    deleted = models.BooleanField(default=False)
+    active = models.BooleanField(default=True)
+    password = models.CharField(max_length=50)
 
-#     class Meta:
-#         db_table = "users"
+    class Meta:
+        db_table = "users"
 
 
 class Decklists(models.Model):

@@ -6,6 +6,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from users.models import Participants
+from stores.models import StoreParticipant
 
 from utils.test_helpers import get_ids
 
@@ -62,6 +63,9 @@ def build_participant() -> None:
     # override the created_at time with our custom date
     participant.created_at = datetime(2024, 11, 1, 0, 0, 0, tzinfo=pytz.UTC)
     participant.save(update_fields=["created_at"])
+    StoreParticipant.objects.create(
+        id=999, participant=participant, store_id=ids.MIMICS_ID
+    )
 
 
 def test_get_rounds_for_participant(client, build_participant) -> None:

@@ -4,7 +4,8 @@ from csv import reader
 from pathlib import Path
 from functools import cache
 from dataclasses import dataclass, field
-from conftest import SEED_DIRECTORY
+
+SEED_DIRECTORY = "./test_db_seeds"
 
 
 def prune_fields(data, fields_to_keep):
@@ -31,6 +32,22 @@ def id_from_csv_row(csv_path: str, index: int) -> Any:
         id_idx = header.index("id")
         unique_ids = sorted({int(row[id_idx]) for row in seed_reader})
     return field(default_factory=lambda: unique_ids[index])
+
+
+def slug_from_csv_row(csv_path: str, index: int) -> Any:
+    path = SEED_DIRECTORY / Path(f"{csv_path}.csv")
+    with path.open() as f:
+        seed_reader = reader(f)
+        header = next(seed_reader)
+        slug_idx = header.index("slug")
+        slugs = sorted(
+            {
+                row[slug_idx].strip()
+                for row in seed_reader
+                if row and row[slug_idx].strip()
+            }
+        )
+    return slugs[index]
 
 
 @dataclass
@@ -82,6 +99,9 @@ class Identifiers:
     FYNN: int = id_from_csv_row("700_commanders", 0)
     YARUS: int = id_from_csv_row("700_commanders", 1)
     URZA: int = id_from_csv_row("700_commanders", 2)
+
+    MIMICS: str = slug_from_csv_row("001_stores", -1)
+    MIMICS_ID: int = id_from_csv_row("001_stores", 0)
 
 
 @cache

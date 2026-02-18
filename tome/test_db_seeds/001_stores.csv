@@ -1,0 +1,3 @@
+id,name,slug,external_url,discord_guild_id,is_active,deleted
+5,Mimic's Market,mimics-market,https://mimics.example.test,1123750208937938964,true,false
+6,Fabricator's Forge,fabricators-forge,https://forge.example.test,1123750208937938965,true,false

@@ -202,7 +202,7 @@ def get_achievements_by_participant_month(request, **kwargs):
 
     today = datetime.today()
 
-    mm_yy = kwargs["mm_yy"]
+    mm_yy = kwargs.get("mm_yy")
 
     if mm_yy == "new" or mm_yy == None:
         mm_yy = today.strftime("%m-%y")

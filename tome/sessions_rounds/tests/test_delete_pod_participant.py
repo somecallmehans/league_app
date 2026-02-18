@@ -13,7 +13,9 @@ POD_ID = 123
 
 @pytest.fixture(scope="function")
 def build_base_state() -> None:
-    Pods.objects.create(id=POD_ID, rounds_id=ids.R1_SESSION_THIS_MONTH_OPEN)
+    Pods.objects.create(
+        id=POD_ID, rounds_id=ids.R1_SESSION_THIS_MONTH_OPEN, store_id=ids.MIMICS_ID
+    )
 
     PodsParticipants.objects.bulk_create(
         [
@@ -27,6 +29,7 @@ def build_base_state() -> None:
         session_id=ids.SESSION_THIS_MONTH_OPEN,
         achievement_id=ids.PARTICIPATION,
         earned_points=3,
+        store_id=ids.MIMICS_ID,
     )
 
 
@@ -47,6 +50,7 @@ def test_delete_participant(client, build_base_state) -> None:
         round_id=ids.R1_SESSION_THIS_MONTH_OPEN,
         session_id=ids.SESSION_THIS_MONTH_OPEN,
         achievement_id=ids.PARTICIPATION,
+        store_id=ids.MIMICS_ID,
     ).first()
     participants = PodsParticipants.objects.filter(pods_id=POD_ID).values_list(
         "participants_id", flat=True

@@ -134,8 +134,17 @@ def test_get_pods_by_round(
 def build_pods_and_winners():
     Pods.objects.bulk_create(
         [
-            Pods(id=POD_1, rounds_id=ids.R1_SESSION_THIS_MONTH_OPEN, submitted=True),
-            Pods(id=POD_2, rounds_id=ids.R1_SESSION_THIS_MONTH_OPEN),
+            Pods(
+                id=POD_1,
+                rounds_id=ids.R1_SESSION_THIS_MONTH_OPEN,
+                submitted=True,
+                store_id=ids.MIMICS_ID,
+            ),
+            Pods(
+                id=POD_2,
+                rounds_id=ids.R1_SESSION_THIS_MONTH_OPEN,
+                store_id=ids.MIMICS_ID,
+            ),
         ]
     )
 
@@ -155,6 +164,7 @@ def build_pods_and_winners():
         round_id=ids.R1_SESSION_THIS_MONTH_OPEN,
         session_id=ids.SESSION_THIS_MONTH_OPEN,
         earned_points=4,
+        store_id=ids.MIMICS_ID,
     )
 
     WinningCommanders.objects.create(
@@ -163,6 +173,7 @@ def build_pods_and_winners():
         pods_id=POD_1,
         participants_id=ids.P2,
         color_id=ids.GRUUL,
+        store_id=ids.MIMICS_ID,
     )
 
 
@@ -221,12 +232,12 @@ def test_get_pods_by_round_with_winner(
                 "participants": {
                     "id": 902,
                     "name": "Trenna Thain",
-                    "total_points": 7,
                 },
                 "pods": {
                     "id": 987,
                     "submitted": True,
                 },
+                "store": 5,
             },
         },
         "988": {

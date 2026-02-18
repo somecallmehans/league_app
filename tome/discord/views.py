@@ -40,7 +40,6 @@ def mycode(request, discord_user_id):
             {"message": "No code found, participant likely unlinked."},
             status=status.HTTP_400_BAD_REQUEST,
         )
-
     return Response(code)
 
 

@@ -191,6 +191,7 @@ def begin_round(request, **kwargs):
         many=True,
         context={"store_id": request.store_id},
     ).data
+
     return Response(pods, status=status.HTTP_201_CREATED)
 
 

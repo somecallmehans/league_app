@@ -5,6 +5,7 @@ from rest_framework import status
 
 from users.models import Participants
 from sessions_rounds.models import RoundSignups
+from stores.models import StoreParticipant
 from utils.test_helpers import get_ids
 
 ids = get_ids()
@@ -18,6 +19,7 @@ def build_state() -> None:
     Participants.objects.create(
         id=PID, name="BUILDY STATESON", code="AAAAAA", discord_user_id=12345678
     )
+    StoreParticipant.objects.create(participant_id=PID, store_id=ids.MIMICS_ID)
 
 
 def test_post_signup_with_code(client, build_state) -> None:
@@ -30,7 +32,9 @@ def test_post_signup_with_code(client, build_state) -> None:
     res = client.post(url, body, format="json")
 
     rounds = list(
-        RoundSignups.objects.filter(round_id__in=ROUND_LIST, participant_id=PID)
+        RoundSignups.objects.filter(
+            round_id__in=ROUND_LIST, participant_id=PID, store_id=ids.MIMICS_ID
+        )
     )
 
     assert res.status_code == status.HTTP_201_CREATED
