@@ -161,6 +161,7 @@ export const {
   useVerifyDecklistSessionQuery,
   useGetParticipantDecklistsQuery,
   useGetDecklistByIdQuery,
+  useGetStoreQuery,
 
   // POSTS
   usePostCreateSessionMutation,

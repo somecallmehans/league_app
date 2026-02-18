@@ -294,4 +294,7 @@ export default (builder: ApiBuilder) => ({
     query: ({ decklist_id }) => `decklist_by_id/?decklist_id=${decklist_id}`,
     providesTags: ["PersonalDecklists"],
   }),
+  getStore: builder.query<{ name?: string; external_url?: string }, void>({
+    query: () => "store/",
+  }),
 });

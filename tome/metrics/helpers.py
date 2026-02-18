@@ -158,7 +158,7 @@ class MetricsCalculator:
             if last_draw:
                 last_draw = make_aware(last_draw)
             self.metrics["last_draw"] = (
-                {"days": (today - last_draw).days} if last_draw else {"days": None}
+                {"days": (today - last_draw).days} if last_draw else {"days": 0}
             )
 
         except Exception as e:

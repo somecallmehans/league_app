@@ -5,5 +5,6 @@ export function safeParseWithFallback<T>(
   fallback: T
 ): T {
   const r = schema.safeParse(data);
+  console.log(r);
   return r.success ? r.data : fallback;
 }
