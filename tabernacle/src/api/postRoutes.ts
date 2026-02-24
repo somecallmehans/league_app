@@ -120,7 +120,7 @@ export default (builder: ApiBuilder) => ({
       method: "POST",
       body: body,
     }),
-    invalidatesTags: ["Earned"],
+    invalidatesTags: ["Earned", "Scoresheet"],
   }),
   postSignup: builder.mutation<void, SignUpRequest>({
     query: (body) => ({

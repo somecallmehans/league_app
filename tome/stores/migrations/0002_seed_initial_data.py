@@ -18,6 +18,12 @@ def create_data(apps, schema_editor):
         external_url="https://mimicsmarket.com/",
         discord_guild_id=1123750208937938964,
     )
+    StoreModel.objects.create(
+        name="Fabricator's Forge",
+        slug="fabforge",
+        external_url="https://shop.fabricatorsforge.com/",
+        discord_guild_id=638500144165421066,
+    )
 
 
 class Migration(migrations.Migration):

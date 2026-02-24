@@ -1,5 +1,6 @@
 import json
 import logging
+from django.db import transaction
 from datetime import date
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -9,8 +10,9 @@ from django.db.models import Count, Q
 from utils.decorators import require_service_token, require_discord_store
 
 from users.models import Participants, EditToken, Decklists
+from users.helpers import check_for_bad_words
 from sessions_rounds.models import Sessions, RoundSignups, Rounds, Pods
-from stores.models import Store
+from stores.models import Store, StoreParticipant
 
 from configs.configs import get_round_caps
 
@@ -54,7 +56,6 @@ def search(request, query):
         Q(name__icontains=q),
         discord_user_id=None,
         deleted=False,
-        storeparticipant__store_id=request.store_id,
     ).values("id", "name")
 
     return Response(list(matched_participants))
@@ -346,3 +347,247 @@ def issue_edit_token(request):
 
     logger.info(f"Participant verified, returning edit token. User {duid}")
     return Response({"code": code, "slug": store.slug}, status=status.HTTP_201_CREATED)
+
+
+# NEW:
+@require_service_token
+# @require_discord_store
+@api_view([POST])
+def validate_channel(request):
+    """Check if the channel we received a bot request from exists + is allowed"""
+    try:
+        body = json.loads(request.body.decode("utf-8") or "{}")
+    except json.JSONDecodeError:
+        return Response(
+            {"message": "Invalid JSON body."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    guild = request.data.get("guild_id")
+    channel = request.data.get("channel_id")
+
+    if not guild or not channel:
+        return Response(
+            {"message": "Missing guild or channel id"},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    exists = Store.objects.filter(
+        discord_guild_id=guild,
+        discord_channel_id=channel,
+        deleted=False,
+        is_active=True,
+    ).exists()
+
+    if not exists:
+        return Response(
+            {"message": "Store not found"}, status=status.HTTP_404_NOT_FOUND
+        )
+
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@require_service_token
+@require_discord_store
+@api_view([POST])
+def check_join_status(request):
+    """Check if a discord user is linked/a member of the store. Returns body like:
+    {
+      "is_linked": true,
+      "participant_id": 123,
+      "participant_name": "Taylor Smith",
+      "in_store": true,
+      "store_name": "Mimic's Market"
+    }
+    """
+    body = json.loads(request.body.decode("utf-8"))
+    duid = body.get("discord_user_id")
+
+    store = Store.objects.filter(id=request.store_id).first()
+
+    if not duid:
+        return Response(
+            {"message": "Discord user id not provided."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    participant = Participants.objects.filter(
+        discord_user_id=int(duid), deleted=False
+    ).first()
+
+    if not participant:
+        payload = {
+            "is_linked": False,
+            "participant_id": None,
+            "participant_name": None,
+            "in_store": False,
+            "store_name": store.name,
+        }
+        return Response(payload, status=status.HTTP_200_OK)
+
+    in_store = StoreParticipant.objects.filter(
+        store_id=request.store_id, participant_id=participant.id
+    ).exists()
+
+    payload = {
+        "is_linked": True,
+        "participant_id": participant.id,
+        "participant_name": participant.name,
+        "in_store": in_store,
+        "store_id": request.store_id,
+        "store_name": store.name,
+    }
+    return Response(payload, status=status.HTTP_200_OK)
+
+
+@require_service_token
+@require_discord_store
+@api_view([POST])
+def find_participants(request):
+    """Similar to the above search, do a rough match for a submitted name."""
+    try:
+        body = json.loads(request.body.decode("utf-8") or "{}")
+    except json.JSONDecodeError:
+        return Response(
+            {"message": "Invalid JSON body."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    raw_query = (body.get("query") or "").strip()
+    if len(raw_query) < 3:
+        return Response(
+            {"matches": []},
+            status=status.HTTP_200_OK,
+        )
+    print("RAW_QUERY: ", raw_query)
+    participants = (
+        Participants.objects.filter(
+            discord_user_id__isnull=True, name__icontains=raw_query, deleted=False
+        )
+        .distinct()
+        .order_by("name")[:25]
+        .values("id", "name")
+    )
+    return Response(
+        {"matches": list(participants)},
+        status=status.HTTP_200_OK,
+    )
+
+
+@require_service_token
+@require_discord_store
+@api_view([POST])
+def register_and_join(request):
+    """Take in a name, create the user and register/link them"""
+
+    try:
+        body = json.loads(request.body.decode("utf-8") or "{}")
+    except json.JSONDecodeError:
+        return Response(
+            {"message": "Invalid JSON body."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    name = (body.get("name") or "").strip()
+    duid = body.get("discord_user_id")
+
+    if not name or len(name) < 2:
+        return Response(
+            {"message": "Name is required, please try again."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if check_for_bad_words(name):
+        return Response(
+            {"message": "Invalid name entered, please try again."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    store = Store.objects.filter(id=request.store_id).first()
+
+    with transaction.atomic():
+        new = Participants.objects.filter(
+            discord_user_id=int(duid), deleted=False
+        ).first()
+        created = False
+
+        if not new:
+            new = Participants.objects.create(
+                name=name,
+                discord_user_id=int(duid),
+            )
+            created = True
+
+        _, sp_created = StoreParticipant.objects.get_or_create(
+            store_id=request.store_id,
+            participant_id=new.id,
+        )
+
+    payload = {
+        "participant_id": new.id,
+        "participant_name": new.name,
+        "code": new.code,
+        "linked": True,
+        "in_store": True,
+        "store_name": store.name,
+    }
+    http_status = (
+        status.HTTP_201_CREATED if (created or sp_created) else status.HTTP_200_OK
+    )
+    return Response(payload, status=http_status)
+
+
+@require_service_token
+@require_discord_store
+@api_view([POST])
+def ensure_store_membership(request):
+    """
+    Ensure a linked participant is associated with the current store.
+    """
+
+    try:
+        body = json.loads(request.body.decode("utf-8") or "{}")
+    except json.JSONDecodeError:
+        return Response(
+            {"message": "Invalid JSON body."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    duid = body.get("discord_user_id")
+    if duid in (None, ""):
+        return Response(
+            {"message": "Discord user id not provided."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    duid = int(duid)
+
+    participant = Participants.objects.filter(
+        discord_user_id=duid, deleted=False
+    ).first()
+
+    if not participant:
+        return Response(
+            {"message": "Discord account is not linked to any participant."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    store = Store.objects.filter(id=request.store_id).only("name").first()
+
+    with transaction.atomic():
+        _, created = StoreParticipant.objects.get_or_create(
+            store_id=request.store_id,
+            participant_id=participant.id,
+        )
+
+    payload = {
+        "participant_id": participant.id,
+        "participant_name": participant.name,
+        "in_store": True,
+        "store_name": store.name,
+        "created_store_membership": created,
+    }
+
+    http_status = status.HTTP_201_CREATED if created else status.HTTP_200_OK
+
+    return Response(payload, status=http_status)
