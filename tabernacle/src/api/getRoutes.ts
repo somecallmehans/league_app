@@ -108,6 +108,15 @@ export default (builder: ApiBuilder) => ({
     transformResponse: (raw: unknown) =>
       safeParseWithFallback(ScalableTermsResponseSchema, raw, { types: [] }),
   }),
+  getScalableTermTypes: builder.query<
+    Array<{ id: number; name: string }>,
+    void
+  >({
+    query: () => "scalable_term_types/",
+    providesTags: ["Achievements"],
+    transformResponse: (raw: unknown) =>
+      Array.isArray(raw) ? raw : [],
+  }),
   getAllSessions: builder.query<SessionObjectResponse, void>({
     query: () => "all_sessions/",
     providesTags: ["Sessions"],

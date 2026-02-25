@@ -51,6 +51,7 @@ from achievements.models import (
     Commanders,
     AchievementScalableTerms,
     ScalableTerms,
+    ScalableTermType,
 )
 from achievements.participant_achievement_helpers import (
     resolve_participant_achievement_display,
@@ -99,7 +100,9 @@ def get_scorecard_achievement_options(_, **kwargs):
     ]
 
     scalable = list(
-        AchievementScalableTerms.objects.filter(achievement__deleted=False)
+        AchievementScalableTerms.objects.filter(
+            achievement__deleted=False, scalable_term__deleted=False
+        )
         .select_related("achievement", "scalable_term")
         .values(
             "achievement_id",
@@ -124,7 +127,7 @@ def get_scorecard_achievement_options(_, **kwargs):
 def get_scalable_terms(_, **kwargs):
     """Return all scalable terms grouped by type, for the Scalable Terms browse page."""
     terms = (
-        ScalableTerms.objects.all()
+        ScalableTerms.objects.filter(deleted=False)
         .select_related("type")
         .order_by("type__name", "term_display")
         .values("id", "term_display", "type_id", "type__name")
@@ -152,6 +155,94 @@ def get_scalable_terms(_, **kwargs):
         types_list.append({"id": None, "name": "Uncategorized", "terms": untyped})
 
     return Response({"types": types_list})
+
+
+@api_view([GET])
+def get_scalable_term_types(_, **kwargs):
+    """Return all scalable term types for management dropdowns."""
+    types = list(ScalableTermType.objects.all().order_by("name").values("id", "name"))
+    return Response(types)
+
+
+def _get_scalable_achievement_ids():
+    """Return distinct achievement IDs that have bridge entries (scalable achievements)."""
+    return set(
+        AchievementScalableTerms.objects.values_list("achievement_id", flat=True)
+    )
+
+
+@api_view([POST])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsSuperUser])
+def upsert_scalable_term(request, **kwargs):
+    """Create or update a scalable term. When creating, add to bridge for each scalable achievement."""
+    body = json.loads(request.body.decode("utf-8"))
+    term_id = body.get("id")
+    term_display = body.get("term_display", "").strip()
+    type_id = body.get("type_id")
+    deleted = body.get("deleted", False)
+
+    if not term_display and not term_id:
+        return Response(
+            {"message": "term_display is required for new terms."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    term = None
+    if term_id:
+        term = ScalableTerms.objects.filter(id=term_id).first()
+        if not term:
+            return Response(
+                {"message": "Scalable term not found."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+    if term:
+        if term_display:
+            term.term_display = term_display
+        term.deleted = deleted
+        if type_id is not None:
+            term.type_id = type_id if type_id else None
+        term.save()
+    else:
+        with transaction.atomic():
+            term = ScalableTerms.objects.create(
+                term_display=term_display,
+                type_id=type_id or None,
+                deleted=False,
+            )
+            scalable_achievement_ids = _get_scalable_achievement_ids()
+            for ach_id in scalable_achievement_ids:
+                AchievementScalableTerms.objects.get_or_create(
+                    achievement_id=ach_id,
+                    scalable_term_id=term.id,
+                )
+
+    return Response(
+        {"id": term.id, "term_display": term.term_display, "type_id": term.type_id},
+        status=status.HTTP_201_CREATED,
+    )
+
+
+@api_view([POST])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsSuperUser])
+def create_scalable_term_type(request):
+    """Create a new scalable term type."""
+    body = json.loads(request.body.decode("utf-8"))
+    name = (body.get("name") or "").strip()
+    if not name:
+        return Response(
+            {"message": "name is required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    if ScalableTermType.objects.filter(name=name).exists():
+        return Response(
+            {"message": f"Type '{name}' already exists."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    t = ScalableTermType.objects.create(name=name)
+    return Response({"id": t.id, "name": t.name}, status=status.HTTP_201_CREATED)
 
 
 @api_view([GET])

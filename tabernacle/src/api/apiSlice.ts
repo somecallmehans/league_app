@@ -146,6 +146,7 @@ export const {
   useGetAchievementsListQuery,
   useGetScorecardAchievementOptionsQuery,
   useGetScalableTermsQuery,
+  useGetScalableTermTypesQuery,
   // Not currently in use but will be needed
   // when we add the crud for this
   // useGetAchievementTypesQuery,
@@ -183,6 +184,8 @@ export const {
   usePostDecklistMutation,
   useExchangeTokensMutation,
   useUpdateDecklistMutation,
+  useUpsertScalableTermMutation,
+  useCreateScalableTermTypeMutation,
 
   // AUTH
   useLoginMutation,

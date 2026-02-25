@@ -73,6 +73,7 @@ class ScalableTerms(models.Model):
     """Shared reusable terms for scalable achievements (e.g., '1', '2', '3', '4' for kill count; 'Trample' for keyword)."""
 
     term_display = models.CharField(max_length=255)
+    deleted = models.BooleanField(default=False)
     type = models.ForeignKey(
         ScalableTermType,
         on_delete=models.PROTECT,

@@ -15,6 +15,9 @@ from .views import (
     scoresheet,
     get_scorecard_achievement_options,
     get_scalable_terms,
+    get_scalable_term_types,
+    upsert_scalable_term,
+    create_scalable_term_type,
 )
 
 urlpatterns = [
@@ -48,6 +51,21 @@ urlpatterns = [
         "scalable_terms/",
         get_scalable_terms,
         name="get_scalable_terms",
+    ),
+    path(
+        "scalable_terms/upsert/",
+        upsert_scalable_term,
+        name="upsert_scalable_term",
+    ),
+    path(
+        "scalable_term_types/",
+        get_scalable_term_types,
+        name="get_scalable_term_types",
+    ),
+    path(
+        "scalable_term_types/create/",
+        create_scalable_term_type,
+        name="create_scalable_term_type",
     ),
     path("colors/", get_colors, name="colors"),
     path("commanders/", get_all_commanders, name="commanders"),

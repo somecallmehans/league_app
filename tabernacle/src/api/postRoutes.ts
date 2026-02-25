@@ -220,4 +220,26 @@ export default (builder: ApiBuilder) => ({
     }),
     invalidatesTags: ["Decklists", "PersonalDecklists"],
   }),
+  upsertScalableTerm: builder.mutation<
+    { id: number; term_display: string; type_id: number | null },
+    { id?: number; term_display: string; type_id?: number | null; deleted?: boolean }
+  >({
+    query: (body) => ({
+      url: "scalable_terms/upsert/",
+      method: "POST",
+      body: body,
+    }),
+    invalidatesTags: ["Achievements"],
+  }),
+  createScalableTermType: builder.mutation<
+    { id: number; name: string },
+    { name: string }
+  >({
+    query: (body) => ({
+      url: "scalable_term_types/create/",
+      method: "POST",
+      body: body,
+    }),
+    invalidatesTags: ["Achievements"],
+  }),
 });
