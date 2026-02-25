@@ -104,7 +104,9 @@ class MetricsCalculator:
                 achievement_chart[key]["point_value"] = point_value
                 achievement_chart[key]["count"] += 1
             self.metrics["achievement_chart"] = {
-                k: v for k, v in achievement_chart.items() if v["count"] >= 5
+                f"{k[0]}-{k[1]}": v
+                for k, v in achievement_chart.items()
+                if v["count"] >= 5
             }
 
         except (KeyError, TypeError) as e:
@@ -297,7 +299,13 @@ class MetricsCalculator:
 
             achievements = list(
                 ParticipantAchievements.objects.filter(achievement_filters)
-                .select_related("achievement", "achievement__parent", "scalable_term", "participant", "round")
+                .select_related(
+                    "achievement",
+                    "achievement__parent",
+                    "scalable_term",
+                    "participant",
+                    "round",
+                )
                 .values(
                     "earned_points",
                     "round_id",
