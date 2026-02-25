@@ -41,7 +41,7 @@ def select_existing_prompt(matches: list[dict]):
         "type": 4,
         "data": {
             "flags": EPHEMERAL,
-            "content": "I found a few people with that name. Pick yours, or choose “I’m new”.",
+            "content": 'I found a few people with that name. Pick yours, or choose "I\'m new".',
             "components": [
                 {
                     "type": 1,
@@ -60,7 +60,7 @@ def select_existing_prompt(matches: list[dict]):
                         {
                             "type": 2,
                             "style": 2,
-                            "label": "I’m new",
+                            "label": "I'm new",
                             "custom_id": "join:new",
                         },
                     ],

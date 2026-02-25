@@ -131,7 +131,7 @@ async def handle_link(user_id: int, participant_value: str, guild_id: int):
     if res.status_code == 201:
         code = res.json()["code"]
         msg = (
-            f"✅ Link successful. You are now able to sign in for league using **/signin**\n\n "
+            f"✅ Link successful {name}. You are now able to sign in for league using **/signin**\n\n "
             f"You can also sign in using your unique code: **{code}** on our website.\n "
             "You can view it any time with **/mycode**."
         )
@@ -535,7 +535,7 @@ async def handle_join_name_submit(user_id: int, name: str, guild_id: int):
         created = await register_and_join(user_id, name, guild_id)
         parsed = created.json()
         if created.status_code in (200, 201):
-            code = created.json().get("code")
+            code = parsed.get("code")
             msg = (
                 f"✅ You’re all set, **{name}**.\n\n"
                 "You can now use **/signin** in this channel to register for Commander League.\n\n"

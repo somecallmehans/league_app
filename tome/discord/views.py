@@ -324,11 +324,16 @@ def issue_edit_token(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+    store = Store.objects.filter(id=request.store_id).first()
+    if not store:
+        return Response(
+            {"message": "Store not found."}, status=status.HTTP_404_NOT_FOUND
+        )
+
     if not Decklists.objects.filter(
         participant=participant, deleted=False, store_id=request.store_id
     ).exists():
         logger.error(f"User with DU_ID: {duid} does not have any decklists")
-        store = Store.objects.filter(id=request.store_id).first()
         url = f"{store.slug}.commanderleague.xyz/decklists/new"
         return Response(
             {
@@ -343,7 +348,6 @@ def issue_edit_token(request):
         )
 
     code = EditToken.mint(owner=participant)
-    store = Store.objects.filter(id=request.store_id).get()
 
     logger.info(f"Participant verified, returning edit token. User {duid}")
     return Response({"code": code, "slug": store.slug}, status=status.HTTP_201_CREATED)
@@ -496,6 +500,7 @@ def register_and_join(request):
         )
 
     if check_for_bad_words(name):
+        logger.info(f"SOMEONE {duid} SAID A NAUGHTY WORD: {name}")
         return Response(
             {"message": "Invalid name entered, please try again."},
             status=status.HTTP_400_BAD_REQUEST,

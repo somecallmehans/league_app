@@ -124,6 +124,7 @@ def sessions_and_rounds(request, mm_yy=None, **kwargs):
         payload = {
             "session_date": new_session.session_date.strftime("%A, %B %-d %Y"),
             "slug": store.slug,
+            "channel_id": store.discord_channel_id,
         }
         bot_announcement(payload)
 
