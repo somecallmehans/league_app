@@ -3,7 +3,10 @@ from typing import Optional
 
 
 from django.utils.deprecation import MiddlewareMixin
+from django.http import HttpResponseRedirect
+
 from django.conf import settings
+
 
 from .models import Store
 
@@ -71,3 +74,55 @@ class StoreResolverMiddleware(MiddlewareMixin):
         """
         m = STORE_PATH_RE.match(path)
         return m.group("slug") if m else None
+
+
+class InvalidStoreRedirectMiddleware(MiddlewareMixin):
+    """
+    Redirect invalid store subdomains to apex.
+
+    Examples:
+      - mimicsmarket.commanderleague.xyz -> allowed if store exists
+      - nope.commanderleague.xyz  -> redirect to commanderleague.xyz
+      - commanderleague.xyz       -> allowed (no redirect)
+      - localhost / *.localhost   -> allowed (no redirect)
+      - reserved subdomains (www/api/staging) -> allowed (no redirect)
+    """
+
+    RESERVED_SUBDOMAINS = {"www", "api", "staging", "admin"}
+
+    def process_request(self, request):
+        host = request.get_host().split(":")[0].lower()
+        if (
+            host in {"localhost", "127.0.0.1"}
+            or host.endswith(".localhost")
+            or host.endswith(".local")
+        ):
+            return None
+
+        parts = host.split(".")
+        if len(parts) < 2:
+            return None
+
+        subdomain = parts[0]
+        base = ".".join(parts[1:])
+
+        if base not in settings.BASE_DOMAINS:
+            return None
+
+        if host == base:
+            return None
+
+        if subdomain in self.RESERVED_SUBDOMAINS:
+            return None
+
+        exists = Store.objects.filter(
+            slug=subdomain,
+            deleted=False,
+            is_active=True,
+        ).exists()
+
+        if not exists:
+            apex = getattr(settings, "APEX_DOMAIN", base)
+            return HttpResponseRedirect(f"https://{apex}{request.get_full_path()}")
+
+        return None

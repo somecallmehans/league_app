@@ -60,6 +60,7 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "stores.middleware.InvalidStoreRedirectMiddleware",
     "stores.middleware.StoreResolverMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -97,8 +98,9 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^http://.*\.localhost:5173$",
+    r"^https://([a-z0-9-]+\.)*commanderleague\.xyz$",
     r"^http://localhost:5173$",
+    r"^http://[a-z0-9-]+\.localhost:5173$",
 ]
 
 CORS_ALLOW_METHODS = ["GET", "OPTIONS", "POST", "DELETE", "PUT"]
