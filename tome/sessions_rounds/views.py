@@ -29,7 +29,6 @@ from users.serializers import (
 )
 from .helpers import (
     generate_pods,
-    # get_participants_total_scores,
     RoundInformationService,
 )
 from configs.configs import get_round_caps
@@ -157,7 +156,7 @@ def begin_round(request, **kwargs):
     round_id = body.get("round", None)
     session_id = body.get("session", None)
 
-    if not participants or not round or not session_id:
+    if not participants or not round_id or not session_id:
         return Response(
             {"message": "Missing information to begin round."},
             status=status.HTTP_400_BAD_REQUEST,

@@ -711,7 +711,7 @@ def upsert_earned_achievements(request, **kwargs):
 
     if id:
         achievement = ParticipantAchievements.objects.filter(
-            id=id, store_id=request.store_id
+            id=id, store_id=request.store_id, deleted=False
         ).first()
         if not achievement:
             return Response(
@@ -736,7 +736,9 @@ def upsert_earned_achievements(request, **kwargs):
         )
 
     achievement = (
-        Achievements.objects.select_related("parent").filter(id=achievement_id).first()
+        Achievements.objects.select_related("parent")
+        .filter(id=achievement_id, deleted=False)
+        .first()
     )
     if not achievement:
         return Response(
