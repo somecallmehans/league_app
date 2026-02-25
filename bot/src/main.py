@@ -76,6 +76,7 @@ async def interactions(req: Request):
     channel = payload.get("channel") or {}
     channel_id = channel.get("id")
     guild_id = payload.get("guild_id")
+    data = payload.get("data") or {}
     name = data.get("name")
 
     if not guild_id or not channel_id:
@@ -98,7 +99,6 @@ async def interactions(req: Request):
         }
 
     if t == APP_COMMAND_AUTOCOMPLETE:
-        data = payload.get("data") or {}
         options = data.get("options") or []
         q = ""
         if options and isinstance(options, list):
@@ -109,8 +109,6 @@ async def interactions(req: Request):
             return await handle_participant_autocomplete(q, guild_id)
 
     if t == APP_COMMAND:
-        data = payload.get("data") or {}
-
         user = (payload.get("member") or {}).get("user") or payload.get("user")
         user_id = int(user["id"])
 
@@ -119,7 +117,6 @@ async def interactions(req: Request):
             return await handle_getcode(user_id, guild_id)
 
         if name == "link":
-            data = payload.get("data") or {}
             options = data.get("options") or []
             q = ""
             if options and isinstance(options, list):
@@ -142,7 +139,6 @@ async def interactions(req: Request):
             return await handle_edit_decklist_url(user_id, guild_id)
 
         if name == "join":
-            data = payload.get("data") or {}
             options = data.get("options") or []
             user_id = int(payload["member"]["user"]["id"])
 
@@ -155,7 +151,6 @@ async def interactions(req: Request):
             return await handle_join(user_id, participant_value, guild_id)
 
     if t == MESSAGE:
-        data = payload.get("data") or {}
         cid = data.get("custom_id")
 
         user = (payload.get("member") or {}).get("user") or payload.get("user")
@@ -187,7 +182,6 @@ async def interactions(req: Request):
             return join_name_modal()
 
     if t == MODAL_SUBMIT:
-        data = payload.get("data") or {}
         cid = data.get("custom_id")
 
         if cid == "join:name":
