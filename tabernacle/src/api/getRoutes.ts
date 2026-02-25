@@ -10,12 +10,14 @@ import {
   EarnedAchievementStubListResponseSchema,
   AchievementTypeListResponseSchema,
   ScorecardAchievementOptionsResponseSchema,
+  ScalableTermsResponseSchema,
   type AchievementListResponse,
   type AchievementObjectResponse,
   type EarnedAchievementSubListResponse,
   type AchievementTypeListResponse,
   type ScoresheetFormResponse,
   type ScorecardAchievementOptionsResponse,
+  type ScalableTermsResponse,
 } from "../types/achievement_schemas";
 import {
   SessionObjectResponseSchema,
@@ -100,6 +102,12 @@ export default (builder: ApiBuilder) => ({
         scalable: [],
       }),
   }),
+  getScalableTerms: builder.query<ScalableTermsResponse, void>({
+    query: () => "scalable_terms/",
+    providesTags: ["Achievements"],
+    transformResponse: (raw: unknown) =>
+      safeParseWithFallback(ScalableTermsResponseSchema, raw, { types: [] }),
+  }),
   getAllSessions: builder.query<SessionObjectResponse, void>({
     query: () => "all_sessions/",
     providesTags: ["Sessions"],
@@ -166,7 +174,7 @@ export default (builder: ApiBuilder) => ({
       safeParseWithFallback(
         IndividualMetricResponseSchema,
         raw,
-        EMPTY_INDIVIDUAL_METRIC
+        EMPTY_INDIVIDUAL_METRIC,
       ),
   }),
   getCommanders: builder.query<CommanderObjectResponse, void>({

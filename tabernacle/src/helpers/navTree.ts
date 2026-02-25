@@ -73,9 +73,13 @@ export const navLinks: Array<Node> = [
   {
     id: 4,
     name: "Achievements",
-    to: "/achievements",
+    to: "",
     admin: false,
     icon: "fa-solid fa-star",
+    children: [
+      { id: "4a", name: "Achievements", to: "/achievements" },
+      { id: "4b", name: "Scalable Terms", to: "/achievements/scalable-terms" },
+    ],
     scope: "both",
   },
   {

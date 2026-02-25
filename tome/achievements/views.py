@@ -50,6 +50,7 @@ from achievements.models import (
     WinningCommanders,
     Commanders,
     AchievementScalableTerms,
+    ScalableTerms,
 )
 from achievements.participant_achievement_helpers import (
     resolve_participant_achievement_display,
@@ -117,6 +118,40 @@ def get_scorecard_achievement_options(_, **kwargs):
     ]
 
     return Response({"legacy": legacy_options, "scalable": scalable_options})
+
+
+@api_view([GET])
+def get_scalable_terms(_, **kwargs):
+    """Return all scalable terms grouped by type, for the Scalable Terms browse page."""
+    terms = (
+        ScalableTerms.objects.all()
+        .select_related("type")
+        .order_by("type__name", "term_display")
+        .values("id", "term_display", "type_id", "type__name")
+    )
+
+    grouped = defaultdict(lambda: {"id": None, "name": "", "terms": []})
+    untyped = []
+
+    for t in terms:
+        term_data = {"id": t["id"], "term_display": t["term_display"]}
+        if t["type_id"] and t["type__name"]:
+            key = t["type__name"]
+            grouped[key]["id"] = t["type_id"]
+            grouped[key]["name"] = t["type__name"]
+            grouped[key]["terms"].append(term_data)
+        else:
+            untyped.append(term_data)
+
+    types_list = [
+        {"id": v["id"], "name": v["name"], "terms": v["terms"]}
+        for v in sorted(grouped.values(), key=lambda x: x["name"])
+        if v["terms"]
+    ]
+    if untyped:
+        types_list.append({"id": None, "name": "Uncategorized", "terms": untyped})
+
+    return Response({"types": types_list})
 
 
 @api_view([GET])

@@ -80,7 +80,7 @@ const baseQueryWithReauth: BaseBQ = async (args, api, extraOptions) => {
         body: { refresh: auth.getRefreshToken() },
       },
       api,
-      extraOptions
+      extraOptions,
     );
 
     const refreshData = refreshResult.data as { access?: string } | undefined;
@@ -145,6 +145,7 @@ export const {
   useGetParticipantPodsQuery,
   useGetAchievementsListQuery,
   useGetScorecardAchievementOptionsQuery,
+  useGetScalableTermsQuery,
   // Not currently in use but will be needed
   // when we add the crud for this
   // useGetAchievementTypesQuery,

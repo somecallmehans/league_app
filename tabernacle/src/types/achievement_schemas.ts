@@ -93,7 +93,7 @@ export const AchievementSchema: z.ZodType<GetAchievement> = z.lazy(() =>
     type_id: z.number().nullish(),
     parent: ParentAchievementSchema.nullish(),
     restrictions: AchievementRestrictionsSchema.nullish(),
-  })
+  }),
 );
 
 export const AchievementListResponseSchema = z.array(AchievementSchema);
@@ -312,4 +312,20 @@ export const ScorecardAchievementOptionsResponseSchema = z.object({
 });
 export type ScorecardAchievementOptionsResponse = z.infer<
   typeof ScorecardAchievementOptionsResponseSchema
+>;
+
+export const ScalableTermItemSchema = z.object({
+  id: z.number(),
+  term_display: z.string(),
+});
+export const ScalableTermsTypeGroupSchema = z.object({
+  id: z.number().nullable(),
+  name: z.string(),
+  terms: z.array(ScalableTermItemSchema),
+});
+export const ScalableTermsResponseSchema = z.object({
+  types: z.array(ScalableTermsTypeGroupSchema),
+});
+export type ScalableTermsResponse = z.infer<
+  typeof ScalableTermsResponseSchema
 >;
