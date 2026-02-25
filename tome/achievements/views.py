@@ -1,4 +1,5 @@
 import json
+from typing import List, Dict
 
 from datetime import datetime
 from collections import defaultdict
@@ -48,6 +49,10 @@ from achievements.models import (
     Achievements,
     WinningCommanders,
     Commanders,
+    AchievementScalableTerms,
+)
+from achievements.participant_achievement_helpers import (
+    resolve_participant_achievement_display,
 )
 
 from achievements.helpers import (
@@ -72,6 +77,46 @@ POST = "POST"
 PUT = "PUT"
 
 scryfall_request = ScryfallClientRequest()
+
+
+@api_view([GET])
+def get_scorecard_achievement_options(_, **kwargs):
+    """Return flattened list of achievement options for scorecard winner-achievements picker.
+    Legacy: children achievements (id, name). New: scalable achievement+term (achievement_id, scalable_term_id, name).
+    """
+
+    legacy: List[Dict[str, object]] = list(
+        Achievements.objects.filter(deleted=False, parent__isnull=False)
+        .exclude(slug__iregex=r"win-[0-9]+-colors")
+        .select_related("parent")
+        .values("id", "name", "parent__name")
+    )
+    legacy_options = [
+        {"id": a["id"], "name": f"{a['parent__name']} {a['name']}"}
+        for a in legacy
+        if a["parent__name"]
+    ]
+
+    scalable = list(
+        AchievementScalableTerms.objects.filter(achievement__deleted=False)
+        .select_related("achievement", "scalable_term")
+        .values(
+            "achievement_id",
+            "scalable_term_id",
+            "achievement__name",
+            "scalable_term__term_display",
+        )
+    )
+    scalable_options = [
+        {
+            "achievement_id": s["achievement_id"],
+            "scalable_term_id": s["scalable_term_id"],
+            "name": f"{s['achievement__name']} {s['scalable_term__term_display']}",
+        }
+        for s in scalable
+    ]
+
+    return Response({"legacy": legacy_options, "scalable": scalable_options})
 
 
 @api_view([GET])
@@ -399,21 +444,25 @@ def upsert_achievements(request):
 @require_store
 def get_participant_round_achievements(request, participant_id, round_id, **kwargs):
     """Get all achievements + points for a participant in a particular round."""
-    achievements = ParticipantAchievements.objects.select_related("achievement").filter(
+    achievements = ParticipantAchievements.objects.select_related(
+        "achievement", "achievement__parent", "scalable_term"
+    ).filter(
         participant_id=participant_id,
         round_id=round_id,
         store_id=request.store_id,
         deleted=False,
     )
 
-    out = [
-        {
-            "id": a.id,
-            "full_name": a.achievement.full_name,
-            "earned_points": a.earned_points,
-        }
-        for a in achievements
-    ]
+    out = []
+    for a in achievements:
+        resolved = resolve_participant_achievement_display(a)
+        out.append(
+            {
+                "id": a.id,
+                "full_name": resolved["full_name"],
+                "earned_points": resolved["earned_points"],
+            }
+        )
 
     return Response(out)
 
@@ -530,6 +579,7 @@ def upsert_earned_achievements(request, **kwargs):
     participant_id = body.get("participant_id")
     round_id = body.get("round_id")
     achievement_id = body.get("achievement_id")
+    scalable_term_id = body.get("scalable_term_id")
 
     if not participant_id or not round_id or not achievement_id:
         return Response(
@@ -540,7 +590,24 @@ def upsert_earned_achievements(request, **kwargs):
     achievement = (
         Achievements.objects.select_related("parent").filter(id=achievement_id).first()
     )
-    point_value = achievement.points
+    if not achievement:
+        return Response(
+            {"message": "Achievement not found."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if scalable_term_id is not None:
+        if not AchievementScalableTerms.objects.filter(
+            achievement_id=achievement_id,
+            scalable_term_id=scalable_term_id,
+        ).exists():
+            return Response(
+                {"message": "Invalid achievement and scalable term combination."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        point_value = achievement.point_value or achievement.points
+    else:
+        point_value = achievement.points
 
     session_id = (
         Rounds.objects.filter(id=round_id, session__store_id=request.store_id)
@@ -551,6 +618,7 @@ def upsert_earned_achievements(request, **kwargs):
     ParticipantAchievements.objects.create(
         participant_id=participant_id,
         achievement_id=achievement_id,
+        scalable_term_id=scalable_term_id,
         round_id=round_id,
         session_id=session_id,
         earned_points=point_value,

@@ -200,7 +200,11 @@ function AchievementCart() {
           control={control}
           placeholder="Deck Building Achievements"
           getOptionLabel={(option) => option.name}
-          getOptionValue={(option) => String(option.id)}
+          getOptionValue={(option) =>
+            "id" in option
+              ? String(option.id)
+              : `scalable-${option.achievement_id}-${option.scalable_term_id}`
+          }
           containerClasses="grow mt-2"
           isClearable
           onChange={(selected) => {
@@ -214,9 +218,24 @@ function AchievementCart() {
 
             const curr = getValues("winner-achievements") ?? [];
 
+            const item = selected as {
+              id?: number;
+              achievement_id?: number;
+              scalable_term_id?: number;
+              name: string;
+            };
+            const toAdd =
+              "achievement_id" in item && item.achievement_id != null
+                ? {
+                    achievement_id: item.achievement_id,
+                    scalable_term_id: item.scalable_term_id,
+                    name: item.name,
+                    tempId: crypto.randomUUID(),
+                  }
+                : { ...item, tempId: crypto.randomUUID() };
             setValue(
               "winner-achievements",
-              [...curr, { ...(selected as any), tempId: crypto.randomUUID() }],
+              [...curr, toAdd],
               { shouldDirty: true, shouldValidate: false }
             );
 
@@ -229,24 +248,52 @@ function AchievementCart() {
         />
       </div>
       <div className="h-full min-h-0 bg-zinc-100 p-4 rounded-lg border drop-shadow-md flex flex-col gap-2 overflow-y-auto">
-        {cart.map((c: { tempId: string; name: string | undefined }) => (
+        {cart.map(
+          (
+            c: {
+              tempId?: string;
+              id?: number;
+              achievement_id?: number;
+              scalable_term_id?: number;
+              name: string | undefined;
+            },
+            idx: number
+          ) => (
           <div
             className="flex justify-between bg-white rounded-lg p-2 shadow-md  items-center"
-            key={c.tempId}
+            key={
+              c.tempId ??
+              (c.achievement_id != null
+                ? `scalable-${c.achievement_id}-${c.scalable_term_id}`
+                : c.id ?? idx)
+            }
           >
             <div className="text-sm">{c.name}</div>
             <span aria-hidden className="flex-1 h-4  mx-1" />
             <i
               className="fa fa-trash text-zinc-500 hover:text-red-500"
               onClick={() => {
+                const key =
+                  c.tempId ??
+                  (c.achievement_id != null
+                    ? `scalable-${c.achievement_id}-${c.scalable_term_id}`
+                    : c.id ?? idx);
                 setValue(
                   "winner-achievements",
-                  cart.filter((x: any) => x.tempId !== c.tempId)
+                  cart.filter((x: any) => {
+                    const xKey =
+                      x.tempId ??
+                      (x.achievement_id != null
+                        ? `scalable-${x.achievement_id}-${x.scalable_term_id}`
+                        : x.id);
+                    return xKey !== key;
+                  })
                 );
               }}
             />
           </div>
-        ))}
+        )
+        )}
       </div>
     </div>
   );

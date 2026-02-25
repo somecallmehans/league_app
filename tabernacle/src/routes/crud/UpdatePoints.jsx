@@ -4,7 +4,7 @@ import {
   useGetAllRoundsQuery,
   useGetAchievementRoundQuery,
   usePostUpsertParticipantAchievementMutation,
-  useGetAchievementsQuery,
+  useGetScorecardAchievementOptionsQuery,
 } from "../../api/apiSlice";
 import StandardButton from "../../components/Button";
 import LoadingSpinner from "../../components/LoadingSpinner";
@@ -72,30 +72,48 @@ const AchievementGrid = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedAchievement, setSelectedAchievement] = useState();
-  const { data: achievements } = useGetAchievementsQuery();
+  const { data: achievementOptions } = useGetScorecardAchievementOptionsQuery();
   const [postUpsertParticipantAchievement] =
     usePostUpsertParticipantAchievementMutation();
 
   const handleInsert = async () => {
+    if (!selectedAchievement) return;
     try {
-      await postUpsertParticipantAchievement({
-        participant_id: selectedParticipant,
-        achievement_id: selectedAchievement,
-        round_id: selectedRound,
-      });
+      const payload =
+        typeof selectedAchievement === "object" &&
+        selectedAchievement.achievement_id != null
+          ? {
+              participant_id: selectedParticipant,
+              achievement_id: selectedAchievement.achievement_id,
+              scalable_term_id: selectedAchievement.scalable_term_id,
+              round_id: selectedRound,
+            }
+          : {
+              participant_id: selectedParticipant,
+              achievement_id: selectedAchievement,
+              round_id: selectedRound,
+            };
+      await postUpsertParticipantAchievement(payload);
       setIsOpen(false);
     } catch (err) {
-      console.error("Failed to delete achievement: ", err);
+      console.error("Failed to add achievement: ", err);
     }
   };
 
   const data = useMemo(() => {
-    if (!achievements) return [];
-    return achievements.data.map(({ full_name, id }) => ({
+    if (!achievementOptions) return [];
+    const legacy = achievementOptions.legacy.map(({ id, name }) => ({
       value: id,
-      label: full_name,
+      label: name,
     }));
-  }, [achievements]);
+    const scalable = achievementOptions.scalable.map(
+      ({ achievement_id, scalable_term_id, name }) => ({
+        value: { achievement_id, scalable_term_id },
+        label: name,
+      })
+    );
+    return [...legacy, ...scalable];
+  }, [achievementOptions]);
 
   return (
     <div className="py-4">

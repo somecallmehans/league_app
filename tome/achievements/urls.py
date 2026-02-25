@@ -13,6 +13,7 @@ from .views import (
     get_league_monthly_winners,
     get_league_monthly_winner_info,
     scoresheet,
+    get_scorecard_achievement_options,
 )
 
 urlpatterns = [
@@ -36,6 +37,11 @@ urlpatterns = [
         "get_achievements/",
         get_achievements_with_restrictions_v2,
         name="get_achievements",
+    ),
+    path(
+        "scorecard_achievement_options/",
+        get_scorecard_achievement_options,
+        name="get_scorecard_achievement_options",
     ),
     path("colors/", get_colors, name="colors"),
     path("commanders/", get_all_commanders, name="commanders"),

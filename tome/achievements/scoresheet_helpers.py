@@ -8,6 +8,9 @@ from users.models import ParticipantAchievements, Decklists
 from users.queries import StubCommander
 
 from achievements.helpers import calculate_color_mask
+from achievements.participant_achievement_helpers import (
+    resolve_participant_achievement_display,
+)
 
 pod_slugs = {
     "bring-snack",
@@ -151,17 +154,20 @@ class GETScoresheetHelper:
             session_id=self.session_id,
             deleted=False,
             store_id=self.store_id,
-        ).select_related("achievement", "achievement__parent")
+        ).select_related("achievement", "achievement__parent", "scalable_term")
 
-        earned = [
-            {
-                "participant_id": pa.participant_id,
-                "achievement_id": pa.achievement_id,
-                "achievement__slug": pa.achievement.slug,
-                "achievement_full_name": pa.achievement.full_name,
-            }
-            for pa in qs
-        ]
+        earned = []
+        for pa in qs:
+            resolved = resolve_participant_achievement_display(pa)
+            earned.append(
+                {
+                    "participant_id": pa.participant_id,
+                    "achievement_id": pa.achievement_id,
+                    "scalable_term_id": pa.scalable_term_id,
+                    "achievement__slug": pa.achievement.slug,
+                    "achievement_full_name": resolved["full_name"],
+                }
+            )
 
         wc = self.handle_commander()
         winner_id = None
@@ -200,12 +206,14 @@ class GETScoresheetHelper:
 
             if not slug or slug == "precon":
                 if winner_id and pid == winner_id:
-                    payload["winner-achievements"].append(
-                        {
-                            "id": row["achievement_id"],
-                            "name": row["achievement_full_name"],
-                        }
-                    )
+                    item = {
+                        "id": row["achievement_id"],
+                        "name": row["achievement_full_name"],
+                    }
+                    if row.get("scalable_term_id") is not None:
+                        item["achievement_id"] = row["achievement_id"]
+                        item["scalable_term_id"] = row["scalable_term_id"]
+                    payload["winner-achievements"].append(item)
                 continue
 
             if slug in pod_slugs:
@@ -289,10 +297,33 @@ class POSTScoresheetHelper:
                     )
                 )
 
+    def _normalize_winner_achievement(self, wa):
+        """Extract achievement_id, scalable_term_id, and points from winner-achievement item.
+        Legacy: wa is int or dict with 'id' -> achievement_id=wa or wa['id'], scalable_term_id=None
+        New: wa is dict with 'achievement_id' and 'scalable_term_id'
+        """
+        if isinstance(wa, int):
+            return wa, None
+        if isinstance(wa, dict):
+            if "achievement_id" in wa and "scalable_term_id" in wa:
+                return wa["achievement_id"], wa["scalable_term_id"]
+            if "id" in wa:
+                return wa["id"], None
+        return None, None
+
+    def _get_achievement_ids_for_precon_check(self, winner_achievements):
+        """Extract achievement ids for is_precon check (2 in winner_achievements)."""
+        ids = []
+        for wa in winner_achievements or []:
+            aid, _ = self._normalize_winner_achievement(wa)
+            if aid is not None:
+                ids.append(aid)
+        return ids
+
     def build_winner_achievements(self):
         """Build achievement records for winner achievements."""
         winner = self.winner
-        winner_achievements = getattr(self, "winner-achievements", [])
+        winner_achievements = getattr(self, "winner-achievements", []) or []
 
         for ws in winner_slugs:
             isTrue = getattr(self, ws, False)
@@ -308,24 +339,51 @@ class POSTScoresheetHelper:
                     )
                 )
 
-        points_dict = self.build_points_dict(winner_achievements)
-
+        legacy_ids = []
         for wa in winner_achievements:
+            achievement_id, scalable_term_id = self._normalize_winner_achievement(wa)
+            if achievement_id is None:
+                continue
+            if scalable_term_id is not None:
+                achievement = Achievements.objects.filter(
+                    id=achievement_id, deleted=False
+                ).first()
+                if achievement:
+                    earned_points = achievement.point_value or achievement.points
+                    self.records.append(
+                        ParticipantAchievements(
+                            participant_id=winner,
+                            achievement_id=achievement_id,
+                            scalable_term_id=scalable_term_id,
+                            round_id=self.round_id,
+                            session_id=self.session_id,
+                            earned_points=earned_points,
+                            store_id=self.store_id,
+                        )
+                    )
+            else:
+                legacy_ids.append(achievement_id)
+
+        points_dict = self.build_points_dict(legacy_ids)
+        for aid in legacy_ids:
             self.records.append(
                 ParticipantAchievements(
                     participant_id=winner,
-                    achievement_id=wa,
+                    achievement_id=aid,
                     round_id=self.round_id,
                     session_id=self.session_id,
-                    earned_points=points_dict[wa],
+                    earned_points=points_dict.get(aid, 0),
                     store_id=self.store_id,
                 )
             )
 
     def build_win_colors(self):
         """Build the winning commander record."""
-        winner_achievements = getattr(self, "winner-achievements", [])
-        is_precon = 2 in winner_achievements
+        winner_achievements = getattr(self, "winner-achievements", []) or []
+        achievement_ids = self._get_achievement_ids_for_precon_check(
+            winner_achievements
+        )
+        is_precon = 2 in achievement_ids
         winner_commander = getattr(self, "winner-commander", None)
         partner_commander = getattr(self, "partner-commander", None)
         companion_commander = getattr(self, "companion-commander", None)
@@ -414,7 +472,7 @@ class POSTScoresheetHelper:
             decklist_id = None
 
             if code:
-                decklist = Decklists.objects.get(
+                decklist = Decklists.objects.filter(
                     code=f"DL-{code}", store_id=self.store_id
                 ).first()
                 if not decklist:

@@ -60,6 +60,41 @@ class AchievementsRestrictions(models.Model):
         db_table = "achievements_restrictions"
 
 
+class ScalableTermType(models.Model):
+    """Type classification for scalable terms."""
+
+    name = models.CharField(max_length=64, unique=True)
+
+    class Meta:
+        db_table = "scalable_term_type"
+
+
+class ScalableTerms(models.Model):
+    """Shared reusable terms for scalable achievements (e.g., '1', '2', '3', '4' for kill count; 'Trample' for keyword)."""
+
+    term_display = models.CharField(max_length=255)
+    type = models.ForeignKey(
+        ScalableTermType,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="scalable_terms",
+    )
+
+    class Meta:
+        db_table = "scalable_terms"
+
+
+class AchievementScalableTerms(models.Model):
+    """Bridge linking an achievement to its valid scalable terms. Points always inherit from parent achievement."""
+
+    achievement = models.ForeignKey(Achievements, on_delete=models.CASCADE)
+    scalable_term = models.ForeignKey(ScalableTerms, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = "achievement_scalable_terms"
+
+
 class Colors(models.Model):
     symbol = models.CharField(max_length=5)
     slug = models.CharField(max_length=26)

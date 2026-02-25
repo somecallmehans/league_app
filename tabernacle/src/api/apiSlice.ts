@@ -144,6 +144,7 @@ export const {
   useGetAllRoundsQuery,
   useGetParticipantPodsQuery,
   useGetAchievementsListQuery,
+  useGetScorecardAchievementOptionsQuery,
   // Not currently in use but will be needed
   // when we add the crud for this
   // useGetAchievementTypesQuery,

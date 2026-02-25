@@ -55,6 +55,19 @@ def calculate_full_name(child, parent):
     return child
 
 
+def resolve_achievement_display_name(achievement_data: dict) -> str:
+    """Resolve display name for an achievement from metrics values() dict.
+    Legacy: achievement__parent__name set, use parent + child.
+    New scalable: scalable_term__term_display set, use achievement__name + term.
+    """
+    if achievement_data.get("scalable_term__term_display"):
+        return f"{achievement_data.get('achievement__name', '')} {achievement_data['scalable_term__term_display']}"
+    return calculate_full_name(
+        achievement_data.get("achievement__name", ""),
+        achievement_data.get("achievement__parent__name"),
+    )
+
+
 class MetricsCalculator:
     def __init__(self, store_id: int):
         self.metrics = {}
@@ -70,6 +83,10 @@ class MetricsCalculator:
         except (KeyError, TypeError) as e:
             print(f"Error building color pie: {e}")
 
+    def _achievement_chart_key(self, earned):
+        """Unique key for achievement chart: (achievement_id, scalable_term_id or 0)."""
+        return (earned["achievement__id"], earned.get("scalable_term_id") or 0)
+
     def build_achievement_chart(self, achievements):
         try:
             achievement_chart = defaultdict(
@@ -79,15 +96,13 @@ class MetricsCalculator:
             for earned in achievements:
                 if earned["achievement__slug"] is not None:
                     continue
-                name = calculate_full_name(
-                    earned["achievement__name"], earned["achievement__parent__name"]
-                )
-                id = earned["achievement__id"]
+                name = resolve_achievement_display_name(earned)
+                key = self._achievement_chart_key(earned)
                 point_value = earned["achievement__point_value"]
 
-                achievement_chart[id]["name"] = name
-                achievement_chart[id]["point_value"] = point_value
-                achievement_chart[id]["count"] += 1
+                achievement_chart[key]["name"] = name
+                achievement_chart[key]["point_value"] = point_value
+                achievement_chart[key]["count"] += 1
             self.metrics["achievement_chart"] = {
                 k: v for k, v in achievement_chart.items() if v["count"] >= 5
             }
@@ -111,18 +126,13 @@ class MetricsCalculator:
 
     def build_most_earned(self, achievements):
         try:
-            # achievement_map = defaultdict(lambda: {"name": "", "count": 0})
             most_earned = Counter()
             for achievement in achievements:
                 slug = achievement.get("achievement__slug")
                 if slug is not None:
                     continue
 
-                name = calculate_full_name(
-                    achievement["achievement__name"],
-                    achievement["achievement__parent__name"],
-                )
-
+                name = resolve_achievement_display_name(achievement)
                 most_earned[name] += 1
 
             self.metrics["most_earned"] = dict(Counter(most_earned).most_common(5))
@@ -207,7 +217,11 @@ class MetricsCalculator:
             if slug is None or slug != "best-snack":
                 biggest_burger[rnd][player_name] += points
 
-            unique[player_name].add(achievement["achievement__id"])
+            unique_key = (
+                achievement["achievement__id"],
+                achievement.get("scalable_term_id") or 0,
+            )
+            unique[player_name].add(unique_key)
 
             if slug == "best-snack" or slug == "bring-snack":
                 snack_leaders[player_name] += points
@@ -283,15 +297,17 @@ class MetricsCalculator:
 
             achievements = list(
                 ParticipantAchievements.objects.filter(achievement_filters)
-                .select_related("achievement", "participant", "round")
+                .select_related("achievement", "achievement__parent", "scalable_term", "participant", "round")
                 .values(
                     "earned_points",
                     "round_id",
+                    "scalable_term_id",
                     "achievement__id",
                     "achievement__name",
                     "achievement__slug",
                     "achievement__point_value",
                     "achievement__parent__name",
+                    "scalable_term__term_display",
                     "participant__name",
                     "round__round_number",
                     "round__starts_at",
@@ -328,17 +344,18 @@ class IndividualMetricsCalculator:
     def fetch_participant_achievements(self):
         """Get all of the participant achievements for a given participant."""
         try:
-            self.participant_achievements = (
+            self.participant_achievements = list(
                 ParticipantAchievements.objects.filter(
                     participant_id=self.participant_id,
                     store_id=self.store_id,
                     deleted=False,
                 )
-                .select_related("achievement")
+                .select_related("achievement", "scalable_term")
                 .select_related("round")
                 .select_related("session")
                 .values(
                     "achievement_id",
+                    "scalable_term_id",
                     "session_id",
                     "round_id",
                     "session__month_year",
@@ -423,11 +440,11 @@ class IndividualMetricsCalculator:
 
     def calculate_unique_achievements(self):
         """Calculate number of unique achievements earned."""
-        return len(
-            list(
-                {v["achievement_id"]: v for v in self.participant_achievements}.values()
-            )
-        )
+        unique_keys = {
+            (v["achievement_id"], v.get("scalable_term_id") or 0)
+            for v in self.participant_achievements
+        }
+        return len(unique_keys)
 
     def calculate_session_points(self):
         """Sum all of the points for each session, then format them in a way the

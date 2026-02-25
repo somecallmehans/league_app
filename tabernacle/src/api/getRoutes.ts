@@ -9,11 +9,13 @@ import {
   AchievementObjectResponseSchema,
   EarnedAchievementStubListResponseSchema,
   AchievementTypeListResponseSchema,
+  ScorecardAchievementOptionsResponseSchema,
   type AchievementListResponse,
   type AchievementObjectResponse,
   type EarnedAchievementSubListResponse,
   type AchievementTypeListResponse,
   type ScoresheetFormResponse,
+  type ScorecardAchievementOptionsResponse,
 } from "../types/achievement_schemas";
 import {
   SessionObjectResponseSchema,
@@ -85,6 +87,18 @@ export default (builder: ApiBuilder) => ({
     providesTags: ["Achievements"],
     transformResponse: (raw: unknown) =>
       safeParseWithFallback(AchievementListResponseSchema, raw, []),
+  }),
+  getScorecardAchievementOptions: builder.query<
+    ScorecardAchievementOptionsResponse,
+    void
+  >({
+    query: () => "scorecard_achievement_options/",
+    providesTags: ["Achievements"],
+    transformResponse: (raw: unknown) =>
+      safeParseWithFallback(ScorecardAchievementOptionsResponseSchema, raw, {
+        legacy: [],
+        scalable: [],
+      }),
   }),
   getAllSessions: builder.query<SessionObjectResponse, void>({
     query: () => "all_sessions/",
