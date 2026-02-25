@@ -1,5 +1,6 @@
 import re
 import uuid
+import logging
 from typing import Optional
 from urllib.parse import urlparse
 from django.utils import timezone
@@ -29,6 +30,8 @@ from .helpers import hash_code
 from achievements.models import WinningCommanders
 from sessions_rounds.models import PodsParticipants
 from services.scryfall_client import ScryfallClientRequest
+
+logger = logging.getLogger(__name__)
 
 
 scryfall_request = ScryfallClientRequest()
@@ -68,7 +71,10 @@ class BitOr(Func):
     output_field = IntegerField()
 
 
-def get_decklists(params: dict = None, owner_id: int = None) -> list[Decklists]:
+def get_decklists(
+    params: dict = None,
+    owner_id: int = None,
+) -> list[Decklists]:
     """Return decklists based on params"""
     params = params or {}
     sort_order = params.get("sort_order")
@@ -112,8 +118,10 @@ def get_decklists(params: dict = None, owner_id: int = None) -> list[Decklists]:
             "points",
         )
     )
-
-    ach_query = DecklistsAchievements.objects.all().select_related("achievement")
+    ids = [q["id"] for q in query]
+    ach_query = DecklistsAchievements.objects.filter(
+        decklist_id__in=ids
+    ).select_related("achievement")
     ach_by_decklist = defaultdict(list)
 
     for row in ach_query:
@@ -217,9 +225,9 @@ class StubCommander(dict):
     color_id: Optional[int]
 
 
-def get_single_decklist() -> Decklists:
+def get_single_decklist(store_id: int) -> Decklists:
     """Base return a decklist"""
-    return Decklists.objects.filter(deleted=False).values(
+    return Decklists.objects.filter(deleted=False, store_id=store_id).values(
         "id",
         "name",
         "url",
@@ -236,9 +244,9 @@ def get_single_decklist() -> Decklists:
     )
 
 
-def get_single_decklist_by_id(id) -> Decklists:
+def get_single_decklist_by_id(id, store_id) -> Decklists:
     """Return a single decklist + achievements by its id"""
-    query = get_single_decklist()
+    query = get_single_decklist(store_id)
     query = query.filter(id=id).first()
 
     if not query:
@@ -282,9 +290,9 @@ def get_single_decklist_by_id(id) -> Decklists:
     return payload
 
 
-def get_single_decklist_by_code(param: str = "") -> Decklists:
+def get_single_decklist_by_code(store_id: int, param: str = "") -> Decklists:
     code = f"DL-{param}"
-    query = get_single_decklist()
+    query = get_single_decklist(store_id)
     query = query.filter(code=code).first()
     if not query:
         raise ValidationError({"code": "Decklist not found"})
@@ -319,7 +327,9 @@ def get_single_decklist_by_code(param: str = "") -> Decklists:
     return payload
 
 
-def get_decklist_by_participant_round(participant_id: int, round_id: int) -> Decklists:
+def get_decklist_by_participant_round(
+    participant_id: int, round_id: int, store_id: int
+) -> Decklists:
     pod_id = (
         PodsParticipants.objects.filter(
             participants_id=participant_id, pods__rounds_id=round_id
@@ -330,13 +340,18 @@ def get_decklist_by_participant_round(participant_id: int, round_id: int) -> Dec
 
     try:
         winning_commander = WinningCommanders.objects.filter(
-            participants_id=participant_id, pods_id=pod_id, deleted=False
+            participants_id=participant_id,
+            pods_id=pod_id,
+            store_id=store_id,
+            deleted=False,
         ).get()
         if not winning_commander.decklist_id:
             return {"achievements": [], "url": "", "id": "", "name": "", "code": ""}
 
         decklist = (
-            Decklists.objects.filter(id=winning_commander.decklist_id)
+            Decklists.objects.filter(
+                id=winning_commander.decklist_id, store_id=store_id, deleted=False
+            )
             .values("id", "name", "url", "code")
             .first()
         )
@@ -388,12 +403,14 @@ def _normalize_url(raw: str) -> str:
     return raw
 
 
-def validate_inputs(name: Optional[str], url: Optional[str]) -> None:
+def validate_inputs(name: Optional[str], url: Optional[str], pid: int) -> None:
     """Check both inputs for 1. profanity and 2. make sure urls are on our allow list"""
 
     if name and profanity.contains_profanity(name):
+        logger.info(f"Profanity identified for {name}, PID: {pid}")
         raise ValidationError({"url": "Name cannot contain profanity"})
     if url and profanity.contains_profanity(url):
+        logger.info(f"Profanity identified for {url}, PID: {pid}")
         raise ValidationError({"url": "URL cannot contain profanity"})
 
     if url:
@@ -420,12 +437,12 @@ def validate_inputs(name: Optional[str], url: Optional[str]) -> None:
             )
 
 
-def post_decklists(body, pid) -> None:
+def post_decklists(body, pid, store_id) -> None:
     """Post a new decklist"""
     achievements = body.get("achievements", [])
 
     try:
-        validate_inputs(body["name"], body["url"])
+        validate_inputs(body["name"], body["url"], pid)
         deck = Decklists.objects.create(
             name=body["name"],
             url=body["url"],
@@ -434,6 +451,7 @@ def post_decklists(body, pid) -> None:
             partner_id=body.get("partner", None),
             companion_id=body.get("companion", None),
             give_credit=body.get("give_credit", False),
+            store_id=store_id,
         )
 
         DecklistsAchievements.objects.bulk_create(

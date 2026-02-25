@@ -84,11 +84,11 @@ CONFIG_SPEC: dict[str, dict[str, Callable[[Any], Any]]] = {
 }
 
 
-def get_round_caps() -> tuple[int, int]:
+def get_round_caps(store_id: int) -> tuple[int, int]:
     caps = dict(
-        Config.objects.filter(key__in=["round_one_cap", "round_two_cap"]).values_list(
-            "key", "value"
-        )
+        Config.objects.filter(
+            key__in=["round_one_cap", "round_two_cap"], store_id=store_id
+        ).values_list("key", "value")
     )
     r1_cast = CONFIG_SPEC["round_one_cap"]["cast"]
     r2_cast = CONFIG_SPEC["round_two_cap"]["cast"]

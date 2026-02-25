@@ -89,3 +89,24 @@ export const writeTemps = (rid: number, arr: Array<GenericObject>): void => {
   }
   toast.success("Updated successfully");
 };
+
+export function getStoreSlug(
+  location: Location = window.location
+): string | null | undefined {
+  const host = location.hostname.toLowerCase();
+  const parts = host.split(".");
+
+  if (parts.length < 3 && parts[1] !== "localhost") {
+    return null;
+  }
+
+  const slug = parts[0];
+
+  const reserved = new Set(["www", "api", "admin"]);
+
+  if (slug && reserved.has(slug)) {
+    return null;
+  }
+
+  return slug;
+}

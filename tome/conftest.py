@@ -5,15 +5,27 @@ from datetime import datetime
 from rest_framework.test import APIClient
 from django.db import connection
 from pathlib import Path
+from utils.test_helpers import get_ids
 
 from users.models import Users
+
+ids = get_ids()
 
 SEED_DIRECTORY = "./test_db_seeds"
 
 
+@pytest.fixture(autouse=True)
+def mock_bot_announcement():
+    with mock.patch("sessions_rounds.views.bot_announcement", autospec=True):
+        yield
+
+
 @pytest.fixture
-def api_client():
-    return APIClient()
+def api_client(settings):
+    settings.BASE_DOMAINS = {"example.test"}
+    client = APIClient()
+    client.defaults["HTTP_HOST"] = f"{ids.MIMICS}.example.test"
+    return client
 
 
 @pytest.fixture
@@ -23,6 +35,8 @@ def mock_authenticated_user(db):
         name="Testy McTestface", password="letmein", email="email@email.com", admin=True
     )
     user.is_authenticated = True
+    user.is_superuser = True
+    user.is_staff = True
     return user
 
 
@@ -65,6 +79,8 @@ def seed_db(transactional_db):
         cursor.execute(
             """
             TRUNCATE TABLE
+            stores,
+            round_signups,
             pods_participants,
             participant_achievements,
             winning_commanders,

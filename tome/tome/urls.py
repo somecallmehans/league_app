@@ -18,17 +18,33 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
     TokenRefreshView,
 )
+from stores.views import StoreTokenObtainPairView
 
 
+# TODO: Once the subdomain feat gets rolling for real, we can pair down some of these routes probably
 urlpatterns = [
-    path("admin/", admin.site.urls),
-    path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
-    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("s/<slug:store_slug>/admin/", admin.site.urls),
+    path(
+        "s/<slug:store_slug>/api/token/",
+        StoreTokenObtainPairView.as_view(),
+        name="store_token_obtain_pair",
+    ),
+    path(
+        "s/<slug:store_slug>/api/token/refresh/",
+        TokenRefreshView.as_view(),
+        name="token_refresh",
+    ),
     path("api/discord/", include("discord.urls")),
     path("configs/", include("configs.urls")),
+    path("s/<slug:store_slug>/configs/", include("configs.urls")),
+    path("s/<slug:store_slug>/", include("stores.urls")),
+    path("s/<slug:store_slug>/", include("users.urls")),
+    path("s/<slug:store_slug>/", include("achievements.urls")),
+    path("s/<slug:store_slug>/", include("sessions_rounds.urls")),
+    path("s/<slug:store_slug>/", include("metrics.urls")),
+    path("", include("stores.urls")),
     path("", include("users.urls")),
     path("", include("achievements.urls")),
     path("", include("sessions_rounds.urls")),

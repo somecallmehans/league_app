@@ -8,7 +8,7 @@ def test_get_metrics_league_wide() -> None:
     """
     should: get data formatted for the frontends pie chart
     """
-    calc = MetricsCalculator()
+    calc = MetricsCalculator(store_id=ids.MIMICS_ID)
     metrics = calc.build_metrics(period=None)
 
     assert metrics["color_pie"] == {"rg": 2, "wub": 1}
@@ -26,7 +26,7 @@ def test_get_metrics_individual() -> None:
     """
     should: get data formatted for the frontends pie chart
     """
-    calc = IndividualMetricsCalculator(ids.P1)
+    calc = IndividualMetricsCalculator(ids.P1, store_id=ids.MIMICS_ID)
     metrics = calc.build()
 
     assert metrics == {

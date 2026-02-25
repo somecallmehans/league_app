@@ -56,16 +56,17 @@ def calculate_full_name(child, parent):
 
 
 class MetricsCalculator:
-    def __init__(self):
+    def __init__(self, store_id: int):
         self.metrics = {}
+        self.store_id = store_id
 
-    def build_color_pie(self, winners):
+    def build_color_pie(self, winners) -> None:
         try:
             color_pie = {}
             for winner in winners:
                 symbol = winner["color__symbol"]
                 color_pie[symbol] = color_pie.get(symbol, 0) + 1
-            self.metrics["color_pie"] = color_pie
+            self.metrics["color_pie"] = color_pie if color_pie else None
         except (KeyError, TypeError) as e:
             print(f"Error building color pie: {e}")
 
@@ -147,7 +148,7 @@ class MetricsCalculator:
         try:
             last_draw = (
                 ParticipantAchievements.objects.filter(
-                    achievement__slug="end-draw", deleted=False
+                    achievement__slug="end-draw", store_id=self.store_id, deleted=False
                 )
                 .select_related("round")
                 .order_by("-round__created_at")
@@ -157,7 +158,7 @@ class MetricsCalculator:
             if last_draw:
                 last_draw = make_aware(last_draw)
             self.metrics["last_draw"] = (
-                {"days": (today - last_draw).days} if last_draw else {"days": None}
+                {"days": (today - last_draw).days} if last_draw else {"days": 0}
             )
 
         except Exception as e:
@@ -262,8 +263,10 @@ class MetricsCalculator:
         try:
             start, end = get_bounds(period)
 
-            winners_filters = Q(deleted=False) & ~Q(name="END IN DRAW")
-            achievement_filters = Q(deleted=False)
+            winners_filters = (
+                Q(deleted=False) & ~Q(name="END IN DRAW") & Q(store_id=self.store_id)
+            )
+            achievement_filters = Q(deleted=False) & Q(store_id=self.store_id)
             if start is not None:
                 winners_filters &= Q(pods__rounds__created_at__gte=start) & Q(
                     pods__rounds__created_at__lt=end
@@ -277,6 +280,7 @@ class MetricsCalculator:
                 .select_related("color", "participants", "pods")
                 .values("name", "color__symbol", "participants__name")
             )
+
             achievements = list(
                 ParticipantAchievements.objects.filter(achievement_filters)
                 .select_related("achievement", "participant", "round")
@@ -294,6 +298,9 @@ class MetricsCalculator:
                 )
             )
 
+            if not winners and not achievements:
+                return None
+
         except Exception as e:
             print(f"Error fetching data to build metrics: {e}")
 
@@ -310,8 +317,9 @@ class MetricsCalculator:
 
 
 class IndividualMetricsCalculator:
-    def __init__(self, participant_id):
+    def __init__(self, participant_id, store_id):
         self.participant_id = participant_id
+        self.store_id = store_id
         self.participant_achievements = []
         self.participant_pods = []
         self.participant_obj = None
@@ -322,7 +330,9 @@ class IndividualMetricsCalculator:
         try:
             self.participant_achievements = (
                 ParticipantAchievements.objects.filter(
-                    participant_id=self.participant_id, deleted=False
+                    participant_id=self.participant_id,
+                    store_id=self.store_id,
+                    deleted=False,
                 )
                 .select_related("achievement")
                 .select_related("round")
@@ -347,7 +357,9 @@ class IndividualMetricsCalculator:
         This will act as our 'attendance' record."""
         try:
             self.participant_pods = PodsParticipants.objects.filter(
-                participants_id=self.participant_id, pods__deleted=False
+                participants_id=self.participant_id,
+                pods__store_id=self.store_id,
+                pods__deleted=False,
             ).select_related("pods")
         except BaseException as e:
             print(f"Exception raised in individual metrics calculator attendance: {e}")
@@ -363,9 +375,9 @@ class IndividualMetricsCalculator:
 
     def fetch_sessions(self):
         """Fetch all existing sessions."""
-        self.sessions = Sessions.objects.filter(deleted=False).values(
-            "id", "month_year"
-        )
+        self.sessions = Sessions.objects.filter(
+            deleted=False, store_id=self.store_id
+        ).values("id", "month_year")
 
     def make_sessions_dict_by_month_year(self):
         """Make a dict of sessions by month_year."""
@@ -452,7 +464,7 @@ class IndividualMetricsCalculator:
         self.fetch_sessions()
 
         win_count = WinningCommanders.objects.filter(
-            participants_id=self.participant_id, deleted=False
+            participants_id=self.participant_id, store_id=self.store_id, deleted=False
         ).count()
 
         return {
@@ -467,10 +479,11 @@ class IndividualMetricsCalculator:
         }
 
 
-def calculate_badges(pid):
+def calculate_badges(pid, store_id):
     earned_exists = ParticipantAchievements.objects.filter(
         deleted=False,
         participant_id=pid,
+        store_id=store_id,
         achievement_id=OuterRef("pk"),
     )
 

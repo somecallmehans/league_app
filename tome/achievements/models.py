@@ -106,6 +106,8 @@ class WinningCommanders(models.Model):
     participants = models.ForeignKey(
         "users.Participants", on_delete=models.CASCADE, null=True, blank=True
     )
+    store = models.ForeignKey("stores.Store", on_delete=models.CASCADE, null=True)
+
     commander = models.ForeignKey(
         Commanders,
         on_delete=models.CASCADE,

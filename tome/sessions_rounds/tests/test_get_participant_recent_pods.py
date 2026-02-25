@@ -34,7 +34,10 @@ EXTRA_ROUND = 55
 def build_pods():
     """Build our pod state"""
     Sessions.objects.create(
-        id=EXTRA_SESSION, month_year="11-24", session_date=date(2024, 11, 18)
+        id=EXTRA_SESSION,
+        month_year="11-24",
+        session_date=date(2024, 11, 18),
+        store_id=ids.MIMICS_ID,
     )
     Rounds.objects.create(
         id=EXTRA_ROUND,
@@ -44,7 +47,7 @@ def build_pods():
     )
 
     pods = Pods.objects.bulk_create(
-        Pods(rounds_id=rid)
+        Pods(rounds_id=rid, store_id=ids.MIMICS_ID)
         for rid in [
             ids.R2_SESSION_LAST_MONTH,
             ids.R1_SESSION_THIS_MONTH_CLOSED,
@@ -58,6 +61,7 @@ def build_pods():
             pods=pod,
             participants_id=WINNERS_LIST[idx][1],
             color_id=ids.GRUUL,
+            store_id=ids.MIMICS_ID,
         )
         PodsParticipants.objects.bulk_create(
             PodsParticipants(pods=pod, participants_id=pid)
@@ -161,7 +165,10 @@ ROUND_LAST_MONTH = 44
 def build_pods_last_month():
     """Build our pod state"""
     Sessions.objects.create(
-        id=SESSION_LAST_MONTH, month_year="10-24", session_date=date(2024, 10, 18)
+        store_id=ids.MIMICS_ID,
+        id=SESSION_LAST_MONTH,
+        month_year="10-24",
+        session_date=date(2024, 10, 18),
     )
     Rounds.objects.create(
         id=ROUND_LAST_MONTH,
@@ -171,7 +178,7 @@ def build_pods_last_month():
     )
 
     pods = Pods.objects.bulk_create(
-        Pods(rounds_id=rid)
+        Pods(rounds_id=rid, store_id=ids.MIMICS_ID)
         for rid in [
             ids.R2_SESSION_LAST_MONTH,
             ROUND_LAST_MONTH,
@@ -183,6 +190,7 @@ def build_pods_last_month():
             pods=pod,
             participants_id=WINNERS_LIST[idx][1],
             color_id=ids.GRUUL,
+            store_id=ids.MIMICS_ID,
         )
         PodsParticipants.objects.bulk_create(
             PodsParticipants(pods=pod, participants_id=pid)

@@ -31,6 +31,7 @@ from rest_framework.decorators import (
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from utils.permissions import IsSuperUser
 from .models import Achievements, Colors, Restrictions, AchievementType
 
 from users.models import ParticipantAchievements
@@ -64,6 +65,7 @@ from achievements.scoresheet_helpers import POSTScoresheetHelper, GETScoresheetH
 from sessions_rounds.helpers import handle_close_round
 from services.scryfall_client import ScryfallClientRequest
 from services.redis_keepalive import redis_keepalive
+from utils.decorators import require_store
 
 GET = "GET"
 POST = "POST"
@@ -73,7 +75,7 @@ scryfall_request = ScryfallClientRequest()
 
 
 @api_view([GET])
-def get_achievements_with_restrictions_v2(_):
+def get_achievements_with_restrictions_v2(_, **kwargs):
     """Get achievements with their restrictions but do it much cleaner than the original endpoint."""
 
     achievements = (
@@ -122,7 +124,7 @@ def get_achievements_with_restrictions_v2(_):
 
 
 @api_view([GET])
-def get_achievement_types(_):
+def get_achievement_types(_, **kwargs):
     """Get all of the current achievement types."""
 
     types = AchievementType.objects.all()
@@ -130,7 +132,7 @@ def get_achievement_types(_):
 
 
 @api_view([GET])
-def get_achievements_with_restrictions(_):
+def get_achievements_with_restrictions(_, **kwargs):
     """Get achievements with their restrictions and put them in a map, raw list, and parents only."""
 
     parent_map = defaultdict(lambda: {"children": []})
@@ -190,7 +192,8 @@ def get_achievements_with_restrictions(_):
 
 
 @api_view([GET])
-def get_achievements_by_participant_month(_, mm_yy=None):
+@require_store
+def get_achievements_by_participant_month(request, **kwargs):
     """Calculate the total points earned by a participant in a given month
 
     Originally this endpoint was meant for much more given the name but it's
@@ -199,14 +202,17 @@ def get_achievements_by_participant_month(_, mm_yy=None):
 
     today = datetime.today()
 
+    mm_yy = kwargs.get("mm_yy")
+
     if mm_yy == "new" or mm_yy == None:
         mm_yy = today.strftime("%m-%y")
 
-    session_ids = Sessions.objects.filter(month_year=mm_yy, deleted=False).values_list(
-        "id", flat=True
-    )
+    store_id = request.store_id
+    session_ids = Sessions.objects.filter(
+        month_year=mm_yy, deleted=False, store_id=store_id
+    ).values_list("id", flat=True)
 
-    res = calculate_total_points_for_month(session_ids)
+    res = calculate_total_points_for_month(session_ids, store_id)
 
     res.sort(key=lambda x: x["total_points"], reverse=True)
 
@@ -214,16 +220,22 @@ def get_achievements_by_participant_month(_, mm_yy=None):
 
 
 @api_view([GET])
-def get_league_monthly_winners(_):
+@require_store
+def get_league_monthly_winners(request, **kwargs):
     """
     For each month, retrieve the top point earner for the given month + related commander info.
     """
     first_of_current_month = timezone.localdate().replace(day=1)
-    return Response(calculate_monthly_winners(cutoff=first_of_current_month))
+    return Response(
+        calculate_monthly_winners(
+            cutoff=first_of_current_month, store_id=request.store_id
+        )
+    )
 
 
 @api_view([GET])
-def get_league_monthly_winner_info(_, mm_yy, participant_id):
+@require_store
+def get_league_monthly_winner_info(request, mm_yy, participant_id, **kwargs):
     """
     For the provided month/participant, retrieve any relevant info
     about their participation in that month (points earned, commanders for the rounds
@@ -232,15 +244,17 @@ def get_league_monthly_winner_info(_, mm_yy, participant_id):
     # Get the rounds for the given month
     rounds = {
         r["id"]: r
-        for r in Rounds.objects.filter(session__month_year=mm_yy, deleted=False).values(
-            "id", "round_number", "starts_at"
-        )
+        for r in Rounds.objects.filter(
+            session__month_year=mm_yy, session__store_id=request.store_id, deleted=False
+        ).values("id", "round_number", "starts_at")
     }
 
     # Get the rounds and pods that the player appeared in
     played_round_ids = set(
         PodsParticipants.objects.filter(
-            participants_id=participant_id, pods__rounds_id__in=list(rounds.keys())
+            participants_id=participant_id,
+            pods__rounds_id__in=list(rounds.keys()),
+            pods__store_id=request.store_id,
         ).values_list("pods__rounds_id", flat=True)
     )
 
@@ -252,6 +266,7 @@ def get_league_monthly_winner_info(_, mm_yy, participant_id):
                 participant_id=participant_id,
                 round_id__in=played_round_ids,
                 deleted=False,
+                store_id=request.store_id,
             )
             .values("round_id")
             .annotate(total_points=Coalesce(Sum("earned_points"), 0))
@@ -267,6 +282,7 @@ def get_league_monthly_winner_info(_, mm_yy, participant_id):
                 deleted=False,
                 participants_id=participant_id,
                 pods__rounds_id__in=list(rounds.keys()),
+                store_id=request.store_id,
             )
             .values("pods__rounds_id")
             .annotate(cmd_name=Max("name"))
@@ -301,7 +317,7 @@ def get_league_monthly_winner_info(_, mm_yy, participant_id):
 
 
 @api_view([GET])
-def get_colors(_):
+def get_colors(_, **kwargs):
     """Get all of the color combinations."""
     colors_objects = Colors.objects.all()
     colors = [
@@ -324,7 +340,7 @@ def get_colors(_):
 
 @api_view([POST])
 @authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsSuperUser])
 def upsert_achievements(request):
     """Create or update an achievement. Name is required."""
     body = json.loads(request.body.decode("utf-8"))
@@ -380,10 +396,14 @@ def upsert_achievements(request):
 
 
 @api_view([GET])
-def get_participant_round_achievements(_, participant_id, round_id):
+@require_store
+def get_participant_round_achievements(request, participant_id, round_id, **kwargs):
     """Get all achievements + points for a participant in a particular round."""
     achievements = ParticipantAchievements.objects.select_related("achievement").filter(
-        participant_id=participant_id, round_id=round_id, deleted=False
+        participant_id=participant_id,
+        round_id=round_id,
+        store_id=request.store_id,
+        deleted=False,
     )
 
     out = [
@@ -399,7 +419,7 @@ def get_participant_round_achievements(_, participant_id, round_id):
 
 
 @api_view([GET])
-def get_all_commanders(_):
+def get_all_commanders(_, **kwargs):
     """Get and return all valid commanders we have currently."""
     try:
         commanders = Commanders.objects.filter(
@@ -431,7 +451,7 @@ def get_all_commanders(_):
 
 @api_view([POST])
 @authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsSuperUser])
 def fetch_and_insert_commanders(_):
     """
     Query scryfall and see if any new commanders have been added.
@@ -481,7 +501,8 @@ def fetch_and_insert_commanders(_):
 @api_view([POST])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def upsert_earned_achievements(request):
+@require_store
+def upsert_earned_achievements(request, **kwargs):
     """
     Responsible for either inserting an achievement
     or updating an existing one (primarily deleting)
@@ -492,7 +513,9 @@ def upsert_earned_achievements(request):
     id = body.get("id", [])
 
     if id:
-        achievement = ParticipantAchievements.objects.filter(id=id).first()
+        achievement = ParticipantAchievements.objects.filter(
+            id=id, store_id=request.store_id
+        ).first()
         if not achievement:
             return Response(
                 {"message": "Achievement with given ID not found."},
@@ -520,7 +543,9 @@ def upsert_earned_achievements(request):
     point_value = achievement.points
 
     session_id = (
-        Rounds.objects.filter(id=round_id).values_list("session_id", flat=True).first()
+        Rounds.objects.filter(id=round_id, session__store_id=request.store_id)
+        .values_list("session_id", flat=True)
+        .first()
     )
 
     ParticipantAchievements.objects.create(
@@ -529,6 +554,7 @@ def upsert_earned_achievements(request):
         round_id=round_id,
         session_id=session_id,
         earned_points=point_value,
+        store_id=request.store_id,
     )
     return Response(status=status.HTTP_201_CREATED)
 
@@ -536,21 +562,22 @@ def upsert_earned_achievements(request):
 @api_view([GET, POST, PUT])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def scoresheet(request, round_id: int, pod_id: int):
+@require_store
+def scoresheet(request, round_id: int, pod_id: int, **kwargs):
     """Technically V3 of the upsert participant achievements endpoint, but now
     broken into 3 endpoints (fetch/insert/update) to reduce complexity."""
-
+    store_id: int = request.store_id
     if request.method == GET:
-        builder = GETScoresheetHelper(round_id, pod_id)
+        builder = GETScoresheetHelper(round_id, pod_id, store_id)
         result = builder.build()
         return Response(result)
 
     body = request.data
-    builder = POSTScoresheetHelper(round_id, pod_id, **body)
+    builder = POSTScoresheetHelper(round_id, pod_id, store_id, **body)
     result = builder.build()
 
     with transaction.atomic():
-        pod = Pods.objects.select_for_update().get(id=pod_id)
+        pod = Pods.objects.select_for_update().get(id=pod_id, store_id=store_id)
 
         if request.method == POST and pod.submitted:
             return Response(
@@ -569,14 +596,15 @@ def scoresheet(request, round_id: int, pod_id: int):
                 round_id=round_id,
                 session_id=result.session_id,
                 deleted=False,
+                store_id=store_id,
             ).select_related("achievement").exclude(
                 achievement__slug="participation"
             ).update(
                 deleted=True
             )
-            WinningCommanders.objects.filter(pods_id=pod_id, deleted=False).update(
-                deleted=True
-            )
+            WinningCommanders.objects.filter(
+                pods_id=pod_id, store_id=store_id, deleted=False
+            ).update(deleted=True)
 
         ParticipantAchievements.objects.bulk_create(result.records)
 
@@ -590,6 +618,7 @@ def scoresheet(request, round_id: int, pod_id: int):
                 partner_id=result.partner_id,
                 companion_id=result.companion_id,
                 decklist_id=result.decklist_id,
+                store_id=store_id,
             )
         if not pod.submitted:
             pod.submitted = True

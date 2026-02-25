@@ -91,6 +91,7 @@ def build_inserted_state(client, build_state) -> dict:
             round_id=rid,
             session_id=sid,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
         ParticipantAchievements(
             participant_id=ids.P8,
@@ -98,6 +99,7 @@ def build_inserted_state(client, build_state) -> dict:
             round_id=rid,
             session_id=sid,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
         ParticipantAchievements(
             participant_id=ids.P5,
@@ -105,6 +107,7 @@ def build_inserted_state(client, build_state) -> dict:
             round_id=rid,
             session_id=sid,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
         ParticipantAchievements(
             participant_id=ids.P8,
@@ -112,6 +115,7 @@ def build_inserted_state(client, build_state) -> dict:
             round_id=rid,
             session_id=sid,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
         ParticipantAchievements(
             participant_id=ids.P8,
@@ -119,6 +123,7 @@ def build_inserted_state(client, build_state) -> dict:
             round_id=rid,
             session_id=sid,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
         ParticipantAchievements(
             participant_id=original_winner,
@@ -126,6 +131,7 @@ def build_inserted_state(client, build_state) -> dict:
             round_id=rid,
             session_id=sid,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
         ParticipantAchievements(
             participant_id=ids.P8,
@@ -133,6 +139,7 @@ def build_inserted_state(client, build_state) -> dict:
             round_id=rid,
             session_id=sid,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
         ParticipantAchievements(
             participant_id=original_winner,
@@ -140,6 +147,7 @@ def build_inserted_state(client, build_state) -> dict:
             round_id=rid,
             session_id=sid,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
         ParticipantAchievements(
             participant_id=ids.P5,
@@ -147,6 +155,7 @@ def build_inserted_state(client, build_state) -> dict:
             round_id=rid,
             session_id=sid,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
         ParticipantAchievements(
             participant_id=original_winner,
@@ -154,6 +163,7 @@ def build_inserted_state(client, build_state) -> dict:
             round_id=rid,
             session_id=sid,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
         ParticipantAchievements(
             participant_id=original_winner,
@@ -161,6 +171,7 @@ def build_inserted_state(client, build_state) -> dict:
             round_id=rid,
             session_id=sid,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
         ParticipantAchievements(
             participant_id=original_winner,
@@ -168,6 +179,7 @@ def build_inserted_state(client, build_state) -> dict:
             round_id=rid,
             session_id=sid,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
         ParticipantAchievements(
             participant_id=original_winner,
@@ -175,6 +187,7 @@ def build_inserted_state(client, build_state) -> dict:
             round_id=rid,
             session_id=sid,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
         ParticipantAchievements(
             participant_id=original_winner,
@@ -182,6 +195,7 @@ def build_inserted_state(client, build_state) -> dict:
             round_id=rid,
             session_id=sid,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
         ParticipantAchievements(
             participant_id=original_winner,
@@ -189,6 +203,7 @@ def build_inserted_state(client, build_state) -> dict:
             round_id=rid,
             session_id=sid,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
         ParticipantAchievements(
             participant_id=original_winner,
@@ -196,6 +211,7 @@ def build_inserted_state(client, build_state) -> dict:
             round_id=rid,
             session_id=sid,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
         ParticipantAchievements(
             participant_id=original_winner,
@@ -203,6 +219,7 @@ def build_inserted_state(client, build_state) -> dict:
             round_id=rid,
             session_id=sid,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
     ]
 
@@ -213,6 +230,7 @@ def build_inserted_state(client, build_state) -> dict:
         color_id=ids.GRUUL,
         participants_id=ids.P3,
         pods_id=POD_ID,
+        store_id=ids.MIMICS_ID,
     )
 
     Pods.objects.filter(id=POD_ID).update(submitted=True)
@@ -282,7 +300,9 @@ def test_update_scoresheet(
     ]
 
     winning_commander = (
-        WinningCommanders.objects.filter(pods_id=POD_ID, deleted=False)
+        WinningCommanders.objects.filter(
+            pods_id=POD_ID, deleted=False, store_id=ids.MIMICS_ID
+        )
         .values("name", "color_id", "participants_id")
         .first()
     )

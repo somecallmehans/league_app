@@ -1,10 +1,12 @@
 import json
+from django.db.models import Q
 from rest_framework import status
 from rest_framework.decorators import (
     api_view,
     permission_classes,
     authentication_classes,
 )
+from utils.decorators import require_store
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.response import Response
@@ -16,10 +18,15 @@ POST = "POST"
 
 
 @api_view([GET])
-def get_all_configs(_):
+@require_store
+def get_all_configs(request, **kwargs):
     """Get all of the current configs"""
 
-    configs = Config.objects.all().values("name", "key", "value", "description")
+    configs = (
+        Config.objects.filter(Q(store_id=request.store_id) | Q(store__isnull=True))
+        .values("name", "key", "value", "description", "scope_kind")
+        .order_by("id")
+    )
 
     return Response(configs)
 
@@ -27,7 +34,8 @@ def get_all_configs(_):
 @api_view([POST])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def update_config(request, key):
+@require_store
+def update_config(request, key, **kwargs):
     """Update a config."""
 
     if not key:
@@ -36,7 +44,7 @@ def update_config(request, key):
         )
 
     try:
-        target = Config.objects.get(key=key)
+        target = Config.objects.get(key=key, store_id=request.store_id)
     except Config.DoesNotExist:
         return Response(
             {"message": "Config not found"}, status=status.HTTP_404_NOT_FOUND

@@ -20,6 +20,7 @@ def populate_achievements_for_participants() -> None:
         round_id=ids.R1_SESSION_LAST_MONTH,
         session_id=ids.SESSION_LAST_MONTH,
         earned_points=3,
+        store_id=ids.MIMICS_ID,
     )
 
     ParticipantAchievements.objects.create(
@@ -28,6 +29,7 @@ def populate_achievements_for_participants() -> None:
         round_id=ids.R1_SESSION_LAST_MONTH,
         session_id=ids.SESSION_LAST_MONTH,
         earned_points=3,
+        store_id=ids.MIMICS_ID,
     )
 
     # P2 Achievements for R1 Last month
@@ -39,6 +41,7 @@ def populate_achievements_for_participants() -> None:
                 round_id=ids.R1_SESSION_LAST_MONTH,
                 session_id=ids.SESSION_LAST_MONTH,
                 earned_points=achievement[1],
+                store_id=ids.MIMICS_ID,
             )
             for achievement in [
                 (ids.NO_CREATURES, 6),

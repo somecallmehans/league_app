@@ -20,20 +20,21 @@ from django.utils import timezone
 from .models import Sessions, Rounds, Pods, PodsParticipants, RoundSignups
 from users.models import ParticipantAchievements, Participants
 from achievements.models import WinningCommanders, Achievements
+from stores.models import StoreParticipant, Store
 
 from .serializers import SessionSerializer, PodsParticipantsSerializer
 from achievements.serializers import WinningCommandersSerializer
 from users.serializers import (
-    ParticipantsAchievementsFullModelSerializer,
     ParticipantsSerializer,
 )
 from .helpers import (
     generate_pods,
-    get_participants_total_scores,
+    # get_participants_total_scores,
     RoundInformationService,
 )
 from configs.configs import get_round_caps
 from services.discord_client import bot_announcement
+from utils.decorators import require_store
 
 GET = "GET"
 POST = "POST"
@@ -41,9 +42,12 @@ DELETE = "DELETE"
 
 
 @api_view([GET])
-def all_sessions(_):
+@require_store
+def all_sessions(request, **kwargs):
     """Get all sessions that are not deleted, including their rounds info."""
-    data = Sessions.objects.filter(deleted=False).order_by("-session_date")
+    data = Sessions.objects.filter(deleted=False, store_id=request.store_id).order_by(
+        "-session_date"
+    )
     sessions = SessionSerializer(data, many=True).data
 
     session_map = defaultdict(list)
@@ -55,9 +59,14 @@ def all_sessions(_):
 
 
 @api_view([GET])
-def get_unique_session_months(request):
+@require_store
+def get_unique_session_months(request, **kwargs):
     """Get a list of unique month-years for sessions."""
-    months = Sessions.objects.filter(deleted=False).values("month_year").distinct()
+    months = (
+        Sessions.objects.filter(deleted=False, store_id=request.store_id)
+        .values("month_year")
+        .distinct()
+    )
 
     sorted_months = sorted(
         [m["month_year"] for m in months],
@@ -68,7 +77,8 @@ def get_unique_session_months(request):
 
 
 @api_view([GET, POST])
-def sessions_and_rounds(request, mm_yy=None):
+@require_store
+def sessions_and_rounds(request, mm_yy=None, **kwargs):
     """Get or create a sessions/rounds for today."""
 
     if mm_yy is None or mm_yy == "new":
@@ -88,7 +98,7 @@ def sessions_and_rounds(request, mm_yy=None):
         session_date = date.fromisoformat(sess_date_str)
         mm_yy = session_date.strftime("%m-%y")
         new_session = Sessions.objects.create(
-            month_year=mm_yy, session_date=session_date
+            month_year=mm_yy, session_date=session_date, store_id=request.store_id
         )
 
         tz = timezone.get_current_timezone()
@@ -109,12 +119,18 @@ def sessions_and_rounds(request, mm_yy=None):
         Rounds.objects.create(session=new_session, round_number=1, starts_at=r1_dt)
         Rounds.objects.create(session=new_session, round_number=2, starts_at=r2_dt)
         session = SessionSerializer(new_session).data
+        store = Store.objects.filter(id=request.store_id).first()
 
-        payload = {"session_date": new_session.session_date.strftime("%A, %B %-d %Y")}
+        payload = {
+            "session_date": new_session.session_date.strftime("%A, %B %-d %Y"),
+            "slug": store.slug,
+            "channel_id": store.discord_channel_id,
+        }
         bot_announcement(payload)
 
         return Response(session, status=status.HTTP_201_CREATED)
     try:
+        # TODO: Do we even ever hit this? Check
         session_data = Sessions.objects.filter(month_year=mm_yy, deleted=False).latest(
             "session_date"
         )
@@ -127,20 +143,11 @@ def sessions_and_rounds(request, mm_yy=None):
     return Response(session, status=status.HTTP_200_OK)
 
 
-@api_view([GET])
-def sessions_and_rounds_by_date(request):
-    """Get participants total scores by session month."""
-
-    mm_yy = request.GET.get("mm_yy")
-    participants = get_participants_total_scores(mm_yy=mm_yy)
-
-    return Response(participants, status=status.HTTP_200_OK)
-
-
 @api_view([POST])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def begin_round(request):
+@require_store
+def begin_round(request, **kwargs):
     """Begin a round. Request expects a round_id, session_id, and a list of participants.
     If a participant in the list does not have an id, it will be created.
 
@@ -163,7 +170,10 @@ def begin_round(request):
         )
 
     round_service = RoundInformationService(
-        participants=participants, session_id=session_id, round_id=round_id
+        participants=participants,
+        session_id=session_id,
+        round_id=round_id,
+        store_id=request.store_id,
     )
 
     all_participants = list(round_service.build_participants_and_achievements())
@@ -176,17 +186,24 @@ def begin_round(request):
     )
 
     pods = PodsParticipantsSerializer(
-        generate_pods(participants=all_participants, round_id=round_id), many=True
+        generate_pods(
+            participants=all_participants, round_id=round_id, store_id=request.store_id
+        ),
+        many=True,
+        context={"store_id": request.store_id},
     ).data
+
     return Response(pods, status=status.HTTP_201_CREATED)
 
 
 @api_view([GET])
-def get_round_participants(_, round):
+@require_store
+def get_round_participants(request, round, **kwargs):
     """Take in a round id and return all participants who
     are assigned to pods for that given round."""
+    store_id = request.store_id
     try:
-        round_obj = Rounds.objects.get(id=round)
+        round_obj = Rounds.objects.get(id=round, session__store_id=store_id)
     except ObjectDoesNotExist:
         return Response(
             {"message": "Round not found for given id"},
@@ -194,7 +211,9 @@ def get_round_participants(_, round):
         )
 
     participants = Participants.objects.filter(
-        podsparticipants__pods__rounds=round_obj, podsparticipants__pods__deleted=False
+        podsparticipants__pods__rounds=round_obj,
+        podsparticipants__pods__deleted=False,
+        storeparticipant__store_id=store_id,
     )
 
     return Response(
@@ -203,25 +222,36 @@ def get_round_participants(_, round):
 
 
 @api_view([GET])
-def get_pods(_, round):
+@require_store
+def get_pods(request, round, **kwargs):
     """Get the pods that were made for a given round."""
     try:
-        round_obj = Rounds.objects.get(id=round)
+        round_obj = Rounds.objects.get(
+            id=round, deleted=False, session__store_id=request.store_id
+        )
     except ObjectDoesNotExist:
         return Response(
             {"message": "Round not found"}, status=status.HTTP_400_BAD_REQUEST
         )
 
-    pods = Pods.objects.filter(rounds_id=round, deleted=False)
+    pods = Pods.objects.filter(
+        rounds_id=round, store_id=request.store_id, deleted=False
+    )
     pod_ids = pods.values_list("id", flat=True)
-    winners_by_pod = WinningCommandersSerializer.by_pods(pods)
+    winners_by_pod = WinningCommandersSerializer.by_pods(pods, request.store_id)
 
-    pods_participants = PodsParticipants.objects.filter(pods_id__in=pod_ids)
+    pods_participants = PodsParticipants.objects.filter(
+        pods_id__in=pod_ids, pods__store_id=request.store_id
+    )
 
     serialized_participants = PodsParticipantsSerializer(
         pods_participants,
         many=True,
-        context={"round_id": round, "mm_yy": round_obj.session.month_year},
+        context={
+            "round_id": round,
+            "mm_yy": round_obj.session.month_year,
+            "store_id": request.store_id,
+        },
     ).data
 
     pod_map = defaultdict(lambda: {"participants": []})
@@ -252,81 +282,15 @@ def get_pods(_, round):
 
 
 @api_view([GET])
-def get_pods_achievements(_, pod):
-    """Get all of the achievements earned for a pod
-
-    this data is used to populate the initial values
-    of the scorecard form."""
-    try:
-        pod_obj = Pods.objects.filter(id=pod, deleted=False).first()
-    except ObjectDoesNotExist:
-        return Response({"message": "No pod found"}, status=status.HTTP_400_BAD_REQUEST)
-
-    participant_achievements = ParticipantAchievements.objects.filter(
-        round_id=pod_obj.rounds_id,
-        deleted=False,
-        participant__in=PodsParticipants.objects.filter(
-            pods_id=pod_obj.id, pods__deleted=False
-        ).values_list("participants", flat=True),
-    )
-    achievement_data = ParticipantsAchievementsFullModelSerializer().to_dict(
-        participant_achievements
-    )
-
-    winner_data = WinningCommandersSerializer.by_pods([pod])
-    return Response(
-        {
-            "pod_achievements": achievement_data,
-            "winning_commander": winner_data.get(pod, None),
-        },
-        status=status.HTTP_200_OK,
-    )
-
-
-@api_view([POST])
-@authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
-def close_round(request):
-    """Close a round. Endpoint expects a round_id and a session_id
-    Essentially flipping the associated round 'closed' flag to true
-
-    If the received round is a second round, also flip the session flag to true.
-
-    NOTE 6/22/25: Unexpected, but the powers that be whom submit scores totally ignore
-    the "close round" button this endpoint is attached to. Even though it blinks bright red, afaik
-    they have never touched it. And in the 8~ months this app has been active, there hasn't been
-    any ill effects or any notable reason for a round or session to be marked closed/submitted
-    other than that being something that made sense to me in August 2024
-
-    For that reason, this endpoint will soon be deprecated in favor of a check whenever
-    a pod gets submitted to see whether a round should be closed or not based on if any pods are
-    still active/open or not.
-    """
-    body = json.loads(request.body.decode("utf-8"))
-    round = body.get("round", None)
-    session = body.get("session", None)
-
-    if not round or not session:
-        return Response(
-            {"message": "Session/Round information not provided"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    Rounds.objects.filter(id=round["id"]).update(completed=True)
-
-    if round["round_number"] != 1:
-        Sessions.objects.filter(id=session).update(closed=True)
-
-    return Response(status=status.HTTP_201_CREATED)
-
-
-@api_view([GET])
-def get_rounds_by_month(_, mm_yy):
+def get_rounds_by_month(request, mm_yy, **kwargs):
     """Get all rounds for a given month.
     Return a dict where keys are dates and val is a list of rounds."""
     rounds = (
         Rounds.objects.filter(
-            session__month_year=mm_yy, session__deleted=False, deleted=False
+            session__month_year=mm_yy,
+            session__deleted=False,
+            session__store_id=request.store_id,
+            deleted=False,
         )
         .select_related("session")
         .annotate(
@@ -358,17 +322,21 @@ def get_rounds_by_month(_, mm_yy):
 @api_view([GET])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def get_all_rounds(_, participant_id=None):
+def get_all_rounds(request, participant_id=None, **kwargs):
     """
     Get all of the rounds that have happened. If we have a participant_id, get
     all of the rounds that occurred after that participant was created (by day)
     """
 
-    filters = {"deleted": False}
+    filters = {"deleted": False, "session__store_id": request.store_id}
 
     if participant_id:
         participant = (
-            Participants.objects.filter(id=participant_id).values("created_at").first()
+            Participants.objects.filter(
+                id=participant_id, storeparticipant__store_id=request.store_id
+            )
+            .values("created_at")
+            .first()
         )
         if participant is None:
             return Response(
@@ -387,7 +355,7 @@ def get_all_rounds(_, participant_id=None):
 
 
 @api_view([GET])
-def get_participant_recent_pods(_, participant_id, mm_yy=None):
+def get_participant_recent_pods(request, participant_id, mm_yy=None, **kwargs):
     """
     Get pods for the given participant for all of the rounds they were apart of
     this month.
@@ -411,6 +379,7 @@ def get_participant_recent_pods(_, participant_id, mm_yy=None):
             deleted=False,
             rounds__session__month_year=mm_yy,
             podsparticipants__participants=participant,
+            store_id=request.store_id,
         )
         .select_related("rounds")
         .prefetch_related(
@@ -422,7 +391,9 @@ def get_participant_recent_pods(_, participant_id, mm_yy=None):
     )
 
     winners = WinningCommanders.objects.filter(
-        pods_id__in=[p.id for p in participant_pods], deleted=False
+        pods_id__in=[p.id for p in participant_pods],
+        deleted=False,
+        store_id=request.store_id,
     ).values("pods_id", "participants_id", "name")
 
     winners_dict = {w["pods_id"]: w for w in winners}
@@ -465,16 +436,20 @@ def get_participant_recent_pods(_, participant_id, mm_yy=None):
 
 
 @api_view([POST])
-def signup(request):
+def signup(request, **kwargs):
     """Allows users to pre-signup for a round using their code that should be linked
     to them via discord."""
     body = json.loads(request.body.decode("utf-8"))
     code: str = body.get("code")
     rounds: list[int] = body.get("rounds")
+    store_id: int = request.store_id
 
     pid = (
         Participants.objects.filter(
-            code=code, deleted=False, discord_user_id__isnull=False
+            code=code,
+            deleted=False,
+            discord_user_id__isnull=False,
+            storeparticipant__store_id=store_id,
         )
         .values_list("id", flat=True)
         .first()
@@ -491,14 +466,15 @@ def signup(request):
         return Response({"message": "User has already signed in."})
 
     RoundSignups.objects.bulk_create(
-        RoundSignups(participant_id=pid, round_id=rid) for rid in rounds
+        RoundSignups(participant_id=pid, round_id=rid, store_id=store_id)
+        for rid in rounds
     )
 
     return Response({"message": "Successfully added"}, status=status.HTTP_201_CREATED)
 
 
 @api_view([GET])
-def signin_counts(request):
+def signin_counts(request, **kwargs):
     """Return a count and 2 lists of currently signed in users."""
     round_one = request.query_params.get("round_one")
     round_two = request.query_params.get("round_two")
@@ -510,7 +486,9 @@ def signin_counts(request):
         )
 
     query = (
-        RoundSignups.objects.filter(round_id__in=[round_one, round_two])
+        RoundSignups.objects.filter(
+            round_id__in=[round_one, round_two], store_id=request.store_id
+        )
         .select_related("participant")
         .values("participant_id", "participant__name", "round_id")
     )
@@ -520,7 +498,7 @@ def signin_counts(request):
         round_two: {"participants": [], "count": 0, "is_full": False},
     }
 
-    cap1, cap2 = get_round_caps()
+    cap1, cap2 = get_round_caps(request.store_id)
 
     for q in query:
         if q["round_id"] == int(round_one):
@@ -545,7 +523,7 @@ def signin_counts(request):
 @api_view([POST])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def post_signin(request):
+def post_signin(request, **kwargs):
     """Post a signed in user from the lobby. Accepts a round_id and a participant_id"""
     body = json.loads(request.body.decode("utf-8"))
     rid = body.get("round_id")
@@ -558,8 +536,7 @@ def post_signin(request):
         )
 
     _, created = RoundSignups.objects.get_or_create(
-        round_id=rid,
-        participant_id=pid,
+        round_id=rid, participant_id=pid, store_id=request.store_id
     )
 
     if not created:
@@ -573,7 +550,7 @@ def post_signin(request):
 @api_view([DELETE])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def delete_signin(request):
+def delete_signin(request, **kwargs):
     """Remove a signed in user from lobby."""
     body = json.loads(request.body.decode("utf-8"))
 
@@ -596,7 +573,7 @@ def delete_signin(request):
         )
 
     deleted_count, _ = RoundSignups.objects.filter(
-        round_id=rid, participant_id=pid
+        round_id=rid, participant_id=pid, store_id=request.store_id
     ).delete()
 
     if deleted_count == 0:
@@ -611,7 +588,7 @@ def delete_signin(request):
 @api_view([POST])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def update_pod_participants(request):
+def update_pod_participants(request, **kwargs):
     """Take in a participant and a pod, and if there's space/user is not in another pod already
     then add said participant to that pod."""
 
@@ -619,6 +596,7 @@ def update_pod_participants(request):
     pod_id = body.get("pod_id")
     pid = body.get("participant_id")
     rid = body.get("round_id")
+    store_id = request.store_id
 
     if not pod_id or not rid:
         return Response(
@@ -634,6 +612,7 @@ def update_pod_participants(request):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         new = Participants.objects.create(name=name)
+        StoreParticipant.objects.create(store_id=store_id, participant_id=new.id)
         pid = new.id
 
     pod_count = PodsParticipants.objects.filter(pods_id=pod_id).count()
@@ -644,10 +623,10 @@ def update_pod_participants(request):
         )
 
     in_target = PodsParticipants.objects.filter(
-        pods_id=pod_id, participants_id=pid
+        pods_id=pod_id, participants_id=pid, pods__store_id=store_id
     ).exists()
     in_round = PodsParticipants.objects.filter(
-        pods__rounds_id=rid, participants_id=pid
+        pods__rounds_id=rid, participants_id=pid, pods__store_id=store_id
     ).exists()
 
     if in_target or in_round:
@@ -658,7 +637,11 @@ def update_pod_participants(request):
     part = Achievements.objects.get(slug="participation")
     has_participation = (
         ParticipantAchievements.objects.filter(
-            participant_id=pid, round_id=rid, achievement_id=part.id, deleted=False
+            participant_id=pid,
+            round_id=rid,
+            achievement_id=part.id,
+            deleted=False,
+            store_id=store_id,
         )
         .select_related("achievements")
         .exists()
@@ -672,6 +655,7 @@ def update_pod_participants(request):
             achievement_id=part.id,
             session_id=sid,
             earned_points=part.point_value,
+            store_id=store_id,
         )
 
     PodsParticipants.objects.create(participants_id=pid, pods_id=pod_id)
@@ -682,11 +666,12 @@ def update_pod_participants(request):
 @api_view([DELETE])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def delete_pod_participant(request):
+def delete_pod_participant(request, **kwargs):
     """Take in a participant and a pod and delete that combo from the podsparticipants table."""
     body = json.loads(request.body.decode("utf-8"))
     pod_id = body.get("pod_id")
     pid = body.get("participant_id")
+    store_id = request.store_id
 
     if not pod_id or not pid:
         return Response(
@@ -694,7 +679,9 @@ def delete_pod_participant(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    target_pod = PodsParticipants.objects.filter(pods_id=pod_id)
+    target_pod = PodsParticipants.objects.filter(
+        pods_id=pod_id, pods__store_id=store_id
+    )
 
     if len(target_pod) <= 3:
         return Response(
@@ -705,7 +692,9 @@ def delete_pod_participant(request):
     PodsParticipants.objects.filter(participants_id=pid, pods_id=pod_id).delete()
 
     session_round = (
-        Pods.objects.filter(id=pod_id).values("rounds_id", "rounds__session_id").first()
+        Pods.objects.filter(id=pod_id, store_id=store_id)
+        .values("rounds_id", "rounds__session_id")
+        .first()
     )
 
     ParticipantAchievements.objects.filter(
@@ -713,6 +702,7 @@ def delete_pod_participant(request):
         round_id=session_round["rounds_id"],
         session_id=session_round["rounds__session_id"],
         achievement__slug="participation",
+        store_id=store_id,
     ).update(deleted=True)
 
     return Response(
@@ -723,12 +713,12 @@ def delete_pod_participant(request):
 @api_view([GET])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def get_pod_participants(_, pod_id):
+def get_pod_participants(request, pod_id, **kwargs):
     """Get all participants for a given pod_id."""
-
-    participants_qs = PodsParticipants.objects.filter(pods_id=pod_id).values(
-        "participants_id", "participants__name"
-    )
+    store_id = request.store_id
+    participants_qs = PodsParticipants.objects.filter(
+        pods_id=pod_id, pods__store_id=store_id
+    ).values("participants_id", "participants__name")
 
     participants = [
         {"id": row["participants_id"], "name": row["participants__name"]}
@@ -741,11 +731,13 @@ def get_pod_participants(_, pod_id):
 @api_view([GET])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def get_rounds_by_session(_, session_id):
+def get_rounds_by_session(request, session_id, **kwargs):
     """Return the rounds associated with a given session."""
 
     rounds = list(
-        Rounds.objects.filter(session_id=session_id, deleted=False)
+        Rounds.objects.filter(
+            session_id=session_id, session__store_id=request.store_id, deleted=False
+        )
         .values("round_number", "completed", "session__session_date", "id")
         .order_by("round_number")
     )

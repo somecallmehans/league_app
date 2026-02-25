@@ -18,9 +18,6 @@ from achievements.models import (
     Colors,
 )
 from users.models import ParticipantAchievements
-from users.serializers import ParticipantsSerializer
-
-from sessions_rounds.serializers import RoundsSerializer
 
 
 def group_parents_by_point_value(parent_dict):
@@ -33,13 +30,14 @@ def group_parents_by_point_value(parent_dict):
     return dict(grouped_by_points)
 
 
-def calculate_total_points_for_month(sessions):
+def calculate_total_points_for_month(sessions, store_id):
     earned_achievements = (
         ParticipantAchievements.objects.filter(
             session_id__in=sessions,
             participant__deleted=False,
             session__deleted=False,
             deleted=False,
+            store_id=store_id,
         )
         .select_related("participant")
         .values("id", "earned_points", "participant_id", "participant__name")
@@ -59,12 +57,13 @@ def calculate_total_points_for_month(sessions):
     ]
 
 
-def calculate_monthly_winners(cutoff):
+def calculate_monthly_winners(cutoff, store_id):
     pa_qs = ParticipantAchievements.objects.filter(
         participant__deleted=False,
         session__deleted=False,
         deleted=False,
         session__session_date__lt=cutoff,
+        store_id=store_id,
     ).select_related("session")
     base = pa_qs.values("session__month_year", "participant_id").annotate(
         participant_name=Max("participant__name"),
@@ -98,46 +97,6 @@ def calculate_monthly_winners(cutoff):
     ).order_by("-year_full", "-month_i")
 
     return list(sorted)
-
-
-def all_participant_achievements_for_month(session):
-    data = ParticipantAchievements.objects.filter(
-        session=session, participant__deleted=False, deleted=False
-    ).select_related("participant", "achievement", "round")
-
-    achievements_by_participant = defaultdict(list)
-    for pa in data:
-        achievements_by_participant[pa.participant].append(
-            {
-                "name": pa.achievement.full_name,
-                "round": pa.round,
-                "earned_id": pa.id,
-                "earned_points": pa.earned_points,
-            }
-        )
-
-    result = []
-    for participant, achievements in achievements_by_participant.items():
-        participant_data = ParticipantsSerializer(
-            participant, context={"mm_yy": session.month_year}
-        ).data
-
-        point_sum = sum([x["earned_points"] for x in achievements])
-
-        achievements_data = [
-            {
-                "name": achievement["name"],
-                "round": RoundsSerializer(achievement["round"]).data,
-                "earned_id": achievement["earned_id"],
-                "earned_points": achievement["earned_points"],
-            }
-            for achievement in achievements
-        ]
-        participant_data["achievements"] = achievements_data
-        participant_data["session_points"] = point_sum
-        result.append(participant_data)
-
-    return result
 
 
 class ScryfallCommanderData:

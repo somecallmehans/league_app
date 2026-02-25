@@ -22,6 +22,7 @@ def build_participant_achievement() -> None:
         session_id=ids.SESSION_THIS_MONTH_OPEN,
         round_id=ids.R1_SESSION_THIS_MONTH_OPEN,
         earned_points=15,
+        store_id=ids.MIMICS_ID,
     )
 
 
@@ -52,6 +53,7 @@ def test_post_delete_participant_achievement(
         round_id=ids.R1_SESSION_THIS_MONTH_OPEN,
         earned_points=15,
         deleted=True,
+        store_id=ids.MIMICS_ID,
     )
 
 
@@ -75,6 +77,7 @@ def test_post_new_participant_achievement(client) -> None:
         participant_id=ids.P9,
         achievement_id=ids.NO_CREATURES,
         round_id=ids.R2_SESSION_THIS_MONTH_CLOSED,
+        store_id=ids.MIMICS_ID,
     ).first()
 
     assert achievement == ParticipantAchievements(
@@ -85,4 +88,5 @@ def test_post_new_participant_achievement(client) -> None:
         session_id=ids.SESSION_THIS_MONTH_CLOSED,
         earned_points=4,
         deleted=False,
+        store_id=ids.MIMICS_ID,
     )

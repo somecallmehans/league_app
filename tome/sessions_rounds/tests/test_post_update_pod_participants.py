@@ -14,7 +14,9 @@ POD_ID_2 = 111
 
 @pytest.fixture(scope="function")
 def build_base_state() -> None:
-    pod = Pods.objects.create(id=POD_ID, rounds_id=ids.R1_SESSION_THIS_MONTH_OPEN)
+    pod = Pods.objects.create(
+        id=POD_ID, rounds_id=ids.R1_SESSION_THIS_MONTH_OPEN, store_id=ids.MIMICS_ID
+    )
 
     PodsParticipants.objects.bulk_create(
         [
@@ -39,6 +41,7 @@ def test_post_add_participant_to_pod_with_achievement(client, build_base_state) 
         participant_id=ids.P4,
         round_id=ids.R1_SESSION_THIS_MONTH_OPEN,
         achievement_id=ids.PARTICIPATION,
+        store_id=ids.MIMICS_ID,
     ).exists()
 
     res = client.post(url, body, format="json")
@@ -49,6 +52,7 @@ def test_post_add_participant_to_pod_with_achievement(client, build_base_state) 
         participant_id=ids.P4,
         round_id=ids.R1_SESSION_THIS_MONTH_OPEN,
         achievement_id=ids.PARTICIPATION,
+        store_id=ids.MIMICS_ID,
     ).exists()
 
 
@@ -60,6 +64,7 @@ def add_participation() -> None:
         session_id=ids.SESSION_THIS_MONTH_OPEN,
         achievement_id=ids.PARTICIPATION,
         earned_points=3,
+        store_id=ids.MIMICS_ID,
     )
 
 
@@ -99,7 +104,11 @@ def test_post_fail_missing_id(client) -> None:
 
 @pytest.fixture(scope="function")
 def build_full_state() -> None:
-    Pods.objects.create(id=POD_ID, rounds_id=ids.R1_SESSION_THIS_MONTH_OPEN)
+    Pods.objects.create(
+        id=POD_ID,
+        rounds_id=ids.R1_SESSION_THIS_MONTH_OPEN,
+        store_id=ids.MIMICS_ID,
+    )
 
     PodsParticipants.objects.bulk_create(
         [
@@ -128,7 +137,11 @@ def test_post_fail_full_pod(client, build_full_state) -> None:
 
 @pytest.fixture(scope="function")
 def add_participant_to_round() -> None:
-    Pods.objects.create(id=POD_ID_2, rounds_id=ids.R1_SESSION_THIS_MONTH_OPEN)
+    Pods.objects.create(
+        id=POD_ID_2,
+        rounds_id=ids.R1_SESSION_THIS_MONTH_OPEN,
+        store_id=ids.MIMICS_ID,
+    )
 
     PodsParticipants.objects.create(pods_id=POD_ID_2, participants_id=ids.P4)
 
@@ -173,4 +186,5 @@ def test_post_new_participant(client, build_base_state) -> None:
         participant_id=new.id,
         round_id=ids.R1_SESSION_THIS_MONTH_OPEN,
         achievement_id=ids.PARTICIPATION,
+        store_id=ids.MIMICS_ID,
     ).exists()

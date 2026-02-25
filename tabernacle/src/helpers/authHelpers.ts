@@ -1,16 +1,32 @@
 import { jwtDecode } from "jwt-decode";
 
-export const getTokenRaw = () => localStorage.getItem("access_token");
+type JwtPayload = {
+  exp?: number;
+  user_id?: number;
+  is_superuser?: boolean;
+  is_staff?: boolean;
+  [key: string]: unknown;
+};
+
+const ACCESS_KEY = "access_token";
+const REFRESH_KEY = "refresh_token";
+
+export const getTokenRaw = () => localStorage.getItem(ACCESS_KEY);
 
 const auth = {
   setToken: (access?: string, refresh?: string): void => {
     if (access && refresh) {
-      localStorage.setItem("access_token", access);
-      localStorage.setItem("refresh_token", refresh);
+      localStorage.setItem(ACCESS_KEY, access);
+      localStorage.setItem(REFRESH_KEY, refresh);
     }
   },
 
-  getToken: () => {
+  isSuperuser: (): boolean => {
+    const decoded = auth.getToken();
+    return decoded?.is_superuser === true;
+  },
+
+  getToken: (): JwtPayload | null => {
     const token = getTokenRaw();
     if (!token) {
       return null;
@@ -18,10 +34,11 @@ const auth = {
     return jwtDecode(token);
   },
   getRefreshToken: (): string | undefined =>
-    localStorage.getItem("refresh_token") || undefined,
+    localStorage.getItem(REFRESH_KEY) || undefined,
+
   removeToken: (): void => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
+    localStorage.removeItem(ACCESS_KEY);
+    localStorage.removeItem(REFRESH_KEY);
   },
 };
 

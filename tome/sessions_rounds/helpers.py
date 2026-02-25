@@ -1,8 +1,13 @@
+from datetime import datetime
+
+from django.db.models import Sum, Q
+from django.db.models.functions import Coalesce
+
 from users.models import Participants, ParticipantAchievements
 from users.serializers import ParticipantsSerializer
 from achievements.models import Achievements
 from sessions_rounds.models import Pods, PodsParticipants, Rounds, Sessions
-
+from stores.models import StoreParticipant
 from users.helpers import generate_code
 
 
@@ -53,7 +58,7 @@ def make_bridge_records(ids: list, pods: list):
     return records
 
 
-def generate_pods(participants, round_id):
+def generate_pods(participants, round_id, store_id):
     """
     Generate pods with the following rules:
     - Prefer pods of 4
@@ -77,7 +82,7 @@ def generate_pods(participants, round_id):
             pods_needed = length // 4
 
         new_pods = Pods.objects.bulk_create(
-            [Pods(rounds_id=round_id) for _ in range(pods_needed)]
+            [Pods(rounds_id=round_id, store_id=store_id) for _ in range(pods_needed)]
         )
 
         records = make_bridge_records(ids, new_pods)
@@ -86,15 +91,6 @@ def generate_pods(participants, round_id):
     except Exception as e:
         print(f"Exception in pod generation: {e}")
         raise Exception
-
-
-def get_participants_total_scores(mm_yy):
-    data = Participants.objects.filter(deleted=False)
-    participants = ParticipantsSerializer(
-        data, many=True, context={"mm_yy": mm_yy}
-    ).data
-    participants_with_points = [p for p in participants if p["total_points"] != 0]
-    return participants_with_points.sort(key=lambda x: x["total_points"], reverse=True)
 
 
 def handle_close_round(round_id):
@@ -115,10 +111,11 @@ def handle_close_round(round_id):
 
 
 class RoundInformationService:
-    def __init__(self, participants, session_id, round_id):
+    def __init__(self, participants, session_id, round_id, store_id):
         self.participants = participants
         self.session_id = session_id
         self.round_id = round_id
+        self.store_id = store_id
         self.participation_achievement = Achievements.objects.get(
             slug=PARTICIPATION_ACHIEVEMENT, deleted=False
         )
@@ -145,6 +142,9 @@ class RoundInformationService:
                 Participants(name=p["name"], code=generate_code())
                 for p in self.new_participants
             )
+            StoreParticipant.objects.bulk_create(
+                [StoreParticipant(store_id=self.store_id, participant=n) for n in new]
+            )
             self.existing_participants.extend(
                 ParticipantsSerializer(new, many=True).data
             )
@@ -154,8 +154,22 @@ class RoundInformationService:
     def get_participants(self):
         """Get un-serialized Participants objects."""
         try:
+            today = datetime.today()
+            mm_yy = today.strftime("%m-%y")
             self.participant_data = Participants.objects.filter(
                 id__in=[ep["id"] for ep in self.existing_participants]
+            ).annotate(
+                total_points=Coalesce(
+                    Sum(
+                        "participantachievements__earned_points",
+                        filter=Q(
+                            participantachievements__deleted=False,
+                            participantachievements__store_id=self.store_id,
+                            participantachievements__session__month_year=mm_yy,
+                        ),
+                    ),
+                    0,
+                )
             )
         except Exception as e:
             print(f"Error found while fetching participant data in round service: {e}")
@@ -170,6 +184,7 @@ class RoundInformationService:
                     session_id=self.session_id,
                     achievement_id=self.participation_achievement.id,
                     earned_points=self.participation_achievement.points,
+                    store_id=self.store_id,
                 )
                 for ep in self.existing_participants
             )

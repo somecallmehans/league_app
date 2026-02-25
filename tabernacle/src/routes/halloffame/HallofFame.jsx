@@ -53,13 +53,23 @@ function HallofFameContainer() {
     <div className="p-4 md:p-8 mx-auto">
       <PageTitle title="Hall of Fame" />
       <div className="grid gap-4 md:grid-cols-2">
-        {winners.map((winner, idx) => (
-          <HallofFamePill
-            key={winner.session__month_year}
-            {...winner}
-            isFirst={idx === 0}
-          />
-        ))}
+        {winners.length ? (
+          winners.map((winner, idx) => (
+            <HallofFamePill
+              key={winner.session__month_year}
+              {...winner}
+              isFirst={idx === 0}
+            />
+          ))
+        ) : (
+          <div className="flex flex-col gap-4">
+            <span className="text-xl sm:text-3xl">No League Champions</span>
+            <span className="italic">
+              Whenever a league month is completed, the champions will appear
+              here.
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

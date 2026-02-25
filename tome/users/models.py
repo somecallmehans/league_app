@@ -1,5 +1,4 @@
 import secrets
-import hashlib
 
 from datetime import datetime, timedelta
 
@@ -36,30 +35,23 @@ class Participants(models.Model):
                     self.code = None
         return super().save(*args, **kwargs)
 
-    @property
-    def total_points(self):
-        return self.get_total_points()
-
-    def get_total_points(self, mm_yy=None):
+    def get_total_points(self, store_id, mm_yy=None):
         if mm_yy is None:
             today = datetime.today()
             mm_yy = today.strftime("%m-%y")
-        return self._calculate_points(month_year=mm_yy)
+        return self._calculate_points(store_id=store_id, month_year=mm_yy)
 
-    def get_round_points(self, round_id=None):
+    def get_round_points(self, store_id, round_id=None):
         if round_id is None:
             return None
-        return self._calculate_points(round_id=round_id)
+        return self._calculate_points(store_id=store_id, round_id=round_id)
 
-    def _calculate_points(self, month_year=None, round_id=None):
+    def _calculate_points(self, store_id, month_year=None, round_id=None):
         """
         This internal method handles both total points (by month-year)
         and round points by determining which filter to apply.
         """
-        filters = {
-            "participant": self.id,
-            "deleted": False,
-        }
+        filters = {"participant": self.id, "deleted": False, "store_id": store_id}
 
         if month_year:
             filters["session__month_year"] = month_year
@@ -77,6 +69,7 @@ class Participants(models.Model):
 class ParticipantAchievements(models.Model):
     participant = models.ForeignKey(Participants, on_delete=models.CASCADE)
     achievement = models.ForeignKey(Achievements, on_delete=models.CASCADE)
+    store = models.ForeignKey("stores.Store", on_delete=models.CASCADE, null=True)
     round = models.ForeignKey(Rounds, on_delete=models.CASCADE)
     session = models.ForeignKey(Sessions, on_delete=models.CASCADE)
     deleted = models.BooleanField(default=False)
@@ -86,6 +79,7 @@ class ParticipantAchievements(models.Model):
         db_table = "participant_achievements"
 
 
+# Needed for tests
 class Users(models.Model):
 
     username = None
@@ -111,6 +105,7 @@ class Decklists(models.Model):
     deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     give_credit = models.BooleanField(default=False)
+    store = models.ForeignKey("stores.Store", on_delete=models.CASCADE, null=True)
 
     commander = models.ForeignKey(
         Commanders, related_name="commander_decklists", on_delete=models.CASCADE

@@ -2,6 +2,7 @@ import { useState, Fragment } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Menu, Transition, Disclosure } from "@headlessui/react";
 import { navLinks, type Node, type NodeChild } from "../helpers/navTree";
+import { useGetStoreQuery } from "../api/apiSlice";
 
 interface DesktopDropdownProps {
   link: Node;
@@ -107,19 +108,32 @@ function MobileDisclosure({ link, close, isActive }: MobileDisclosureProps) {
 
 interface NavbarProps {
   loggedIn: boolean;
+  isStore: boolean;
 }
 
-export default function Navbar({ loggedIn }: NavbarProps) {
+export default function Navbar({ loggedIn, isStore }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { data: store, isLoading: storeLoading } = useGetStoreQuery();
   const { pathname } = useLocation();
-  const filtered = navLinks.filter((l) =>
-    loggedIn ? l.admin === true || (!l.admin && !l.hideWhenLoggedIn) : !l.admin
-  );
+  const filtered = navLinks
+    .filter((l) => {
+      if (l.scope === "both") return true;
+      return isStore ? l.scope === "store" : l.scope === "apex";
+    })
+    .filter((l) =>
+      loggedIn
+        ? l.admin === true || (!l.admin && !l.hideWhenLoggedIn)
+        : !l.admin
+    );
+
+  if (storeLoading) {
+    return null;
+  }
 
   const isActive = (to: string | undefined) => pathname === to;
   return (
     <nav className="text-slate-50 bg-slate-800">
-      <div className="container mx-auto flex items-center justify-between p-4">
+      <div className="container mx-auto flex items-center justify-between py-4 px-2">
         <button
           className="sm:hidden focus:outline-none"
           onClick={() => setMenuOpen((prev) => !prev)}
@@ -151,6 +165,13 @@ export default function Navbar({ loggedIn }: NavbarProps) {
             );
           })}
         </div>
+        <span className="text-lg sm:text-2xl hover:text-sky-400">
+          {store ? (
+            <a href={store?.external_url}>{store?.name}</a>
+          ) : (
+            "Commander League"
+          )}
+        </span>
       </div>
       {/* Mobile nav */}
       <div
@@ -167,7 +188,6 @@ export default function Navbar({ loggedIn }: NavbarProps) {
           className="absolute inset-0 bg-black/70"
           onClick={() => setMenuOpen(false)}
         />
-
         <button
           aria-label="Close navigation menu"
           className={`absolute right-4 top-4 text-slate-200 hover:text-white transition ${
@@ -177,7 +197,6 @@ export default function Navbar({ loggedIn }: NavbarProps) {
         >
           <i className="fa-solid fa-xmark text-2xl" />
         </button>
-
         <div
           className={`relative mx-auto w-full max-w-md px-6 
                       transition-transform duration-300 ease-out
@@ -211,6 +230,11 @@ export default function Navbar({ loggedIn }: NavbarProps) {
             )}
           </nav>
         </div>
+        {store ? (
+          <a href={store?.external_url}>{store?.name}</a>
+        ) : (
+          "Commander League"
+        )}
       </div>
     </nav>
   );

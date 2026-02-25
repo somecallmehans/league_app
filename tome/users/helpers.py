@@ -17,3 +17,9 @@ def generate_code(length: int = 6) -> str:
 
 def hash_code(raw_code: str) -> str:
     return hashlib.sha256(raw_code.encode("utf-8")).hexdigest()
+
+
+def check_for_bad_words(name: str) -> bool:
+    if not profanity.contains_profanity(name):
+        return False
+    return True

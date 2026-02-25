@@ -193,7 +193,7 @@ function Page() {
   const { data: metrics, isLoading: metricsLoading } =
     useGetMetricsQuery(period);
 
-  if (metricsLoading || !metrics) {
+  if (metricsLoading) {
     return <LoadingSpinner />;
   }
 

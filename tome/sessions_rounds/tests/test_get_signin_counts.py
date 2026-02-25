@@ -14,13 +14,21 @@ ids = get_ids()
 def build_state() -> None:
     # Round 1 Signins
     RoundSignups.objects.bulk_create(
-        RoundSignups(participant_id=pid, round_id=ids.R1_SESSION_THIS_MONTH_OPEN)
+        RoundSignups(
+            participant_id=pid,
+            round_id=ids.R1_SESSION_THIS_MONTH_OPEN,
+            store_id=ids.MIMICS_ID,
+        )
         for pid in [ids.P1, ids.P3, ids.P5, ids.P8]
     )
 
     # Round 2 Signins
     RoundSignups.objects.bulk_create(
-        RoundSignups(participant_id=pid, round_id=ids.R2_SESSION_THIS_MONTH_OPEN)
+        RoundSignups(
+            participant_id=pid,
+            round_id=ids.R2_SESSION_THIS_MONTH_OPEN,
+            store_id=ids.MIMICS_ID,
+        )
         for pid in [ids.P1, ids.P2, ids.P3, ids.P5, ids.P8, ids.P7]
     )
 

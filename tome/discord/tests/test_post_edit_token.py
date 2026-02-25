@@ -28,6 +28,7 @@ def add_participant_with_code() -> None:
         participant=p,
         code="DL-AAAA",
         commander_id=ids.YARUS,
+        store_id=ids.MIMICS_ID,
     )
 
 
@@ -35,7 +36,10 @@ def add_participant_with_code() -> None:
 def client(settings):
     settings.SERVICE_TOKEN = "test-token"  # noqa: S105
     api = APIClient()
-    api.credentials(HTTP_AUTHORIZATION="X-SERVICE-TOKEN test-token")  # noqa: S105
+    api.credentials(
+        HTTP_AUTHORIZATION="X-SERVICE-TOKEN test-token",
+        HTTP_X_DISCORD_GUILD_ID="1123750208937938964",
+    )  # noqa: S105
     return api
 
 

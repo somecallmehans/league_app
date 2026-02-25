@@ -85,6 +85,7 @@ def build_state() -> None:
             round_id=rid,
             session_id=sid,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
         ParticipantAchievements(
             participant_id=ids.P8,
@@ -92,6 +93,7 @@ def build_state() -> None:
             round_id=rid,
             session_id=sid,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
         ParticipantAchievements(
             participant_id=ids.P5,
@@ -99,6 +101,7 @@ def build_state() -> None:
             round_id=rid,
             session_id=sid,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
         ParticipantAchievements(
             participant_id=ids.P8,
@@ -106,6 +109,7 @@ def build_state() -> None:
             round_id=rid,
             session_id=sid,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
         ParticipantAchievements(
             participant_id=ids.P8,
@@ -113,6 +117,7 @@ def build_state() -> None:
             round_id=rid,
             session_id=sid,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
         ParticipantAchievements(
             participant_id=ids.P3,
@@ -120,6 +125,7 @@ def build_state() -> None:
             round_id=rid,
             session_id=sid,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
         ParticipantAchievements(
             participant_id=ids.P8,
@@ -127,6 +133,7 @@ def build_state() -> None:
             round_id=rid,
             session_id=sid,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
         ParticipantAchievements(
             participant_id=ids.P3,
@@ -134,6 +141,7 @@ def build_state() -> None:
             round_id=rid,
             session_id=sid,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
         ParticipantAchievements(
             participant_id=ids.P5,
@@ -141,6 +149,7 @@ def build_state() -> None:
             round_id=rid,
             session_id=sid,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
         ParticipantAchievements(
             participant_id=ids.P3,
@@ -148,6 +157,7 @@ def build_state() -> None:
             round_id=rid,
             session_id=sid,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
         ParticipantAchievements(
             participant_id=ids.P3,
@@ -155,6 +165,7 @@ def build_state() -> None:
             round_id=rid,
             session_id=sid,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
         ParticipantAchievements(
             participant_id=ids.P3,
@@ -162,6 +173,7 @@ def build_state() -> None:
             round_id=rid,
             session_id=sid,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
         ParticipantAchievements(
             participant_id=ids.P3,
@@ -169,6 +181,7 @@ def build_state() -> None:
             round_id=rid,
             session_id=sid,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
         ParticipantAchievements(
             participant_id=ids.P3,
@@ -176,6 +189,7 @@ def build_state() -> None:
             round_id=rid,
             session_id=sid,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
         ParticipantAchievements(
             participant_id=ids.P3,
@@ -183,6 +197,7 @@ def build_state() -> None:
             round_id=rid,
             session_id=sid,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
         ParticipantAchievements(
             participant_id=ids.P3,
@@ -190,6 +205,7 @@ def build_state() -> None:
             round_id=rid,
             session_id=sid,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
     ]
 
@@ -202,9 +218,10 @@ def build_state() -> None:
         pods_id=POD_ID,
         commander_id=commander.id,
         partner_id=partner.id,
+        store_id=ids.MIMICS_ID,
     )
 
-    Pods.objects.filter(id=POD_ID).update(submitted=True)
+    Pods.objects.filter(id=POD_ID).update(submitted=True, store_id=ids.MIMICS_ID)
 
 
 @pytest.fixture(scope="function")
@@ -216,6 +233,7 @@ def draw_state() -> None:
             round_id=ids.R1_SESSION_THIS_MONTH_OPEN,
             session_id=ids.SESSION_THIS_MONTH_OPEN,
             earned_points=2,
+            store_id=ids.MIMICS_ID,
         )
         for pid in [ids.P1, ids.P3, ids.P5, ids.P8]
     ] + [
@@ -225,6 +243,7 @@ def draw_state() -> None:
             round_id=ids.R1_SESSION_THIS_MONTH_OPEN,
             session_id=ids.SESSION_THIS_MONTH_OPEN,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
         ParticipantAchievements(
             participant_id=ids.P5,
@@ -232,6 +251,7 @@ def draw_state() -> None:
             round_id=ids.R1_SESSION_THIS_MONTH_OPEN,
             session_id=ids.SESSION_THIS_MONTH_OPEN,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
         ParticipantAchievements(
             participant_id=ids.P5,
@@ -239,6 +259,7 @@ def draw_state() -> None:
             round_id=ids.R1_SESSION_THIS_MONTH_OPEN,
             session_id=ids.SESSION_THIS_MONTH_OPEN,
             earned_points=1,
+            store_id=ids.MIMICS_ID,
         ),
     ]
 
@@ -248,6 +269,7 @@ def draw_state() -> None:
         color_id=None,
         participants_id=None,
         pods_id=POD_ID,
+        store_id=ids.MIMICS_ID,
     )
 
 
@@ -259,6 +281,7 @@ def build_single_state() -> None:
         round_id=ids.R1_SESSION_THIS_MONTH_OPEN,
         session_id=ids.SESSION_THIS_MONTH_OPEN,
         earned_points=3,
+        store_id=ids.MIMICS_ID,
     )
     commander = Commanders.objects.create(name="TEST GUY", color_id=ids.GRUUL)
     WinningCommanders.objects.create(
@@ -267,12 +290,13 @@ def build_single_state() -> None:
         pods_id=POD_ID,
         participants_id=ids.P3,
         commander_id=commander.id,
+        store_id=ids.MIMICS_ID,
     )
 
 
 @pytest.fixture(scope="function")
 def make_submit_pod() -> None:
-    Pods.objects.filter(id=POD_ID).update(submitted=True)
+    Pods.objects.filter(id=POD_ID).update(submitted=True, store_id=ids.MIMICS_ID)
 
 
 def test_get_scoresheet_one_commander(

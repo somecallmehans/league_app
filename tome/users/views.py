@@ -20,6 +20,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from utils.decorators import require_user_code
 from .models import Participants, SessionToken, Decklists, DecklistsAchievements
+from stores.models import StoreParticipant
 from .serializers import ParticipantsSerializer
 from .queries import (
     get_decklists,
@@ -37,19 +38,18 @@ logger = logging.getLogger(__name__)
 
 
 @api_view(["GET"])
-def get_all_participants(_, id=None):
-    filters = {"deleted": False}
+def get_all_participants(request, id=None, **kwargs):
+    filters = {"deleted": False, "storeparticipant__store_id": request.store_id}
     if id:
         filters["id"] = id
     data = list(Participants.objects.filter(**filters).values("id", "name"))
-    # participants = ParticipantsSerializer(data, many=True).data
     return Response(data, status=status.HTTP_200_OK)
 
 
 @api_view(["POST"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def upsert_participant(request):
+def upsert_participant(request, **kwargs):
     body = json.loads(request.body.decode("utf-8"))
     id = body.get("id", None)
     name = body.get("name", None)
@@ -78,6 +78,7 @@ def upsert_participant(request):
         )
 
     participant = Participants.objects.create(name=name)
+    StoreParticipant.objects.create(participant=participant, store_id=request.store_id)
     serializer = ParticipantsSerializer(participant)
 
     return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -103,7 +104,7 @@ def decklists(request, **kwargs):
 
     try:
         pid = kwargs["participant_id"]
-        post_decklists(request.data, pid)
+        post_decklists(request.data, pid, store_id=request.store_id)
         return Response(status=status.HTTP_201_CREATED)
     except ValidationError as e:
         return Response(
@@ -115,13 +116,14 @@ def decklists(request, **kwargs):
 
 
 @api_view(["GET"])
-def decklist(request):
+def decklist(request, **kwargs):
     """Return an individual decklist, shaped for our scoresheet form."""
 
     params = request.query_params
     code = params.get("code")
     participant_id = params.get("participant_id")
     round_id = params.get("round_id")
+    store_id = request.store_id
 
     if not code and not participant_id and not round_id:
         return Response(
@@ -136,14 +138,16 @@ def decklist(request):
         )
 
     if code:
-        payload = get_single_decklist_by_code(code)
+        payload = get_single_decklist_by_code(store_id, code)
     else:
-        payload = get_decklist_by_participant_round(int(participant_id), int(round_id))
+        payload = get_decklist_by_participant_round(
+            int(participant_id), int(round_id), store_id
+        )
     return Response(payload, status=status.HTTP_200_OK)
 
 
 @api_view(["GET"])
-def decklist_by_id(request):
+def decklist_by_id(request, **kwargs):
     """Take in a decklist_id and return the data for editing. Also check to ensure
     there is a session active and it's still valid, otherwise 401."""
     try:
@@ -159,13 +163,13 @@ def decklist_by_id(request):
             {"detail": "decklist_id is required"}, status=status.HTTP_400_BAD_REQUEST
         )
 
-    payload = get_single_decklist_by_id(decklist_id)
+    payload = get_single_decklist_by_id(decklist_id, request.store_id)
 
     return Response(payload)
 
 
 @api_view(["GET"])
-def verify_session_token(request):
+def verify_session_token(request, **kwargs):
     """This endpoint is called by out edit decklists gatekeeper to see whether
     we have an active session token or not. Return 200 if the token is valid."""
 
@@ -186,7 +190,7 @@ def verify_session_token(request):
 
 
 @api_view(["POST"])
-def exchange_tokens(request):
+def exchange_tokens(request, **kwargs):
     """Take in an edit token, validate, and return a session token attached
     to a cookie."""
 
@@ -212,14 +216,13 @@ def exchange_tokens(request):
             "expires_at": int(session.expires_at.timestamp()),
         }
     )
-
     resp.set_cookie(
         key="edit_decklist_session",
         value=session.session_id,
         max_age=30 * 60,
         httponly=True,
         secure=not settings.DEBUG,
-        samesite="Lax",
+        samesite=settings.SAMESITE,
         domain=settings.COOKIE_DOMAIN,
         path="/",
     )
@@ -228,7 +231,7 @@ def exchange_tokens(request):
 
 
 @api_view(["GET"])
-def get_user_decklists(request):
+def get_user_decklists(request, **kwargs):
     """Validate the cookie, if it's legit return the decklists for the user."""
 
     try:
@@ -274,7 +277,7 @@ def update_decklist(request):
     if body.get("deleted"):
         update_fields = {"deleted": body.get("deleted")}
     else:
-        validate_inputs(body.get("name"), body.get("url"))
+        validate_inputs(body.get("name"), body.get("url"), token.owner_id)
         update_fields = {
             "name": body.get("name"),
             "url": body.get("url"),

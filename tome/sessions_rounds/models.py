@@ -7,6 +7,7 @@ class Sessions(models.Model):
     closed = models.BooleanField(default=False)
     deleted = models.BooleanField(default=False)
     session_date = models.DateField(null=True, blank=True, default=None)
+    store = models.ForeignKey("stores.Store", on_delete=models.CASCADE, null=True)
 
     class Meta:
         db_table = "sessions"
@@ -33,6 +34,7 @@ class Pods(models.Model):
     rounds = models.ForeignKey(Rounds, on_delete=models.CASCADE)
     deleted = models.BooleanField(default=False)
     submitted = models.BooleanField(default=False)
+    store = models.ForeignKey("stores.Store", on_delete=models.CASCADE, null=True)
 
     class Meta:
         db_table = "pods"
@@ -49,6 +51,7 @@ class PodsParticipants(models.Model):
 class RoundSignups(models.Model):
     participant = models.ForeignKey("users.Participants", on_delete=models.CASCADE)
     round = models.ForeignKey(Rounds, on_delete=models.CASCADE)
+    store = models.ForeignKey("stores.Store", on_delete=models.CASCADE, null=True)
 
     class Meta:
         db_table = "round_signups"

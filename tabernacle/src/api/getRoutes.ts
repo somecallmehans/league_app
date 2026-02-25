@@ -7,9 +7,6 @@ import {
 import {
   AchievementListResponseSchema,
   AchievementObjectResponseSchema,
-  PodAchievementResponse,
-  PodAchievementResponseSchema,
-  EMPTY_PODACHIEVEMENT,
   EarnedAchievementStubListResponseSchema,
   AchievementTypeListResponseSchema,
   type AchievementListResponse,
@@ -133,18 +130,6 @@ export default (builder: ApiBuilder) => ({
     query: (param = null) => `metrics/?period=${param}`,
     transformResponse: (raw: unknown) =>
       safeParseWithFallback(MetricSchema, raw, EMPTY_METRIC),
-  }),
-  getPodsAchievements: builder.query<PodAchievementResponse, { pod: Id }>({
-    query: ({ pod }) => `pods_achievements/${pod}/`,
-    providesTags: (result, error, { pod }) => [
-      { type: "PodsAchievements", id: `$${pod}` },
-    ],
-    transformResponse: (raw: unknown) =>
-      safeParseWithFallback(
-        PodAchievementResponseSchema,
-        raw,
-        EMPTY_PODACHIEVEMENT
-      ),
   }),
   getAchievementRound: builder.query<
     EarnedAchievementSubListResponse,
@@ -308,5 +293,8 @@ export default (builder: ApiBuilder) => ({
   getDecklistById: builder.query<SingleDecklist, { decklist_id: string }>({
     query: ({ decklist_id }) => `decklist_by_id/?decklist_id=${decklist_id}`,
     providesTags: ["PersonalDecklists"],
+  }),
+  getStore: builder.query<{ name?: string; external_url?: string }, void>({
+    query: () => "store/",
   }),
 });

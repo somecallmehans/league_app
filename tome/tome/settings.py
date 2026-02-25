@@ -50,20 +50,23 @@ INSTALLED_APPS = [
     "sessions_rounds",
     "discord",
     "configs",
+    "stores",
     "rest_framework",
     "rest_framework.authtoken",
     "corsheaders",
 ]
 
 MIDDLEWARE = [
-    "django.middleware.security.SecurityMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "django.middleware.security.SecurityMiddleware",
+    "stores.middleware.InvalidStoreRedirectMiddleware",
+    "stores.middleware.StoreResolverMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = "tome.urls"
@@ -93,6 +96,13 @@ CORS_ALLOWED_ORIGINS = [
     "https://commanderleague.xyz",
     "https://www.commanderleague.xyz",
 ]
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://([a-z0-9-]+\.)*commanderleague\.xyz$",
+    r"^http://localhost:5173$",
+    r"^http://[a-z0-9-]+\.localhost:5173$",
+]
+
 CORS_ALLOW_METHODS = ["GET", "OPTIONS", "POST", "DELETE", "PUT"]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = [
@@ -234,8 +244,13 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+BASE_DOMAINS = {
+    "commanderleague.xyz",
+    "www.commanderleague.xyz",
+    "localhost",
+    "127.0.0.1",
+}
 COOKIE_DOMAIN = os.getenv("COOKIE_DOMAIN") or None
-
 
 SESSION_COOKIE_DOMAIN = COOKIE_DOMAIN
 CSRF_COOKIE_DOMAIN = COOKIE_DOMAIN
@@ -245,3 +260,4 @@ CSRF_COOKIE_SECURE = not DEBUG
 
 SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SAMESITE = "Lax"
+SAMESITE = os.getenv("SAMESITE")

@@ -45,7 +45,11 @@ def get_achievements():
 @pytest.fixture(autouse=True, scope="function")
 def create_pod_and_bridge_records() -> None:
     """Generate a pod and bridge records for the below tests."""
-    Pods.objects.create(id=POD_ID, rounds_id=ids.R1_SESSION_THIS_MONTH_OPEN)
+    Pods.objects.create(
+        id=POD_ID,
+        rounds_id=ids.R1_SESSION_THIS_MONTH_OPEN,
+        store_id=ids.MIMICS_ID,
+    )
     PodsParticipants.objects.bulk_create(
         PodsParticipants(pods_id=POD_ID, participants_id=pid)
         for pid in [ids.P1, ids.P3, ids.P5, ids.P8]

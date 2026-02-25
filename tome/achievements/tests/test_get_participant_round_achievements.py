@@ -30,6 +30,7 @@ def populate_round_achievements() -> None:
                 round_id=ids.R1_SESSION_LAST_MONTH,
                 session_id=ids.SESSION_LAST_MONTH,
                 earned_points=achievement["point_value"],
+                store_id=ids.MIMICS_ID,
             )
             for idx, achievement in enumerate(achievements)
         ]

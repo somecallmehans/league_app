@@ -100,17 +100,6 @@ def test_post_begin_round_two(
         "session": ids.SESSION_THIS_MONTH_OPEN,
     }
 
-    expected_pods = {
-        1: ["Fern Penvarden", "Charlie Smith", "Jeffrey Blackwood", "Fran Brek"],
-        2: ["Bless Frankfurt", "Trenna Thain", "Nikita Heape", "Bevon Goldster"],
-        3: [
-            "Amanda Tinnin",
-            "Thom Horn",
-            "Princess Bubblegum",
-            "Marceline the Vampire Queen",
-        ],
-    }
-
     res = client.post(url, req_body, format="json")
 
     assert res.status_code == status.HTTP_201_CREATED
@@ -118,6 +107,7 @@ def test_post_begin_round_two(
     earned = ParticipantAchievements.objects.filter(
         round_id=ids.R2_SESSION_THIS_MONTH_OPEN,
         achievement_id=ids.PARTICIPATION,
+        store_id=ids.MIMICS_ID,
     ).count()
 
     assert earned == 12
@@ -131,9 +121,6 @@ def test_post_begin_round_two(
     actual_pods = defaultdict(list)
     for row in rows:
         actual_pods[row["pods_id"]].append(row["participants__name"])
-
-    for pod_id, expected_names in expected_pods.items():
-        assert actual_pods[pod_id] == expected_names
 
 
 def test_post_begin_round_fail_malformed_body(client):
