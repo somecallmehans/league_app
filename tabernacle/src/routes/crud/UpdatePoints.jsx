@@ -4,8 +4,8 @@ import {
   useGetAllRoundsQuery,
   useGetAchievementRoundQuery,
   usePostUpsertParticipantAchievementMutation,
-  useGetScorecardAchievementOptionsQuery,
 } from "../../api/apiSlice";
+import { useScorecardAchievementOptions } from "../../hooks";
 import StandardButton from "../../components/Button";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import Modal from "../../components/Modal";
@@ -72,7 +72,7 @@ const AchievementGrid = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedAchievement, setSelectedAchievement] = useState();
-  const { data: achievementOptions } = useGetScorecardAchievementOptionsQuery();
+  const { selectOptions } = useScorecardAchievementOptions();
   const [postUpsertParticipantAchievement] =
     usePostUpsertParticipantAchievementMutation();
 
@@ -93,27 +93,13 @@ const AchievementGrid = ({
               achievement_id: selectedAchievement,
               round_id: selectedRound,
             };
-      await postUpsertParticipantAchievement(payload);
+      await postUpsertParticipantAchievement(payload).unwrap();
       setIsOpen(false);
+      setSelectedAchievement(undefined);
     } catch (err) {
-      console.error("Failed to add achievement: ", err);
+      toast.error(err?.data?.detail ?? "Failed to add achievement");
     }
   };
-
-  const data = useMemo(() => {
-    if (!achievementOptions) return [];
-    const legacy = achievementOptions.legacy.map(({ id, name }) => ({
-      value: id,
-      label: name,
-    }));
-    const scalable = achievementOptions.scalable.map(
-      ({ achievement_id, scalable_term_id, name }) => ({
-        value: { achievement_id, scalable_term_id },
-        label: name,
-      })
-    );
-    return [...legacy, ...scalable];
-  }, [achievementOptions]);
 
   return (
     <div className="py-4">
@@ -130,7 +116,7 @@ const AchievementGrid = ({
           <div className="py-2 z-40">
             <SimpleSelect
               placeholder="Select Achievement"
-              options={data}
+              options={selectOptions}
               onChange={(obj) => setSelectedAchievement(obj.value)}
               classes="grow"
             />
@@ -155,7 +141,7 @@ export default function Page() {
     {
       participant_id: selectedParticipant,
     },
-    { skip: !selectedParticipant }
+    { skip: !selectedParticipant },
   );
 
   const canFetch = selectedParticipant && selectedRound;
@@ -164,7 +150,7 @@ export default function Page() {
       participant_id: selectedParticipant,
       round_id: selectedRound,
     },
-    { skip: !canFetch }
+    { skip: !canFetch },
   );
 
   const participantsList = useMemo(() => {

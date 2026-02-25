@@ -180,11 +180,28 @@ def upsert_scalable_term(request, **kwargs):
     term_id = body.get("id")
     term_display = body.get("term_display", "").strip()
     type_id = body.get("type_id")
-    deleted = body.get("deleted", False)
 
     if not term_display and not term_id:
         return Response(
             {"message": "term_display is required for new terms."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    def _validate_type_id(tid):
+        if tid is None or tid == "" or tid is False:
+            return None
+        try:
+            resolved = int(tid)
+        except (TypeError, ValueError):
+            return "type_id must be a valid integer."
+        if not ScalableTermType.objects.filter(id=resolved).exists():
+            return "type_id does not reference an existing ScalableTermType."
+        return resolved
+
+    validated_type_id = _validate_type_id(type_id)
+    if validated_type_id is not None and not isinstance(validated_type_id, int):
+        return Response(
+            {"message": validated_type_id},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -200,23 +217,28 @@ def upsert_scalable_term(request, **kwargs):
     if term:
         if term_display:
             term.term_display = term_display
-        term.deleted = deleted
+        if "deleted" in body:
+            term.deleted = body["deleted"]
         if type_id is not None:
-            term.type_id = type_id if type_id else None
+            term.type_id = validated_type_id
         term.save()
     else:
         with transaction.atomic():
             term = ScalableTerms.objects.create(
                 term_display=term_display,
-                type_id=type_id or None,
+                type_id=validated_type_id,
                 deleted=False,
             )
             scalable_achievement_ids = _get_scalable_achievement_ids()
-            for ach_id in scalable_achievement_ids:
-                AchievementScalableTerms.objects.get_or_create(
-                    achievement_id=ach_id,
-                    scalable_term_id=term.id,
-                )
+            AchievementScalableTerms.objects.bulk_create(
+                [
+                    AchievementScalableTerms(
+                        achievement_id=ach_id,
+                        scalable_term_id=term.id,
+                    )
+                    for ach_id in scalable_achievement_ids
+                ]
+            )
 
     return Response(
         {"id": term.id, "term_display": term.term_display, "type_id": term.type_id},

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 import {
   useGetScalableTermsQuery,
   useGetScalableTermTypesQuery,
@@ -26,7 +27,7 @@ const TermForm = ({ term, setOpen, onSuccess }) => {
     defaultValues: {
       term_display: term?.term_display ?? "",
       type: term?.type_id
-        ? types?.find((t) => t.id === term.type_id) ?? null
+        ? (types?.find((t) => t.id === term.type_id) ?? null)
         : null,
     },
   });
@@ -42,13 +43,17 @@ const TermForm = ({ term, setOpen, onSuccess }) => {
     <form
       onSubmit={handleSubmit(async (values) => {
         const type_id = values.type?.id ?? null;
-        await upsertTerm({
-          id: term?.id,
-          term_display: values.term_display,
-          type_id,
-        });
-        setOpen(false);
-        onSuccess?.();
+        try {
+          await upsertTerm({
+            id: term?.id,
+            term_display: values.term_display,
+            type_id,
+          }).unwrap();
+          setOpen(false);
+          onSuccess?.();
+        } catch (err) {
+          toast.error(err?.data?.detail ?? "Failed to save term");
+        }
       })}
     >
       <div className="flex flex-col p-4 gap-4">
@@ -71,9 +76,11 @@ const TermForm = ({ term, setOpen, onSuccess }) => {
           control={control}
           placeholder="Select type"
           classes="text-sm border rounded-lg"
-          isClearable
           getOptionLabel={(o) => o.name}
           getOptionValue={(o) => String(o.id)}
+          rules={{
+            validate: (v) => (!v ? "Type is required" : undefined),
+          }}
         />
       </div>
       <div className="sticky bottom-0 z-10">
@@ -93,15 +100,18 @@ const CreateTypeForm = ({ setOpen, onSuccess }) => {
   const [createType] = useCreateScalableTermTypeMutation();
   const [name, setName] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const trimmed = name.trim();
     if (!trimmed) return;
-    createType({ name: trimmed }).then(() => {
+    try {
+      await createType({ name: trimmed }).unwrap();
       setOpen(false);
       setName("");
       onSuccess?.();
-    });
+    } catch (err) {
+      toast.error(err?.data?.detail ?? "Failed to create type");
+    }
   };
 
   return (
@@ -130,14 +140,19 @@ const TermCard = ({ term, typeName, onSuccess }) => {
   const [showModal, setShowModal] = useState(false);
   const [upsertTerm] = useUpsertScalableTermMutation();
 
-  const handleDelete = () => {
-    setShowModal(false);
-    setOpen(false);
-    upsertTerm({
-      id: term.id,
-      term_display: term.term_display,
-      deleted: true,
-    }).then(() => onSuccess?.());
+  const handleDelete = async () => {
+    try {
+      await upsertTerm({
+        id: term.id,
+        term_display: term.term_display,
+        deleted: true,
+      }).unwrap();
+      setShowModal(false);
+      setOpen(false);
+      onSuccess?.();
+    } catch (err) {
+      toast.error(err?.data?.detail ?? "Failed to delete term");
+    }
   };
 
   return (
@@ -146,7 +161,9 @@ const TermCard = ({ term, typeName, onSuccess }) => {
         onClick={() => setOpen(true)}
         className="bg-white rounded border border-solid p-3 shadow-md hover:border-sky-400 cursor-pointer"
       >
-        <div className="text-sm text-gray-500">{typeName || "Uncategorized"}</div>
+        <div className="text-sm text-gray-500">
+          {typeName || "Uncategorized"}
+        </div>
         <div>{term.term_display}</div>
       </div>
       <ConfirmModal
@@ -156,8 +173,8 @@ const TermCard = ({ term, typeName, onSuccess }) => {
         closeModal={() => setShowModal(false)}
         bodyText={
           <span className="text-red-500 text-sm">
-            This will soft-delete the term. It will no longer appear in scorecards
-            or the browse page.
+            This will soft-delete the term. It will no longer appear in
+            scorecards or the browse page.
           </span>
         }
       />

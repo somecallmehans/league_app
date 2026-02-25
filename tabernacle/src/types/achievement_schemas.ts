@@ -329,3 +329,12 @@ export const ScalableTermsResponseSchema = z.object({
 export type ScalableTermsResponse = z.infer<
   typeof ScalableTermsResponseSchema
 >;
+
+export const ScalableTermTypeItemSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+});
+export const ScalableTermTypeListSchema = z.array(ScalableTermTypeItemSchema);
+export type ScalableTermTypeListResponse = z.infer<
+  typeof ScalableTermTypeListSchema
+>;

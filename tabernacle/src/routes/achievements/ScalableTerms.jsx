@@ -5,6 +5,19 @@ import LoadingSpinner from "../../components/LoadingSpinner";
 import PageTitle from "../../components/PageTitle";
 import { SimpleSelect } from "../crud/CrudComponents";
 
+const TYPE_COLORS = [
+  "#3b82f6", // blue
+  "#f97316", // orange
+  "#22c55e", // green
+  "#a855f7", // purple
+  "#eab308", // yellow
+  "#ec4899", // pink
+  "#14b8a6", // teal
+  "#ef4444", // red
+  "#64748b", // slate
+  "#0ea5e9", // sky
+];
+
 const SearchFilter = ({ value, onChange, placeholder, classes }) => (
   <Input
     placeholder={placeholder}
@@ -14,15 +27,20 @@ const SearchFilter = ({ value, onChange, placeholder, classes }) => (
   />
 );
 
-function TypeSection({ typeGroup, isExpanded }) {
+function TypeSection({ typeGroup, isExpanded, colorIndex }) {
   const terms = typeGroup.terms;
+  const barColor = TYPE_COLORS[colorIndex % TYPE_COLORS.length];
 
   return (
     <section
-      className={`bg-white rounded-lg border border-zinc-200 shadow-md overflow-hidden flex flex-col min-h-0 ${
+      className={`bg-white rounded-lg border border-zinc-200 shadow-md overflow-hidden flex flex-col min-h-0 relative ${
         isExpanded ? "col-span-full" : ""
       }`}
     >
+      <div
+        className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l"
+        style={{ backgroundColor: barColor, opacity: "0.6" }}
+      />
       <div className="px-4 py-3 bg-slate-50 border-b border-zinc-200 shrink-0">
         <h2 className="text-base md:text-lg font-semibold text-slate-800">
           {typeGroup.name}
@@ -75,7 +93,7 @@ export default function ScalableTermsPage() {
         .map((t) => ({
           ...t,
           terms: t.terms.filter((term) =>
-            term.term_display.toLowerCase().includes(q)
+            term.term_display.toLowerCase().includes(q),
           ),
         }))
         .filter((t) => t.terms.length > 0);
@@ -91,9 +109,10 @@ export default function ScalableTermsPage() {
     <div className="p-4 md:p-8 pb-24 sm:pb-8">
       <PageTitle title="Scalable Terms" />
       <div className="text-xs md:text-sm font-light text-gray-800 italic w-full md:max-w-2xl mb-2">
-        Browse scalable terms used in achievements. These terms plug into parent
-        achievements (e.g., &quot;Win with X colors&quot;) to form specific
-        variants. Filter by type or search by name.
+        This is a comprehensive list of all of our scalable achievements and
+        their defining terms. A "scalable" achievement is awarded for winning
+        with a deck that includes a number of cards referencing a shared
+        mechanic or quality. Filter by type or search by term name.
       </div>
 
       {/* Mobile: fixed bottom filter bar */}
@@ -142,11 +161,12 @@ export default function ScalableTermsPage() {
             No scalable terms found.
           </div>
         ) : (
-          filteredTypes.map((typeGroup) => (
+          filteredTypes.map((typeGroup, idx) => (
             <TypeSection
               key={typeGroup.name}
               typeGroup={typeGroup}
               isExpanded={filteredTypes.length === 1}
+              colorIndex={idx}
             />
           ))
         )}

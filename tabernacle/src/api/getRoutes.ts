@@ -11,6 +11,7 @@ import {
   AchievementTypeListResponseSchema,
   ScorecardAchievementOptionsResponseSchema,
   ScalableTermsResponseSchema,
+  ScalableTermTypeListSchema,
   type AchievementListResponse,
   type AchievementObjectResponse,
   type EarnedAchievementSubListResponse,
@@ -18,6 +19,7 @@ import {
   type ScoresheetFormResponse,
   type ScorecardAchievementOptionsResponse,
   type ScalableTermsResponse,
+  type ScalableTermTypeListResponse,
 } from "../types/achievement_schemas";
 import {
   SessionObjectResponseSchema,
@@ -108,14 +110,11 @@ export default (builder: ApiBuilder) => ({
     transformResponse: (raw: unknown) =>
       safeParseWithFallback(ScalableTermsResponseSchema, raw, { types: [] }),
   }),
-  getScalableTermTypes: builder.query<
-    Array<{ id: number; name: string }>,
-    void
-  >({
+  getScalableTermTypes: builder.query<ScalableTermTypeListResponse, void>({
     query: () => "scalable_term_types/",
     providesTags: ["Achievements"],
     transformResponse: (raw: unknown) =>
-      Array.isArray(raw) ? raw : [],
+      safeParseWithFallback(ScalableTermTypeListSchema, raw, []),
   }),
   getAllSessions: builder.query<SessionObjectResponse, void>({
     query: () => "all_sessions/",

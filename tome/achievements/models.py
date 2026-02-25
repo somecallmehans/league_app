@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q, UniqueConstraint
 
 
 class Restrictions(models.Model):
@@ -84,6 +85,13 @@ class ScalableTerms(models.Model):
 
     class Meta:
         db_table = "scalable_terms"
+        constraints = [
+            UniqueConstraint(
+                fields=["term_display"],
+                condition=Q(deleted=False),
+                name="unique_term_display_when_not_deleted",
+            ),
+        ]
 
 
 class AchievementScalableTerms(models.Model):
@@ -94,6 +102,12 @@ class AchievementScalableTerms(models.Model):
 
     class Meta:
         db_table = "achievement_scalable_terms"
+        constraints = [
+            UniqueConstraint(
+                fields=["achievement", "scalable_term"],
+                name="unique_achievement_scalable_term",
+            ),
+        ]
 
 
 class Colors(models.Model):
