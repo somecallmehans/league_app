@@ -1,5 +1,6 @@
 import re
 import uuid
+import logging
 from typing import Optional
 from urllib.parse import urlparse
 from django.utils import timezone
@@ -29,6 +30,8 @@ from .helpers import hash_code
 from achievements.models import WinningCommanders
 from sessions_rounds.models import PodsParticipants
 from services.scryfall_client import ScryfallClientRequest
+
+logger = logging.getLogger(__name__)
 
 
 scryfall_request = ScryfallClientRequest()
@@ -400,12 +403,14 @@ def _normalize_url(raw: str) -> str:
     return raw
 
 
-def validate_inputs(name: Optional[str], url: Optional[str]) -> None:
+def validate_inputs(name: Optional[str], url: Optional[str], pid: int) -> None:
     """Check both inputs for 1. profanity and 2. make sure urls are on our allow list"""
 
     if name and profanity.contains_profanity(name):
+        logger.info(f"Profanity identified for {name}, PID: {pid}")
         raise ValidationError({"url": "Name cannot contain profanity"})
     if url and profanity.contains_profanity(url):
+        logger.info(f"Profanity identified for {url}, PID: {pid}")
         raise ValidationError({"url": "URL cannot contain profanity"})
 
     if url:
@@ -437,7 +442,7 @@ def post_decklists(body, pid, store_id) -> None:
     achievements = body.get("achievements", [])
 
     try:
-        validate_inputs(body["name"], body["url"])
+        validate_inputs(body["name"], body["url"], pid)
         deck = Decklists.objects.create(
             name=body["name"],
             url=body["url"],

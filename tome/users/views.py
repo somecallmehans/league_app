@@ -277,7 +277,7 @@ def update_decklist(request):
     if body.get("deleted"):
         update_fields = {"deleted": body.get("deleted")}
     else:
-        validate_inputs(body.get("name"), body.get("url"))
+        validate_inputs(body.get("name"), body.get("url"), token.owner_id)
         update_fields = {
             "name": body.get("name"),
             "url": body.get("url"),

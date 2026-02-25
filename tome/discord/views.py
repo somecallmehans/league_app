@@ -407,13 +407,14 @@ def check_join_status(request):
             {"message": "Discord user id not provided."},
             status=status.HTTP_400_BAD_REQUEST,
         )
-
+    logger.info(f"Checking join status for {duid}")
     participant = Participants.objects.filter(
         discord_user_id=int(duid), deleted=False
     ).first()
 
     store = Store.objects.filter(id=request.store_id).first()
     if not store:
+        logger.error("Store not found in check_join_status")
         return Response(
             {"message": "Store not found."}, status=status.HTTP_404_NOT_FOUND
         )
@@ -493,12 +494,19 @@ def register_and_join(request):
     name = (body.get("name") or "").strip()
     duid = body.get("discord_user_id")
 
+    if not duid:
+        return Response(
+            {"message": "Discord user id not provided."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
     if not name or len(name) < 2:
         return Response(
             {"message": "Name is required, please try again."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+    logger.info(f"Attempting create for {name}, duid: {duid}")
     if check_for_bad_words(name):
         logger.info(f"SOMEONE {duid} SAID A NAUGHTY WORD: {name}")
         return Response(
@@ -508,6 +516,7 @@ def register_and_join(request):
 
     store = Store.objects.filter(id=request.store_id).first()
     if not store:
+        logger.error("Store not found in register_and_join")
         return Response(
             {"message": "Store not found."}, status=status.HTTP_404_NOT_FOUND
         )
