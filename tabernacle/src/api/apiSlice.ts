@@ -14,7 +14,7 @@ const storeSlug = getStoreSlug();
 
 const urlResolver = () => {
   const slug = getStoreSlug();
-  if (slug) return `${import.meta.env.VITE_API_URL}s/${storeSlug}/`;
+  if (slug) return `${import.meta.env.VITE_API_URL}/s/${storeSlug}/`;
   return import.meta.env.VITE_API_URL;
 };
 
