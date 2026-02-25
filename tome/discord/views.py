@@ -349,20 +349,15 @@ def issue_edit_token(request):
     return Response({"code": code, "slug": store.slug}, status=status.HTTP_201_CREATED)
 
 
-# NEW:
 @require_service_token
-# @require_discord_store
 @api_view([POST])
 def validate_channel(request):
-    """Check if the channel we received a bot request from exists + is allowed"""
-    try:
-        body = json.loads(request.body.decode("utf-8") or "{}")
-    except json.JSONDecodeError:
-        return Response(
-            {"message": "Invalid JSON body."},
-            status=status.HTTP_404_NOT_FOUND,
-        )
+    """Check if the channel we received a bot request from exists + is allowed
 
+    We don't use @require_discord_store here because this endpoint is doing the gatekeeping for the rest
+    of those requests.
+
+    """
     guild = request.data.get("guild_id")
     channel = request.data.get("channel_id")
 
@@ -403,8 +398,6 @@ def check_join_status(request):
     body = json.loads(request.body.decode("utf-8"))
     duid = body.get("discord_user_id")
 
-    store = Store.objects.filter(id=request.store_id).first()
-
     if not duid:
         return Response(
             {"message": "Discord user id not provided."},
@@ -414,6 +407,12 @@ def check_join_status(request):
     participant = Participants.objects.filter(
         discord_user_id=int(duid), deleted=False
     ).first()
+
+    store = Store.objects.filter(id=request.store_id).first()
+    if not store:
+        return Response(
+            {"message": "Store not found."}, status=status.HTTP_404_NOT_FOUND
+        )
 
     if not participant:
         payload = {
@@ -459,7 +458,6 @@ def find_participants(request):
             {"matches": []},
             status=status.HTTP_200_OK,
         )
-    print("RAW_QUERY: ", raw_query)
     participants = (
         Participants.objects.filter(
             discord_user_id__isnull=True, name__icontains=raw_query, deleted=False
@@ -504,6 +502,10 @@ def register_and_join(request):
         )
 
     store = Store.objects.filter(id=request.store_id).first()
+    if not store:
+        return Response(
+            {"message": "Store not found."}, status=status.HTTP_404_NOT_FOUND
+        )
 
     with transaction.atomic():
         new = Participants.objects.filter(
@@ -573,6 +575,10 @@ def ensure_store_membership(request):
         )
 
     store = Store.objects.filter(id=request.store_id).only("name").first()
+    if not store:
+        return Response(
+            {"message": "Store not found."}, status=status.HTTP_404_NOT_FOUND
+        )
 
     with transaction.atomic():
         _, created = StoreParticipant.objects.get_or_create(
