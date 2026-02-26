@@ -119,9 +119,11 @@ def get_decklists(
         )
     )
     ids = [q["id"] for q in query]
-    ach_query = DecklistsAchievements.objects.filter(
-        decklist_id__in=ids
-    ).select_related("achievement", "scalable_term")
+    ach_query = (
+        DecklistsAchievements.objects.filter(decklist_id__in=ids)
+        .select_related("achievement", "scalable_term")
+        .order_by("decklist_id", "achievement_id")
+    )
     ach_by_decklist = defaultdict(list)
 
     for row in ach_query:
