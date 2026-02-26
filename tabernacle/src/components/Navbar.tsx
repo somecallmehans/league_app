@@ -131,7 +131,7 @@ export default function Navbar({ loggedIn, isStore }: NavbarProps) {
     .filter((l) =>
       loggedIn
         ? l.admin === true || (!l.admin && !l.hideWhenLoggedIn)
-        : !l.admin
+        : !l.admin,
     );
 
   if (storeLoading) {
@@ -145,16 +145,15 @@ export default function Navbar({ loggedIn, isStore }: NavbarProps) {
   };
   return (
     <nav className="text-slate-50 bg-slate-800">
-      <div className="container mx-auto flex items-center justify-between py-4 px-2">
-        <button
-          className="sm:hidden focus:outline-none"
-          onClick={() => setMenuOpen((prev) => !prev)}
-        >
-          <span className="material-icons text-slate-50">
-            <i className="fa-solid fa-bars" />
-          </span>
-        </button>
-        <div className="hidden sm:flex sm:gap-4">
+      <div className="container mx-auto flex items-center justify-between py-4 px-4">
+        <span className="text-lg sm:text-2xl hover:text-sky-400 sm:order-2">
+          {store ? (
+            <a href={store?.external_url}>{store?.name}</a>
+          ) : (
+            "Commander League"
+          )}
+        </span>
+        <div className="hidden sm:flex sm:gap-4 sm:order-1">
           {filtered.map((link) => {
             if (link.children?.length) {
               return <DesktopDropdown key={link.id} link={link} />;
@@ -177,13 +176,14 @@ export default function Navbar({ loggedIn, isStore }: NavbarProps) {
             );
           })}
         </div>
-        <span className="text-lg sm:text-2xl hover:text-sky-400">
-          {store ? (
-            <a href={store?.external_url}>{store?.name}</a>
-          ) : (
-            "Commander League"
-          )}
-        </span>
+        <button
+          className="sm:hidden focus:outline-none"
+          onClick={() => setMenuOpen((prev) => !prev)}
+        >
+          <span className="material-icons text-slate-50">
+            <i className="fa-solid fa-bars" />
+          </span>
+        </button>
       </div>
       {/* Mobile nav */}
       <div
@@ -242,7 +242,7 @@ export default function Navbar({ loggedIn, isStore }: NavbarProps) {
                 >
                   {link.name}
                 </NavLink>
-              )
+              ),
             )}
           </nav>
         </div>
