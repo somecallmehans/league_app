@@ -247,7 +247,7 @@ def get_user_decklists(request, **kwargs):
 
 
 @api_view(["PUT"])
-def update_decklist(request):
+def update_decklist(request, **kwargs):
     """Validate the cookie, then update the provided decklist."""
 
     logger.info("Update decklist request received")
