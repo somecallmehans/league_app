@@ -48,7 +48,8 @@ function App() {
     <div className="min-h-screen flex flex-col">
       <Navbar loggedIn={loggedIn} isStore={!!storeSlug} />
       <ToastContainer />
-      <Routes>
+      <main className="flex-1 flex flex-col min-h-0">
+        <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/faqs" element={<Resources />} />
         <Route path="/achievements/*" element={<AchievementsRouter />} />
@@ -84,7 +85,8 @@ function App() {
           <Route path="/pods/*" element={<Pods />} />
         </Route>
         <Route path="*" element={<NotFoundPage storeSlug={storeSlug} />} />
-      </Routes>
+        </Routes>
+      </main>
       <Footer />
     </div>
   );

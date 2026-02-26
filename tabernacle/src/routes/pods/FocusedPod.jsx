@@ -64,12 +64,12 @@ const PodSquare = ({ participants, handleOnClick, winnerInfo, submitted }) => {
               participant_id,
               winnerInfo?.name,
               winnerInfo?.color?.name,
-              participant_id === winnerInfo?.participants?.id
+              participant_id === winnerInfo?.participants?.id,
             )
           }
         />
       </div>
-    )
+    ),
   );
 };
 
@@ -78,9 +78,20 @@ const PodContainer = ({ pods, handleOnClick }) => {
 
   if (Object.keys(pods).length === 0) {
     return (
-      <div className="p-4 mb-4 h-full ">
-        <div className="text-3xl">
-          No pod information here; the round has not started yet
+      <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 pb-8">
+        <div className="mx-auto max-w-md w-full rounded-xl border border-gray-200 bg-white p-8 shadow-md">
+          <div className="flex flex-col items-center text-center">
+            <div className="mb-4 rounded-full bg-sky-50 p-4">
+              <i className="fa-solid fa-landmark text-4xl text-sky-400" />
+            </div>
+            <h3 className="mb-2 text-xl font-semibold text-gray-800">
+              Pods not yet available
+            </h3>
+            <p className="text-gray-600">
+              The round hasn&apos;t started yet. Pairings will appear here once
+              the round begins.
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -144,7 +155,7 @@ export default function () {
     participant_id,
     winnerCommander,
     colors,
-    isWinner
+    isWinner,
   ) => {
     setSelected({
       participant,
@@ -167,7 +178,7 @@ export default function () {
   }
 
   return (
-    <div className="bg-white p-4 mb-4 h-full">
+    <div className="bg-white p-4 mb-4 flex-1 flex flex-col min-h-0">
       <div className="flex">
         <Link
           to={{
