@@ -330,9 +330,7 @@ def issue_edit_token(request):
             {"message": "Store not found."}, status=status.HTTP_404_NOT_FOUND
         )
 
-    if not Decklists.objects.filter(
-        participant=participant, deleted=False, store_id=request.store_id
-    ).exists():
+    if not Decklists.objects.filter(participant=participant, deleted=False).exists():
         logger.error(f"User with DU_ID: {duid} does not have any decklists")
         url = f"{store.slug}.commanderleague.xyz/decklists/new"
         return Response(

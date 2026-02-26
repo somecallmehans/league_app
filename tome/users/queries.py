@@ -492,9 +492,10 @@ def post_decklists(body, pid, store_id) -> None:
                     )
                 )
             elif isinstance(a, dict):
-                if a.get("achievement_id") is not None and a.get(
-                    "scalable_term_id"
-                ) is not None:
+                if (
+                    a.get("achievement_id") is not None
+                    and a.get("scalable_term_id") is not None
+                ):
                     rows.append(
                         DecklistsAchievements(
                             decklist_id=deck.id,
@@ -542,7 +543,7 @@ def get_valid_edit_token_or_fail(raw: str) -> Participants:
 
 
 @transaction.atomic
-def maybe_get_session_token(request: HttpRequest) -> SessionToken:
+def maybe_get_session_token(request: HttpRequest) -> Optional[SessionToken]:
     """For the polling endpoint, similarily validates the session
     but also handles revocation."""
     raw = request.COOKIES.get("edit_decklist_session")

@@ -226,7 +226,6 @@ def exchange_tokens(request, **kwargs):
         domain=settings.COOKIE_DOMAIN,
         path="/",
     )
-
     return resp
 
 
@@ -298,9 +297,10 @@ def update_decklist(request):
         if isinstance(a, int):
             achievement_rows.append({"achievement_id": a, "scalable_term_id": None})
         elif isinstance(a, dict):
-            if a.get("achievement_id") is not None and a.get(
-                "scalable_term_id"
-            ) is not None:
+            if (
+                a.get("achievement_id") is not None
+                and a.get("scalable_term_id") is not None
+            ):
                 achievement_rows.append(
                     {
                         "achievement_id": int(a["achievement_id"]),
