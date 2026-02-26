@@ -84,24 +84,45 @@ scryfall_request = ScryfallClientRequest()
 @api_view([GET])
 def get_scorecard_achievement_options(_, **kwargs):
     """Return flattened list of achievement options for scorecard winner-achievements picker.
-    Legacy: children achievements (id, name). New: scalable achievement+term (achievement_id, scalable_term_id, name).
+    Legacy: child achievements (id, name) + standalone achievements (id, name).
+    Scalable: achievement+term pairs (achievement_id, scalable_term_id, name).
     """
 
-    legacy: List[Dict[str, object]] = list(
+    scalable_achievement_ids = set(
+        AchievementScalableTerms.objects.values_list("achievement_id", flat=True)
+    )
+
+    slug_ok = Q(slug__isnull=True) | Q(slug="precon")
+
+    child_achievements = list(
         Achievements.objects.filter(deleted=False, parent__isnull=False)
+        .filter(slug_ok)
         .exclude(slug__iregex=r"win-[0-9]+-colors")
         .select_related("parent")
         .values("id", "name", "parent__name")
     )
-    legacy_options = [
+    child_options = [
         {"id": a["id"], "name": f"{a['parent__name']} {a['name']}"}
-        for a in legacy
+        for a in child_achievements
         if a["parent__name"]
     ]
 
+    # Standalone achievements (no parent, not scalable; e.g. "Win via commander damage")
+    standalone = list(
+        Achievements.objects.filter(deleted=False, parent__isnull=True)
+        .filter(slug_ok)
+        .exclude(id__in=scalable_achievement_ids)
+        .order_by("name")
+        .values("id", "name")
+    )
+    standalone_options = [{"id": a["id"], "name": a["name"]} for a in standalone]
+
+    legacy_options = child_options + standalone_options
+
     scalable = list(
         AchievementScalableTerms.objects.filter(
-            achievement__deleted=False, scalable_term__deleted=False
+            achievement__deleted=False,
+            scalable_term__deleted=False,
         )
         .select_related("achievement", "scalable_term")
         .values(
