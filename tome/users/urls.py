@@ -3,6 +3,7 @@ from .views import (
     get_all_participants,
     upsert_participant,
     Login,
+    change_password,
     decklists,
     decklist,
     exchange_tokens,
@@ -14,6 +15,7 @@ from .views import (
 
 urlpatterns = [
     path("", Login.as_view()),
+    path("change_password/", change_password, name="change_password"),
     path("upsert_participant/", upsert_participant, name="upsert_participant"),
     path("participants/", get_all_participants, name="participant_list"),
     path("decklist/", decklist, name="decklist"),

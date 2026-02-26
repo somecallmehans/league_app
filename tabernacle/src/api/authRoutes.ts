@@ -17,6 +17,12 @@ export interface RefreshResponse {
   access: string;
 }
 
+export interface ChangePasswordRequest {
+  current_password: string;
+  new_password: string;
+  new_password_confirm: string;
+}
+
 export default (builder: ApiBuilder) => ({
   login: builder.mutation<LoginResponse, LoginRequest>({
     query: (credentials) => ({
@@ -30,6 +36,13 @@ export default (builder: ApiBuilder) => ({
       url: "api/token/refresh/",
       method: "POST",
       body: { refresh: token },
+    }),
+  }),
+  changePassword: builder.mutation<{ message: string }, ChangePasswordRequest>({
+    query: (body) => ({
+      url: "change_password/",
+      method: "POST",
+      body,
     }),
   }),
 });

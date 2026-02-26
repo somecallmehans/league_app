@@ -2,7 +2,7 @@ import json
 import logging
 
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError as DjangoValidationError
 from django.db import transaction
 from rest_framework.exceptions import ValidationError, AuthenticationFailed, ParseError
 
@@ -17,6 +17,8 @@ from rest_framework.decorators import (
 )
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
+
+from django.contrib.auth.password_validation import validate_password
 
 from utils.decorators import require_user_code
 from .models import Participants, SessionToken, Decklists, DecklistsAchievements
@@ -91,6 +93,58 @@ class Login(APIView):
     def get(self, _):
         content = {"message": "Hello, World!"}
         return Response(content)
+
+
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def change_password(request, **kwargs):
+    """
+    Allow authenticated users to change their own password.
+    Requires current password for verification and new password with confirmation.
+    """
+    current_password = request.data.get("current_password")
+    new_password = request.data.get("new_password")
+    new_password_confirm = request.data.get("new_password_confirm")
+
+    if not current_password:
+        return Response(
+            {"detail": "Current password is required"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    if not new_password:
+        return Response(
+            {"detail": "New password is required"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    if new_password != new_password_confirm:
+        return Response(
+            {"detail": "New passwords do not match"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    user = request.user
+    if not user.check_password(current_password):
+        return Response(
+            {"detail": "Current password is incorrect"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        validate_password(new_password, user)
+    except DjangoValidationError as e:
+        return Response(
+            {"detail": " ".join(e.messages)},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    user.set_password(new_password)
+    user.save()
+
+    return Response(
+        {"message": "Password updated successfully"},
+        status=status.HTTP_200_OK,
+    )
 
 
 @api_view(["GET", "POST"])

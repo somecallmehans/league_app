@@ -9,6 +9,7 @@ import ScalableTermsPage from "./ScalableTermsManagement";
 import InsertCommanderPage from "./InsertCommanders";
 import UpdatePoints from "./UpdatePoints";
 import LeagueConfiguration from "./LeagueConfiguration";
+import AccountPage from "./AccountPage";
 import LoadingSpinner from "../../components/LoadingSpinner";
 
 const ReusableTab = ({ name }) => (
@@ -31,6 +32,7 @@ const CrudTabPanel = () => {
   return (
     <TabGroup>
       <TabList className="flex flex-wrap justify-center md:justify-start gap-2 sm:gap-4 mb-4">
+        <ReusableTab name="Account" />
         <ReusableTab name="Participants" />
         <ReusableTab name="Update Points" />
         <ReusableTab name="League Configuration" />
@@ -43,6 +45,9 @@ const CrudTabPanel = () => {
         )}
       </TabList>
       <TabPanels className="mt-4">
+        <TabPanel>
+          <AccountPage />
+        </TabPanel>
         <TabPanel>
           <ParticipantPage />
         </TabPanel>

@@ -190,4 +190,5 @@ export const {
   // AUTH
   useLoginMutation,
   useRefreshMutation,
+  useChangePasswordMutation,
 } = apiSlice;
