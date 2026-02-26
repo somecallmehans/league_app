@@ -71,7 +71,7 @@ class ParticipantAchievements(models.Model):
     achievement = models.ForeignKey(Achievements, on_delete=models.CASCADE)
     scalable_term = models.ForeignKey(
         ScalableTerms,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="participant_achievements",
@@ -166,7 +166,7 @@ class DecklistsAchievements(models.Model):
     decklist = models.ForeignKey(Decklists, on_delete=models.CASCADE)
     scalable_term = models.ForeignKey(
         "achievements.ScalableTerms",
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
     )
