@@ -109,10 +109,10 @@ export default function ScalableTermsPage() {
     <div className="p-4 md:p-8 pb-24 sm:pb-8">
       <PageTitle title="Scalable Terms" />
       <div className="text-xs md:text-sm font-light text-gray-800 italic w-full md:max-w-2xl mb-2">
-        This is a comprehensive list of all of our scalable achievements and
-        their defining terms. A "scalable" achievement is awarded for winning
-        with a deck that includes a number of cards referencing a shared
-        mechanic or quality. Filter by type or search by term name.
+        This is a comprehensive list of all terms that apply for our scalable
+        achievements. A "scalable" achievement is awarded for winning with a
+        deck that includes a number of cards referencing a shared mechanic or
+        quality. Filter by type or search by term name.
       </div>
 
       {/* Mobile: fixed bottom filter bar */}

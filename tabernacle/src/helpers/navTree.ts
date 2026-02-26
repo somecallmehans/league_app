@@ -36,7 +36,7 @@ export const navLinks: Array<Node> = [
       { id: "2a", name: "Resources & FAQs", to: "/faqs" },
       {
         id: "2b",
-        name: "Submitted Decklists",
+        name: "Decklists",
         to: "/decklists",
       },
     ],
