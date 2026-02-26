@@ -97,7 +97,7 @@ export default function Leaderboard() {
       <div className="mb-6">
         <SimpleSelect
           placeholder="Select League Month"
-          options={months?.map((month) => ({
+          options={[...(months ?? [])].reverse().map((month) => ({
             label: monthStr(month),
             value: month,
           }))}

@@ -11,6 +11,25 @@ function isCodeResponse(res: any): res is DecklistCodeResponse {
   return "winner-commander" in res;
 }
 
+export type AchievementKeyItem = {
+  tempId?: string;
+  id?: number;
+  achievement_id?: number;
+  scalable_term_id?: number;
+};
+
+export function deriveAchievementKey(
+  item: AchievementKeyItem,
+  fallback?: string | number,
+): string {
+  if (item.tempId) return item.tempId;
+  if (item.achievement_id != null && item.scalable_term_id != null) {
+    return `scalable-${item.achievement_id}-${item.scalable_term_id}`;
+  }
+  if (item.id != null) return String(item.id);
+  return fallback != null ? String(fallback) : "";
+}
+
 const CODE_FIELDS = [
   "winner-commander",
   "partner-commander",
@@ -101,7 +120,7 @@ function CommanderFields() {
               });
               setValue(
                 "winner-achievements",
-                cart.filter(({ id }: { id: number }) => id !== 28)
+                cart.filter(({ id }: { id: number }) => id !== 28),
               );
               return;
             }
@@ -200,7 +219,7 @@ function AchievementCart() {
           control={control}
           placeholder="Deck Building Achievements"
           getOptionLabel={(option) => option.name}
-          getOptionValue={(option) => String(option.id)}
+          getOptionValue={(option) => deriveAchievementKey(option)}
           containerClasses="grow mt-2"
           isClearable
           onChange={(selected) => {
@@ -214,11 +233,25 @@ function AchievementCart() {
 
             const curr = getValues("winner-achievements") ?? [];
 
-            setValue(
-              "winner-achievements",
-              [...curr, { ...(selected as any), tempId: crypto.randomUUID() }],
-              { shouldDirty: true, shouldValidate: false }
-            );
+            const item = selected as {
+              id?: number;
+              achievement_id?: number;
+              scalable_term_id?: number;
+              name: string;
+            };
+            const toAdd =
+              "achievement_id" in item && item.achievement_id != null
+                ? {
+                    achievement_id: item.achievement_id,
+                    scalable_term_id: item.scalable_term_id,
+                    name: item.name,
+                    tempId: crypto.randomUUID(),
+                  }
+                : { ...item, tempId: crypto.randomUUID() };
+            setValue("winner-achievements", [...curr, toAdd], {
+              shouldDirty: true,
+              shouldValidate: false,
+            });
 
             setValue("picker", null, {
               shouldDirty: true,
@@ -229,24 +262,37 @@ function AchievementCart() {
         />
       </div>
       <div className="h-full min-h-0 bg-zinc-100 p-4 rounded-lg border drop-shadow-md flex flex-col gap-2 overflow-y-auto">
-        {cart.map((c: { tempId: string; name: string | undefined }) => (
-          <div
-            className="flex justify-between bg-white rounded-lg p-2 shadow-md  items-center"
-            key={c.tempId}
-          >
-            <div className="text-sm">{c.name}</div>
-            <span aria-hidden className="flex-1 h-4  mx-1" />
-            <i
-              className="fa fa-trash text-zinc-500 hover:text-red-500"
-              onClick={() => {
-                setValue(
-                  "winner-achievements",
-                  cart.filter((x: any) => x.tempId !== c.tempId)
-                );
-              }}
-            />
-          </div>
-        ))}
+        {cart.map(
+          (
+            c: {
+              tempId?: string;
+              id?: number;
+              achievement_id?: number;
+              scalable_term_id?: number;
+              name: string | undefined;
+            },
+            idx: number,
+          ) => (
+            <div
+              className="flex justify-between bg-white rounded-lg p-2 shadow-md  items-center"
+              key={deriveAchievementKey(c, idx)}
+            >
+              <div className="text-sm">{c.name}</div>
+              <span aria-hidden className="flex-1 h-4  mx-1" />
+              <i
+                className="fa fa-trash text-zinc-500 hover:text-red-500"
+                onClick={() => {
+                  setValue(
+                    "winner-achievements",
+                    cart.filter(
+                      (_: AchievementKeyItem, i: number) => i !== idx,
+                    ),
+                  );
+                }}
+              />
+            </div>
+          ),
+        )}
       </div>
     </div>
   );

@@ -80,7 +80,7 @@ const baseQueryWithReauth: BaseBQ = async (args, api, extraOptions) => {
         body: { refresh: auth.getRefreshToken() },
       },
       api,
-      extraOptions
+      extraOptions,
     );
 
     const refreshData = refreshResult.data as { access?: string } | undefined;
@@ -144,6 +144,9 @@ export const {
   useGetAllRoundsQuery,
   useGetParticipantPodsQuery,
   useGetAchievementsListQuery,
+  useGetScorecardAchievementOptionsQuery,
+  useGetScalableTermsQuery,
+  useGetScalableTermTypesQuery,
   // Not currently in use but will be needed
   // when we add the crud for this
   // useGetAchievementTypesQuery,
@@ -181,6 +184,8 @@ export const {
   usePostDecklistMutation,
   useExchangeTokensMutation,
   useUpdateDecklistMutation,
+  useUpsertScalableTermMutation,
+  useCreateScalableTermTypeMutation,
 
   // AUTH
   useLoginMutation,

@@ -5,6 +5,7 @@ import PageTitle from "../../components/PageTitle";
 
 import ParticipantPage from "./ParticipantMangement";
 import AchievementPage from "./AchievementManagement";
+import ScalableTermsPage from "./ScalableTermsManagement";
 import InsertCommanderPage from "./InsertCommanders";
 import UpdatePoints from "./UpdatePoints";
 import LeagueConfiguration from "./LeagueConfiguration";
@@ -36,6 +37,7 @@ const CrudTabPanel = () => {
         {isSuper && (
           <>
             <ReusableTab name="Achievements" />
+            <ReusableTab name="Scalable Terms" />
             <ReusableTab name="Update Commanders" />
           </>
         )}
@@ -55,6 +57,9 @@ const CrudTabPanel = () => {
           <>
             <TabPanel>
               <AchievementPage />
+            </TabPanel>
+            <TabPanel>
+              <ScalableTermsPage />
             </TabPanel>
             <TabPanel>
               <InsertCommanderPage />

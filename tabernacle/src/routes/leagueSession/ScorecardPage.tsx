@@ -20,8 +20,51 @@ import PlayerFields from "./PlayerFields";
 import AchievementCart from "./AchievementCart";
 import { skipToken } from "@reduxjs/toolkit/query";
 
-export const normalize = (items?: { id: number; name: string }[]) =>
+export const normalize = (items?: { id: number; name?: string }[]) =>
   items?.map(({ id }) => id) ?? [];
+
+/** Normalize decklist achievements for API: int (legacy) or { achievement_id, scalable_term_id } */
+export const normalizeDecklistAchievements = (
+  items?: Array<
+    | { id: number; name?: string; tempId?: string }
+    | {
+        achievement_id: number;
+        scalable_term_id: number;
+        name?: string;
+        tempId?: string;
+      }
+  >
+): Array<number | { achievement_id: number; scalable_term_id: number }> =>
+  items?.map((item) => {
+    if ("achievement_id" in item && item.achievement_id != null) {
+      return {
+        achievement_id: item.achievement_id,
+        scalable_term_id: item.scalable_term_id,
+      };
+    }
+    return (item as { id: number }).id;
+  }) ?? [];
+
+export const normalizeWinnerAchievements = (
+  items?: Array<
+    | { id: number; name?: string; tempId?: string }
+    | {
+        achievement_id: number;
+        scalable_term_id: number;
+        name?: string;
+        tempId?: string;
+      }
+  >
+) =>
+  items?.map((item) => {
+    if ("achievement_id" in item && item.achievement_id != null) {
+      return {
+        achievement_id: item.achievement_id,
+        scalable_term_id: item.scalable_term_id,
+      };
+    }
+    return { id: (item as { id: number }).id };
+  }) ?? [];
 
 const SubmissionToggle = () => {
   const { control, setValue, resetField } = useFormContext();
@@ -111,7 +154,17 @@ export default function ScorecardPage() {
 
   useEffect(() => {
     if (scoresheet) {
-      reset(scoresheet);
+      const winnerAchievements = scoresheet["winner-achievements"] ?? [];
+      const withTempIds = winnerAchievements.map(
+        (item: { id?: number; name?: string; achievement_id?: number; scalable_term_id?: number; tempId?: string }) =>
+          item.tempId
+            ? item
+            : { ...item, tempId: crypto.randomUUID() }
+      );
+      reset({
+        ...scoresheet,
+        "winner-achievements": withTempIds,
+      });
     }
   }, [scoresheet, reset]);
 
@@ -128,7 +181,9 @@ export default function ScorecardPage() {
       "winner-commander": clean["winner-commander"]?.id,
       "partner-commander": clean["partner-commander"]?.id,
       "companion-commander": clean["companion-commander"]?.id,
-      "winner-achievements": normalize(clean["winner-achievements"]),
+      "winner-achievements": normalizeWinnerAchievements(
+        clean["winner-achievements"]
+      ),
       round_id,
       pod_id,
     };

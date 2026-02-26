@@ -1,4 +1,5 @@
 import json
+from typing import List, Dict
 
 from datetime import datetime
 from collections import defaultdict
@@ -48,6 +49,12 @@ from achievements.models import (
     Achievements,
     WinningCommanders,
     Commanders,
+    AchievementScalableTerms,
+    ScalableTerms,
+    ScalableTermType,
+)
+from achievements.participant_achievement_helpers import (
+    resolve_participant_achievement_display,
 )
 
 from achievements.helpers import (
@@ -72,6 +79,192 @@ POST = "POST"
 PUT = "PUT"
 
 scryfall_request = ScryfallClientRequest()
+
+
+@api_view([GET])
+def get_scorecard_achievement_options(_, **kwargs):
+    """Return flattened list of achievement options for scorecard winner-achievements picker.
+    Legacy: children achievements (id, name). New: scalable achievement+term (achievement_id, scalable_term_id, name).
+    """
+
+    legacy: List[Dict[str, object]] = list(
+        Achievements.objects.filter(deleted=False, parent__isnull=False)
+        .exclude(slug__iregex=r"win-[0-9]+-colors")
+        .select_related("parent")
+        .values("id", "name", "parent__name")
+    )
+    legacy_options = [
+        {"id": a["id"], "name": f"{a['parent__name']} {a['name']}"}
+        for a in legacy
+        if a["parent__name"]
+    ]
+
+    scalable = list(
+        AchievementScalableTerms.objects.filter(
+            achievement__deleted=False, scalable_term__deleted=False
+        )
+        .select_related("achievement", "scalable_term")
+        .values(
+            "achievement_id",
+            "scalable_term_id",
+            "achievement__name",
+            "scalable_term__term_display",
+        )
+    )
+    scalable_options = [
+        {
+            "achievement_id": s["achievement_id"],
+            "scalable_term_id": s["scalable_term_id"],
+            "name": f"{s['achievement__name']} {s['scalable_term__term_display']}",
+        }
+        for s in scalable
+    ]
+
+    return Response({"legacy": legacy_options, "scalable": scalable_options})
+
+
+@api_view([GET])
+def get_scalable_terms(_, **kwargs):
+    """Return all scalable terms grouped by type, for the Scalable Terms browse page."""
+    terms = (
+        ScalableTerms.objects.filter(deleted=False)
+        .select_related("type")
+        .order_by("type__name", "term_display")
+        .values("id", "term_display", "type_id", "type__name")
+    )
+
+    grouped = defaultdict(lambda: {"id": None, "name": "", "terms": []})
+    untyped = []
+
+    for t in terms:
+        term_data = {"id": t["id"], "term_display": t["term_display"]}
+        if t["type_id"] and t["type__name"]:
+            key = t["type__name"]
+            grouped[key]["id"] = t["type_id"]
+            grouped[key]["name"] = t["type__name"]
+            grouped[key]["terms"].append(term_data)
+        else:
+            untyped.append(term_data)
+
+    types_list = [
+        {"id": v["id"], "name": v["name"], "terms": v["terms"]}
+        for v in sorted(grouped.values(), key=lambda x: x["name"])
+        if v["terms"]
+    ]
+    if untyped:
+        types_list.append({"id": None, "name": "Uncategorized", "terms": untyped})
+
+    return Response({"types": types_list})
+
+
+@api_view([GET])
+def get_scalable_term_types(_, **kwargs):
+    """Return all scalable term types for management dropdowns."""
+    types = list(ScalableTermType.objects.all().order_by("name").values("id", "name"))
+    return Response(types)
+
+
+def _get_scalable_achievement_ids():
+    """Return distinct achievement IDs that have bridge entries (scalable achievements)."""
+    return set(
+        AchievementScalableTerms.objects.values_list("achievement_id", flat=True)
+    )
+
+
+@api_view([POST])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsSuperUser])
+def upsert_scalable_term(request, **kwargs):
+    """Create or update a scalable term. When creating, add to bridge for each scalable achievement."""
+    body = json.loads(request.body.decode("utf-8"))
+    term_id = body.get("id")
+    term_display = body.get("term_display", "").strip()
+    type_id = body.get("type_id")
+
+    if not term_display and not term_id:
+        return Response(
+            {"message": "term_display is required for new terms."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    def _validate_type_id(tid):
+        if tid is None or tid == "" or tid is False:
+            return None
+        try:
+            resolved = int(tid)
+        except (TypeError, ValueError):
+            return "type_id must be a valid integer."
+        if not ScalableTermType.objects.filter(id=resolved).exists():
+            return "type_id does not reference an existing ScalableTermType."
+        return resolved
+
+    validated_type_id = _validate_type_id(type_id)
+    if validated_type_id is not None and not isinstance(validated_type_id, int):
+        return Response(
+            {"message": validated_type_id},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    term = None
+    if term_id:
+        term = ScalableTerms.objects.filter(id=term_id).first()
+        if not term:
+            return Response(
+                {"message": "Scalable term not found."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+    if term:
+        if term_display:
+            term.term_display = term_display
+        if "deleted" in body:
+            term.deleted = body["deleted"]
+        if type_id is not None:
+            term.type_id = validated_type_id
+        term.save()
+    else:
+        with transaction.atomic():
+            term = ScalableTerms.objects.create(
+                term_display=term_display,
+                type_id=validated_type_id,
+                deleted=False,
+            )
+            scalable_achievement_ids = _get_scalable_achievement_ids()
+            AchievementScalableTerms.objects.bulk_create(
+                [
+                    AchievementScalableTerms(
+                        achievement_id=ach_id,
+                        scalable_term_id=term.id,
+                    )
+                    for ach_id in scalable_achievement_ids
+                ]
+            )
+
+    return Response(
+        {"id": term.id, "term_display": term.term_display, "type_id": term.type_id},
+        status=status.HTTP_201_CREATED,
+    )
+
+
+@api_view([POST])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsSuperUser])
+def create_scalable_term_type(request):
+    """Create a new scalable term type."""
+    body = json.loads(request.body.decode("utf-8"))
+    name = (body.get("name") or "").strip()
+    if not name:
+        return Response(
+            {"message": "name is required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    if ScalableTermType.objects.filter(name=name).exists():
+        return Response(
+            {"message": f"Type '{name}' already exists."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    t = ScalableTermType.objects.create(name=name)
+    return Response({"id": t.id, "name": t.name}, status=status.HTTP_201_CREATED)
 
 
 @api_view([GET])
@@ -399,21 +592,25 @@ def upsert_achievements(request):
 @require_store
 def get_participant_round_achievements(request, participant_id, round_id, **kwargs):
     """Get all achievements + points for a participant in a particular round."""
-    achievements = ParticipantAchievements.objects.select_related("achievement").filter(
+    achievements = ParticipantAchievements.objects.select_related(
+        "achievement", "achievement__parent", "scalable_term"
+    ).filter(
         participant_id=participant_id,
         round_id=round_id,
         store_id=request.store_id,
         deleted=False,
     )
 
-    out = [
-        {
-            "id": a.id,
-            "full_name": a.achievement.full_name,
-            "earned_points": a.earned_points,
-        }
-        for a in achievements
-    ]
+    out = []
+    for a in achievements:
+        resolved = resolve_participant_achievement_display(a)
+        out.append(
+            {
+                "id": a.id,
+                "full_name": resolved["full_name"],
+                "earned_points": resolved["earned_points"],
+            }
+        )
 
     return Response(out)
 
@@ -514,7 +711,7 @@ def upsert_earned_achievements(request, **kwargs):
 
     if id:
         achievement = ParticipantAchievements.objects.filter(
-            id=id, store_id=request.store_id
+            id=id, store_id=request.store_id, deleted=False
         ).first()
         if not achievement:
             return Response(
@@ -530,6 +727,7 @@ def upsert_earned_achievements(request, **kwargs):
     participant_id = body.get("participant_id")
     round_id = body.get("round_id")
     achievement_id = body.get("achievement_id")
+    scalable_term_id = body.get("scalable_term_id")
 
     if not participant_id or not round_id or not achievement_id:
         return Response(
@@ -538,9 +736,28 @@ def upsert_earned_achievements(request, **kwargs):
         )
 
     achievement = (
-        Achievements.objects.select_related("parent").filter(id=achievement_id).first()
+        Achievements.objects.select_related("parent")
+        .filter(id=achievement_id, deleted=False)
+        .first()
     )
-    point_value = achievement.points
+    if not achievement:
+        return Response(
+            {"message": "Achievement not found."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if scalable_term_id is not None:
+        if not AchievementScalableTerms.objects.filter(
+            achievement_id=achievement_id,
+            scalable_term_id=scalable_term_id,
+        ).exists():
+            return Response(
+                {"message": "Invalid achievement and scalable term combination."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        point_value = achievement.point_value or achievement.points
+    else:
+        point_value = achievement.points
 
     session_id = (
         Rounds.objects.filter(id=round_id, session__store_id=request.store_id)
@@ -551,6 +768,7 @@ def upsert_earned_achievements(request, **kwargs):
     ParticipantAchievements.objects.create(
         participant_id=participant_id,
         achievement_id=achievement_id,
+        scalable_term_id=scalable_term_id,
         round_id=round_id,
         session_id=session_id,
         earned_points=point_value,

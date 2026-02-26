@@ -9,7 +9,7 @@ from django.utils import timezone
 
 
 from sessions_rounds.models import Rounds, Sessions
-from achievements.models import Achievements, Commanders
+from achievements.models import Achievements, Commanders, ScalableTerms
 
 from users.helpers import generate_code, hash_code
 
@@ -69,6 +69,13 @@ class Participants(models.Model):
 class ParticipantAchievements(models.Model):
     participant = models.ForeignKey(Participants, on_delete=models.CASCADE)
     achievement = models.ForeignKey(Achievements, on_delete=models.CASCADE)
+    scalable_term = models.ForeignKey(
+        ScalableTerms,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="participant_achievements",
+    )
     store = models.ForeignKey("stores.Store", on_delete=models.CASCADE, null=True)
     round = models.ForeignKey(Rounds, on_delete=models.CASCADE)
     session = models.ForeignKey(Sessions, on_delete=models.CASCADE)
@@ -157,6 +164,12 @@ class Decklists(models.Model):
 class DecklistsAchievements(models.Model):
     achievement = models.ForeignKey(Achievements, on_delete=models.CASCADE)
     decklist = models.ForeignKey(Decklists, on_delete=models.CASCADE)
+    scalable_term = models.ForeignKey(
+        "achievements.ScalableTerms",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         db_table = "decklists_achievements"

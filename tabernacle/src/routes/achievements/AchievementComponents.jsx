@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 import { apiSlice } from "../../api/apiSlice";
@@ -149,28 +150,38 @@ export const TypeInfo = ({ showInfo, setShowInfo }) => {
             </div>
           </div>
 
-          <div className="px-4 pb-[calc(env(safe-area-inset-bottom,0)+1rem)] max-h-[70vh] overflow-y-auto">
-            <div className="space-y-3">
-              {types.map(({ id, name, hex_code, description }) => {
-                const rgbVal = hex_code ? hexToRgb(hex_code) : null;
-                const rgbString = rgbVal
-                  ? `rgba(${rgbVal.r}, ${rgbVal.g}, ${rgbVal.b}, 0.4)`
-                  : undefined;
+          <div className="max-h-[75vh] flex flex-col">
+            <div className="px-4 overflow-y-auto flex-1 min-h-0">
+              <div className="space-y-3">
+                {types.map(({ id, name, hex_code, description }) => {
+                  const rgbVal = hex_code ? hexToRgb(hex_code) : null;
+                  const rgbString = rgbVal
+                    ? `rgba(${rgbVal.r}, ${rgbVal.g}, ${rgbVal.b}, 0.4)`
+                    : undefined;
 
-                return (
-                  <div key={id} className="rounded-md border p-3">
-                    <div
-                      className="text-center rounded mb-2 py-1 text-sm font-medium"
-                      style={{ backgroundColor: rgbString }}
-                    >
-                      {name}
+                  return (
+                    <div key={id} className="rounded-md border p-3">
+                      <div
+                        className="text-center rounded mb-2 py-1 text-sm font-medium"
+                        style={{ backgroundColor: rgbString }}
+                      >
+                        {name}
+                      </div>
+                      <div className="text-xs text-gray-700 leading-relaxed">
+                        {description}
+                      </div>
                     </div>
-                    <div className="text-xs text-gray-700 leading-relaxed">
-                      {description}
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
+            </div>
+            <div className="px-4 py-4 pb-[calc(env(safe-area-inset-bottom,0)+1rem)] shrink-0 border-t border-slate-100">
+              <Link
+                to="/achievements/scalable-terms"
+                className="text-sm font-medium text-sky-600 hover:text-sky-500 block text-center"
+              >
+                View complete list of scalable terms
+              </Link>
             </div>
           </div>
         </div>
@@ -182,28 +193,36 @@ export const TypeInfo = ({ showInfo, setShowInfo }) => {
     <div
       className={`hidden sm:flex transition-all ease-in-out duration-200 overflow-hidden ${
         showInfo
-          ? "opacity-100 max-h-50 bg-white border shadow-md flex-col md:flex-row justify-between p-3 gap-4"
+          ? "opacity-100 max-h-50 bg-white border shadow-md flex-col p-3 gap-3"
           : "opacity-0 max-h-0"
       }`}
     >
-      {types.map(({ id, name, hex_code, description }) => {
-        const rgbVal = hex_code ? hexToRgb(hex_code) : null;
-        const rgbString = rgbVal
-          ? `rgba(${rgbVal.r}, ${rgbVal.g}, ${rgbVal.b}, 0.4)`
-          : undefined;
+      <div className="flex flex-col md:flex-row justify-between gap-4">
+        {types.map(({ id, name, hex_code, description }) => {
+          const rgbVal = hex_code ? hexToRgb(hex_code) : null;
+          const rgbString = rgbVal
+            ? `rgba(${rgbVal.r}, ${rgbVal.g}, ${rgbVal.b}, 0.4)`
+            : undefined;
 
-        return (
-          <div key={id} className="flex-1 min-w-0">
-            <div
-              className="text-center rounded mb-1"
-              style={{ backgroundColor: rgbString }}
-            >
-              {name}
+          return (
+            <div key={id} className="flex-1 min-w-0">
+              <div
+                className="text-center rounded mb-1"
+                style={{ backgroundColor: rgbString }}
+              >
+                {name}
+              </div>
+              <div className="text-xs">{description}</div>
             </div>
-            <div className="text-xs">{description}</div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
+      <Link
+        to="/achievements/scalable-terms"
+        className="text-sm font-medium text-sky-600 hover:text-sky-500 self-end"
+      >
+        View complete list of scalable terms
+      </Link>
     </div>
   );
 

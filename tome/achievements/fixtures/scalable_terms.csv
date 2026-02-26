@@ -1,0 +1,366 @@
+term_display,type
+Adamant,Ability Word
+Addendum,Ability Word
+Alliance,Ability Word
+Battalion,Ability Word
+Bloodrush,Ability Word
+Celebration,Ability Word
+Channel,Ability Word
+Chroma,Ability Word
+Cohort,Ability Word
+Constellation,Ability Word
+Converge,Ability Word
+Corrupted,Ability Word
+Council's dilemma,Ability Word
+Coven,Ability Word
+Delirium,Ability Word
+Domain,Ability Word
+Eerie,Ability Word
+Eminence,Ability Word
+Enrage,Ability Word
+Fateful hour,Ability Word
+Fathomless Descent,Ability Word
+Ferocious,Ability Word
+Formidable,Ability Word
+Grandeur,Ability Word
+Hellbent,Ability Word
+Heroic,Ability Word
+Imprint,Ability Word
+Inspired,Ability Word
+Join forces,Ability Word
+Kinship,Ability Word
+Lieutenant,Ability Word
+Magecraft,Ability Word
+Metalcraft,Ability Word
+Morbid,Ability Word
+Pack tactics,Ability Word
+Parade!,Ability Word
+Paradox,Ability Word
+Parley,Ability Word
+Radiance,Ability Word
+Raid,Ability Word
+Rally,Ability Word
+Spell mastery,Ability Word
+Strive,Ability Word
+Sweep,Ability Word
+Tempting offer,Ability Word
+Threshold,Ability Word
+Underdog,Ability Word
+Valiant,Ability Word
+Will of the council,Ability Word
+Will of the Planeswalkers,Ability Word
+Historic,Batch
+Modified,Batch
+Outlaws,Batch
+Party,Batch
+Sea Creatures (Krakens/Serpents/Etc),Batch
+cards that can cause players to gain life,Grouped Terms
+cards that can mill opponents,Grouped Terms
+cards that create creature tokens explicitly during combat,Grouped Terms
+"cards that exile themselves from your graveyard as a cost of their own activated ability Ex. Renew, Scavenge, etc.",Grouped Terms
+cards that have or reference adventures or omens,Grouped Terms
+"cards that have or reference plot, foretell, or airbending",Grouped Terms
+cards that may “enter the battlefield as a copy” of something,Grouped Terms
+cards that reference “clues” or “investigate”,Grouped Terms
+cards that reference “dungeons” or “the initiative”,Grouped Terms
+cards that reference “explore” or “map tokens”,Grouped Terms
+cards that reference “food” or the ability “forage”,Grouped Terms
+cards that reference “infect” or “toxic” or “poison counter” or “poisonous”,Grouped Terms
+cards that reference “undying” or “persist”,Grouped Terms
+cards that reference battles,Grouped Terms
+cards that reference cascade or discover,Grouped Terms
+cards that reference casting your second spell per turn,Grouped Terms
+cards that reference charge counters or spacecraft,Grouped Terms
+cards that reference commanders,Grouped Terms
+cards that reference committing a crime,Grouped Terms
+"cards that reference convoke, waterbending, or improvise",Grouped Terms
+"cards that reference descend, revolt, or void",Grouped Terms
+cards that reference earthbending or land creatures,Grouped Terms
+cards that reference embalm or eternalize,Grouped Terms
+cards that reference face down cards on the battlefield.,Grouped Terms
+cards that reference firebending or generate mana when they attack,Grouped Terms
+cards that reference flashback or harmonize,Grouped Terms
+cards that reference lessons or “learn”,Grouped Terms
+cards that reference madness or mayhem,Grouped Terms
+cards that reference ninjutsu or web-slinging,Grouped Terms
+cards that reference players winning or losing the game,Grouped Terms
+cards that reference role tokens,Grouped Terms
+cards that reference rooms or unlocking,Grouped Terms
+cards that reference speed or start your engines!,Grouped Terms
+cards that reference spore counters or with “thallid” in their names,Grouped Terms
+cards that reference The Ring or your ringbearer,Grouped Terms
+cards that reference time counters or suspend,Grouped Terms
+cards that reference upkeeps,Grouped Terms
+"cards that reference vehicles, crew, mounts, or saddle",Grouped Terms
+cards that reference voting,Grouped Terms
+cards that reference your “party”,Grouped Terms
+cards that transform,Grouped Terms
+cards with “Undergrowth” or that reference “for each creature card in your graveyard”,Grouped Terms
+cards with a “landfall” ability or ability that triggers whenever a land enters under your control,Grouped Terms
+cards with abilities that trigger when you gain life,Grouped Terms
+cards with an energy symbol or that reference energy,Grouped Terms
+cards with Phyrexian mana symbols,Grouped Terms
+cards with Survival abilities or abilities that trigger whenever the card becomes tapped,Grouped Terms
+cards with the oracle tag “otag:enlarge”,Grouped Terms
+cards with the oracle tag “otag:grouphug”,Grouped Terms
+cards with the word “Flip” and the word “Coin”,Grouped Terms
+cards with the word “roll”,Grouped Terms
+"cards with X in their mana cost, an alternative cost, an additional cost, or that reference cards with X in any of these costs",Grouped Terms
+copies of the same card that is not a basic land,Grouped Terms
+equipment cards that create and attach themselves to a creature token upon entry.,Grouped Terms
+French vanilla creatures,Grouped Terms
+split cards that are instants or sorceries,Grouped Terms
+∞ (Infinity),Keyword Ability
+Absorb,Keyword Ability
+Affinity,Keyword Ability
+Afflict,Keyword Ability
+Afterlife,Keyword Ability
+Aftermath,Keyword Ability
+Amplify,Keyword Ability
+Annihilator,Keyword Ability
+Ascend,Keyword Ability
+Assist,Keyword Ability
+Aura Swap,Keyword Ability
+Awaken,Keyword Ability
+Backup,Keyword Ability
+Banding,Keyword Ability
+Bargain,Keyword Ability
+Battle Cry,Keyword Ability
+Bestow,Keyword Ability
+Blitz,Keyword Ability
+Bloodthirst,Keyword Ability
+Boast,Keyword Ability
+Bushido,Keyword Ability
+Buyback,Keyword Ability
+Casualty,Keyword Ability
+Champion,Keyword Ability
+Changeling,Keyword Ability
+Cipher,Keyword Ability
+Cleave,Keyword Ability
+Companion,Keyword Ability
+Compleated,Keyword Ability
+Conspire,Keyword Ability
+Craft,Keyword Ability
+Cycling,Keyword Ability
+Dash,Keyword Ability
+Daybound and Nightbound,Keyword Ability
+Deathtouch,Keyword Ability
+Decayed,Keyword Ability
+Defender,Keyword Ability
+Delve,Keyword Ability
+Demonstrate,Keyword Ability
+Dethrone,Keyword Ability
+Devoid,Keyword Ability
+Devour,Keyword Ability
+Disguise,Keyword Ability
+Disturb,Keyword Ability
+Double Strike,Keyword Ability
+Dredge,Keyword Ability
+Echo,Keyword Ability
+Emerge,Keyword Ability
+Encore,Keyword Ability
+Enlist,Keyword Ability
+Entwine,Keyword Ability
+Epic,Keyword Ability
+Escalate,Keyword Ability
+Escape,Keyword Ability
+Evoke,Keyword Ability
+Evolve,Keyword Ability
+Exalted,Keyword Ability
+Exhaust,Keyword Ability
+Exploit,Keyword Ability
+Extort,Keyword Ability
+Fabricate,Keyword Ability
+Fading,Keyword Ability
+Fear,Keyword Ability
+First Strike,Keyword Ability
+Flanking,Keyword Ability
+Flash,Keyword Ability
+Flying,Keyword Ability
+For Mirrodin!,Keyword Ability
+Forecast,Keyword Ability
+Fortify,Keyword Ability
+Freerunning,Keyword Ability
+Frenzy,Keyword Ability
+Fuse,Keyword Ability
+Gift,Keyword Ability
+Graft,Keyword Ability
+Gravestorm,Keyword Ability
+Haste,Keyword Ability
+Haunt,Keyword Ability
+Hexproof,Keyword Ability
+Hidden Agenda,Keyword Ability
+Hideaway,Keyword Ability
+Horsemanship,Keyword Ability
+Impending,Keyword Ability
+Indestructible,Keyword Ability
+Infect,Keyword Ability
+Ingest,Keyword Ability
+Intimidate,Keyword Ability
+Job Select,Keyword Ability
+Jump-Start,Keyword Ability
+Kicker,Keyword Ability
+Landwalk,Keyword Ability
+Level Up,Keyword Ability
+Lifelink,Keyword Ability
+Living Metal,Keyword Ability
+Living Weapon,Keyword Ability
+Melee,Keyword Ability
+Menace,Keyword Ability
+Mentor,Keyword Ability
+Miracle,Keyword Ability
+Mobilize,Keyword Ability
+Modular,Keyword Ability
+More Than Meets the Eye,Keyword Ability
+Mutate,Keyword Ability
+Myriad,Keyword Ability
+Offering,Keyword Ability
+Offspring,Keyword Ability
+Outlast,Keyword Ability
+Overload,Keyword Ability
+Partner,Keyword Ability
+Phasing,Keyword Ability
+Poisonous,Keyword Ability
+Protection,Keyword Ability
+Prototype,Keyword Ability
+Provoke,Keyword Ability
+Prowess,Keyword Ability
+Prowl,Keyword Ability
+Rampage,Keyword Ability
+Ravenous,Keyword Ability
+Reach,Keyword Ability
+Read Ahead,Keyword Ability
+Rebound,Keyword Ability
+Reconfigure,Keyword Ability
+Recover,Keyword Ability
+Reinforce,Keyword Ability
+Renown,Keyword Ability
+Replicate,Keyword Ability
+Retrace,Keyword Ability
+Riot,Keyword Ability
+Ripple,Keyword Ability
+Shadow,Keyword Ability
+Shroud,Keyword Ability
+Skulk,Keyword Ability
+Solved,Keyword Ability
+Soulbond,Keyword Ability
+Soulshift,Keyword Ability
+Space Sculptor,Keyword Ability
+Spectacle,Keyword Ability
+Splice,Keyword Ability
+Split Second,Keyword Ability
+Spree,Keyword Ability
+Squad,Keyword Ability
+Station,Keyword Ability
+Storm,Keyword Ability
+Sunburst,Keyword Ability
+Surge,Keyword Ability
+Tiered,Keyword Ability
+Toxic,Keyword Ability
+Training,Keyword Ability
+Trample,Keyword Ability
+Transfigure,Keyword Ability
+Transmute,Keyword Ability
+Tribute,Keyword Ability
+Umbra Armor,Keyword Ability
+Undaunted,Keyword Ability
+Unearth,Keyword Ability
+Unleash,Keyword Ability
+Vanishing,Keyword Ability
+Vigilance,Keyword Ability
+Visit,Keyword Ability
+Ward,Keyword Ability
+Warp,Keyword Ability
+Wither,Keyword Ability
+Abandon,Keyword Action
+Activate,Keyword Action
+Adapt,Keyword Action
+Amass,Keyword Action
+Assemble,Keyword Action
+Attach,Keyword Action
+Behold,Keyword Action
+Bolster,Keyword Action
+Clash,Keyword Action
+Cloak,Keyword Action
+Collect Evidence,Keyword Action
+Connive,Keyword Action
+Detain,Keyword Action
+Double,Keyword Action
+Endure,Keyword Action
+Exchange,Keyword Action
+Exert,Keyword Action
+Face a Villainous Choice,Keyword Action
+Fateseal,Keyword Action
+Fight,Keyword Action
+Goad,Keyword Action
+Harness,Keyword Action
+Incubate,Keyword Action
+Manifest,Keyword Action
+Manifest Dread,Keyword Action
+Meld,Keyword Action
+Monstrosity,Keyword Action
+Planeswalk,Keyword Action
+Populate,Keyword Action
+Proliferate,Keyword Action
+Regenerate,Keyword Action
+Scry,Keyword Action
+Set in Motion,Keyword Action
+Support,Keyword Action
+Surveil,Keyword Action
+Triple,Keyword Action
+Arcane,Non-Creature Subtype
+Attraction,Non-Creature Subtype
+Background,Non-Creature Subtype
+Blood,Non-Creature Subtype
+Bobblehead,Non-Creature Subtype
+Cartouche,Non-Creature Subtype
+Case,Non-Creature Subtype
+Cave,Non-Creature Subtype
+Chorus,Non-Creature Subtype
+Class,Non-Creature Subtype
+Clue,Non-Creature Subtype
+Curse,Non-Creature Subtype
+Desert,Non-Creature Subtype
+Fortification,Non-Creature Subtype
+Gate,Non-Creature Subtype
+Hat,Non-Creature Subtype
+Incubator,Non-Creature Subtype
+Junk,Non-Creature Subtype
+Key,Non-Creature Subtype
+Lair,Non-Creature Subtype
+Locus,Non-Creature Subtype
+Map,Non-Creature Subtype
+Powerstone,Non-Creature Subtype
+Role,Non-Creature Subtype
+Rune,Non-Creature Subtype
+Saga,Non-Creature Subtype
+Scrap,Non-Creature Subtype
+Scythe,Non-Creature Subtype
+Shrine,Non-Creature Subtype
+Sphere,Non-Creature Subtype
+Trap,Non-Creature Subtype
+Treasure,Non-Creature Subtype
+Urza's,Non-Creature Subtype
+City's Blessing,Player Designation
+The Monarch,Player Designation
+Blood,Token Type
+Copy,Token Type
+Etherium Cell,Token Type
+Everywhere,Token Type
+Feather,Token Type
+Food,Token Type
+Gold,Token Type
+Icy Manalith,Token Type
+Junk,Token Type
+Land Mine,Token Type
+Lander,Token Type
+Meteorite,Token Type
+Munitions,Token Type
+Mutagen,Token Type
+Mutavault,Token Type
+Nalaar Aetherjet,Token Type
+Powerstone,Token Type
+Replicated Ring,Token Type
+Scrap,Token Type
+Shard,Token Type
+Treasure,Token Type

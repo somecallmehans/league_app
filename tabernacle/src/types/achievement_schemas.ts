@@ -93,7 +93,7 @@ export const AchievementSchema: z.ZodType<GetAchievement> = z.lazy(() =>
     type_id: z.number().nullish(),
     parent: ParentAchievementSchema.nullish(),
     restrictions: AchievementRestrictionsSchema.nullish(),
-  })
+  }),
 );
 
 export const AchievementListResponseSchema = z.array(AchievementSchema);
@@ -202,13 +202,35 @@ export const UpsertPartcipantAchievementRequestSchema = z.object({
   participant_id: z.number(),
   achievement_id: z.number(),
   round_id: z.number(),
+  scalable_term_id: z.number().optional(),
 });
 
 export type UpsertParticipantAchievementRequest = z.infer<
   typeof UpsertPartcipantAchievementRequestSchema
 >;
 
+/** Response: legacy has id+name, new adds achievement_id+scalable_term_id */
+export const WinnerAchievementItemSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  achievement_id: z.number().optional(),
+  scalable_term_id: z.number().optional(),
+});
+export type WinnerAchievementItem = z.infer<typeof WinnerAchievementItemSchema>;
+
 const IdName = z.object({ id: z.number(), name: z.string() });
+
+/** Request: legacy uses id, new uses achievement_id + scalable_term_id */
+export const WinnerAchievementRequestSchema = z.union([
+  z.object({ id: z.number() }),
+  z.object({
+    achievement_id: z.number(),
+    scalable_term_id: z.number(),
+  }),
+]);
+export type WinnerAchievementRequest = z.infer<
+  typeof WinnerAchievementRequestSchema
+>;
 
 const ScoresheetBase = z.object({
   "lend-deck": z.unknown(),
@@ -251,7 +273,7 @@ export const ScoresheetFormRequestSchema = ScoresheetBase.extend({
   winner: z.number().nullable(),
   "winner-commander": z.number().nullable(),
   "partner-commander": z.number().nullable(),
-  "winner-achievements": z.array(z.number()).nullable(),
+  "winner-achievements": z.array(WinnerAchievementRequestSchema).nullable(),
   pod_id: z.number(),
   round_id: z.number(),
 });
@@ -267,10 +289,52 @@ export const ScoresheetFormResponseSchema = ScoresheetBase.extend({
   "partner-commander": z
     .object({ id: z.number(), name: z.string(), color_id: z.number() })
     .nullable(),
-  "winner-achievements": z.array(IdName),
+  "winner-achievements": z.array(WinnerAchievementItemSchema),
   meta: z.object({ isSubmitted: z.boolean() }),
 });
 
 export type ScoresheetFormResponse = z.infer<
   typeof ScoresheetFormResponseSchema
+>;
+
+export const ScorecardAchievementOptionLegacySchema = z.object({
+  id: z.number(),
+  name: z.string(),
+});
+export const ScorecardAchievementOptionScalableSchema = z.object({
+  achievement_id: z.number(),
+  scalable_term_id: z.number(),
+  name: z.string(),
+});
+export const ScorecardAchievementOptionsResponseSchema = z.object({
+  legacy: z.array(ScorecardAchievementOptionLegacySchema),
+  scalable: z.array(ScorecardAchievementOptionScalableSchema),
+});
+export type ScorecardAchievementOptionsResponse = z.infer<
+  typeof ScorecardAchievementOptionsResponseSchema
+>;
+
+export const ScalableTermItemSchema = z.object({
+  id: z.number(),
+  term_display: z.string(),
+});
+export const ScalableTermsTypeGroupSchema = z.object({
+  id: z.number().nullable(),
+  name: z.string(),
+  terms: z.array(ScalableTermItemSchema),
+});
+export const ScalableTermsResponseSchema = z.object({
+  types: z.array(ScalableTermsTypeGroupSchema),
+});
+export type ScalableTermsResponse = z.infer<
+  typeof ScalableTermsResponseSchema
+>;
+
+export const ScalableTermTypeItemSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+});
+export const ScalableTermTypeListSchema = z.array(ScalableTermTypeItemSchema);
+export type ScalableTermTypeListResponse = z.infer<
+  typeof ScalableTermTypeListSchema
 >;

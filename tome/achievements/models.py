@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q, UniqueConstraint
 
 
 class Restrictions(models.Model):
@@ -58,6 +59,55 @@ class AchievementsRestrictions(models.Model):
 
     class Meta:
         db_table = "achievements_restrictions"
+
+
+class ScalableTermType(models.Model):
+    """Type classification for scalable terms."""
+
+    name = models.CharField(max_length=64, unique=True)
+
+    class Meta:
+        db_table = "scalable_term_type"
+
+
+class ScalableTerms(models.Model):
+    """Shared reusable terms for scalable achievements (e.g., '1', '2', '3', '4' for kill count; 'Trample' for keyword)."""
+
+    term_display = models.CharField(max_length=255)
+    deleted = models.BooleanField(default=False)
+    type = models.ForeignKey(
+        ScalableTermType,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="scalable_terms",
+    )
+
+    class Meta:
+        db_table = "scalable_terms"
+        constraints = [
+            UniqueConstraint(
+                fields=["term_display"],
+                condition=Q(deleted=False),
+                name="unique_term_display_when_not_deleted",
+            ),
+        ]
+
+
+class AchievementScalableTerms(models.Model):
+    """Bridge linking an achievement to its valid scalable terms. Points always inherit from parent achievement."""
+
+    achievement = models.ForeignKey(Achievements, on_delete=models.CASCADE)
+    scalable_term = models.ForeignKey(ScalableTerms, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = "achievement_scalable_terms"
+        constraints = [
+            UniqueConstraint(
+                fields=["achievement", "scalable_term"],
+                name="unique_achievement_scalable_term",
+            ),
+        ]
 
 
 class Colors(models.Model):

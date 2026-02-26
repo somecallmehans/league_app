@@ -12,7 +12,7 @@ import LoadingSpinner from "../../components/LoadingSpinner";
 import { DecklistCard } from "./Decklists";
 import PageTitle from "../../components/PageTitle";
 import { DecklistForm } from "./DecklistForm";
-import { normalize } from "../leagueSession/ScorecardPage";
+import { normalizeDecklistAchievements } from "../leagueSession/ScorecardPage";
 
 type WrapperProps = {
   title: string;
@@ -58,7 +58,7 @@ export const EditDecklistFormWrapper = () => {
       commander: clean.commander?.id,
       partner: clean.partner?.id,
       companion: clean.companion?.id,
-      achievements: normalize(clean?.achievements) ?? [],
+      achievements: normalizeDecklistAchievements(clean?.achievements) ?? [],
     };
 
     try {

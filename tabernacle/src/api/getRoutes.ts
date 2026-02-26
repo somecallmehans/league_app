@@ -9,11 +9,17 @@ import {
   AchievementObjectResponseSchema,
   EarnedAchievementStubListResponseSchema,
   AchievementTypeListResponseSchema,
+  ScorecardAchievementOptionsResponseSchema,
+  ScalableTermsResponseSchema,
+  ScalableTermTypeListSchema,
   type AchievementListResponse,
   type AchievementObjectResponse,
   type EarnedAchievementSubListResponse,
   type AchievementTypeListResponse,
   type ScoresheetFormResponse,
+  type ScorecardAchievementOptionsResponse,
+  type ScalableTermsResponse,
+  type ScalableTermTypeListResponse,
 } from "../types/achievement_schemas";
 import {
   SessionObjectResponseSchema,
@@ -86,6 +92,30 @@ export default (builder: ApiBuilder) => ({
     transformResponse: (raw: unknown) =>
       safeParseWithFallback(AchievementListResponseSchema, raw, []),
   }),
+  getScorecardAchievementOptions: builder.query<
+    ScorecardAchievementOptionsResponse,
+    void
+  >({
+    query: () => "scorecard_achievement_options/",
+    providesTags: ["Achievements"],
+    transformResponse: (raw: unknown) =>
+      safeParseWithFallback(ScorecardAchievementOptionsResponseSchema, raw, {
+        legacy: [],
+        scalable: [],
+      }),
+  }),
+  getScalableTerms: builder.query<ScalableTermsResponse, void>({
+    query: () => "scalable_terms/",
+    providesTags: ["Achievements"],
+    transformResponse: (raw: unknown) =>
+      safeParseWithFallback(ScalableTermsResponseSchema, raw, { types: [] }),
+  }),
+  getScalableTermTypes: builder.query<ScalableTermTypeListResponse, void>({
+    query: () => "scalable_term_types/",
+    providesTags: ["Achievements"],
+    transformResponse: (raw: unknown) =>
+      safeParseWithFallback(ScalableTermTypeListSchema, raw, []),
+  }),
   getAllSessions: builder.query<SessionObjectResponse, void>({
     query: () => "all_sessions/",
     providesTags: ["Sessions"],
@@ -152,7 +182,7 @@ export default (builder: ApiBuilder) => ({
       safeParseWithFallback(
         IndividualMetricResponseSchema,
         raw,
-        EMPTY_INDIVIDUAL_METRIC
+        EMPTY_INDIVIDUAL_METRIC,
       ),
   }),
   getCommanders: builder.query<CommanderObjectResponse, void>({

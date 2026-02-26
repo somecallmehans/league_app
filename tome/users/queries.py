@@ -119,16 +119,22 @@ def get_decklists(
         )
     )
     ids = [q["id"] for q in query]
-    ach_query = DecklistsAchievements.objects.filter(
-        decklist_id__in=ids
-    ).select_related("achievement")
+    ach_query = (
+        DecklistsAchievements.objects.filter(decklist_id__in=ids)
+        .select_related("achievement", "scalable_term")
+        .order_by("decklist_id", "achievement_id")
+    )
     ach_by_decklist = defaultdict(list)
 
     for row in ach_query:
+        if row.scalable_term_id and row.scalable_term:
+            name = f"{row.achievement.name} {row.scalable_term.term_display}"
+        else:
+            name = row.achievement.full_name
         ach_by_decklist[row.decklist_id].append(
             {
                 "id": row.achievement_id,
-                "name": row.achievement.full_name,
+                "name": name,
                 "points": row.achievement.points,
             }
         )
@@ -253,7 +259,7 @@ def get_single_decklist_by_id(id, store_id) -> Decklists:
         raise ValidationError({"id": "Decklist not found"})
 
     a_query = DecklistsAchievements.objects.filter(decklist_id=id).select_related(
-        "achievement"
+        "achievement", "scalable_term"
     )
 
     payload = {
@@ -279,13 +285,24 @@ def get_single_decklist_by_id(id, store_id) -> Decklists:
     }
 
     for row in a_query:
-        payload["achievements"].append(
-            {
-                "id": row.achievement_id,
-                "name": row.achievement.full_name,
-                "tempId": str(uuid.uuid4()),
-            }
-        )
+        if row.scalable_term_id and row.scalable_term:
+            name = f"{row.achievement.name} {row.scalable_term.term_display}"
+            payload["achievements"].append(
+                {
+                    "achievement_id": row.achievement_id,
+                    "scalable_term_id": row.scalable_term_id,
+                    "name": name,
+                    "tempId": str(uuid.uuid4()),
+                }
+            )
+        else:
+            payload["achievements"].append(
+                {
+                    "id": row.achievement_id,
+                    "name": row.achievement.full_name,
+                    "tempId": str(uuid.uuid4()),
+                }
+            )
 
     return payload
 
@@ -298,7 +315,7 @@ def get_single_decklist_by_code(store_id: int, param: str = "") -> Decklists:
         raise ValidationError({"code": "Decklist not found"})
     a_query = DecklistsAchievements.objects.filter(
         decklist_id=query["id"]
-    ).select_related("achievement")
+    ).select_related("achievement", "scalable_term")
 
     payload = {
         "winner-achievements": [],
@@ -320,9 +337,19 @@ def get_single_decklist_by_code(store_id: int, param: str = "") -> Decklists:
     }
 
     for row in a_query:
-        payload["winner-achievements"].append(
-            {"id": row.achievement_id, "name": row.achievement.full_name}
-        )
+        if row.scalable_term_id and row.scalable_term:
+            name = f"{row.achievement.name} {row.scalable_term.term_display}"
+            payload["winner-achievements"].append(
+                {
+                    "achievement_id": row.achievement_id,
+                    "scalable_term_id": row.scalable_term_id,
+                    "name": name,
+                }
+            )
+        else:
+            payload["winner-achievements"].append(
+                {"id": row.achievement_id, "name": row.achievement.full_name}
+            )
 
     return payload
 
@@ -357,7 +384,7 @@ def get_decklist_by_participant_round(
         )
         a_query = DecklistsAchievements.objects.filter(
             decklist_id=decklist["id"]
-        ).select_related("achievement")
+        ).select_related("achievement", "scalable_term")
 
         payload = {
             "achievements": [],
@@ -370,10 +397,14 @@ def get_decklist_by_participant_round(
         payload["decklist"] = decklist
 
         for row in a_query:
+            if row.scalable_term_id and row.scalable_term:
+                name = f"{row.achievement.name} {row.scalable_term.term_display}"
+            else:
+                name = row.achievement.full_name
             payload["achievements"].append(
                 {
                     "id": row.achievement_id,
-                    "name": row.achievement.full_name,
+                    "name": name,
                     "points": row.achievement.points,
                 }
             )
@@ -454,12 +485,36 @@ def post_decklists(body, pid, store_id) -> None:
             store_id=store_id,
         )
 
-        DecklistsAchievements.objects.bulk_create(
-            [
-                DecklistsAchievements(decklist_id=deck.id, achievement_id=a_id)
-                for a_id in achievements
-            ]
-        )
+        rows = []
+        for a in achievements:
+            if isinstance(a, int):
+                rows.append(
+                    DecklistsAchievements(
+                        decklist_id=deck.id, achievement_id=a, scalable_term_id=None
+                    )
+                )
+            elif isinstance(a, dict):
+                if (
+                    a.get("achievement_id") is not None
+                    and a.get("scalable_term_id") is not None
+                ):
+                    rows.append(
+                        DecklistsAchievements(
+                            decklist_id=deck.id,
+                            achievement_id=a["achievement_id"],
+                            scalable_term_id=a["scalable_term_id"],
+                        )
+                    )
+                elif a.get("id") is not None:
+                    rows.append(
+                        DecklistsAchievements(
+                            decklist_id=deck.id,
+                            achievement_id=int(a["id"]),
+                            scalable_term_id=None,
+                        )
+                    )
+        if rows:
+            DecklistsAchievements.objects.bulk_create(rows)
     except ValidationError as e:
         raise
 
@@ -490,7 +545,7 @@ def get_valid_edit_token_or_fail(raw: str) -> Participants:
 
 
 @transaction.atomic
-def maybe_get_session_token(request: HttpRequest) -> SessionToken:
+def maybe_get_session_token(request: HttpRequest) -> Optional[SessionToken]:
     """For the polling endpoint, similarily validates the session
     but also handles revocation."""
     raw = request.COOKIES.get("edit_decklist_session")

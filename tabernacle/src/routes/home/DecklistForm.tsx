@@ -24,7 +24,8 @@ import {
 } from "../../components/FormInputs";
 import { textValidate } from "../../components/Modals/SignInModal";
 import StandardButton from "../../components/Button";
-import { normalize } from "../leagueSession/ScorecardPage";
+import { deriveAchievementKey } from "../leagueSession/AchievementCart";
+import { normalizeDecklistAchievements } from "../leagueSession/ScorecardPage";
 
 import ColorGrid from "../../components/ColorGrid";
 
@@ -52,10 +53,13 @@ const AchievementCart = ({
 
   const sum = useMemo(() => {
     const cartPoints =
-      cart?.reduce(
-        (acc: number, curr: any) => acc + (lookup?.[curr.id] ?? 0),
-        0
-      ) ?? 0;
+      cart?.reduce((acc: number, curr: any) => {
+        const pts =
+          curr.achievement_id != null
+            ? lookup?.[curr.achievement_id] ?? 0
+            : lookup?.[curr.id] ?? 0;
+        return acc + pts;
+      }, 0) ?? 0;
 
     return basePoints + cartPoints;
   }, [cart, lookup, basePoints]);
@@ -78,7 +82,7 @@ const AchievementCart = ({
           control={control}
           placeholder="Deckbuilding Achievements"
           getOptionLabel={(option) => option.name}
-          getOptionValue={(option) => String(option.id)}
+          getOptionValue={(option) => deriveAchievementKey(option)}
           containerClasses="grow mt-2"
           isClearable
           onChange={(selected) => {
@@ -106,10 +110,10 @@ const AchievementCart = ({
         />
       </div>
       <div className="h-80 overflow-y-auto  bg-zinc-100 p-4 rounded-lg border drop-shadow-md flex flex-col gap-2">
-        {cart.map((c: { tempId: string; name: string | undefined }) => (
+        {cart.map((c: { tempId?: string; name: string | undefined; id?: number; achievement_id?: number; scalable_term_id?: number }, idx: number) => (
           <div
             className="flex justify-between bg-white rounded-lg p-2 shadow-md  items-center"
-            key={c.tempId}
+            key={deriveAchievementKey(c, idx)}
           >
             <div className="text-sm">{c.name}</div>
             <span aria-hidden className="flex-1 h-4  mx-1" />
@@ -143,7 +147,15 @@ export type DecklistFormValues = {
   commander: { id: number; name: string; color_id: number } | null;
   partner: { id: number; name: string; color_id: number } | null;
   companion: { id: number; name: string; color_id: number } | null;
-  achievements: Array<{ id: number; name: string; tempId?: string }>;
+  achievements: Array<
+    | { id: number; name: string; tempId?: string }
+    | {
+        achievement_id: number;
+        scalable_term_id: number;
+        name: string;
+        tempId?: string;
+      }
+  >;
   give_credit: boolean;
 
   code?: string;
@@ -347,13 +359,13 @@ export function DecklistForm({
                       });
                       setValue(
                         "achievements",
-                        cart.filter(({ id }: { id: number }) => id !== 28)
+                        cart.filter((item) => !("id" in item && item.id === 28))
                       );
                       return;
                     }
                     // TODO Fix this hack that no one
                     // will care about but me lmao
-                    if (cart.some(({ id }: { id: number }) => id === 28)) {
+                    if (cart.some((item) => "id" in item && item.id === 28)) {
                       return;
                     }
                     setValue("achievements", [
@@ -441,7 +453,7 @@ export default function DecklistFormWrapper() {
       commander: clean.commander?.id,
       partner: clean.partner?.id,
       companion: clean.companion?.id,
-      achievements: normalize(achievements) ?? [],
+      achievements: normalizeDecklistAchievements(achievements) ?? [],
     };
 
     try {

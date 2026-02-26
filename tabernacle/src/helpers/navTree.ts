@@ -36,7 +36,7 @@ export const navLinks: Array<Node> = [
       { id: "2a", name: "Resources & FAQs", to: "/faqs" },
       {
         id: "2b",
-        name: "Submitted Decklists",
+        name: "Decklists",
         to: "/decklists",
       },
     ],
@@ -73,9 +73,13 @@ export const navLinks: Array<Node> = [
   {
     id: 4,
     name: "Achievements",
-    to: "/achievements",
+    to: "",
     admin: false,
     icon: "fa-solid fa-star",
+    children: [
+      { id: "4a", name: "Achievements", to: "/achievements" },
+      { id: "4b", name: "Scalable Terms", to: "/achievements/scalable-terms" },
+    ],
     scope: "both",
   },
   {

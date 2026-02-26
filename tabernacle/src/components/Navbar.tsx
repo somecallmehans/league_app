@@ -1,6 +1,6 @@
 import { useState, Fragment } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { Menu, Transition, Disclosure } from "@headlessui/react";
+import { Menu, Transition } from "@headlessui/react";
 import { navLinks, type Node, type NodeChild } from "../helpers/navTree";
 import { useGetStoreQuery } from "../api/apiSlice";
 
@@ -55,54 +55,61 @@ interface MobileDisclosureProps {
   link: Node;
   close: () => void;
   isActive: (arg0: string) => boolean;
+  isOpen: boolean;
+  onToggle: () => void;
 }
 
-function MobileDisclosure({ link, close, isActive }: MobileDisclosureProps) {
+function MobileDisclosure({
+  link,
+  close,
+  isActive,
+  isOpen,
+  onToggle,
+}: MobileDisclosureProps) {
   return (
-    <Disclosure>
-      {({ open }) => (
-        <div className="text-left">
-          <Disclosure.Button className="flex w-full items-center justify-end rounded-xl py-3 text-2xl font-medium text-slate-100">
-            <i
-              className={`fa-solid  mr-2 text-base transition-transform ${
-                open ? "-rotate-180 fa-minus" : "fa-plus"
-              }`}
-            />
-            <span>{link.name}</span>
-          </Disclosure.Button>
+    <div className="text-left">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex w-full items-center justify-end rounded-xl py-3 text-2xl font-medium text-slate-100"
+        aria-expanded={isOpen}
+      >
+        <i
+          className={`fa-solid mr-2 text-base transition-transform ${
+            isOpen ? "-rotate-180 fa-minus" : "fa-plus"
+          }`}
+        />
+        <span>{link.name}</span>
+      </button>
 
-          <div className="relative">
-            <span
-              className="pointer-events-none absolute right-0 top-0 w-[2px] bg-sky-500 origin-top transition-transform duration-300 ease-in-out"
-              style={{
-                transform: open ? "scaleY(1)" : "scaleY(0)",
-                height: "100%",
-              }}
-            />
-            <Disclosure.Panel static>
-              <div
-                className={`overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out
-                        ${open ? "max-h-40 opacity-100" : "max-h-0 opacity-0"}`}
+      <div className="relative">
+        <span
+          className="pointer-events-none absolute right-0 top-0 w-[2px] bg-sky-500 origin-top transition-transform duration-300 ease-in-out"
+          style={{
+            transform: isOpen ? "scaleY(1)" : "scaleY(0)",
+            height: "100%",
+          }}
+        />
+        <div
+          className={`overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out
+                    ${isOpen ? "max-h-40 opacity-100" : "max-h-0 opacity-0"}`}
+        >
+          {link.children?.map((child) => (
+            <div key={child.id} className="pl-6">
+              <NavLink
+                to={child.to}
+                onClick={close}
+                className={`${
+                  isActive(child.to) ? "text-sky-300" : "text-slate-200 "
+                } block rounded-lg px-4 py-2 text-xl text-right`}
               >
-                {link.children?.map((child) => (
-                  <div key={child.id} className="pl-6">
-                    <NavLink
-                      to={child.to}
-                      onClick={close}
-                      className={`${
-                        isActive(child.to) ? "text-sky-300" : "text-slate-200 "
-                      } block rounded-lg px-4 py-2 text-xl text-right`}
-                    >
-                      {child.name}
-                    </NavLink>
-                  </div>
-                ))}
-              </div>
-            </Disclosure.Panel>
-          </div>
+                {child.name}
+              </NavLink>
+            </div>
+          ))}
         </div>
-      )}
-    </Disclosure>
+      </div>
+    </div>
   );
 }
 
@@ -113,6 +120,7 @@ interface NavbarProps {
 
 export default function Navbar({ loggedIn, isStore }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [openChildId, setOpenChildId] = useState<number | null>(null);
   const { data: store, isLoading: storeLoading } = useGetStoreQuery();
   const { pathname } = useLocation();
   const filtered = navLinks
@@ -123,7 +131,7 @@ export default function Navbar({ loggedIn, isStore }: NavbarProps) {
     .filter((l) =>
       loggedIn
         ? l.admin === true || (!l.admin && !l.hideWhenLoggedIn)
-        : !l.admin
+        : !l.admin,
     );
 
   if (storeLoading) {
@@ -131,18 +139,21 @@ export default function Navbar({ loggedIn, isStore }: NavbarProps) {
   }
 
   const isActive = (to: string | undefined) => pathname === to;
+  const closeMobileNav = () => {
+    setMenuOpen(false);
+    setOpenChildId(null);
+  };
   return (
     <nav className="text-slate-50 bg-slate-800">
-      <div className="container mx-auto flex items-center justify-between py-4 px-2">
-        <button
-          className="sm:hidden focus:outline-none"
-          onClick={() => setMenuOpen((prev) => !prev)}
-        >
-          <span className="material-icons text-slate-50">
-            <i className="fa-solid fa-bars" />
-          </span>
-        </button>
-        <div className="hidden sm:flex sm:gap-4">
+      <div className="container mx-auto flex items-center justify-between py-4 px-4">
+        <span className="text-lg sm:text-2xl hover:text-sky-400 sm:order-2">
+          {store ? (
+            <a href={store?.external_url}>{store?.name}</a>
+          ) : (
+            "Commander League"
+          )}
+        </span>
+        <div className="hidden sm:flex sm:gap-4 sm:order-1">
           {filtered.map((link) => {
             if (link.children?.length) {
               return <DesktopDropdown key={link.id} link={link} />;
@@ -165,13 +176,14 @@ export default function Navbar({ loggedIn, isStore }: NavbarProps) {
             );
           })}
         </div>
-        <span className="text-lg sm:text-2xl hover:text-sky-400">
-          {store ? (
-            <a href={store?.external_url}>{store?.name}</a>
-          ) : (
-            "Commander League"
-          )}
-        </span>
+        <button
+          className="sm:hidden focus:outline-none"
+          onClick={() => setMenuOpen((prev) => !prev)}
+        >
+          <span className="material-icons text-slate-50">
+            <i className="fa-solid fa-bars" />
+          </span>
+        </button>
       </div>
       {/* Mobile nav */}
       <div
@@ -186,14 +198,14 @@ export default function Navbar({ loggedIn, isStore }: NavbarProps) {
       >
         <div
           className="absolute inset-0 bg-black/70"
-          onClick={() => setMenuOpen(false)}
+          onClick={closeMobileNav}
         />
         <button
           aria-label="Close navigation menu"
           className={`absolute right-4 top-4 text-slate-200 hover:text-white transition ${
             menuOpen ? "opacity-100" : "opacity-0"
           }`}
-          onClick={() => setMenuOpen(false)}
+          onClick={closeMobileNav}
         >
           <i className="fa-solid fa-xmark text-2xl" />
         </button>
@@ -209,14 +221,18 @@ export default function Navbar({ loggedIn, isStore }: NavbarProps) {
                 <MobileDisclosure
                   key={link.id}
                   link={link}
-                  close={() => setMenuOpen(false)}
+                  close={closeMobileNav}
                   isActive={isActive}
+                  isOpen={openChildId === link.id}
+                  onToggle={() =>
+                    setOpenChildId(openChildId === link.id ? null : link.id)
+                  }
                 />
               ) : (
                 <NavLink
                   key={link.id}
                   to={link.to}
-                  onClick={() => setMenuOpen(false)}
+                  onClick={closeMobileNav}
                   className={`block w-full rounded-xl py-3 text-2xl font-medium 
                               ${
                                 isActive(link.to)
@@ -226,7 +242,7 @@ export default function Navbar({ loggedIn, isStore }: NavbarProps) {
                 >
                   {link.name}
                 </NavLink>
-              )
+              ),
             )}
           </nav>
         </div>

@@ -4,8 +4,8 @@ import {
   useGetAllRoundsQuery,
   useGetAchievementRoundQuery,
   usePostUpsertParticipantAchievementMutation,
-  useGetAchievementsQuery,
 } from "../../api/apiSlice";
+import { useScorecardAchievementOptions } from "../../hooks";
 import StandardButton from "../../components/Button";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import Modal from "../../components/Modal";
@@ -72,30 +72,34 @@ const AchievementGrid = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedAchievement, setSelectedAchievement] = useState();
-  const { data: achievements } = useGetAchievementsQuery();
+  const { selectOptions } = useScorecardAchievementOptions();
   const [postUpsertParticipantAchievement] =
     usePostUpsertParticipantAchievementMutation();
 
   const handleInsert = async () => {
+    if (!selectedAchievement) return;
     try {
-      await postUpsertParticipantAchievement({
-        participant_id: selectedParticipant,
-        achievement_id: selectedAchievement,
-        round_id: selectedRound,
-      });
+      const payload =
+        typeof selectedAchievement === "object" &&
+        selectedAchievement.achievement_id != null
+          ? {
+              participant_id: selectedParticipant,
+              achievement_id: selectedAchievement.achievement_id,
+              scalable_term_id: selectedAchievement.scalable_term_id,
+              round_id: selectedRound,
+            }
+          : {
+              participant_id: selectedParticipant,
+              achievement_id: selectedAchievement,
+              round_id: selectedRound,
+            };
+      await postUpsertParticipantAchievement(payload).unwrap();
       setIsOpen(false);
+      setSelectedAchievement(undefined);
     } catch (err) {
-      console.error("Failed to delete achievement: ", err);
+      toast.error(err?.data?.detail ?? "Failed to add achievement");
     }
   };
-
-  const data = useMemo(() => {
-    if (!achievements) return [];
-    return achievements.data.map(({ full_name, id }) => ({
-      value: id,
-      label: full_name,
-    }));
-  }, [achievements]);
 
   return (
     <div className="py-4">
@@ -112,7 +116,7 @@ const AchievementGrid = ({
           <div className="py-2 z-40">
             <SimpleSelect
               placeholder="Select Achievement"
-              options={data}
+              options={selectOptions}
               onChange={(obj) => setSelectedAchievement(obj.value)}
               classes="grow"
             />
@@ -137,7 +141,7 @@ export default function Page() {
     {
       participant_id: selectedParticipant,
     },
-    { skip: !selectedParticipant }
+    { skip: !selectedParticipant },
   );
 
   const canFetch = selectedParticipant && selectedRound;
@@ -146,7 +150,7 @@ export default function Page() {
       participant_id: selectedParticipant,
       round_id: selectedRound,
     },
-    { skip: !canFetch }
+    { skip: !canFetch },
   );
 
   const participantsList = useMemo(() => {
