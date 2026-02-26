@@ -23,6 +23,28 @@ import { skipToken } from "@reduxjs/toolkit/query";
 export const normalize = (items?: { id: number; name?: string }[]) =>
   items?.map(({ id }) => id) ?? [];
 
+/** Normalize decklist achievements for API: int (legacy) or { achievement_id, scalable_term_id } */
+export const normalizeDecklistAchievements = (
+  items?: Array<
+    | { id: number; name?: string; tempId?: string }
+    | {
+        achievement_id: number;
+        scalable_term_id: number;
+        name?: string;
+        tempId?: string;
+      }
+  >
+): Array<number | { achievement_id: number; scalable_term_id: number }> =>
+  items?.map((item) => {
+    if ("achievement_id" in item && item.achievement_id != null) {
+      return {
+        achievement_id: item.achievement_id,
+        scalable_term_id: item.scalable_term_id,
+      };
+    }
+    return (item as { id: number }).id;
+  }) ?? [];
+
 export const normalizeWinnerAchievements = (
   items?: Array<
     | { id: number; name?: string; tempId?: string }

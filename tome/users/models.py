@@ -164,6 +164,12 @@ class Decklists(models.Model):
 class DecklistsAchievements(models.Model):
     achievement = models.ForeignKey(Achievements, on_delete=models.CASCADE)
     decklist = models.ForeignKey(Decklists, on_delete=models.CASCADE)
+    scalable_term = models.ForeignKey(
+        "achievements.ScalableTerms",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         db_table = "decklists_achievements"

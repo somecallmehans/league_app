@@ -293,12 +293,24 @@ def update_decklist(request):
     if achievements is None:
         achievements = []
 
-    achievement_ids = []
+    achievement_rows = []
     for a in achievements:
         if isinstance(a, int):
-            achievement_ids.append(a)
-        elif isinstance(a, dict) and a.get("id") is not None:
-            achievement_ids.append(int(a["id"]))
+            achievement_rows.append({"achievement_id": a, "scalable_term_id": None})
+        elif isinstance(a, dict):
+            if a.get("achievement_id") is not None and a.get(
+                "scalable_term_id"
+            ) is not None:
+                achievement_rows.append(
+                    {
+                        "achievement_id": int(a["achievement_id"]),
+                        "scalable_term_id": int(a["scalable_term_id"]),
+                    }
+                )
+            elif a.get("id") is not None:
+                achievement_rows.append(
+                    {"achievement_id": int(a["id"]), "scalable_term_id": None}
+                )
 
     with transaction.atomic():
         deck = (
@@ -318,11 +330,15 @@ def update_decklist(request):
 
         DecklistsAchievements.objects.filter(decklist_id=deck.id).delete()
 
-        if achievement_ids:
+        if achievement_rows:
             DecklistsAchievements.objects.bulk_create(
                 [
-                    DecklistsAchievements(decklist_id=deck.id, achievement_id=aid)
-                    for aid in achievement_ids
+                    DecklistsAchievements(
+                        decklist_id=deck.id,
+                        achievement_id=row["achievement_id"],
+                        scalable_term_id=row["scalable_term_id"],
+                    )
+                    for row in achievement_rows
                 ]
             )
 

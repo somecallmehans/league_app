@@ -11,14 +11,14 @@ function isCodeResponse(res: any): res is DecklistCodeResponse {
   return "winner-commander" in res;
 }
 
-type AchievementKeyItem = {
+export type AchievementKeyItem = {
   tempId?: string;
   id?: number;
   achievement_id?: number;
   scalable_term_id?: number;
 };
 
-function deriveAchievementKey(
+export function deriveAchievementKey(
   item: AchievementKeyItem,
   fallback?: string | number,
 ): string {
