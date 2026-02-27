@@ -90,32 +90,32 @@ export const DecklistCard = ({
 
   return (
     <div
-      className="w-full overflow-hidden rounded-xl border border-stone-350 bg-stone-250 shadow-sm
-          transition-transform duration-200 ease-out md:hover:scale-[1.02] h-full flex flex-col"
+      className="w-full min-w-0 overflow-hidden rounded-xl border border-stone-350 bg-stone-250 shadow-sm
+          transition-transform duration-200 ease-out md:hover:scale-[1.01] h-full flex flex-col"
     >
       <div className="min-w-0">
-        <div className="text-sm bg-gradient-to-r from-stone-100 to-stone-250 text-stone-900 sm:text-base font-bold text-center p-1 overflow-hidden truncate">
+        <div className="text-xs sm:text-sm md:text-xs lg:text-sm bg-gradient-to-r from-stone-100 to-stone-250 text-stone-900 font-bold text-center p-1 overflow-hidden truncate">
           {name}
         </div>
       </div>
       <Link to={url}>
-        <div className="relative w-full aspect-[4/3] sm:aspect-[4/3] overflow-hidden">
+        <div className="relative w-full aspect-[1/1] sm:aspect-[4/3] overflow-hidden min-h-0">
           <DecklistImages name={name} imgs={imgs} />
         </div>
       </Link>
-      <div className="px-2 pt-2 pb-3 sm:pb-4">
-        <div className="grid gap-2">
-          <div className="flex gap-2">
-            <div className="min-w-0 flex-1 flex flex-col justify-center items-center gap-0.5">
-              <div className="text-lg sm:text-xl font-semibold leading-tight">
+      <div className="px-1 pt-1 pb-1.5 md:px-2 md:pt-2 md:pb-3">
+        <div className="grid gap-0.5 md:gap-1.5">
+          <div className="flex gap-1 md:gap-2">
+            <div className="min-w-0 flex-1 flex flex-col justify-center items-center gap-0.5 overflow-hidden">
+              <div className="text-sm sm:text-lg md:text-sm lg:text-base font-semibold leading-tight">
                 {points} Points
               </div>
 
-              <div className="text-base sm:text-lg font-medium text-stone-900 leading-tight whitespace-nowrap">
+              <div className="text-xs sm:text-base md:text-xs lg:text-sm font-medium text-stone-900 leading-tight truncate max-w-full">
                 {code}
               </div>
 
-              <div className="text-xs min-h-[1rem] text-stone-900 leading-tight">
+              <div className="text-[10px] sm:text-xs md:text-[10px] min-h-[0.875rem] text-stone-900 leading-tight">
                 {pName ?? ""}
               </div>
             </div>
@@ -128,8 +128,9 @@ export const DecklistCard = ({
         show
         submitted
         noHover={false}
+        isSmall
       />
-      <div className="mt-auto pt-2 text-center text-[8px] text-slate-400">
+      <div className="mt-auto pt-1.5 md:pt-2 text-center text-[8px] text-slate-400">
         Card art by {artists.join(", ")}
       </div>
       <AchievementModal
@@ -159,7 +160,7 @@ function DecklistContainer() {
   }
 
   return (
-    <div className="p-2 md:p-8">
+    <div className="px-4 py-3 md:p-8 min-w-0">
       <div className="flex items-start justify-between gap-2">
         <PageTitle title="Decklists" />
         <div className="flex gap-1 sm:gap-2">
@@ -214,7 +215,7 @@ function DecklistContainer() {
 
       <DecklistFilters params={params} setParams={setParams} />
       <Callout />
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-5">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-3 min-w-0">
         {decklists?.map(
           ({
             id,
@@ -229,8 +230,8 @@ function DecklistContainer() {
             url,
             achievements,
           }) => (
-            <DecklistCard
-              key={id}
+            <div key={id} className="min-w-0">
+              <DecklistCard
               name={name}
               commander_img={commander_img}
               partner_img={partner_img}
@@ -242,6 +243,7 @@ function DecklistContainer() {
               url={url}
               achievements={achievements}
             />
+            </div>
           )
         )}
       </div>
