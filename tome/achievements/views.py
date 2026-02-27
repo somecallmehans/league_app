@@ -555,7 +555,7 @@ def get_colors(_, **kwargs):
 @api_view([POST])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsSuperUser])
-def upsert_achievements(request):
+def upsert_achievements(request, **kwargs):
     """Create or update an achievement. Name is required."""
     body = json.loads(request.body.decode("utf-8"))
     id = body.get("id", None)
