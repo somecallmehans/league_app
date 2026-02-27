@@ -134,10 +134,6 @@ export default function Navbar({ loggedIn, isStore }: NavbarProps) {
         : !l.admin,
     );
 
-  if (storeLoading) {
-    return null;
-  }
-
   const isActive = (to: string | undefined) => pathname === to;
   const closeMobileNav = () => {
     setMenuOpen(false);
@@ -146,8 +142,10 @@ export default function Navbar({ loggedIn, isStore }: NavbarProps) {
   return (
     <nav className="text-slate-50 bg-slate-800">
       <div className="container mx-auto flex items-center justify-between py-4 px-4">
-        <span className="text-lg sm:text-2xl hover:text-sky-400 sm:order-2">
-          {store ? (
+        <span className="text-lg sm:text-2xl hover:text-sky-400 sm:order-2 min-w-[120px]">
+          {storeLoading ? (
+            <span className="inline-block h-7 w-32 animate-pulse rounded bg-slate-600" />
+          ) : store ? (
             <a href={store?.external_url}>{store?.name}</a>
           ) : (
             "Commander League"
@@ -246,7 +244,9 @@ export default function Navbar({ loggedIn, isStore }: NavbarProps) {
             )}
           </nav>
         </div>
-        {store ? (
+        {storeLoading ? (
+          <span className="inline-block h-6 w-24 animate-pulse rounded bg-slate-600" />
+        ) : store ? (
           <a href={store?.external_url}>{store?.name}</a>
         ) : (
           "Commander League"
