@@ -98,7 +98,7 @@ export const DecklistCard = ({
           {name}
         </div>
       </div>
-      <Link to={url}>
+      <Link to={url} target="_blank" rel="noopener noreferrer">
         <div className="relative w-full aspect-[1/1] sm:aspect-[4/3] overflow-hidden min-h-0">
           <DecklistImages name={name} imgs={imgs} />
         </div>
