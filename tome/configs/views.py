@@ -11,7 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.response import Response
 from .models import Config
-from .configs import CONFIG_SPEC
+from .configs import CONFIG_REGISTRY, get_config_schema
 
 GET = "GET"
 POST = "POST"
@@ -20,13 +20,19 @@ POST = "POST"
 @api_view([GET])
 @require_store
 def get_all_configs(request, **kwargs):
-    """Get all of the current configs"""
+    """Get all of the current configs, augmented with config_type and options from registry."""
 
-    configs = (
+    configs = list(
         Config.objects.filter(Q(store_id=request.store_id) | Q(store__isnull=True))
         .values("name", "key", "value", "description", "scope_kind")
         .order_by("id")
     )
+
+    for c in configs:
+        schema = get_config_schema(c["key"])
+        c["config_type"] = schema["config_type"]
+        if "options" in schema:
+            c["options"] = schema["options"]
 
     return Response(configs)
 
@@ -57,17 +63,29 @@ def update_config(request, key, **kwargs):
             {"message": "Missing value"}, status=status.HTTP_400_BAD_REQUEST
         )
 
-    value = body["value"]
-    spec = CONFIG_SPEC.get(key)
-    if spec and "cast" in spec:
+    raw_value = body["value"]
+    registry_entry = CONFIG_REGISTRY.get(key)
+
+    if registry_entry and "validate" in registry_entry:
         try:
-            value = spec["cast"](value)
+            value = registry_entry["validate"](raw_value)
         except (TypeError, ValueError) as e:
             return Response(
                 {"message": f"Invalid value for {key}: {e}"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-    target.value = value
+    elif registry_entry and "cast" in registry_entry:
+        try:
+            value = registry_entry["cast"](raw_value)
+        except (TypeError, ValueError) as e:
+            return Response(
+                {"message": f"Invalid value for {key}: {e}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+    else:
+        value = str(raw_value)
+
+    target.value = str(value)
     target.save(update_fields=["value", "updated_at"])
 
     return Response(status=status.HTTP_201_CREATED)
