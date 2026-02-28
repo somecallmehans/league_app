@@ -472,9 +472,7 @@ class POSTScoresheetHelper:
             decklist_id = None
 
             if code:
-                decklist = Decklists.objects.filter(
-                    code=f"DL-{code}", store_id=self.store_id
-                ).first()
+                decklist = Decklists.objects.filter(code=f"DL-{code}").first()
                 if not decklist:
                     raise NotFound(detail="Decklist code not found")
                 decklist_id = decklist.id

@@ -231,9 +231,9 @@ class StubCommander(dict):
     color_id: Optional[int]
 
 
-def get_single_decklist(store_id: int) -> Decklists:
+def get_single_decklist() -> Decklists:
     """Base return a decklist"""
-    return Decklists.objects.filter(deleted=False, store_id=store_id).values(
+    return Decklists.objects.filter(deleted=False).values(
         "id",
         "name",
         "url",
@@ -250,9 +250,9 @@ def get_single_decklist(store_id: int) -> Decklists:
     )
 
 
-def get_single_decklist_by_id(id, store_id) -> Decklists:
+def get_single_decklist_by_id(id) -> Decklists:
     """Return a single decklist + achievements by its id"""
-    query = get_single_decklist(store_id)
+    query = get_single_decklist()
     query = query.filter(id=id).first()
 
     if not query:
@@ -307,9 +307,9 @@ def get_single_decklist_by_id(id, store_id) -> Decklists:
     return payload
 
 
-def get_single_decklist_by_code(store_id: int, param: str = "") -> Decklists:
+def get_single_decklist_by_code(param: str = "") -> Decklists:
     code = f"DL-{param}"
-    query = get_single_decklist(store_id)
+    query = get_single_decklist()
     query = query.filter(code=code).first()
     if not query:
         raise ValidationError({"code": "Decklist not found"})
@@ -376,9 +376,7 @@ def get_decklist_by_participant_round(
             return {"achievements": [], "url": "", "id": "", "name": "", "code": ""}
 
         decklist = (
-            Decklists.objects.filter(
-                id=winning_commander.decklist_id, store_id=store_id, deleted=False
-            )
+            Decklists.objects.filter(id=winning_commander.decklist_id, deleted=False)
             .values("id", "name", "url", "code")
             .first()
         )

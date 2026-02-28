@@ -2,7 +2,10 @@ import json
 import logging
 
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist, ValidationError as DjangoValidationError
+from django.core.exceptions import (
+    ObjectDoesNotExist,
+    ValidationError as DjangoValidationError,
+)
 from django.db import transaction
 from rest_framework.exceptions import ValidationError, AuthenticationFailed, ParseError
 
@@ -192,7 +195,7 @@ def decklist(request, **kwargs):
         )
 
     if code:
-        payload = get_single_decklist_by_code(store_id, code)
+        payload = get_single_decklist_by_code(code)
     else:
         payload = get_decklist_by_participant_round(
             int(participant_id), int(round_id), store_id
@@ -217,7 +220,7 @@ def decklist_by_id(request, **kwargs):
             {"detail": "decklist_id is required"}, status=status.HTTP_400_BAD_REQUEST
         )
 
-    payload = get_single_decklist_by_id(decklist_id, request.store_id)
+    payload = get_single_decklist_by_id(decklist_id)
 
     return Response(payload)
 
