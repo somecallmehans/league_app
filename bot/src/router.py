@@ -6,6 +6,8 @@ from .helpers import (
     confirm_link_prompt,
     select_existing_prompt,
     ephemeral,
+    get_modal_value,
+    updatename_modal,
 )
 
 API_BASE = os.getenv("LEAGUE_API_BASE")
@@ -571,6 +573,58 @@ async def handle_join_confirm(uid, pid, guild_id):
         return ephemeral(msg)
 
     msg = "Could not link accounts, please contact a league admin."
+    try:
+        msg = res.json().get("message") or msg
+    except Exception:
+        pass
+    return ephemeral(f"❌ {msg}")
+
+
+async def handle_updatename(user_id: int, guild_id: int):
+    """Fetch current names from the API, then show modal with values pre-filled."""
+    display_name = ""
+    name = ""
+    async with httpx.AsyncClient(timeout=10) as http:
+        res = await http.get(
+            f"{API_BASE}api/discord/update_name/current/",
+            params={"discord_user_id": user_id},
+            headers={
+                "Authorization": f"X-SERVICE-TOKEN {SERVICE_TOKEN}",
+                "X-DISCORD-GUILD-ID": str(guild_id),
+            },
+        )
+        if res.status_code == 200:
+            data = res.json()
+            display_name = data.get("display_name") or ""
+            name = data.get("name") or ""
+    return updatename_modal(display_name=display_name, name=name)
+
+
+async def handle_updatename_submit(user_id: int, guild_id: int, data: dict):
+    """Submit modal values to update_name API."""
+    display_name = get_modal_value(data, "display_name")
+    name = get_modal_value(data, "name")
+    if not display_name and not name:
+        return ephemeral(
+            "Please enter at least one name (display name or roll call name) to update."
+        )
+    body = {"discord_user_id": user_id}
+    if display_name:
+        body["display_name"] = display_name
+    if name:
+        body["name"] = name
+    async with httpx.AsyncClient(timeout=10) as http:
+        res = await http.post(
+            f"{API_BASE}api/discord/update_name/",
+            json=body,
+            headers={
+                "Authorization": f"X-SERVICE-TOKEN {SERVICE_TOKEN}",
+                "X-DISCORD-GUILD-ID": str(guild_id),
+            },
+        )
+    if res.status_code == 200:
+        return ephemeral("✅ Update successful.")
+    msg = "Something went wrong."
     try:
         msg = res.json().get("message") or msg
     except Exception:

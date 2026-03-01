@@ -22,6 +22,8 @@ from .router import (
     handle_join_name_submit,
     handle_join_link_existing,
     handle_join_confirm,
+    handle_updatename,
+    handle_updatename_submit,
     validate_channel,
 )
 from .helpers import (
@@ -150,6 +152,9 @@ async def interactions(req: Request):
 
             return await handle_join(user_id, participant_value, guild_id)
 
+        if name == "updatename":
+            return await handle_updatename(user_id, guild_id)
+
     if t == MESSAGE:
         cid = data.get("custom_id")
 
@@ -189,6 +194,11 @@ async def interactions(req: Request):
             user_id = int(user["id"])
             entered_name = get_modal_value(data, "name")
             return await handle_join_name_submit(user_id, entered_name, guild_id)
+
+        if cid == "updatename:submit":
+            user = (payload.get("member") or {}).get("user") or payload.get("user")
+            user_id = int(user["id"])
+            return await handle_updatename_submit(user_id, guild_id, data)
 
     return {
         "type": 4,
