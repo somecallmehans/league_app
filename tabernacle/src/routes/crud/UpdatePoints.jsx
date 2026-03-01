@@ -136,7 +136,7 @@ export default function Page() {
   const [selectedRound, setSelectedRound] = useState();
 
   const { data: participants, isLoading: participantsLoading } =
-    useGetParticipantsQuery();
+    useGetParticipantsQuery({ includeAdminParticipantFields: true });
   const { data: rounds } = useGetAllRoundsQuery(
     {
       participant_id: selectedParticipant,
@@ -154,7 +154,10 @@ export default function Page() {
   );
 
   const participantsList = useMemo(() => {
-    return participants.map(({ name, id }) => ({ label: name, value: id }));
+    return (participants ?? []).map(({ name, id }) => ({
+      label: name,
+      value: id,
+    }));
   }, [participants]);
 
   const roundsList = useMemo(() => {

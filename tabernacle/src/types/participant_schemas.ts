@@ -3,6 +3,7 @@ import { z } from "zod";
 export const ParticipantSchema = z.object({
   id: z.number().optional(),
   name: z.string(),
+  display_name: z.string().optional(),
   total_points: z.number().optional(),
   deleted: z.boolean().optional(),
 });
@@ -12,6 +13,7 @@ export type Participant = z.infer<typeof ParticipantSchema>;
 export const EMPTY_PARTICIPANT: Participant = {
   id: -1,
   name: "",
+  display_name: "",
   total_points: 0,
   deleted: false,
 };
@@ -30,6 +32,7 @@ export type ParticipantListResponse = z.infer<
 export const PodParticipantSchema = z.object({
   participant_id: z.number(),
   name: z.string(),
+  display_name: z.string().optional(),
   total_points: z.number(),
   round_points: z.number().nullable().optional(),
 });
@@ -77,7 +80,8 @@ export type WinnerRoundInfoResponse = z.infer<
 export const UpsertParticipantRequestSchema = z.object({
   id: z.number().optional(),
   deleted: z.boolean().optional(),
-  name: z.string(),
+  name: z.string().optional(),
+  display_name: z.string().optional(),
 });
 export type UpsertParticipantRequest = z.infer<
   typeof UpsertParticipantRequestSchema

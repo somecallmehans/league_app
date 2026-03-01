@@ -131,14 +131,39 @@ export default (builder: ApiBuilder) => ({
         symbolObj: {},
       }),
   }),
-  getParticipants: builder.query<ParticipantListResponse, void>({
-    query: () => "participants/",
+  getParticipants: builder.query<
+    ParticipantListResponse,
+    { includeAdminParticipantFields?: boolean } | void
+  >({
+    query: (arg) => {
+      const params =
+        arg && typeof arg === "object" && arg.includeAdminParticipantFields
+          ? "?include_admin_participant_fields=true"
+          : "";
+      return `participants/${params}`;
+    },
     providesTags: ["Participants"],
     transformResponse: (raw: unknown) =>
       safeParseWithFallback(ParticipantListResponseSchema, raw, []),
   }),
-  getPods: builder.query<PodObjectResponse, Id>({
-    query: (roundId) => `pods/${roundId}/`,
+  getPods: builder.query<
+    PodObjectResponse,
+    Id | { roundId: Id; includeAdminParticipantFields?: boolean }
+  >({
+    query: (arg) => {
+      const roundId =
+        typeof arg === "object" && arg !== null && "roundId" in arg
+          ? arg.roundId
+          : arg;
+      const suffix =
+        typeof arg === "object" &&
+        arg !== null &&
+        "includeAdminParticipantFields" in arg &&
+        arg.includeAdminParticipantFields
+          ? "?include_admin_participant_fields=true"
+          : "";
+      return `pods/${roundId}/${suffix}`;
+    },
     providesTags: ["Pods"],
     transformResponse: (raw: unknown) =>
       safeParseWithFallback(PodObjectResponseSchema, raw, {}),

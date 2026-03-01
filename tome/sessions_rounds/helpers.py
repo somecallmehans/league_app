@@ -139,7 +139,11 @@ class RoundInformationService:
         """Take all of the new participants and make them into existing participants"""
         try:
             new = Participants.objects.bulk_create(
-                Participants(name=p["name"], code=generate_code())
+                Participants(
+                    name=p["name"],
+                    display_name=p["name"],
+                    code=generate_code(),
+                )
                 for p in self.new_participants
             )
             StoreParticipant.objects.bulk_create(
