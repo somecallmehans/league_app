@@ -65,7 +65,11 @@ export const EditDecklistFormWrapper = () => {
     try {
       await updateDecklist(payload).unwrap();
       toast.success("Decklist updated successfully!");
-      navigate(-1);
+      if (window.history.length <= 2) {
+        navigate("/decklists/edit/", { replace: true });
+      } else {
+        navigate(-1);
+      }
     } catch (error) {
       console.error("Failed to edit decklist.", error);
     }
@@ -80,7 +84,12 @@ export const EditDecklistFormWrapper = () => {
     try {
       setIsDeleting(true);
       await updateDecklist(payload).unwrap();
-      navigate(-1);
+      toast.success("Decklist deleted successfully!");
+      if (window.history.length <= 2) {
+        navigate("/decklists/edit/", { replace: true });
+      } else {
+        navigate(-1);
+      }
     } catch (error) {
       setIsDeleting(false);
       console.error("Failed to delete decklist.", error);
