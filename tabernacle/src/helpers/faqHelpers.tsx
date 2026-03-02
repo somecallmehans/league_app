@@ -228,14 +228,14 @@ export const faqInfo = [
         <p className="mb-2">
           Head over to your shop's discord and join the Commander League
           channel. If you've previously participated in league, type{" "}
-          <code className="bg-slate-200">/link</code> in the message box, then
+          <code className="bg-slate-200">/join</code> in the message box, then
           use <code className="bg-slate-200">/signin</code> to register for any
           upcoming league rounds.
         </p>
 
         <h3 className="mb-2 font-bold">2. Sign in on this website </h3>
         <p className="mb-2">
-          After using <code className="bg-slate-200">/link</code> on Discord,
+          After using <code className="bg-slate-200">/join</code> on Discord,
           you will be provided a unique, six character sign in code that you can
           enter on
           <a
@@ -251,7 +251,7 @@ export const faqInfo = [
 
         <h3 className="mb-2 font-bold">
           3. Haven't participated before and can't use{" "}
-          <code className="bg-slate-200">/link</code> in discord?
+          <code className="bg-slate-200">/join</code> in discord?
         </h3>
         <p className="mb-2">
           No problem! Speak up in the commander league channel and an admin will

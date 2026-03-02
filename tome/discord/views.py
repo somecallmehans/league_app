@@ -178,7 +178,7 @@ def signin(request):
 
         return Response(
             {
-                "message": "Participant is currently not linked. Run /link to connect to your league history."
+                "message": "Participant is currently not linked. Run /join to connect to your league history."
             },
             status=status.HTTP_400_BAD_REQUEST,
         )
@@ -319,7 +319,7 @@ def issue_edit_token(request):
         return Response(
             {
                 "message": "It looks like you haven't linked your discord to your league history.\n\n"
-                "Run /link to connect to your league history."
+                "Run /join to connect to your league history."
             },
             status=status.HTTP_400_BAD_REQUEST,
         )
@@ -479,7 +479,7 @@ def find_participants(request):
 @require_discord_store
 @api_view([POST])
 def register_and_join(request):
-    """Take in a name, create the user and register/link them"""
+    """Take in a name, create the user and register/join them"""
 
     try:
         body = json.loads(request.body.decode("utf-8") or "{}")
