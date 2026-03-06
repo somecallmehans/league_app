@@ -670,7 +670,7 @@ def get_all_commanders(_, **kwargs):
 @api_view([POST])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsSuperUser])
-def fetch_and_insert_commanders(_):
+def fetch_and_insert_commanders(_, **kwargs):
     """
     Query scryfall and see if any new commanders have been added.
 
