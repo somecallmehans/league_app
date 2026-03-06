@@ -17,35 +17,40 @@ import EditDecklists, { EditDecklistFormWrapper } from "./EditDecklists";
 import AchievementModal, { type Achievement } from "./AchievementModal";
 
 const Callout = () => (
-  <div className="my-3 rounded-lg border border-sky-100 bg-sky-50/60 p-3 sm:p-4">
+  <div className="my-3 rounded-lg border-2 border-sky-300 bg-sky-50 p-3 sm:p-4 shadow-sm">
     <div className="flex items-start gap-2">
       <div className="w-full">
-        <p className="text-xs sm:text-sm font-semibold text-sky-800">
-          Decklist submissions are optional
-        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-full bg-sky-700 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white sm:text-xs">
+            Optional
+          </span>
+          <p className="text-sm sm:text-base font-semibold text-sky-900">
+            Submitting a decklist is{" "}
+            <span className="font-extrabold">not required</span> to participate
+            in Commander League.
+          </p>
+        </div>
 
-        <div className="mt-2 space-y-1.5 text-xs sm:text-sm text-sky-700">
+        <div className="mt-3 space-y-1.5 text-xs sm:text-sm text-sky-800">
           <div className="flex gap-2">
-            <span className="shrink-0 text-sky-400">–</span>
+            <span className="shrink-0 text-sky-500">-</span>
             <span>
-              Submitting a decklist is <span className="font-bold">not</span>{" "}
-              required to participate in Commander League.
+              You can still participate even if you do not submit a decklist.
             </span>
           </div>
 
           <div className="flex gap-2">
-            <span className="shrink-0 text-sky-400">–</span>
+            <span className="shrink-0 text-sky-500">-</span>
             <span>
-              You earn <span className="font-bold">extra points</span> for
-              participating with a submitted list.
+              You earn extra points for participating with a submitted decklist.
             </span>
           </div>
 
           <div className="flex gap-2">
-            <span className="shrink-0 text-sky-400">–</span>
+            <span className="shrink-0 text-sky-500">-</span>
             <span>
-              Please only submit a list you have personally curated, and be sure
-              to add any qualifying achievements!
+              Only submit lists you curated, and add any qualifying
+              achievements.
             </span>
           </div>
         </div>
@@ -84,7 +89,7 @@ export const DecklistCard = ({
   const { imgs, artists } = compileImgUrls(
     commander_img,
     partner_img,
-    companion_img
+    companion_img,
   );
   const pName = participant_name ? `by ${participant_name}` : "";
 
@@ -232,19 +237,19 @@ function DecklistContainer() {
           }) => (
             <div key={id} className="min-w-0">
               <DecklistCard
-              name={name}
-              commander_img={commander_img}
-              partner_img={partner_img}
-              companion_img={companion_img}
-              color={color}
-              points={points}
-              participant_name={participant_name}
-              code={code}
-              url={url}
-              achievements={achievements}
-            />
+                name={name}
+                commander_img={commander_img}
+                partner_img={partner_img}
+                companion_img={companion_img}
+                color={color}
+                points={points}
+                participant_name={participant_name}
+                code={code}
+                url={url}
+                achievements={achievements}
+              />
             </div>
-          )
+          ),
         )}
       </div>
     </div>
