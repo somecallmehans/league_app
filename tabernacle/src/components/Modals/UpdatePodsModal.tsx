@@ -46,7 +46,10 @@ export default function ({
   const [deletePodParticipant] = useDeletePodParticipantMutation();
   const [target, setTarget] = useState<ParticipantBase | null>(null);
   const { data: allParticipants, isLoading: participantsLoading } =
-    useGetParticipantsQuery(undefined, { skip: !isOpen });
+    useGetParticipantsQuery(
+      { includeAdminParticipantFields: true },
+      { skip: !isOpen }
+    );
 
   const { data: roundParticipants, isLoading: roundParticipantsLoading } =
     useGetRoundParticipantsQuery(roundId, { skip: !isOpen || !roundId });
@@ -60,7 +63,10 @@ export default function ({
   );
   const filteredParticipants = (allParticipants ?? [])
     .filter((p) => !currentIds.has(p.id))
-    .map(({ id, name }) => ({ value: id, label: name }));
+    .map(({ id, name, display_name }) => ({
+      value: id,
+      label: name ?? display_name ?? "",
+    }));
 
   const handleUpdate = async () => {
     try {

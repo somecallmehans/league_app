@@ -66,7 +66,10 @@ export default function useRouteParticipants(roundId, sessionId, signIns) {
 
     const updated = [...temps, next];
     writeTemps(roundId, updated);
-    const fromServer = signIns.map((p) => ({ value: p.id, label: p.name }));
+    const fromServer = signIns.map((p) => ({
+      value: p.id,
+      label: p.display_name ?? p.name ?? "",
+    }));
 
     setValue("participants", [...fromServer, ...updated], {
       shouldDirty: true,
@@ -98,7 +101,7 @@ export default function useRouteParticipants(roundId, sessionId, signIns) {
     writeTemps(roundId, updated);
     const serverOpts = signIns.map((s) => ({
       value: s.id,
-      label: s.name,
+      label: s.display_name ?? s.name ?? "",
     }));
 
     setValue("participants", [...serverOpts, ...updated], {
@@ -110,7 +113,10 @@ export default function useRouteParticipants(roundId, sessionId, signIns) {
     if (!participants) return [];
     return participants
       .filter((p) => !selected.some((s) => s.value === p.id || s.id === p.id))
-      .map((p) => ({ value: p.id, label: p.name }));
+      .map((p) => ({
+        value: p.id,
+        label: p.display_name ?? p.name ?? "",
+      }));
   }, [participants, selected]);
 
   return {

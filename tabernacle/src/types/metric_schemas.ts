@@ -16,11 +16,17 @@ export const MetricSchema = z.object({
   achievement_chart: z.record(z.string(), AchievementChartItem).default({}),
   big_earner: z
     .object({
-      participant__name: z.string(),
+      participant__name: z.string().optional(),
+      participant__display_name: z.string().optional(),
       participant_id: z.number(),
       total_points: z.number(),
     })
-    .default({ participant__name: "", participant_id: -1, total_points: 0 }),
+    .default({
+      participant__name: "",
+      participant__display_name: "",
+      participant_id: -1,
+      total_points: 0,
+    }),
   big_winners: z
     .array(z.object({ name: z.string(), wins: z.number() }))
     .default([]),

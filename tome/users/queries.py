@@ -113,7 +113,7 @@ def get_decklists(
             "partner__color__mask",
             "companion_id",
             "companion__name",
-            "participant__name",
+            "participant__display_name",
             "participant_id",
             "points",
         )
@@ -199,7 +199,7 @@ def get_decklists(
                 "id": qu["id"],
                 "name": qu["name"],
                 "url": qu["url"],
-                "participant_name": qu["participant__name"] if give_credit else None,
+                "participant_name": qu["participant__display_name"] if give_credit else None,
                 "code": qu["code"],
                 "commander_name": qu["commander__name"],
                 "commander_img": commander_images.get(qu["commander__name"]),

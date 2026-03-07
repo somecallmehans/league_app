@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { skipToken } from "@reduxjs/toolkit/query";
 
 import { useGetPodsQuery } from "../../api/apiSlice";
 import { handleNavClick } from "../../helpers/helpers";
@@ -24,7 +25,7 @@ const PodSquare = ({ participants, handleOnClick, winnerInfo, submitted }) => {
     [3, 5].includes(participants.length) && participants.length === idx + 1;
 
   return participants.map(
-    ({ name, participant_id, round_points, total_points }, index) => (
+    ({ display_name, participant_id, round_points, total_points }, index) => (
       <div
         key={participant_id}
         className={`p-4 sm:p-6 border grid grid-cols-1 overflow-y-auto text-center ${
@@ -41,7 +42,7 @@ const PodSquare = ({ participants, handleOnClick, winnerInfo, submitted }) => {
             {isWinner(participant_id) && (
               <i className="fa-solid fa-crown text-base pr-2 text-yellow-600" />
             )}
-            {name}
+            {display_name}
             {isWinner(participant_id) && (
               <i className="fa-solid fa-crown text-base pl-2 text-yellow-600" />
             )}
@@ -145,9 +146,10 @@ export default function () {
   const roundNumber = location?.state?.roundNumber;
   const date = location?.state?.date;
 
-  const { data: pods, isLoading: podsLoading } = useGetPodsQuery(roundId, {
-    skip: !roundId,
-  });
+  const { data: pods, isLoading: podsLoading } = useGetPodsQuery(
+    roundId ? { roundId, includeAdminParticipantFields: true } : skipToken,
+    { skip: !roundId },
+  );
 
   const handleOnClick = (
     participant,

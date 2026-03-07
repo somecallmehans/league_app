@@ -3,10 +3,9 @@ from .models import Participants, ParticipantAchievements
 
 
 class ParticipantsSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Participants
-        fields = ["id", "name"]
+        fields = ["id", "name", "display_name"]
 
 
 class ParticipantsAchievementsSerializer(serializers.ModelSerializer):

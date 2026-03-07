@@ -16,6 +16,7 @@ from users.helpers import generate_code, hash_code
 
 class Participants(models.Model):
     name = models.CharField(max_length=255, null=False, blank=False)
+    display_name = models.CharField(max_length=255, null=False, blank=False, unique=True)
     deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     discord_user_id = models.PositiveBigIntegerField(null=True, unique=True, blank=True)
