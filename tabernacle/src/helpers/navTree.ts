@@ -33,21 +33,26 @@ export const navLinks: Array<Node> = [
     admin: false,
     icon: "fa-solid fa-circle-info",
     children: [
-      { id: "2a", name: "Resources & FAQs", to: "/faqs" },
       {
         id: "2b",
         name: "Decklists",
         to: "/decklists",
       },
+      { id: "2c", name: "League Stores", to: "/supported-stores" },
+      { id: "2a", name: "Resources & FAQs", to: "/faqs" },
     ],
     scope: "store",
   },
   {
     id: 21,
     name: "Info",
-    to: "/faqs",
+    to: "",
     admin: false,
     icon: "fa-solid fa-circle-info",
+    children: [
+      { id: "21a", name: "Resources & FAQs", to: "/faqs" },
+      { id: "21b", name: "League Stores", to: "/supported-stores" },
+    ],
     scope: "apex",
   },
   {

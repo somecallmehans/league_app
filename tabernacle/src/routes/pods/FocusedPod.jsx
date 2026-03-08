@@ -8,6 +8,7 @@ import { handleNavClick } from "../../helpers/helpers";
 import PageTitle from "../../components/PageTitle";
 import StandardButton from "../../components/Button";
 import LoadingSpinner from "../../components/LoadingSpinner";
+import CalloutCard from "../../components/CalloutCard";
 import PointsModal from "../leagueSession/PointsModal";
 import ColorGrid from "../../components/ColorGrid";
 
@@ -192,9 +193,16 @@ export default function () {
         </Link>
         <PageTitle title={`Round ${roundNumber} for ${date}`} />
       </div>
-      <div className="text-xs md:text-sm font-light text-gray-800 italic w-full md:w-1/2 mb-2">
-        Click a player&apos;s name to view their stats, or the icon below it to
-        see the achievements they earned this round.
+      <div className="my-2 w-full">
+        <CalloutCard
+          tag="Info"
+          title="Viewing pod details"
+          tagClassName="bg-violet-600"
+          items={[
+            "Click a player name to view their stats.",
+            "Click the icon below a player to view achievements they earned this round.",
+          ]}
+        />
       </div>
       <PodContainer pods={pods} handleOnClick={handleOnClick} />
       <PointsModal

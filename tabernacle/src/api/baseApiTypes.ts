@@ -24,7 +24,7 @@ export type BaseBQ = BaseQueryFn<
   string | FetchArgs,
   unknown,
   FetchBaseQueryError,
-  {},
+  { skipRefresh?: boolean },
   FetchBaseQueryMeta
 >;
 

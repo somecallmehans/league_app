@@ -11,46 +11,47 @@ import DecklistForm from "./DecklistForm";
 import DecklistImages from "./DecklistImages";
 import ColorGrid from "../../components/ColorGrid";
 import LoadingSpinner from "../../components/LoadingSpinner";
+import CalloutCard from "../../components/CalloutCard";
 import DecklistFilters from "./DecklistFiltering";
 import Gatekeeper from "./DecklistEditGatekeeper";
 import EditDecklists, { EditDecklistFormWrapper } from "./EditDecklists";
 import AchievementModal, { type Achievement } from "./AchievementModal";
 
 const Callout = () => (
-  <div className="my-3 rounded-lg border border-sky-100 bg-sky-50/60 p-3 sm:p-4">
-    <div className="flex items-start gap-2">
-      <div className="w-full">
-        <p className="text-xs sm:text-sm font-semibold text-sky-800">
-          Decklist submissions are optional
-        </p>
+  <div className="my-3 grid gap-3 md:grid-cols-2">
+    <CalloutCard
+      tag="Optional"
+      title="Participation"
+      tagClassName="bg-emerald-600"
+      items={[
+        <>
+          Submitting a decklist is{" "}
+          <span className="font-bold text-rose-700">not required</span> to play
+          in Commander League.
+        </>,
+        <>
+          Submitted decklists earn{" "}
+          <span className="font-bold">1 extra point</span>.
+        </>,
+        "Only submit lists you curated, and add any qualifying achievements.",
+      ]}
+    />
 
-        <div className="mt-2 space-y-1.5 text-xs sm:text-sm text-sky-700">
-          <div className="flex gap-2">
-            <span className="shrink-0 text-sky-400">–</span>
-            <span>
-              Submitting a decklist is <span className="font-bold">not</span>{" "}
-              required to participate in Commander League.
-            </span>
-          </div>
-
-          <div className="flex gap-2">
-            <span className="shrink-0 text-sky-400">–</span>
-            <span>
-              You earn <span className="font-bold">extra points</span> for
-              participating with a submitted list.
-            </span>
-          </div>
-
-          <div className="flex gap-2">
-            <span className="shrink-0 text-sky-400">–</span>
-            <span>
-              Please only submit a list you have personally curated, and be sure
-              to add any qualifying achievements!
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
+    <CalloutCard
+      tag="Info"
+      title="Using this page"
+      tagClassName="bg-violet-600"
+      items={[
+        "Use the toggles below to sort or filter by color identity.",
+        "Each card image opens the decklist on Moxfield or Archidekt.",
+        "Select card pips to view achievements earnable with that deck.",
+        <>
+          If you win with a shared decklist, submit the{" "}
+          <span className="font-medium">DL-XXXX</span> code on your scorecard
+          instead of listing achievements.
+        </>,
+      ]}
+    />
   </div>
 );
 
@@ -84,7 +85,7 @@ export const DecklistCard = ({
   const { imgs, artists } = compileImgUrls(
     commander_img,
     partner_img,
-    companion_img
+    companion_img,
   );
   const pName = participant_name ? `by ${participant_name}` : "";
 
@@ -188,33 +189,8 @@ function DecklistContainer() {
           </Link>
         </div>
       </div>
-      <details className="w-full md:w-3/4 mb-3">
-        <summary className="cursor-pointer text-lg font-medium text-gray-800">
-          Click here for page information
-        </summary>
-
-        <div className="mt-2 text-xs md:text-sm text-gray-700 space-y-2">
-          <p>
-            Use the toggles below to sort or filter decklists by color identity.
-          </p>
-
-          <p>Each card image opens the decklist on Moxfield or Archidekt.</p>
-
-          <p>
-            Select the pips on each card to view the achievements earnable with
-            that deck.
-          </p>
-
-          <p>
-            If you win with a shared decklist, submit the
-            <span className="font-medium"> DL-XXXX </span>
-            code on your scorecard instead of listing achievements.
-          </p>
-        </div>
-      </details>
-
-      <DecklistFilters params={params} setParams={setParams} />
       <Callout />
+      <DecklistFilters params={params} setParams={setParams} />
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-3 min-w-0">
         {decklists?.map(
           ({
@@ -232,19 +208,19 @@ function DecklistContainer() {
           }) => (
             <div key={id} className="min-w-0">
               <DecklistCard
-              name={name}
-              commander_img={commander_img}
-              partner_img={partner_img}
-              companion_img={companion_img}
-              color={color}
-              points={points}
-              participant_name={participant_name}
-              code={code}
-              url={url}
-              achievements={achievements}
-            />
+                name={name}
+                commander_img={commander_img}
+                partner_img={partner_img}
+                companion_img={companion_img}
+                color={color}
+                points={points}
+                participant_name={participant_name}
+                code={code}
+                url={url}
+                achievements={achievements}
+              />
             </div>
-          )
+          ),
         )}
       </div>
     </div>

@@ -69,7 +69,7 @@ async def handle_getcode(user_id: int, guild_id: int):
             "type": 4,
             "data": {
                 "flags": EPHEMERAL,
-                "content": "This Discord account isn’t linked yet. Run `/linkme` to link.",
+                "content": "This Discord account isn’t linked yet. Run `/join` to link.",
             },
         }
     return {

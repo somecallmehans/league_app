@@ -76,7 +76,7 @@ const SignInArea = ({ roundInfo }) => {
     <div className="flex flex-wrap justify-center p-4 drop-shadow-md">
       <div className="flex flex-col gap-2 items-center justify-center text-center">
         <div className="text-center text-[8px] sm:text-xs text-gray-500 italic">
-          Use /link in Discord to connect your account, then /mycode to get your
+          Use /join in Discord to connect your account, then /mycode to get your
           code.
         </div>
         <div className="text-center text-[6px] sm:text-xs text-gray-500 italic">
@@ -144,7 +144,7 @@ const SignInArea = ({ roundInfo }) => {
 
 const RoundDisplay = ({ roundInfo, dateKey, renderRoundLink }) => {
   const signInOpen = roundInfo.every(
-    ({ started, closed }) => !started && !closed
+    ({ started, closed }) => !started && !closed,
   );
 
   if (signInOpen) {
@@ -272,7 +272,7 @@ function Page() {
 
   const { data: rounds, isLoading: roundsLoading } = useGetRoundsByMonthQuery(
     selectedMonth,
-    { skip: !selectedMonth }
+    { skip: !selectedMonth },
   );
 
   const loading = monthsLoading || roundsLoading;

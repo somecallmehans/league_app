@@ -27,3 +27,15 @@ def get_store(request, **kwargs):
     )
 
     return Response(store)
+
+
+@api_view(["GET"])
+def get_stores(request, **kwargs):
+    """Return active stores for the Supported Stores page."""
+    stores = list(
+        Store.objects.filter(deleted=False, is_active=True)
+        .exclude(id=1)
+        .values("id", "name", "slug", "external_url")
+        .order_by("name")
+    )
+    return Response(stores)

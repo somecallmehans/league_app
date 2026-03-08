@@ -7,6 +7,7 @@ import { associateParentsChildren } from "../../helpers/achievementHelpers";
 import { Input } from "@headlessui/react";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import PageTitle from "../../components/PageTitle";
+import CalloutCard from "../../components/CalloutCard";
 import { AchievementCard, TypeInfo } from "./AchievementComponents";
 import { SimpleSelect } from "../crud/CrudComponents";
 
@@ -20,7 +21,7 @@ const SearchFilter = ({ setSearchTerm, placeholder, classes }) => (
 
 const TypeSelectFilter = ({ typeFilter, setTypeFilter }) => {
   const { data: types } = useSelector(
-    apiSlice.endpoints.getAchievementTypes.select(undefined)
+    apiSlice.endpoints.getAchievementTypes.select(undefined),
   );
 
   return (
@@ -144,7 +145,7 @@ export default function AchievementsPage() {
   const { filteredData, setSearchTerm } = useAchievementSearch(
     achievements,
     achievementLookup,
-    typeFilter
+    typeFilter,
   );
 
   const { groups, orderedKeys } = useMemo(() => {
@@ -152,7 +153,7 @@ export default function AchievementsPage() {
 
     const associated = associateParentsChildren(filteredData);
     const sorted = [...associated].sort((a, b) =>
-      sort ? b.point_value - a.point_value : a.point_value - b.point_value
+      sort ? b.point_value - a.point_value : a.point_value - b.point_value,
     );
 
     const obj = {};
@@ -175,10 +176,31 @@ export default function AchievementsPage() {
   return (
     <div className="p-4 md:p-8">
       <PageTitle title="Achievements" />
-      <div className="text-xs md:text-sm font-light text-gray-800 italic w-full md:w-1/2 mb-2">
-        Use the filters below to sort by point value, name, or both. If an
-        achievement has special notes, external links, or nested achievements
-        (like scalable or “X or more”), click its tile to see the full details.
+      <div className="my-2 w-full">
+        <CalloutCard
+          tag="Info"
+          title="How to browse this page"
+          tagClassName="bg-violet-600"
+          items={[
+            "Use the filters below to sort by point value, name, or both.",
+            <>
+              Tiles with a{" "}
+              <i
+                className="fa-solid fa-circle-info text-gray-500"
+                aria-hidden
+              />{" "}
+              icon have special notes. Click the tile to view full details.
+            </>,
+            <>
+              Tiles with nested achievements have a{" "}
+              <i
+                className="fa-solid fa-layer-group text-gray-500"
+                aria-hidden
+              />{" "}
+              icon and can be clicked for full context.
+            </>,
+          ]}
+        />
       </div>
 
       <AchievementFilters

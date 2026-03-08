@@ -22,6 +22,7 @@ import {
   Selector,
   CheckBoxInput,
 } from "../../components/FormInputs";
+import CalloutCard from "../../components/CalloutCard";
 import { textValidate } from "../../components/Modals/SignInModal";
 import StandardButton from "../../components/Button";
 import { deriveAchievementKey } from "../leagueSession/AchievementCart";
@@ -56,8 +57,8 @@ const AchievementCart = ({
       cart?.reduce((acc: number, curr: any) => {
         const pts =
           curr.achievement_id != null
-            ? lookup?.[curr.achievement_id] ?? 0
-            : lookup?.[curr.id] ?? 0;
+            ? (lookup?.[curr.achievement_id] ?? 0)
+            : (lookup?.[curr.id] ?? 0);
         return acc + pts;
       }, 0) ?? 0;
 
@@ -75,7 +76,10 @@ const AchievementCart = ({
       </h2>
       <div className="border-t mb-2" />
       <div className="flex flex-col justify-between mb-2">
-        <span className="text-sm">Type to search and add achievements</span>
+        <div className="text-xs text-blue-700 bg-blue-50 border-l-4 border-blue-200 px-3 py-1.5 rounded mb-2">
+          The below is a search bar. Type in to search for achievements. Select
+          an achievement to add it to your decklist.
+        </div>
         <Selector
           name="picker"
           options={achievements ?? []}
@@ -99,7 +103,7 @@ const AchievementCart = ({
             setValue(
               "achievements",
               [...curr, { ...(selected as any), tempId: crypto.randomUUID() }],
-              { shouldDirty: true, shouldValidate: false }
+              { shouldDirty: true, shouldValidate: false },
             );
 
             setValue("picker", null, {
@@ -110,24 +114,35 @@ const AchievementCart = ({
         />
       </div>
       <div className="h-80 overflow-y-auto  bg-zinc-100 p-4 rounded-lg border drop-shadow-md flex flex-col gap-2">
-        {cart.map((c: { tempId?: string; name: string | undefined; id?: number; achievement_id?: number; scalable_term_id?: number }, idx: number) => (
-          <div
-            className="flex justify-between bg-white rounded-lg p-2 shadow-md  items-center"
-            key={deriveAchievementKey(c, idx)}
-          >
-            <div className="text-sm">{c.name}</div>
-            <span aria-hidden className="flex-1 h-4  mx-1" />
-            <i
-              className="fa fa-trash text-zinc-500 hover:text-red-500"
-              onClick={() => {
-                setValue(
-                  "achievements",
-                  cart.filter((x: any) => x.tempId !== c.tempId)
-                );
-              }}
-            />
-          </div>
-        ))}
+        {cart.map(
+          (
+            c: {
+              tempId?: string;
+              name: string | undefined;
+              id?: number;
+              achievement_id?: number;
+              scalable_term_id?: number;
+            },
+            idx: number,
+          ) => (
+            <div
+              className="flex justify-between bg-white rounded-lg p-2 shadow-md  items-center"
+              key={deriveAchievementKey(c, idx)}
+            >
+              <div className="text-sm">{c.name}</div>
+              <span aria-hidden className="flex-1 h-4  mx-1" />
+              <i
+                className="fa fa-trash text-zinc-500 hover:text-red-500"
+                onClick={() => {
+                  setValue(
+                    "achievements",
+                    cart.filter((x: any) => x.tempId !== c.tempId),
+                  );
+                }}
+              />
+            </div>
+          ),
+        )}
       </div>
       {sum > 0 ? (
         <p className="text-xs italic text-blue-600 mt-1">
@@ -208,7 +223,7 @@ export function DecklistForm({
 
   const { colorLength, colorName } = useCommanderColors(
     selectedCommander?.color_id,
-    selectedPartner?.color_id
+    selectedPartner?.color_id,
   );
 
   useEffect(() => {
@@ -222,36 +237,45 @@ export function DecklistForm({
   return (
     <div className={`${wrapperClasses}`}>
       <Back />
-      <details className="w-full md:w-3/4 my-2">
-        <summary className="cursor-pointer text-lg font-medium text-gray-800">
-          Click here for submission instructions
-        </summary>
+      <div className="my-2 grid gap-3 md:grid-cols-2">
+        <CalloutCard
+          tag="Important"
+          title="Before you submit"
+          tagClassName="bg-emerald-600"
+          items={[
+            "Add at least one achievement that your deck qualifies for before submitting.",
+            showCode ? (
+              <>
+                Enter your verification code. Get it by typing{" "}
+                <span className="font-semibold">/mycode</span> in league
+                Discord.
+              </>
+            ) : (
+              "No verification code is needed when editing an existing decklist."
+            ),
+            <span className="font-bold text-rose-700">
+              Submitting a decklist is optional and <u>not required</u> to
+              participate in Commander League.
+            </span>,
+          ]}
+        />
 
-        <div className="mt-2 text-xs md:text-sm text-gray-700 space-y-2">
-          <p>
-            Enter a name for your deck, paste the decklist link, and select the
-            commander(s) used.
-          </p>
-
-          <p>
-            Search for and choose any <span>deckbuilding achievements</span>{" "}
-            your deck earns. Color identity achievements are added
-            automatically.
-          </p>
-
-          <p>
-            Choose whether your name should appear on the decklist page as the
-            deck’s creator.
-          </p>
-
-          <p>
-            To submit the decklist, enter your personal verification code. You
-            can get this code by typing{" "}
-            <span className="font-semibold">/mycode</span> in the league
-            Discord.
-          </p>
-        </div>
-      </details>
+        <CalloutCard
+          tag="Info"
+          title="How to submit"
+          tagClassName="bg-violet-600"
+          items={[
+            "Enter a deck name, paste the decklist URL, and select your commander(s).",
+            <>
+              Choose any{" "}
+              <span className="font-medium">deckbuilding achievements</span>{" "}
+              your deck earns. Color identity achievements are added
+              automatically.
+            </>,
+            "Choose whether your name appears on the decklist page as creator credit.",
+          ]}
+        />
+      </div>
       <div className="mx-auto w-full">
         <FormProvider {...methods}>
           <form onSubmit={handleSubmit(onSubmit)}>
@@ -359,7 +383,9 @@ export function DecklistForm({
                       });
                       setValue(
                         "achievements",
-                        cart.filter((item) => !("id" in item && item.id === 28))
+                        cart.filter(
+                          (item) => !("id" in item && item.id === 28),
+                        ),
                       );
                       return;
                     }

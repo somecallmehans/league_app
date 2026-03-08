@@ -13,6 +13,7 @@ import { DecklistCard } from "./Decklists";
 import PageTitle from "../../components/PageTitle";
 import { DecklistForm } from "./DecklistForm";
 import { normalizeDecklistAchievements } from "../leagueSession/ScorecardPage";
+import { toast } from "react-toastify";
 
 type WrapperProps = {
   title: string;
@@ -63,7 +64,12 @@ export const EditDecklistFormWrapper = () => {
 
     try {
       await updateDecklist(payload).unwrap();
-      navigate(-1);
+      toast.success("Decklist updated successfully!");
+      if (window.history.length <= 2) {
+        navigate("/decklists/edit/", { replace: true });
+      } else {
+        navigate(-1);
+      }
     } catch (error) {
       console.error("Failed to edit decklist.", error);
     }
@@ -78,7 +84,12 @@ export const EditDecklistFormWrapper = () => {
     try {
       setIsDeleting(true);
       await updateDecklist(payload).unwrap();
-      navigate(-1);
+      toast.success("Decklist deleted successfully!");
+      if (window.history.length <= 2) {
+        navigate("/decklists/edit/", { replace: true });
+      } else {
+        navigate(-1);
+      }
     } catch (error) {
       setIsDeleting(false);
       console.error("Failed to delete decklist.", error);
@@ -150,7 +161,7 @@ export default function EditDecklistsPage() {
               url={`${id}`}
               achievements={achievements}
             />
-          )
+          ),
         )}
       </div>
     </EditPageWrapper>

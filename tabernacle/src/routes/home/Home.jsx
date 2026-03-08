@@ -88,6 +88,18 @@ const LeagueSchedule = () => {
 
 const Description = () => (
   <HomeSection title="What is Commander League?">
+    <div className="flex justify-center my-4">
+      <iframe
+        width="560"
+        height="315"
+        src="https://www.youtube.com/embed/Wl2qk6uLB0c?si=S-tHH5b_2lLtMW3c"
+        title="Commander League Overview"
+        frameBorder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        referrerPolicy="strict-origin-when-cross-origin"
+        allowFullScreen
+      ></iframe>
+    </div>
     <p className="leading-relaxed text-sm sm:text-base ">
       During each month’s league, players earn points by winning official games
       with decks that meet criteria for “achievements.” The more restrictive the
@@ -128,7 +140,7 @@ const HomeLeaderboard = () => {
 
   const { data: achievementsForMonth } = useGetAchievementsForMonthQuery(
     selectedMonth,
-    { skip: !selectedMonth || !storeSlug }
+    { skip: !selectedMonth || !storeSlug },
   );
 
   if (!achievementsForMonth || achievementsForMonth.length == 0) return null;

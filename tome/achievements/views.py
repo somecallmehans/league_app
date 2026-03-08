@@ -107,11 +107,18 @@ def get_scorecard_achievement_options(_, **kwargs):
         if a["parent__name"]
     ]
 
-    # Standalone achievements (no parent, not scalable; e.g. "Win via commander damage")
+    parent_achievement_ids = set(
+        Achievements.objects.filter(deleted=False, parent__isnull=False).values_list(
+            "parent_id", flat=True
+        )
+    )
+
+    # Standalone achievements (no parent, not scalable)
     standalone = list(
         Achievements.objects.filter(deleted=False, parent__isnull=True)
         .filter(slug_ok)
         .exclude(id__in=scalable_achievement_ids)
+        .exclude(id__in=parent_achievement_ids)
         .order_by("name")
         .values("id", "name")
     )
@@ -670,7 +677,7 @@ def get_all_commanders(_, **kwargs):
 @api_view([POST])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsSuperUser])
-def fetch_and_insert_commanders(_):
+def fetch_and_insert_commanders(_, **kwargs):
     """
     Query scryfall and see if any new commanders have been added.
 

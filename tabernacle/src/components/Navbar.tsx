@@ -146,7 +146,7 @@ export default function Navbar({ loggedIn, isStore }: NavbarProps) {
           {storeLoading ? (
             <span className="inline-block h-7 w-32 animate-pulse rounded bg-slate-600" />
           ) : store ? (
-            <a href={store?.external_url}>{store?.name}</a>
+            <div>{store?.name}</div>
           ) : (
             "Commander League"
           )}
@@ -247,7 +247,7 @@ export default function Navbar({ loggedIn, isStore }: NavbarProps) {
         {storeLoading ? (
           <span className="inline-block h-6 w-24 animate-pulse rounded bg-slate-600" />
         ) : store ? (
-          <a href={store?.external_url}>{store?.name}</a>
+          <div>{store?.name}</div>
         ) : (
           "Commander League"
         )}
