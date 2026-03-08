@@ -10,7 +10,7 @@ import Home from "./routes/home/Home";
 import Login from "./components/Login";
 import Logout from "./components/Logout";
 import Resources from "./routes/home/Resources";
-import SupportedStores from "./routes/home/SupportedStores";
+import LeagueStores from "./routes/home/SupportedStores";
 import LeaderBoard from "./routes/leaderboard/Leaderboard";
 import AchievementsRouter from "./routes/achievements/AchievementsRouter";
 import LeagueRouter from "./routes/leagueSession/LeagueSession";
@@ -53,7 +53,7 @@ function App() {
         <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/faqs" element={<Resources />} />
-        <Route path="/supported-stores" element={<SupportedStores />} />
+        <Route path="/supported-stores" element={<LeagueStores />} />
         <Route path="/achievements/*" element={<AchievementsRouter />} />
         <Route element={<RequireStore storeSlug={storeSlug} />}>
           <Route

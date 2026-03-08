@@ -38,7 +38,7 @@ export const navLinks: Array<Node> = [
         name: "Decklists",
         to: "/decklists",
       },
-      { id: "2c", name: "Supported Stores", to: "/supported-stores" },
+      { id: "2c", name: "League Stores", to: "/supported-stores" },
       { id: "2a", name: "Resources & FAQs", to: "/faqs" },
     ],
     scope: "store",
@@ -51,7 +51,7 @@ export const navLinks: Array<Node> = [
     icon: "fa-solid fa-circle-info",
     children: [
       { id: "21a", name: "Resources & FAQs", to: "/faqs" },
-      { id: "21b", name: "Supported Stores", to: "/supported-stores" },
+      { id: "21b", name: "League Stores", to: "/supported-stores" },
     ],
     scope: "apex",
   },
