@@ -152,3 +152,48 @@ def parse_join_confirm(custom_id: str) -> Optional[int]:
     ):
         return int(parts[2])
     return None
+
+
+def updatename_modal(display_name="", name=""):
+    """Build the /updatename modal. Pass current values to pre-fill the inputs."""
+    return {
+        "type": 9,
+        "data": {
+            "custom_id": "updatename:submit",
+            "title": "Update your name(s)",
+            "components": [
+                {
+                    "type": 1,
+                    "components": [
+                        {
+                            "type": 4,
+                            "custom_id": "display_name",
+                            "style": 1,
+                            "label": "Display name (public)",
+                            "placeholder": "Shown on leaderboards, pods, etc.",
+                            "required": False,
+                            "min_length": 2,
+                            "max_length": 255,
+                            "value": (display_name or "")[:255],
+                        }
+                    ],
+                },
+                {
+                    "type": 1,
+                    "components": [
+                        {
+                            "type": 4,
+                            "custom_id": "name",
+                            "style": 1,
+                            "label": "Roll Call Name",
+                            "placeholder": "The name used to identify you in roll call before a round.",
+                            "required": False,
+                            "min_length": 2,
+                            "max_length": 255,
+                            "value": (name or "")[:255],
+                        }
+                    ],
+                },
+            ],
+        },
+    }

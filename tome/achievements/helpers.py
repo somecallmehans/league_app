@@ -40,7 +40,7 @@ def calculate_total_points_for_month(sessions, store_id):
             store_id=store_id,
         )
         .select_related("participant")
-        .values("id", "earned_points", "participant_id", "participant__name")
+        .values("id", "earned_points", "participant_id", "participant__display_name")
     )
 
     by_participant = defaultdict(int)
@@ -48,7 +48,7 @@ def calculate_total_points_for_month(sessions, store_id):
 
     for achievement in earned_achievements:
         participant_info.add(
-            (achievement["participant_id"], achievement["participant__name"])
+            (achievement["participant_id"], achievement["participant__display_name"])
         )
         by_participant[achievement["participant_id"]] += achievement["earned_points"]
     return [
@@ -66,7 +66,7 @@ def calculate_monthly_winners(cutoff, store_id):
         store_id=store_id,
     ).select_related("session")
     base = pa_qs.values("session__month_year", "participant_id").annotate(
-        participant_name=Max("participant__name"),
+        participant_name=Max("participant__display_name"),
         total_points=Coalesce(Sum("earned_points"), 0),
     )
 

@@ -6,7 +6,8 @@ export default function useParticipantsLookup() {
 
   const lookup = useMemo(() => {
     return participants.reduce<Record<number, string>>((acc, p) => {
-      if (p.id !== undefined) acc[p.id] = p.name;
+      if (p.id !== undefined)
+        acc[p.id] = p.display_name ?? p.name ?? "";
       return acc;
     }, {});
   }, [participants]);

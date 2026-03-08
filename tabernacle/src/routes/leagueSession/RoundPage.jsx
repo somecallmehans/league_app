@@ -354,7 +354,9 @@ function RoundDisplay({ roundId, previousRoundId, sessionId, completed }) {
     ? constructParams(roundId, previousRoundId)
     : skipToken;
   const token = roundId ? roundId : skipToken;
-  const { data: pods, isLoading: podsLoading } = useGetPodsQuery(token);
+  const { data: pods, isLoading: podsLoading } = useGetPodsQuery(
+    roundId ? { roundId, includeAdminParticipantFields: true } : skipToken
+  );
   const { data: signIns, isLoading: signInsLoading } =
     useGetSigninsQuery(params);
 

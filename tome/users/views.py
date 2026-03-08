@@ -25,6 +25,7 @@ from django.contrib.auth.password_validation import validate_password
 
 from utils.decorators import require_user_code
 from .models import Participants, SessionToken, Decklists, DecklistsAchievements
+from .helpers import check_for_bad_words
 from stores.models import StoreParticipant
 from .serializers import ParticipantsSerializer
 from .queries import (
@@ -42,12 +43,26 @@ from .queries import (
 logger = logging.getLogger(__name__)
 
 
+def _include_admin_participant_fields(request):
+    return (
+        getattr(request, "user", None) is not None
+        and request.user.is_authenticated
+        and request.query_params.get("include_admin_participant_fields") == "true"
+    )
+
+
 @api_view(["GET"])
+@authentication_classes([JWTAuthentication])
 def get_all_participants(request, id=None, **kwargs):
     filters = {"deleted": False, "storeparticipant__store_id": request.store_id}
     if id:
         filters["id"] = id
-    data = list(Participants.objects.filter(**filters).values("id", "name"))
+    if _include_admin_participant_fields(request):
+        data = list(
+            Participants.objects.filter(**filters).values("id", "name", "display_name")
+        )
+    else:
+        data = list(Participants.objects.filter(**filters).values("id", "display_name"))
     return Response(data, status=status.HTTP_200_OK)
 
 
@@ -66,6 +81,7 @@ def upsert_participant(request, **kwargs):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+    display_name = body.get("display_name")
     if id:
         try:
             participant = Participants.objects.get(id=id)
@@ -73,8 +89,39 @@ def upsert_participant(request, **kwargs):
             return Response(
                 {"message": "Participant not found"}, status=status.HTTP_400_BAD_REQUEST
             )
-        if name:
+        if name is not None:
+            if len(name) < 2:
+                return Response(
+                    {"message": "Name must be at least 2 characters."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if check_for_bad_words(name):
+                return Response(
+                    {"message": "Invalid name."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
             participant.name = name
+        if display_name is not None:
+            if len(display_name) < 2:
+                return Response(
+                    {"message": "Display name must be at least 2 characters."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if check_for_bad_words(display_name):
+                return Response(
+                    {"message": "Invalid display name."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if (
+                Participants.objects.filter(display_name=display_name)
+                .exclude(id=participant.id)
+                .exists()
+            ):
+                return Response(
+                    {"message": "Display name is already in use."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            participant.display_name = display_name
         if deleted:
             participant.deleted = True
         participant.save()
@@ -82,7 +129,35 @@ def upsert_participant(request, **kwargs):
             {"message": "Updated successfully"}, status=status.HTTP_201_CREATED
         )
 
-    participant = Participants.objects.create(name=name)
+    if len(name) < 2:
+        return Response(
+            {"message": "Name must be at least 2 characters."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    if check_for_bad_words(name):
+        return Response(
+            {"message": "Invalid name."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    effective_display_name = display_name if display_name else name
+    if len(effective_display_name) < 2:
+        return Response(
+            {"message": "Display name must be at least 2 characters."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    if check_for_bad_words(effective_display_name):
+        return Response(
+            {"message": "Invalid display name."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    if Participants.objects.filter(display_name=effective_display_name).exists():
+        return Response(
+            {"message": "Display name is already in use."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    participant = Participants.objects.create(
+        name=name, display_name=effective_display_name
+    )
     StoreParticipant.objects.create(participant=participant, store_id=request.store_id)
     serializer = ParticipantsSerializer(participant)
 

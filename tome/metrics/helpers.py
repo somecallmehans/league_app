@@ -116,7 +116,7 @@ class MetricsCalculator:
         try:
             winner_map = defaultdict(int)
             for winner in winners:
-                winner_map[winner["participants__name"]] += 1
+                winner_map[winner["participants__display_name"]] += 1
             max_wins = max(winner_map.values(), default=0)
             self.metrics["big_winners"] = [
                 {"name": participant, "wins": wins}
@@ -147,7 +147,7 @@ class MetricsCalculator:
             self.metrics["big_earner"] = (
                 ParticipantAchievements.objects.filter(filters)
                 .select_related("round")
-                .values("participant_id", "participant__name")
+                .values("participant_id", "participant__display_name")
                 .annotate(total_points=Sum("earned_points"))
                 .order_by("-total_points")
                 .first()
@@ -183,7 +183,7 @@ class MetricsCalculator:
             for winner in winners:
                 if winner["name"] and winner["name"] != "UNKNOWN":
                     commander_wins[winner["name"]] += 1
-                participant_wins[winner["participants__name"]] += 1
+                participant_wins[winner["participants__display_name"]] += 1
             self.metrics["common_commanders"] = dict(
                 Counter(commander_wins).most_common(5)
             )
@@ -204,7 +204,7 @@ class MetricsCalculator:
         unique = defaultdict(set)
 
         for achievement in achievements:
-            player_name = achievement["participant__name"]
+            player_name = achievement["participant__display_name"]
             points = achievement["earned_points"]
             slug = achievement.get("achievement__slug")
             rnd = str(achievement["round_id"])
@@ -294,7 +294,7 @@ class MetricsCalculator:
             winners = list(
                 WinningCommanders.objects.filter(winners_filters)
                 .select_related("color", "participants", "pods")
-                .values("name", "color__symbol", "participants__name")
+                .values("name", "color__symbol", "participants__display_name")
             )
 
             achievements = list(
@@ -316,7 +316,7 @@ class MetricsCalculator:
                     "achievement__point_value",
                     "achievement__parent__name",
                     "scalable_term__term_display",
-                    "participant__name",
+                    "participant__display_name",
                     "round__round_number",
                     "round__starts_at",
                 )
@@ -493,7 +493,7 @@ class IndividualMetricsCalculator:
         ).count()
 
         return {
-            "participant_name": self.participant_obj.name,
+            "participant_name": self.participant_obj.display_name,
             "avg_win_points": self.calculate_average_win_points(win_count),
             "win_number": win_count,
             "attendance": len(self.participant_pods),

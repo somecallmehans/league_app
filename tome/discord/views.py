@@ -434,7 +434,7 @@ def check_join_status(request):
     payload = {
         "is_linked": True,
         "participant_id": participant.id,
-        "participant_name": participant.name,
+        "participant_name": participant.display_name,
         "in_store": in_store,
         "store_id": request.store_id,
         "store_name": store.name,
@@ -463,14 +463,17 @@ def find_participants(request):
         )
     participants = (
         Participants.objects.filter(
-            discord_user_id__isnull=True, name__icontains=raw_query, deleted=False
+            discord_user_id__isnull=True,
+            deleted=False,
         )
+        .filter(Q(name__icontains=raw_query) | Q(display_name__icontains=raw_query))
         .distinct()
-        .order_by("name")[:25]
-        .values("id", "name")
+        .order_by("display_name")[:25]
+        .values("id", "display_name")
     )
+    matches = [{"id": r["id"], "name": r["display_name"]} for r in participants]
     return Response(
-        {"matches": list(participants)},
+        {"matches": matches},
         status=status.HTTP_200_OK,
     )
 
@@ -528,6 +531,7 @@ def register_and_join(request):
         if not new:
             new = Participants.objects.create(
                 name=name,
+                display_name=name,
                 discord_user_id=int(duid),
             )
             created = True
@@ -539,7 +543,7 @@ def register_and_join(request):
 
     payload = {
         "participant_id": new.id,
-        "participant_name": new.name,
+        "participant_name": new.display_name,
         "code": new.code,
         "linked": True,
         "in_store": True,
@@ -600,7 +604,7 @@ def ensure_store_membership(request):
 
     payload = {
         "participant_id": participant.id,
-        "participant_name": participant.name,
+        "participant_name": participant.display_name,
         "in_store": True,
         "store_name": store.name,
         "created_store_membership": created,
@@ -609,3 +613,170 @@ def ensure_store_membership(request):
     http_status = status.HTTP_201_CREATED if created else status.HTTP_200_OK
 
     return Response(payload, status=http_status)
+
+
+@require_service_token
+@require_discord_store
+@api_view([POST])
+def update_name(request):
+    """
+    Allow a linked Discord user to update their display_name and/or name.
+    At least one of display_name or name must be provided.
+    """
+    duid = request.data.get("discord_user_id")
+    display_name = (request.data.get("display_name") or "").strip() or None
+    name = (request.data.get("name") or "").strip() or None
+
+    logger.info(
+        "Update name request received for discord_user_id=%s (name=%s, display_name=%s)",
+        duid,
+        "***" if name else None,
+        "***" if display_name else None,
+    )
+
+    if not duid:
+        logger.warning("Update name failed: discord_user_id not provided.")
+        return Response(
+            {"message": "Discord user id not provided."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if not display_name and not name:
+        logger.warning(
+            "Update name failed for duid=%s: at least one of display_name or name required.",
+            duid,
+        )
+        return Response(
+            {"message": "At least one of display_name or name is required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    participant = Participants.objects.filter(
+        discord_user_id=int(duid), deleted=False
+    ).first()
+
+    if not participant:
+        logger.warning(
+            "Update name failed for duid=%s: discord account not linked to any participant.",
+            duid,
+        )
+        return Response(
+            {"message": "Discord account is not linked to any participant."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    if name is not None:
+        if len(name) < 2:
+            logger.warning(
+                "Update name failed for duid=%s (participant_id=%s): name too short.",
+                duid,
+                participant.id,
+            )
+            return Response(
+                {"message": "Name must be at least 2 characters."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if check_for_bad_words(name):
+            logger.warning(
+                "Update name failed for duid=%s (participant_id=%s): invalid name (NAUGHTY WORD).",
+                duid,
+                participant.id,
+            )
+            return Response(
+                {"message": "Invalid name."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        participant.name = name
+
+    if display_name is not None:
+        if len(display_name) < 2:
+            logger.warning(
+                "Update name failed for duid=%s (participant_id=%s): display_name too short.",
+                duid,
+                participant.id,
+            )
+            return Response(
+                {"message": "Display name must be at least 2 characters."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if check_for_bad_words(display_name):
+            logger.warning(
+                "Update name failed for duid=%s (participant_id=%s): invalid display_name (profanity).",
+                duid,
+                participant.id,
+            )
+            return Response(
+                {"message": "Invalid display name."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if (
+            Participants.objects.filter(display_name=display_name)
+            .exclude(id=participant.id)
+            .exists()
+        ):
+            logger.warning(
+                "Update name failed for duid=%s (participant_id=%s): display_name already in use.",
+                duid,
+                participant.id,
+            )
+            return Response(
+                {"message": "Display name is already in use."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        participant.display_name = display_name
+
+    participant.save()
+    logger.info(
+        "Update name succeeded for duid=%s participant_id=%s.",
+        duid,
+        participant.id,
+    )
+
+    return Response(
+        {
+            "participant_id": participant.id,
+            "name": participant.name,
+            "display_name": participant.display_name,
+        },
+        status=status.HTTP_200_OK,
+    )
+
+
+@require_service_token
+@require_discord_store
+@api_view([GET])
+def get_current_names(request):
+    """
+    Return the current name and display_name for the participant linked to the
+    given discord_user_id. Used by the bot to pre-fill the /updatename modal.
+    """
+    duid = request.query_params.get("discord_user_id")
+    if not duid:
+        return Response(
+            {"message": "discord_user_id query parameter required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    try:
+        duid = int(duid)
+    except (TypeError, ValueError):
+        return Response(
+            {"message": "Invalid discord_user_id."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    participant = (
+        Participants.objects.filter(discord_user_id=duid, deleted=False)
+        .values("name", "display_name")
+        .first()
+    )
+    if not participant:
+        return Response(
+            {"message": "No linked participant found."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+    return Response(
+        {
+            "name": participant["name"] or "",
+            "display_name": participant["display_name"] or "",
+        },
+        status=status.HTTP_200_OK,
+    )

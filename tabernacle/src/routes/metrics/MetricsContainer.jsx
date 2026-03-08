@@ -239,7 +239,7 @@ function Page() {
         >
           <MetricBlock
             data={big_earner}
-            mainKey="participant__name"
+            mainKey="participant__display_name"
             subtitleKey="total_points"
           />
         </MetricWrapper>

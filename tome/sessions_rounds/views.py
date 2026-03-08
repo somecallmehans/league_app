@@ -189,7 +189,10 @@ def begin_round(request, **kwargs):
             participants=all_participants, round_id=round_id, store_id=request.store_id
         ),
         many=True,
-        context={"store_id": request.store_id},
+        context={
+            "store_id": request.store_id,
+            "include_admin_fields": True,
+        },
     ).data
 
     return Response(pods, status=status.HTTP_201_CREATED)
@@ -220,7 +223,16 @@ def get_round_participants(request, round, **kwargs):
     )
 
 
+def _include_admin_participant_fields(request):
+    return (
+        getattr(request, "user", None) is not None
+        and request.user.is_authenticated
+        and request.query_params.get("include_admin_participant_fields") == "true"
+    )
+
+
 @api_view([GET])
+@authentication_classes([JWTAuthentication])
 @require_store
 def get_pods(request, round, **kwargs):
     """Get the pods that were made for a given round."""
@@ -250,6 +262,7 @@ def get_pods(request, round, **kwargs):
             "round_id": round,
             "mm_yy": round_obj.session.month_year,
             "store_id": request.store_id,
+            "include_admin_fields": _include_admin_participant_fields(request),
         },
     ).data
 
@@ -268,14 +281,14 @@ def get_pods(request, round, **kwargs):
                 }
             )
 
-        pod_data["participants"].append(
-            {
-                "participant_id": entry["participant_id"],
-                "name": entry["name"],
-                "total_points": entry["total_points"],
-                "round_points": entry["round_points"],
-            }
-        )
+        participant_data = {
+            "participant_id": entry["participant_id"],
+            "name": entry["name"],
+            "display_name": entry["display_name"],
+            "total_points": entry["total_points"],
+            "round_points": entry["round_points"],
+        }
+        pod_data["participants"].append(participant_data)
 
     return Response(pod_map, status=status.HTTP_200_OK)
 
@@ -354,13 +367,13 @@ def get_all_rounds(request, participant_id=None, **kwargs):
 
 
 @api_view([GET])
+@authentication_classes([JWTAuthentication])
+@require_store
 def get_participant_recent_pods(request, participant_id, mm_yy=None, **kwargs):
     """
     Get pods for the given participant for all of the rounds they were apart of
     this month.
-
     """
-
     if not mm_yy:
         today = datetime.today()
         mm_yy = today.strftime("%m-%y")
@@ -396,6 +409,7 @@ def get_participant_recent_pods(request, participant_id, mm_yy=None, **kwargs):
     ).values("pods_id", "participants_id", "name")
 
     winners_dict = {w["pods_id"]: w for w in winners}
+    include_admin = _include_admin_participant_fields(request)
 
     out = defaultdict(list)
     for pod in participant_pods:
@@ -405,6 +419,21 @@ def get_participant_recent_pods(request, participant_id, mm_yy=None, **kwargs):
 
         participants = pod.podsparticipants_set.all()
 
+        def participant_entry(p):
+            entry = {
+                "id": p.participants.id,
+                "name": p.participants.display_name,
+                "display_name": p.participants.display_name,
+                "winner": (
+                    True
+                    if winner and winner["participants_id"] == p.participants.id
+                    else False
+                ),
+            }
+            if include_admin:
+                entry["name"] = p.participants.name
+            return entry
+
         out[occurred.strftime("%m/%d/%Y")].append(
             {
                 "id": pod_id,
@@ -412,18 +441,7 @@ def get_participant_recent_pods(request, participant_id, mm_yy=None, **kwargs):
                 "commander_name": (
                     winner["name"] if winner else "Commander Not Reported"
                 ),
-                "participants": [
-                    {
-                        "id": p.participants.id,
-                        "name": p.participants.name,
-                        "winner": (
-                            True
-                            if winner and winner["participants_id"] == p.participants.id
-                            else False
-                        ),
-                    }
-                    for p in participants
-                ],
+                "participants": [participant_entry(p) for p in participants],
             }
         )
 
@@ -489,7 +507,12 @@ def signin_counts(request, **kwargs):
             round_id__in=[round_one, round_two], store_id=request.store_id
         )
         .select_related("participant")
-        .values("participant_id", "participant__name", "round_id")
+        .values(
+            "participant_id",
+            "participant__name",
+            "participant__display_name",
+            "round_id",
+        )
     )
 
     out = {
@@ -500,18 +523,19 @@ def signin_counts(request, **kwargs):
     cap1, cap2 = get_round_caps(request.store_id)
 
     for q in query:
+        participant_data = {
+            "id": q["participant_id"],
+            "name": q["participant__name"],
+            "display_name": q["participant__display_name"],
+        }
         if q["round_id"] == int(round_one):
-            out[round_one]["participants"].append(
-                {"id": q["participant_id"], "name": q["participant__name"]}
-            )
+            out[round_one]["participants"].append(participant_data)
             out[round_one]["count"] += 1
 
             if out[round_one]["count"] >= cap1:
                 out[round_one]["is_full"] = True
         else:
-            out[round_two]["participants"].append(
-                {"id": q["participant_id"], "name": q["participant__name"]}
-            )
+            out[round_two]["participants"].append(participant_data)
             out[round_two]["count"] += 1
             if out[round_two]["count"] >= cap2:
                 out[round_two]["is_full"] = True

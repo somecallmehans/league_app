@@ -14,7 +14,7 @@ const PodRow = ({ participant_id, occurred, rounds }) => (
               Round {round_number} - {commander_name}
             </div>
             <div className="flex flex-wrap gap-2 ">
-              {participants.map(({ id, name, winner }) => (
+              {participants.map(({ id, name, display_name, winner }) => (
                 <span
                   key={id}
                   className={`${
@@ -26,7 +26,7 @@ const PodRow = ({ participant_id, occurred, rounds }) => (
                   }`}
                 >
                   {winner && <i className="fa-solid fa-trophy mr-1" />}
-                  {name}
+                  {display_name ?? name}
                 </span>
               ))}
             </div>
