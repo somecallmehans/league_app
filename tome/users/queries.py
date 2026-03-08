@@ -466,11 +466,28 @@ def validate_inputs(name: Optional[str], url: Optional[str], pid: int) -> None:
             )
 
 
+def validate_required_decklist_fields(body) -> None:
+    """Ensure required decklist fields are present before create."""
+    missing = []
+    if not body.get("name"):
+        missing.append("name")
+    if not body.get("url"):
+        missing.append("url")
+    if body.get("commander") in (None, ""):
+        missing.append("commander")
+
+    if missing:
+        raise ValidationError(
+            {"url": f"Missing required field(s): {', '.join(missing)}"}
+        )
+
+
 def post_decklists(body, pid, store_id) -> None:
     """Post a new decklist"""
     achievements = body.get("achievements", [])
 
     try:
+        validate_required_decklist_fields(body)
         validate_inputs(body["name"], body["url"], pid)
         deck = Decklists.objects.create(
             name=body["name"],
