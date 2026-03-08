@@ -22,6 +22,7 @@ import {
   Selector,
   CheckBoxInput,
 } from "../../components/FormInputs";
+import CalloutCard from "../../components/CalloutCard";
 import { textValidate } from "../../components/Modals/SignInModal";
 import StandardButton from "../../components/Button";
 import { deriveAchievementKey } from "../leagueSession/AchievementCart";
@@ -236,36 +237,45 @@ export function DecklistForm({
   return (
     <div className={`${wrapperClasses}`}>
       <Back />
-      <details className="w-full md:w-3/4 my-2">
-        <summary className="cursor-pointer text-lg font-medium text-gray-800">
-          Click here for submission instructions
-        </summary>
+      <div className="my-2 grid gap-3 md:grid-cols-2">
+        <CalloutCard
+          tag="Important"
+          title="Before you submit"
+          tagClassName="bg-emerald-600"
+          items={[
+            "Add at least one achievement that your deck qualifies for before submitting.",
+            showCode ? (
+              <>
+                Enter your verification code. Get it by typing{" "}
+                <span className="font-semibold">/mycode</span> in league
+                Discord.
+              </>
+            ) : (
+              "No verification code is needed when editing an existing decklist."
+            ),
+            <span className="font-bold text-rose-700">
+              Submitting a decklist is optional and <u>not required</u> to
+              participate in Commander League.
+            </span>,
+          ]}
+        />
 
-        <div className="mt-2 text-xs md:text-sm text-gray-700 space-y-2">
-          <p>
-            Enter a name for your deck, paste the decklist link, and select the
-            commander(s) used.
-          </p>
-
-          <p>
-            Search for and choose any <span>deckbuilding achievements</span>{" "}
-            your deck earns. Color identity achievements are added
-            automatically.
-          </p>
-
-          <p>
-            Choose whether your name should appear on the decklist page as the
-            deck’s creator.
-          </p>
-
-          <p>
-            To submit the decklist, enter your personal verification code. You
-            can get this code by typing{" "}
-            <span className="font-semibold">/mycode</span> in the league
-            Discord.
-          </p>
-        </div>
-      </details>
+        <CalloutCard
+          tag="Info"
+          title="How to submit"
+          tagClassName="bg-violet-600"
+          items={[
+            "Enter a deck name, paste the decklist URL, and select your commander(s).",
+            <>
+              Choose any{" "}
+              <span className="font-medium">deckbuilding achievements</span>{" "}
+              your deck earns. Color identity achievements are added
+              automatically.
+            </>,
+            "Choose whether your name appears on the decklist page as creator credit.",
+          ]}
+        />
+      </div>
       <div className="mx-auto w-full">
         <FormProvider {...methods}>
           <form onSubmit={handleSubmit(onSubmit)}>

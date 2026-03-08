@@ -3,6 +3,7 @@ import { useGetScalableTermsQuery } from "../../api/apiSlice";
 import { Input } from "@headlessui/react";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import PageTitle from "../../components/PageTitle";
+import CalloutCard from "../../components/CalloutCard";
 import { SimpleSelect } from "../crud/CrudComponents";
 
 const TYPE_COLORS = [
@@ -108,11 +109,18 @@ export default function ScalableTermsPage() {
   return (
     <div className="p-4 md:p-8 pb-24 sm:pb-8">
       <PageTitle title="Scalable Terms" />
-      <div className="text-xs md:text-sm font-light text-gray-800 italic w-full md:max-w-2xl mb-2">
-        This is a comprehensive list of all terms that apply for our scalable
-        achievements. A "scalable" achievement is awarded for winning with a
-        deck that includes a number of cards referencing a shared mechanic or
-        quality. Filter by type or search by term name.
+      <div className="my-2 w-full md:max-w-3/4">
+        <CalloutCard
+          tag="Info"
+          title="How scalable terms work"
+          tagClassName="bg-violet-600"
+          items={[
+            "This is a comprehensive list of all terms that apply to scalable achievements.",
+            'A "scalable" achievement is awarded for winning with a deck that includes cards referencing a shared mechanic or quality.',
+            "Scalable tiers do not stack. E.x. if you qualify for 33 of a term, you do not also earn 22 and 11.",
+            "Filter by type or search by term name.",
+          ]}
+        />
       </div>
 
       {/* Mobile: fixed bottom filter bar */}
