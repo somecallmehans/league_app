@@ -69,6 +69,10 @@ import {
   type GetDecklistResponse,
   type SingleDecklist,
 } from "../types/decklist_schemas";
+import {
+  StoreListResponseSchema,
+  type StoreListResponse,
+} from "../types/store_schemas";
 import { type DecklistParams } from "../routes/home/Decklists";
 
 type Id = number | string;
@@ -326,5 +330,10 @@ export default (builder: ApiBuilder) => ({
   }),
   getStore: builder.query<{ name?: string; external_url?: string }, void>({
     query: () => "store/",
+  }),
+  getStores: builder.query<StoreListResponse, void>({
+    query: () => "store_list/",
+    transformResponse: (raw: unknown) =>
+      safeParseWithFallback(StoreListResponseSchema, raw, []),
   }),
 });

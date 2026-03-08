@@ -71,8 +71,13 @@ export function getErrorMessage(err: MaybeRTKQError): string {
 
 const baseQueryWithReauth: BaseBQ = async (args, api, extraOptions) => {
   let result = await baseQuery(args, api, extraOptions);
+  const skipRefresh =
+    typeof extraOptions === "object" &&
+    extraOptions !== null &&
+    "skipRefresh" in extraOptions &&
+    !!(extraOptions as { skipRefresh?: boolean }).skipRefresh;
 
-  if (result.error?.status === 401 && !extraOptions?.skipRefresh) {
+  if (result.error?.status === 401 && !skipRefresh) {
     const refreshResult = await baseQuery(
       {
         url: "api/token/refresh/",
@@ -165,6 +170,7 @@ export const {
   useGetParticipantDecklistsQuery,
   useGetDecklistByIdQuery,
   useGetStoreQuery,
+  useGetStoresQuery,
 
   // POSTS
   usePostCreateSessionMutation,
