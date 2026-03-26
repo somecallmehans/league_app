@@ -154,6 +154,7 @@ export default function Page() {
   );
 
   const participantsList = useMemo(() => {
+    if (!participants) return [];
     return participants.map(({ name, id }) => ({ label: name, value: id }));
   }, [participants]);
 
