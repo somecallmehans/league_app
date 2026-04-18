@@ -43,7 +43,7 @@ export default function WinnerFields() {
 
   const { colorName } = useCommanderColors(
     commander?.color_id,
-    partner?.color_id
+    partner?.color_id,
   );
 
   return (

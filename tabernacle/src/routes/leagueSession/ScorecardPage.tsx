@@ -18,6 +18,7 @@ import StandardButton from "../../components/Button";
 import WinnerFields from "./WinnerFields";
 import PlayerFields from "./PlayerFields";
 import AchievementCart from "./AchievementCart";
+import MobileStepWizard from "./MobileStepWizard";
 import { skipToken } from "@reduxjs/toolkit/query";
 
 export const normalize = (items?: { id: number; name?: string }[]) =>
@@ -33,7 +34,7 @@ export const normalizeDecklistAchievements = (
         name?: string;
         tempId?: string;
       }
-  >
+  >,
 ): Array<number | { achievement_id: number; scalable_term_id: number }> =>
   items?.map((item) => {
     if ("achievement_id" in item && item.achievement_id != null) {
@@ -54,7 +55,7 @@ export const normalizeWinnerAchievements = (
         name?: string;
         tempId?: string;
       }
-  >
+  >,
 ) =>
   items?.map((item) => {
     if ("achievement_id" in item && item.achievement_id != null) {
@@ -156,10 +157,13 @@ export default function ScorecardPage() {
     if (scoresheet) {
       const winnerAchievements = scoresheet["winner-achievements"] ?? [];
       const withTempIds = winnerAchievements.map(
-        (item: { id?: number; name?: string; achievement_id?: number; scalable_term_id?: number; tempId?: string }) =>
-          item.tempId
-            ? item
-            : { ...item, tempId: crypto.randomUUID() }
+        (item: {
+          id?: number;
+          name?: string;
+          achievement_id?: number;
+          scalable_term_id?: number;
+          tempId?: string;
+        }) => (item.tempId ? item : { ...item, tempId: crypto.randomUUID() }),
       );
       reset({
         ...scoresheet,
@@ -182,7 +186,7 @@ export default function ScorecardPage() {
       "partner-commander": clean["partner-commander"]?.id,
       "companion-commander": clean["companion-commander"]?.id,
       "winner-achievements": normalizeWinnerAchievements(
-        clean["winner-achievements"]
+        clean["winner-achievements"],
       ),
       round_id,
       pod_id,
@@ -201,9 +205,9 @@ export default function ScorecardPage() {
   };
 
   return (
-    <div className="p-4 md:p-8 min-h-screen flex flex-col">
-      <div className="mx-auto">
-        <div className="bg-white border rounded-xl shadow-sm p-4 md:p-6 flex flex-col min-h-0 flex-1">
+    <div className="p-4 md:p-8 min-h-screen flex flex-col w-full">
+      <div className="mx-auto w-full">
+        <div className="bg-white border rounded-xl shadow-sm p-4 md:p-6 flex flex-col min-h-0 flex-1 w-full">
           <div className="flex flex-col md:flex-row md:items-center gap-3">
             <Back />
 
@@ -225,22 +229,30 @@ export default function ScorecardPage() {
                 onSubmit={handleSubmit(handleFormSubmit)}
                 className="flex flex-col min-h-0 flex-1"
               >
-                <SubmissionToggle />
-                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2 flex-1 min-h-0 items-stretch">
-                  <div className="flex flex-col h-full min-h-0">
-                    <PlayerFields />
-                    <WinnerFields />
-                  </div>
-                  <div className="flex flex-col h-full min-h-0">
-                    <AchievementCart />
-                  </div>
+                {/* Mobile Wizard - visible only on small screens */}
+                <div className="md:hidden flex flex-col flex-1 min-h-0">
+                  <MobileStepWizard />
                 </div>
-                <div className="mt-4 bg-white/90 backdrop-blur border-t py-3 flex justify-end">
-                  <StandardButton
-                    title="Submit"
-                    type="submit"
-                    disabled={isSubmitting}
-                  />
+
+                {/* Desktop Layout - visible only on medium+ screens */}
+                <div className="hidden md:flex md:flex-col md:flex-1 md:min-h-0">
+                  <SubmissionToggle />
+                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2 flex-1 min-h-0 items-stretch">
+                    <div className="flex flex-col h-full min-h-0">
+                      <PlayerFields />
+                      <WinnerFields />
+                    </div>
+                    <div className="flex flex-col h-full min-h-0">
+                      <AchievementCart />
+                    </div>
+                  </div>
+                  <div className="mt-4 bg-white/90 backdrop-blur border-t py-3 flex justify-end">
+                    <StandardButton
+                      title="Submit"
+                      type="submit"
+                      disabled={isSubmitting}
+                    />
+                  </div>
                 </div>
               </form>
             </FormProvider>

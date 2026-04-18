@@ -47,11 +47,13 @@ function CommanderFields() {
   const endInDraw = useWatch({ control, name: "end-draw" });
 
   return (
-    <div>
-      <h2 className="text-lg font-semibold text-zinc-700">Deckbuilding</h2>
-      <div className="border-t space-y-2 " />
-      <div className="mt-2  italic">
-        <div className="text-sm  mt-1">Commander</div>
+    <div className="">
+      <h2 className="text-lg font-semibold text-zinc-700 space-y-2">
+        Deckbuilding
+      </h2>
+      <div className="border-t space-y-2" />
+      <div>
+        <div className="text-sm font-medium text-zinc-700">Commander</div>
         <Selector
           name="winner-commander"
           placeholder="Winner's Commander"
@@ -77,9 +79,10 @@ function CommanderFields() {
         />
       </div>
 
-      <div className="mt-2 italic">
-        <div className="text-sm  mt-1">Partner (Optional)</div>
-
+      <div className="space-y-2">
+        <div className="text-sm font-medium text-zinc-700">
+          Partner (Optional)
+        </div>
         <Selector
           name="partner-commander"
           placeholder="Partner/Background/Companion"
@@ -99,8 +102,10 @@ function CommanderFields() {
         />
       </div>
 
-      <div className="mt-2 italic">
-        <div className="text-sm  mt-1">Companion (Optional)</div>
+      <div className="space-y-2">
+        <div className="text-sm font-medium text-zinc-700">
+          Companion (Optional)
+        </div>
         <Selector
           name="companion-commander"
           placeholder="Companion"
@@ -210,17 +215,18 @@ function AchievementCart() {
   const endInDraw = useWatch({ control, name: "end-draw" });
 
   return (
-    <div className="flex flex-col h-full min-h-0">
-      <div className="text-sm  mt-1">Deckbuilding Achievements</div>
-      <div className="flex justify-between gap-2 mb-2 shrink-0">
+    <div className="flex flex-col h-full min-h-0 space-y-3">
+      <div className="text-sm font-medium text-zinc-700">
+        Deckbuilding Achievements
+      </div>
+      <div className="shrink-0">
         <Selector
           name="picker"
           options={filteredAchievements || []}
           control={control}
-          placeholder="Deck Building Achievements"
+          placeholder="Add Achievement"
           getOptionLabel={(option) => option.name}
           getOptionValue={(option) => deriveAchievementKey(option)}
-          containerClasses="grow mt-2"
           isClearable
           onChange={(selected) => {
             if (!selected) {
@@ -261,60 +267,67 @@ function AchievementCart() {
           disabled={endInDraw}
         />
       </div>
-      <div className="h-full min-h-0 bg-zinc-100 p-4 rounded-lg border drop-shadow-md flex flex-col gap-2 overflow-y-auto">
-        {cart.map(
-          (
-            c: {
-              tempId?: string;
-              id?: number;
-              achievement_id?: number;
-              scalable_term_id?: number;
-              name: string | undefined;
-            },
-            idx: number,
-          ) => (
-            <div
-              className="flex justify-between bg-white rounded-lg p-2 shadow-md  items-center"
-              key={deriveAchievementKey(c, idx)}
-            >
-              <div className="text-sm">{c.name}</div>
-              <span aria-hidden className="flex-1 h-4  mx-1" />
-              <i
-                className="fa fa-trash text-zinc-500 hover:text-red-500"
-                onClick={() => {
-                  setValue(
-                    "winner-achievements",
-                    cart.filter(
-                      (_: AchievementKeyItem, i: number) => i !== idx,
-                    ),
-                  );
-                }}
-              />
-            </div>
-          ),
+      <div className="h-full min-h-0 bg-zinc-100 p-3 md:p-4 rounded-lg border drop-shadow-md flex flex-col gap-2 overflow-y-auto">
+        {cart.length === 0 ? (
+          <div className="text-sm text-zinc-500 text-center py-4">
+            No achievements added yet
+          </div>
+        ) : (
+          cart.map(
+            (
+              c: {
+                tempId?: string;
+                id?: number;
+                achievement_id?: number;
+                scalable_term_id?: number;
+                name: string | undefined;
+              },
+              idx: number,
+            ) => (
+              <div
+                className="flex justify-between bg-white rounded-lg p-3 shadow-sm items-center gap-2"
+                key={deriveAchievementKey(c, idx)}
+              >
+                <div className="text-sm flex-1">{c.name}</div>
+                <i
+                  className="fa fa-trash text-zinc-500 hover:text-red-500 cursor-pointer flex-shrink-0"
+                  onClick={() => {
+                    setValue(
+                      "winner-achievements",
+                      cart.filter(
+                        (_: AchievementKeyItem, i: number) => i !== idx,
+                      ),
+                    );
+                  }}
+                />
+              </div>
+            ),
+          )
         )}
       </div>
     </div>
   );
 }
 
+export { AchievementCart, CommanderFields, DecklistCodeField };
+
 export default function AchievementCartGate() {
   const { control } = useFormContext();
   const mode = useWatch({ control, name: "submissionMode" });
   return (
-    <div className="flex flex-col h-full min-h-0">
-      <div className="shrink-0 space-y-4">
+    <div className="flex flex-col h-full" style={{ minHeight: "400px" }}>
+      <div className="shrink-0 space-y-6">
         {(mode === "manual" || !mode) && <CommanderFields />}
 
         {mode === "decklist" && (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <DecklistCodeField />
             <CommanderFields />
           </div>
         )}
       </div>
 
-      <div className="h-full min-h-0 mt-2">
+      <div className="flex-1 min-h-0 mt-6">
         <AchievementCart />
       </div>
     </div>
