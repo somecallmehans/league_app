@@ -220,6 +220,14 @@ export default (builder: ApiBuilder) => ({
     }),
     invalidatesTags: ["Decklists", "PersonalDecklists"],
   }),
+  adminUpdateDecklist: builder.mutation<void, UpdateDecklistRequest>({
+    query: (body) => ({
+      url: "admin_update_decklist/",
+      method: "PUT",
+      body: body,
+    }),
+    invalidatesTags: ["AdminDecklists", "Decklists", "PersonalDecklists"],
+  }),
   upsertScalableTerm: builder.mutation<
     { id: number; term_display: string; type_id: number | null },
     { id?: number; term_display: string; type_id?: number | null; deleted?: boolean }

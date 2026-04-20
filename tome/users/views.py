@@ -24,6 +24,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib.auth.password_validation import validate_password
 
 from utils.decorators import require_user_code
+from utils.permissions import IsSuperUser
 from .models import Participants, SessionToken, Decklists, DecklistsAchievements
 from stores.models import StoreParticipant
 from .serializers import ParticipantsSerializer
@@ -37,6 +38,7 @@ from .queries import (
     maybe_get_session_token,
     get_single_decklist_by_id,
     validate_inputs,
+    validate_decklist_url_only,
 )
 
 logger = logging.getLogger(__name__)
@@ -400,4 +402,127 @@ def update_decklist(request, **kwargs):
             )
 
     logger.info("Decklist successfully edited")
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsSuperUser])
+def admin_get_decklists(request, **kwargs):
+    """List all non-deleted decklists for superuser management (JWT)."""
+    params = dict(request.query_params)
+    decklists = get_decklists(params=params, owner_id=None)
+    search = (request.query_params.get("search") or "").strip().lower()
+    if search:
+        decklists = [
+            d
+            for d in decklists
+            if search in (d.get("name") or "").lower()
+            or search in (d.get("participant_name") or "").lower()
+        ]
+    return Response(decklists)
+
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsSuperUser])
+def admin_decklist_by_id(request, **kwargs):
+    """Return one decklist by id for superuser editing (JWT)."""
+    decklist_id = request.query_params.get("decklist_id")
+    if not decklist_id:
+        return Response(
+            {"detail": "decklist_id is required"}, status=status.HTTP_400_BAD_REQUEST
+        )
+    try:
+        payload = get_single_decklist_by_id(decklist_id)
+    except ValidationError as e:
+        return Response(e.detail, status=status.HTTP_404_NOT_FOUND)
+    return Response(payload)
+
+
+@api_view(["PUT"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsSuperUser])
+def admin_update_decklist(request, **kwargs):
+    """Update any non-deleted decklist (superuser; no session cookie)."""
+    body = request.data or {}
+    decklist_id = body.get("id")
+    if not decklist_id:
+        return Response(
+            {"detail": "Decklist id is required"}, status=status.HTTP_400_BAD_REQUEST
+        )
+
+    if body.get("deleted"):
+        update_fields = {"deleted": body.get("deleted")}
+    else:
+        try:
+            validate_decklist_url_only(body.get("url"))
+        except ValidationError as e:
+            return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
+        update_fields = {
+            "name": body.get("name"),
+            "url": body.get("url"),
+            "commander_id": body.get("commander"),
+            "partner_id": body.get("partner"),
+            "companion_id": body.get("companion"),
+            "give_credit": body.get("give_credit", False),
+        }
+
+    update_fields = {k: v for k, v in update_fields.items()}
+
+    achievements = body.get("achievements", [])
+    if achievements is None:
+        achievements = []
+
+    achievement_rows = []
+    for a in achievements:
+        if isinstance(a, int):
+            achievement_rows.append({"achievement_id": a, "scalable_term_id": None})
+        elif isinstance(a, dict):
+            if (
+                a.get("achievement_id") is not None
+                and a.get("scalable_term_id") is not None
+            ):
+                achievement_rows.append(
+                    {
+                        "achievement_id": int(a["achievement_id"]),
+                        "scalable_term_id": int(a["scalable_term_id"]),
+                    }
+                )
+            elif a.get("id") is not None:
+                achievement_rows.append(
+                    {"achievement_id": int(a["id"]), "scalable_term_id": None}
+                )
+
+    with transaction.atomic():
+        deck = (
+            Decklists.objects.select_for_update()
+            .filter(id=decklist_id, deleted=False)
+            .first()
+        )
+        if not deck:
+            return Response(
+                {"detail": "Decklist not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        for field, value in update_fields.items():
+            setattr(deck, field, value)
+
+        deck.save()
+
+        DecklistsAchievements.objects.filter(decklist_id=deck.id).delete()
+
+        if achievement_rows:
+            DecklistsAchievements.objects.bulk_create(
+                [
+                    DecklistsAchievements(
+                        decklist_id=deck.id,
+                        achievement_id=row["achievement_id"],
+                        scalable_term_id=row["scalable_term_id"],
+                    )
+                    for row in achievement_rows
+                ]
+            )
+
+    logger.info("Admin decklist update successful for decklist %s", decklist_id)
     return Response(status=status.HTTP_204_NO_CONTENT)

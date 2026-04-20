@@ -432,15 +432,8 @@ def _normalize_url(raw: str) -> str:
     return raw
 
 
-def validate_inputs(name: Optional[str], url: Optional[str], pid: int) -> None:
-    """Check both inputs for 1. profanity and 2. make sure urls are on our allow list"""
-
-    if name and profanity.contains_profanity(name):
-        logger.info(f"Profanity identified for {name}, PID: {pid}")
-        raise ValidationError({"url": "Name cannot contain profanity"})
-    if url and profanity.contains_profanity(url):
-        logger.info(f"Profanity identified for {url}, PID: {pid}")
-        raise ValidationError({"url": "URL cannot contain profanity"})
+def validate_decklist_url_only(url: Optional[str]) -> None:
+    """Ensure decklist URL uses allowed scheme and host (Moxfield/Archidekt)."""
 
     if url:
         normalized = _normalize_url(url)
@@ -464,6 +457,19 @@ def validate_inputs(name: Optional[str], url: Optional[str], pid: int) -> None:
                     "url": "That site isn’t supported. Please use an approved decklist URL (Moxfield/Archidekt)."
                 }
             )
+
+
+def validate_inputs(name: Optional[str], url: Optional[str], pid: int) -> None:
+    """Check both inputs for 1. profanity and 2. make sure urls are on our allow list"""
+
+    if name and profanity.contains_profanity(name):
+        logger.info(f"Profanity identified for {name}, PID: {pid}")
+        raise ValidationError({"url": "Name cannot contain profanity"})
+    if url and profanity.contains_profanity(url):
+        logger.info(f"Profanity identified for {url}, PID: {pid}")
+        raise ValidationError({"url": "URL cannot contain profanity"})
+
+    validate_decklist_url_only(url)
 
 
 def validate_required_decklist_fields(body) -> None:

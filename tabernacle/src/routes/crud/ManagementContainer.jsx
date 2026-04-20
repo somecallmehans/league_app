@@ -11,6 +11,7 @@ import UpdatePoints from "./UpdatePoints";
 import LeagueConfiguration from "./LeagueConfiguration";
 import AccountPage from "./AccountPage";
 import LoadingSpinner from "../../components/LoadingSpinner";
+import AdminDecklistManagement from "./AdminDecklistManagement";
 
 const ReusableTab = ({ name }) => (
   <Tab
@@ -41,6 +42,7 @@ const CrudTabPanel = () => {
             <ReusableTab name="Achievements" />
             <ReusableTab name="Scalable Terms" />
             <ReusableTab name="Update Commanders" />
+            <ReusableTab name="Decklists" />
           </>
         )}
       </TabList>
@@ -68,6 +70,9 @@ const CrudTabPanel = () => {
             </TabPanel>
             <TabPanel>
               <InsertCommanderPage />
+            </TabPanel>
+            <TabPanel>
+              <AdminDecklistManagement />
             </TabPanel>
           </>
         )}

@@ -21,7 +21,7 @@ type WrapperProps = {
   children: React.ReactNode;
 };
 
-const EditPageWrapper = ({ title, countdown, children }: WrapperProps) => {
+export const EditPageWrapper = ({ title, countdown, children }: WrapperProps) => {
   return (
     <div className="p-2 md:p-8">
       <div className="flex justify-between ">

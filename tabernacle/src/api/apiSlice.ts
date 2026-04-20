@@ -122,6 +122,7 @@ export const apiSlice = createApi({
     "Scoresheet",
     "Decklists",
     "PersonalDecklists",
+    "AdminDecklists",
   ] as const,
   endpoints: (builder) => ({
     ...getRoutes(builder),
@@ -169,6 +170,8 @@ export const {
   useVerifyDecklistSessionQuery,
   useGetParticipantDecklistsQuery,
   useGetDecklistByIdQuery,
+  useGetAdminDecklistsQuery,
+  useGetAdminDecklistByIdQuery,
   useGetStoreQuery,
   useGetStoresQuery,
 
@@ -190,6 +193,7 @@ export const {
   usePostDecklistMutation,
   useExchangeTokensMutation,
   useUpdateDecklistMutation,
+  useAdminUpdateDecklistMutation,
   useUpsertScalableTermMutation,
   useCreateScalableTermTypeMutation,
 

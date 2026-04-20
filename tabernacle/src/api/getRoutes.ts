@@ -328,6 +328,22 @@ export default (builder: ApiBuilder) => ({
     query: ({ decklist_id }) => `decklist_by_id/?decklist_id=${decklist_id}`,
     providesTags: ["PersonalDecklists"],
   }),
+  getAdminDecklists: builder.query<
+    GetDecklistsResponse,
+    { search?: string } | void
+  >({
+    query: (arg) => {
+      const search = arg && "search" in arg && arg.search?.trim();
+      const q = search ? `?search=${encodeURIComponent(search)}` : "";
+      return `admin_decklists/${q}`;
+    },
+    providesTags: ["AdminDecklists"],
+  }),
+  getAdminDecklistById: builder.query<SingleDecklist, { decklist_id: string }>({
+    query: ({ decklist_id }) =>
+      `admin_decklist_by_id/?decklist_id=${decklist_id}`,
+    providesTags: ["AdminDecklists"],
+  }),
   getStore: builder.query<{ name?: string; external_url?: string }, void>({
     query: () => "store/",
   }),

@@ -64,8 +64,11 @@ type DecklistProps = {
   points: number;
   participant_name: string | null;
   code: string;
+  /** Used when `onSelect` is not set (external decklist URL or in-app path). */
   url: string;
   achievements: Achievement[];
+  /** When set, the main image area opens selection instead of navigating. */
+  onSelect?: () => void;
 };
 
 export const DecklistCard = ({
@@ -79,6 +82,7 @@ export const DecklistCard = ({
   code,
   url,
   achievements,
+  onSelect,
 }: DecklistProps) => {
   const [open, setOpen] = useState(false);
 
@@ -99,11 +103,23 @@ export const DecklistCard = ({
           {name}
         </div>
       </div>
-      <Link to={url} target="_blank" rel="noopener noreferrer">
-        <div className="relative w-full aspect-[1/1] sm:aspect-[4/3] overflow-hidden min-h-0">
-          <DecklistImages name={name} imgs={imgs} />
-        </div>
-      </Link>
+      {onSelect ? (
+        <button
+          type="button"
+          className="block w-full p-0 border-0 bg-transparent cursor-pointer text-left"
+          onClick={onSelect}
+        >
+          <div className="relative w-full aspect-[1/1] sm:aspect-[4/3] overflow-hidden min-h-0">
+            <DecklistImages name={name} imgs={imgs} />
+          </div>
+        </button>
+      ) : (
+        <Link to={url} target="_blank" rel="noopener noreferrer">
+          <div className="relative w-full aspect-[1/1] sm:aspect-[4/3] overflow-hidden min-h-0">
+            <DecklistImages name={name} imgs={imgs} />
+          </div>
+        </Link>
+      )}
       <div className="px-1 pt-1 pb-1.5 md:px-2 md:pt-2 md:pb-3">
         <div className="grid gap-0.5 md:gap-1.5">
           <div className="flex gap-1 md:gap-2">

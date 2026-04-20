@@ -11,6 +11,9 @@ from .views import (
     get_user_decklists,
     decklist_by_id,
     update_decklist,
+    admin_get_decklists,
+    admin_decklist_by_id,
+    admin_update_decklist,
 )
 
 urlpatterns = [
@@ -25,4 +28,7 @@ urlpatterns = [
     path("exchange/", exchange_tokens, name="exchange_tokens"),
     path("verify_token/", verify_session_token, name="verify_session_token"),
     path("participant_decklists/", get_user_decklists, name="get_user_decklists"),
+    path("admin_decklists/", admin_get_decklists, name="admin_get_decklists"),
+    path("admin_decklist_by_id/", admin_decklist_by_id, name="admin_decklist_by_id"),
+    path("admin_update_decklist/", admin_update_decklist, name="admin_update_decklist"),
 ]
