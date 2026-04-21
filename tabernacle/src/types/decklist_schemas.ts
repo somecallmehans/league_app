@@ -18,7 +18,8 @@ export type ScryfallImage = z.infer<typeof ScryfallImageSchema>;
 export const DecklistColorSchema = z.object({
   name: z.string(),
   symbol: z.string(),
-  points: z.number(),
+  /** Integer color-identity bonus, or the string `"Precon"` for precon decks. */
+  points: z.union([z.number(), z.literal("Precon")]),
 });
 export type DecklistColor = z.infer<typeof DecklistColorSchema>;
 
@@ -53,6 +54,16 @@ export type DecklistSummary = z.infer<typeof DecklistSummarySchema>;
 
 export const GetDecklistsResponseSchema = z.array(DecklistSummarySchema);
 export type GetDecklistsResponse = z.infer<typeof GetDecklistsResponseSchema>;
+
+export const PaginatedDecklistsResponseSchema = z.object({
+  results: GetDecklistsResponseSchema,
+  count: z.number().int().nonnegative(),
+  page: z.number().int().positive(),
+  page_size: z.number().int().positive(),
+});
+export type PaginatedDecklistsResponse = z.infer<
+  typeof PaginatedDecklistsResponseSchema
+>;
 
 export const SingleDecklistSchema = z.object({
   name: z.string().min(1),

@@ -163,14 +163,153 @@ export const DecklistCard = ({
 export type DecklistParams = {
   colors?: number | null;
   sort_order?: string | null;
+  page?: number;
+  page_size?: number;
 };
 
-function DecklistContainer() {
-  const [params, setParams] = useState<DecklistParams>({});
+function paginationRange(
+  current: number,
+  total: number,
+  delta = 1,
+): (number | "ellipsis")[] {
+  const range: number[] = [];
+  for (let i = 1; i <= total; i++) {
+    if (
+      i === 1 ||
+      i === total ||
+      (i >= current - delta && i <= current + delta)
+    ) {
+      range.push(i);
+    }
+  }
+  const withDots: (number | "ellipsis")[] = [];
+  let prev: number | undefined;
+  for (const i of range) {
+    if (prev !== undefined && i - prev > 1) {
+      withDots.push("ellipsis");
+    }
+    withDots.push(i);
+    prev = i;
+  }
+  return withDots;
+}
 
-  const token = Object.keys(params).length === 0 ? {} : params;
-  const { data: decklists, isLoading: decklistsLoading } =
-    useGetDecklistsQuery(token);
+function DeckPagination({
+  page,
+  totalPages,
+  onPageChange,
+}: {
+  page: number;
+  totalPages: number;
+  onPageChange: (p: number) => void;
+}) {
+  if (totalPages <= 1) return null;
+  const pageBtn =
+    "min-w-[2.25rem] px-2 py-1.5 text-sm font-semibold rounded-lg border border-stone-300 bg-white text-stone-800 hover:bg-sky-50";
+  const pageBtnActive =
+    "min-w-[2.25rem] px-2 py-1.5 text-sm font-semibold rounded-lg border border-sky-500 bg-sky-500 text-white";
+  const navBtn =
+    "px-3 py-1.5 text-sm font-semibold rounded-lg border border-sky-600 bg-sky-600 text-white hover:bg-sky-500 disabled:opacity-40 disabled:cursor-not-allowed";
+  const pages = paginationRange(page, totalPages);
+
+  return (
+    <nav
+      className="my-3 flex flex-col items-stretch gap-2 sm:items-center"
+      aria-label="Decklist pages"
+    >
+      <div className="flex md:hidden items-center justify-center gap-2">
+        <button
+          type="button"
+          className={navBtn}
+          disabled={page <= 1}
+          onClick={() => onPageChange(page - 1)}
+        >
+          Previous
+        </button>
+        <span className="text-sm font-medium text-stone-700 tabular-nums px-2">
+          {page} / {totalPages}
+        </span>
+        <button
+          type="button"
+          className={navBtn}
+          disabled={page >= totalPages}
+          onClick={() => onPageChange(page + 1)}
+        >
+          Next
+        </button>
+      </div>
+      <div className="hidden md:flex flex-wrap items-center justify-center gap-1">
+        <button
+          type="button"
+          className={navBtn}
+          disabled={page <= 1}
+          onClick={() => onPageChange(page - 1)}
+        >
+          Previous
+        </button>
+        {pages.map((p, idx) =>
+          p === "ellipsis" ? (
+            <span
+              key={`ellipsis-${idx}`}
+              className="px-1 text-sm text-stone-500 select-none"
+            >
+              …
+            </span>
+          ) : (
+            <button
+              key={p}
+              type="button"
+              className={p === page ? pageBtnActive : pageBtn}
+              onClick={() => onPageChange(p)}
+              aria-current={p === page ? "page" : undefined}
+            >
+              {p}
+            </button>
+          ),
+        )}
+        <button
+          type="button"
+          className={navBtn}
+          disabled={page >= totalPages}
+          onClick={() => onPageChange(page + 1)}
+        >
+          Next
+        </button>
+      </div>
+    </nav>
+  );
+}
+
+function DecklistContainer() {
+  const [params, setParams] = useState<DecklistParams>({
+    page: 1,
+    page_size: 20,
+  });
+
+  const queryParams: DecklistParams = {
+    page: params.page ?? 1,
+    page_size: params.page_size ?? 20,
+  };
+  if (params.colors !== undefined && params.colors !== null) {
+    queryParams.colors = params.colors;
+  }
+  if (params.sort_order) {
+    queryParams.sort_order = params.sort_order;
+  }
+
+  const { data, isLoading: decklistsLoading } =
+    useGetDecklistsQuery(queryParams);
+
+  const decklists = data?.results ?? [];
+  const totalCount = data?.count ?? 0;
+  const pageSize = data?.page_size ?? params.page_size ?? 20;
+  const currentPage = data?.page ?? params.page ?? 1;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+
+  const setPage = (p: number) => {
+    const next = Math.min(Math.max(1, p), totalPages);
+    setParams((prev) => ({ ...prev, page: next }));
+  };
 
   if (decklistsLoading) {
     return <LoadingSpinner />;
@@ -207,8 +346,12 @@ function DecklistContainer() {
       </div>
       <Callout />
       <DecklistFilters params={params} setParams={setParams} />
+      <p className="text-xs text-stone-600 mb-2">
+        Showing {decklists.length} of {totalCount} decklist
+        {totalCount === 1 ? "" : "s"}
+      </p>
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-3 min-w-0">
-        {decklists?.map(
+        {decklists.map(
           ({
             id,
             name,
@@ -239,6 +382,11 @@ function DecklistContainer() {
           ),
         )}
       </div>
+      <DeckPagination
+        page={currentPage}
+        totalPages={totalPages}
+        onPageChange={setPage}
+      />
     </div>
   );
 }

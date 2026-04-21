@@ -65,8 +65,10 @@ import {
 } from "../types/commander_schemas";
 import { type ConfigsTransformed } from "../types/config_schemas";
 import {
+  PaginatedDecklistsResponseSchema,
   type GetDecklistsResponse,
   type GetDecklistResponse,
+  type PaginatedDecklistsResponse,
   type SingleDecklist,
 } from "../types/decklist_schemas";
 import {
@@ -74,6 +76,13 @@ import {
   type StoreListResponse,
 } from "../types/store_schemas";
 import { type DecklistParams } from "../routes/home/Decklists";
+
+const EMPTY_PAGINATED_DECKLISTS: PaginatedDecklistsResponse = {
+  results: [],
+  count: 0,
+  page: 1,
+  page_size: 20,
+};
 
 type Id = number | string;
 
@@ -279,23 +288,32 @@ export default (builder: ApiBuilder) => ({
   >({
     query: ({ session_id }) => `get_rounds_by_session/${session_id}/`,
   }),
-  getDecklists: builder.query<GetDecklistsResponse, void | DecklistParams>({
+  getDecklists: builder.query<
+    PaginatedDecklistsResponse,
+    void | DecklistParams
+  >({
     query: (params) => {
-      let paramList = [];
-      let qParams = "";
+      const paramList: string[] = [];
       if (params?.colors || params?.colors === 0) {
         paramList.push(`colors=${params?.colors}`);
       }
       if (params?.sort_order) {
-        paramList.push(`sort_order=${params?.sort_order}`);
+        paramList.push(`sort_order=${params.sort_order}`);
       }
-
-      if (paramList.length > 0) {
-        qParams = `?${paramList.join("&")}`;
-      }
+      const page = params?.page ?? 1;
+      const page_size = params?.page_size ?? 20;
+      paramList.push(`page=${page}`);
+      paramList.push(`page_size=${page_size}`);
+      const qParams = `?${paramList.join("&")}`;
       return `decklists/${qParams}`;
     },
     providesTags: ["Decklists"],
+    transformResponse: (raw: unknown) =>
+      safeParseWithFallback(
+        PaginatedDecklistsResponseSchema,
+        raw,
+        EMPTY_PAGINATED_DECKLISTS,
+      ),
   }),
   getDecklist: builder.query<
     GetDecklistResponse,

@@ -1,7 +1,7 @@
 import re
 import uuid
 import logging
-from typing import Optional
+from typing import Any, Optional, Union
 from urllib.parse import urlparse
 from django.utils import timezone
 
@@ -12,7 +12,7 @@ from better_profanity import profanity
 from rest_framework.exceptions import ValidationError
 
 from django.db import transaction
-from django.db.models import Func, F, IntegerField, Value, Sum
+from django.db.models import Func, F, IntegerField, Q, Value, Sum
 from django.db.models.functions import Coalesce
 from django.http import HttpRequest
 
@@ -71,61 +71,46 @@ class BitOr(Func):
     output_field = IntegerField()
 
 
-def get_decklists(
-    params: dict = None,
-    owner_id: int = None,
-) -> list[Decklists]:
-    """Return decklists based on params"""
-    params = params or {}
-    sort_order = params.get("sort_order")
-    color_mask = params.get("colors")
-    query = (
-        Decklists.objects.filter(deleted=False)
-        .select_related(
-            "commander__color",
-            "partner__color",
-            "companion__color",
-            "participant",
-        )
-        .annotate(
-            points=Coalesce(
-                Sum(
-                    Coalesce(
-                        "achievement__point_value",
-                        F("achievement__parent__point_value"),
-                        0,
-                    )
-                ),
-                0,
-            )
-        )
-        .values(
-            "id",
-            "name",
-            "url",
-            "code",
-            "give_credit",
-            "commander_id",
-            "commander__name",
-            "commander__color__mask",
-            "partner_id",
-            "partner__name",
-            "partner__color__mask",
-            "companion_id",
-            "companion__name",
-            "participant__name",
-            "participant_id",
-            "points",
-        )
-    )
-    ids = [q["id"] for q in query]
+def _unique_ids_preserve_order(ids: list[int]) -> list[int]:
+    """Deduplicate decklist ids while keeping first occurrence order (ORM duplicates)."""
+    seen: set[int] = set()
+    out: list[int] = []
+    for i in ids:
+        if i not in seen:
+            seen.add(i)
+            out.append(i)
+    return out
+
+
+DECKLIST_VALUES_COLUMNS = (
+    "id",
+    "name",
+    "url",
+    "code",
+    "give_credit",
+    "commander_id",
+    "commander__name",
+    "commander__color__mask",
+    "partner_id",
+    "partner__name",
+    "partner__color__mask",
+    "companion_id",
+    "companion__name",
+    "participant__name",
+    "participant_id",
+    "points",
+)
+
+
+def _achievements_by_decklist_ids(ids: list[int]) -> defaultdict:
+    ach_by_decklist: defaultdict = defaultdict(list)
+    if not ids:
+        return ach_by_decklist
     ach_query = (
         DecklistsAchievements.objects.filter(decklist_id__in=ids)
         .select_related("achievement", "scalable_term")
         .order_by("decklist_id", "achievement_id")
     )
-    ach_by_decklist = defaultdict(list)
-
     for row in ach_query:
         if row.scalable_term_id and row.scalable_term:
             name = f"{row.achievement.name} {row.scalable_term.term_display}"
@@ -138,40 +123,18 @@ def get_decklists(
                 "points": row.achievement.points,
             }
         )
+    return ach_by_decklist
 
-    order_by = SORT_MAP.get(sort_order, SORT_MAP["newest"])
-    if color_mask is not None:
-        try:
-            mask_int = int(color_mask)
-        except (TypeError, ValueError):
-            raise ValidationError({"colors": "colors must be an integer mask"})
 
-        query = query.annotate(
-            combined_mask=BitOr(
-                F("commander__color__mask"),
-                Coalesce(F("partner__color__mask"), Value(0)),
-            )
-        )
-
-        if mask_int == 0:
-            query = query.filter(combined_mask=0)
-        else:
-            query = query.annotate(
-                subset_mask=BitAnd(F("combined_mask"), Value(mask_int))
-            ).filter(
-                subset_mask=F("combined_mask"),
-                combined_mask__gt=0,
-            )
-    query = query.order_by(*order_by)
-
-    if owner_id is not None:
-        query = query.filter(participant_id=owner_id)
-
+def _enrich_decklist_rows(
+    page_rows: list[dict],
+    ach_by_decklist: defaultdict,
+) -> list[dict]:
     out = []
     commander_images = scryfall_request.get_commander_image_urls(
         commander_names=[
             name
-            for row in query
+            for row in page_rows
             for name in (
                 row.get("commander__name"),
                 row.get("partner__name"),
@@ -180,8 +143,7 @@ def get_decklists(
             if name
         ]
     )
-
-    for qu in query:
+    for qu in page_rows:
         give_credit = qu["give_credit"]
         color = calculate_color(
             [
@@ -216,13 +178,172 @@ def get_decklists(
                 "achievements": achievements,
             }
         )
+    return out
 
-    if sort_order == "points_desc":
-        out = sorted(out, key=lambda x: x["points"], reverse=True)
-    elif sort_order == "points_asc":
-        out = sorted(out, key=lambda x: x["points"])
 
-    return list(out)
+def _rows_for_ids_preserving_order(qs, ordered_ids: list[int]) -> list[dict]:
+    if not ordered_ids:
+        return []
+    rows = list(qs.filter(id__in=ordered_ids).values(*DECKLIST_VALUES_COLUMNS))
+    by_id = {r["id"]: r for r in rows}
+    return [by_id[i] for i in ordered_ids if i in by_id]
+
+
+def _ordered_ids_by_points(qs, descending: bool) -> list[int]:
+    light = list(
+        qs.values(
+            "id",
+            "points",
+            "commander__color__mask",
+            "partner__color__mask",
+        )
+    )
+    if not light:
+        return []
+    by_id: dict[int, dict] = {}
+    for r in light:
+        rid = r["id"]
+        if rid not in by_id:
+            by_id[rid] = r
+    light = list(by_id.values())
+    all_ids = [r["id"] for r in light]
+    precon_ids = set(
+        DecklistsAchievements.objects.filter(
+            decklist_id__in=all_ids, achievement_id=2
+        ).values_list("decklist_id", flat=True)
+    )
+    scored: list[tuple[int, int]] = []
+    for r in light:
+        has_precon = r["id"] in precon_ids
+        color = calculate_color(
+            [
+                r["commander__color__mask"],
+                r.get("partner__color__mask") or -1,
+            ]
+        )
+        color_points = COLOR_POINTS[color.symbol_length] if not has_precon else 0
+        total = r["points"] + color_points
+        scored.append((total, r["id"]))
+    if descending:
+        scored.sort(key=lambda x: (-x[0], x[1]))
+    else:
+        scored.sort(key=lambda x: (x[0], x[1]))
+    return [s[1] for s in scored]
+
+
+def _decklists_filtered_queryset(params: dict, owner_id: Optional[int]):
+    """Build filtered decklist queryset (not ordered for points sorts)."""
+    sort_order = params.get("sort_order")
+    color_mask = params.get("colors")
+    query = (
+        Decklists.objects.filter(deleted=False)
+        .select_related(
+            "commander__color",
+            "partner__color",
+            "companion__color",
+            "participant",
+        )
+        .annotate(
+            points=Coalesce(
+                Sum(
+                    Coalesce(
+                        "achievement__point_value",
+                        F("achievement__parent__point_value"),
+                        0,
+                    )
+                ),
+                0,
+            )
+        )
+        .values(*DECKLIST_VALUES_COLUMNS)
+    )
+
+    if color_mask is not None:
+        try:
+            mask_int = int(color_mask)
+        except (TypeError, ValueError):
+            raise ValidationError({"colors": "colors must be an integer mask"})
+
+        query = query.annotate(
+            combined_mask=BitOr(
+                F("commander__color__mask"),
+                Coalesce(F("partner__color__mask"), Value(0)),
+            )
+        )
+
+        if mask_int == 0:
+            query = query.filter(combined_mask=0)
+        else:
+            query = query.annotate(
+                subset_mask=BitAnd(F("combined_mask"), Value(mask_int))
+            ).filter(
+                subset_mask=F("combined_mask"),
+                combined_mask__gt=0,
+            )
+
+    if owner_id is not None:
+        query = query.filter(participant_id=owner_id)
+
+    search = (params.get("search") or "").strip()
+    if search:
+        query = query.filter(
+            Q(name__icontains=search) | Q(participant__name__icontains=search)
+        )
+
+    return query, sort_order
+
+
+def get_decklists(
+    params: dict = None,
+    owner_id: int = None,
+    *,
+    paginate: bool = False,
+    page: int = 1,
+    page_size: int = 20,
+) -> Union[list, dict[str, Any]]:
+    """Return decklists based on params.
+
+    When ``paginate`` is True, returns
+    ``{"results": [...], "count": int, "page": int, "page_size": int}``.
+    Otherwise returns a plain list (participant / admin flows).
+    """
+    params = params or {}
+    query, sort_order = _decklists_filtered_queryset(params, owner_id)
+
+    if sort_order in ("points_desc", "points_asc"):
+        ordered_ids = _ordered_ids_by_points(query, sort_order == "points_desc")
+        total_count = len(ordered_ids)
+        if paginate:
+            offset = max(0, (page - 1) * page_size)
+            page_ids = ordered_ids[offset : offset + page_size]
+        else:
+            page_ids = ordered_ids
+        page_rows = _rows_for_ids_preserving_order(query, page_ids)
+    else:
+        order_by = SORT_MAP.get(sort_order, SORT_MAP["newest"])
+        query = query.order_by(*order_by)
+        raw_ids = list(query.values_list("id", flat=True))
+        ordered_unique_ids = _unique_ids_preserve_order(raw_ids)
+        total_count = len(ordered_unique_ids)
+        if paginate:
+            offset = max(0, (page - 1) * page_size)
+            page_ids = ordered_unique_ids[offset : offset + page_size]
+            page_rows = _rows_for_ids_preserving_order(query, page_ids)
+        else:
+            page_rows = _rows_for_ids_preserving_order(query, ordered_unique_ids)
+
+    ids_for_ach = [r["id"] for r in page_rows]
+    ach_by_decklist = _achievements_by_decklist_ids(ids_for_ach)
+    out = _enrich_decklist_rows(page_rows, ach_by_decklist)
+
+    if not paginate:
+        return list(out)
+    return {
+        "results": list(out),
+        "count": total_count,
+        "page": page,
+        "page_size": page_size,
+    }
 
 
 class StubCommander(dict):

@@ -16,7 +16,7 @@ type AchievementModalProps = {
   isOpen: boolean;
   closeModal: () => void;
   achievements: Achievement[];
-  colorPoints: number;
+  colorPoints: number | string;
 };
 
 type LineItemProps = {

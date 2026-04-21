@@ -75,10 +75,16 @@ def build_state() -> None:
 
 
 def assert_decklists_response(response_data):
-    assert isinstance(response_data, list)
-    assert len(response_data) > 0
+    assert isinstance(response_data, dict)
+    assert "results" in response_data
+    assert "count" in response_data
+    assert "page" in response_data
+    assert "page_size" in response_data
+    decks = response_data["results"]
+    assert isinstance(decks, list)
+    assert len(decks) > 0
 
-    for deck in response_data:
+    for deck in decks:
         assert isinstance(deck["id"], int)
         assert isinstance(deck["name"], str)
         assert isinstance(deck["url"], str)
@@ -119,6 +125,7 @@ def test_get_current_decklists(client, build_state) -> None:
 
     parsed_res = res.json()
     assert_decklists_response(parsed_res)
+    assert parsed_res["count"] >= len(parsed_res["results"])
 
 
 def strip_imgs(deck):
@@ -143,7 +150,8 @@ def test_get_decklists_by_color(client, build_state) -> None:
 
     assert res.status_code == status.HTTP_200_OK
 
-    parsed_res = [strip_imgs(d) for d in res.json()]
+    body = res.json()
+    parsed_res = [strip_imgs(d) for d in body["results"]]
 
     assert parsed_res == [
         {
@@ -201,6 +209,31 @@ def test_get_decklists_by_color(client, build_state) -> None:
     ]
 
 
+def test_decklists_pagination(client, build_state) -> None:
+    """Paginated envelope includes count and obeys page / page_size."""
+    url = reverse("decklists")
+    with patch(
+        "users.queries.scryfall_request.get_commander_image_urls",
+        return_value={},
+    ):
+        res = client.get(f"{url}?page=1&page_size=20")
+    assert res.status_code == status.HTTP_200_OK
+    body = res.json()
+    assert body["count"] == 3
+    assert body["page"] == 1
+    assert body["page_size"] == 20
+    assert len(body["results"]) == 3
+
+    with patch(
+        "users.queries.scryfall_request.get_commander_image_urls",
+        return_value={},
+    ):
+        res2 = client.get(f"{url}?page=2&page_size=20")
+    body2 = res2.json()
+    assert body2["count"] == 3
+    assert len(body2["results"]) == 0
+
+
 def test_get_decklists_by_name_desc(client, build_state) -> None:
     """
     should: just return decklist info sorted
@@ -211,6 +244,6 @@ def test_get_decklists_by_name_desc(client, build_state) -> None:
 
     assert res.status_code == status.HTTP_200_OK
 
-    parsed_res = res.json()
+    parsed_res = res.json()["results"]
     names = [pr["name"] for pr in parsed_res]
     assert names == ["Boop", "Blop", "Beep"]

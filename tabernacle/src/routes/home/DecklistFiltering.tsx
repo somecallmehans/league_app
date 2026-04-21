@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
-import { imgs, ColorKey } from "../../../public/images";
+import { useState, useEffect, type Dispatch, type SetStateAction } from "react";
+import { ColorKey } from "../../../public/images";
 import { SimpleSelect } from "../crud/CrudComponents";
 import { type DecklistParams } from "./Decklists";
-import { Color } from "chart.js";
 
 const SORTING = [
   { label: "Points Descending", value: "points_desc" },
@@ -12,6 +11,12 @@ const SORTING = [
   { label: "Newest", value: "newest" },
   { label: "Oldest", value: "oldest" },
 ];
+
+const PAGE_SIZE_OPTIONS = [
+  { label: "20 per page", value: 20 },
+  { label: "50 per page", value: 50 },
+  { label: "100 per page", value: 100 },
+] as const;
 
 const colorMap: Record<ColorKey, number> = {
   white: 1,
@@ -72,7 +77,7 @@ const ColorCheckbox = ({
 
 type FiltersProps = {
   params: DecklistParams;
-  setParams: (arg0: any) => void;
+  setParams: Dispatch<SetStateAction<DecklistParams>>;
 };
 
 export default function DecklistFilters({ params, setParams }: FiltersProps) {
@@ -83,18 +88,18 @@ export default function DecklistFilters({ params, setParams }: FiltersProps) {
       Object.fromEntries(COLORS.map((c) => [c, false])) as Record<
         ColorKey,
         boolean
-      >
+      >,
   );
 
   const isColorless = !!checkedColors.colorless;
 
   const nonColorlessMask = COLORS.filter((c) => c !== "colorless").reduce(
     (sum, c) => (checkedColors[c] ? sum + colorMap[c] : sum),
-    0
+    0,
   );
 
   const hasAnyNonColorless = COLORS.filter((c) => c !== "colorless").some(
-    (c) => checkedColors[c]
+    (c) => checkedColors[c],
   );
 
   const colorsParam = isColorless
@@ -104,9 +109,10 @@ export default function DecklistFilters({ params, setParams }: FiltersProps) {
       : undefined;
 
   useEffect(() => {
-    setParams((prev: Record<string, boolean>) => ({
+    setParams((prev: DecklistParams) => ({
       ...prev,
       colors: colorsParam,
+      page: 1,
     }));
   }, [colorsParam, setParams]);
 
@@ -116,7 +122,7 @@ export default function DecklistFilters({ params, setParams }: FiltersProps) {
     setCheckedColors((prev) => {
       if (name === "colorless" && isChecked) {
         return Object.fromEntries(
-          COLORS.map((k) => [k, k === "colorless"])
+          COLORS.map((k) => [k, k === "colorless"]),
         ) as Record<ColorKey, boolean>;
       }
 
@@ -128,25 +134,56 @@ export default function DecklistFilters({ params, setParams }: FiltersProps) {
     });
   };
 
+  const sortValue = SORTING.find((o) => o.value === params.sort_order) ?? null;
+  const pageSize = params.page_size ?? 20;
+  const pageSizeValue =
+    PAGE_SIZE_OPTIONS.find((o) => o.value === pageSize) ?? PAGE_SIZE_OPTIONS[0];
+
   return (
-    <div className="flex flex-col gap-3 md:flex-row md:gap-6 mb-3">
-      <div className="w-full md:w-1/2">
+    <div className="flex flex-col gap-4 md:flex-row md:flex-wrap md:items-end md:gap-6 mb-3">
+      <div className="w-full md:flex-1 md:min-w-0">
         <div className="text-xs font-semibold text-slate-600 mb-1">Sorting</div>
         <SimpleSelect
           placeholder="Points, Name, Created Date"
           options={SORTING}
           classes="w-full"
-          onChange={(o: { label: string; value: string }) =>
-            setParams({ ...params, sort_order: o?.value ?? null })
+          onChange={(o: { label: string; value: string } | null) =>
+            setParams((prev: DecklistParams) => ({
+              ...prev,
+              sort_order: o?.value ?? null,
+              page: 1,
+            }))
           }
           isMulti={false}
           isClearable={true}
           menuPlacement="bottom"
-          value={undefined}
+          value={sortValue}
         />
       </div>
 
-      <div className="w-full md:w-1/2">
+      <div className="w-full md:w-40 shrink-0">
+        <div className="text-xs font-semibold text-slate-600 mb-1">
+          Per page
+        </div>
+        <SimpleSelect
+          placeholder="Page size"
+          options={[...PAGE_SIZE_OPTIONS]}
+          classes="w-full"
+          onChange={(o: { label: string; value: number } | null) =>
+            setParams((prev: DecklistParams) => ({
+              ...prev,
+              page_size: o?.value ?? 20,
+              page: 1,
+            }))
+          }
+          isMulti={false}
+          isClearable={false}
+          menuPlacement="bottom"
+          value={pageSizeValue}
+        />
+      </div>
+
+      <div className="w-full md:flex-1 md:min-w-0">
         <div className="text-xs font-semibold text-slate-600 mb-1">
           Color Filters
         </div>

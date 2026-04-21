@@ -151,7 +151,7 @@ export default function AdminDecklistManagement() {
         Select a decklist to edit achievements, commanders, and other fields.
         There is no session time limit for admin edits.
       </p>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-5">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-3 min-w-0">
         {decklists && decklists.length === 0 && (
           <p className="text-sm text-gray-600 col-span-full">
             {debouncedSearch
@@ -159,6 +159,7 @@ export default function AdminDecklistManagement() {
               : "No active decklists found."}
           </p>
         )}
+
         {decklists?.map(
           ({
             id,

@@ -20,5 +20,5 @@ export type ColorsResponse = z.infer<typeof ColorsResponseSchema>;
 export type SimpleColor = {
   name: string;
   symbol: string;
-  points: number;
+  points: number | string;
 };

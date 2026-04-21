@@ -158,7 +158,25 @@ def decklists(request, **kwargs):
     """Return all current active submitted decklists"""
 
     if request.method == "GET":
-        out = get_decklists(params=request.query_params, owner_id=None)
+        qp = request.query_params
+        try:
+            page = int(qp.get("page", 1))
+        except (TypeError, ValueError):
+            page = 1
+        page = max(1, page)
+        try:
+            page_size = int(qp.get("page_size", 20))
+        except (TypeError, ValueError):
+            page_size = 20
+        if page_size not in (20, 50, 100):
+            page_size = 20
+        out = get_decklists(
+            params=qp,
+            owner_id=None,
+            paginate=True,
+            page=page,
+            page_size=page_size,
+        )
         return Response(out)
 
     try:
@@ -300,7 +318,9 @@ def get_user_decklists(request, **kwargs):
         return Response({"detail": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
     logger.info(f"Token validated for {token.owner_id}, returning decklists")
-    decklists = get_decklists(params=None, owner_id=token.owner_id)
+    decklists = get_decklists(
+        params=None, owner_id=token.owner_id, paginate=False
+    )
 
     return Response(decklists)
 
@@ -411,15 +431,7 @@ def update_decklist(request, **kwargs):
 def admin_get_decklists(request, **kwargs):
     """List all non-deleted decklists for superuser management (JWT)."""
     params = dict(request.query_params)
-    decklists = get_decklists(params=params, owner_id=None)
-    search = (request.query_params.get("search") or "").strip().lower()
-    if search:
-        decklists = [
-            d
-            for d in decklists
-            if search in (d.get("name") or "").lower()
-            or search in (d.get("participant_name") or "").lower()
-        ]
+    decklists = get_decklists(params=params, owner_id=None, paginate=False)
     return Response(decklists)
 
 
