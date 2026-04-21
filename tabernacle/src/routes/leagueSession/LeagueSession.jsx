@@ -5,6 +5,7 @@ import { Route, Routes, Link } from "react-router-dom";
 import "react-datepicker/dist/react-datepicker.css";
 
 import RoundPage from "./RoundPage";
+import SessionLobbyPage from "./SessionLobbyPage";
 import ScorecardPage from "./ScorecardPage";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import StandardButton from "../../components/Button";
@@ -42,11 +43,11 @@ function getNextDateForDay(targetDayNumber) {
   return next;
 }
 
-const Round = ({ id, sessionId, roundNumber }) => {
+const ManageSession = ({ sessionId }) => {
   return (
     <div className="justify-self-end">
-      <Link to={`${sessionId}/${id}`}>
-        <StandardButton title={`View Round ${roundNumber}`} />
+      <Link to={`${sessionId}`}>
+        <StandardButton title="Manage Session" />
       </Link>
     </div>
   );
@@ -71,12 +72,6 @@ function LeagueSession() {
           {formatMonthYear(month_year)} Season
         </div>
         {sessionList.map(({ id, rounds, session_date }) => {
-          const roundOne = rounds.find(
-            ({ round_number }) => round_number === 1
-          );
-          const roundTwo = rounds.find(
-            ({ round_number }) => round_number === 2
-          );
           return (
             <div
               className="border-b border-slate-300 grid grid-cols-3 gap-4 mb-4 py-4 items-center"
@@ -85,17 +80,8 @@ function LeagueSession() {
               <div className="text-sm md:text-base">
                 {formatDateString(session_date)}
               </div>
-              {/* Sessions will always have 2 rounds, no more no less. */}
-              <Round
-                sessionId={id}
-                id={roundOne.id}
-                roundNumber={roundOne.round_number}
-              />
-              <Round
-                sessionId={id}
-                id={roundTwo.id}
-                roundNumber={roundTwo.round_number}
-              />
+              <div />
+              <ManageSession sessionId={id} />
               {/* Readd this back in at some point */}
               {/* <div className="justify-self-end">
                 <i className="fa-solid fa-trash-can mr-4" />
@@ -182,6 +168,7 @@ export default function LeagueRouter() {
   return (
     <Routes>
       <Route path="/" element={<LeagueManagementPage />} />
+      <Route path="/:session_id" element={<SessionLobbyPage />} />
       <Route path="/:session_id/:round_id" element={<RoundPage />} />
       <Route
         path="/:session_id/:round_id/scorecard/:pod_id"

@@ -21,5 +21,3 @@ export const getCommanderColorId = (colorsObj, c1, c2) => {
 
   return colorsObj.symbolObj[key];
 };
-
-export const getLobbyKey = (roundId) => `roundLobby_participants_${roundId}`;
