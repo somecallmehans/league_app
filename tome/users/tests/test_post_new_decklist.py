@@ -47,8 +47,14 @@ def test_post_new_decklist(safe_client) -> None:
 
     get_res = safe_client.get(url)
     parsed_get = get_res.json()
+    # GET /decklists/ returns paginated payload: {"results": [...], "count", ...}
+    items = (
+        parsed_get["results"]
+        if isinstance(parsed_get, dict) and "results" in parsed_get
+        else parsed_get
+    )
 
-    for p in parsed_get:
+    for p in items:
         assert p["points"] == 17
         assert p["name"] == NEW_NAME
         assert p["commander_name"] == "Yarus, Roar of the Old Gods"
