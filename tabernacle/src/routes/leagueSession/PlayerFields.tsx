@@ -1,7 +1,9 @@
+import { useMemo } from "react";
 import { useFormContext, Controller, useWatch } from "react-hook-form";
 import { CheckBoxInput, MultiSelector } from "../../components/FormInputs";
 
 import { useScorecardInfoCtx } from "./ScorecardCTX";
+import { useConfig } from "../../hooks/useConfigs";
 
 const PLAYER_ACHIEVEMENT_MAP = [
   { key: 1, label: "Did anyone bring a snack to share?", slug: "bring-snack" },
@@ -46,11 +48,25 @@ export default function PlayerFields() {
   const { control, resetField, setValue } = useFormContext();
   const { participants } = useScorecardInfoCtx();
   const endDraw = useWatch({ control, name: "end-draw" });
+
+  const enableSnackSharing = useConfig("enable_snack_sharing");
+  const enableMoneyPack = useConfig("enable_money_pack");
+
+  const filteredAchievements = useMemo(() => {
+    return PLAYER_ACHIEVEMENT_MAP.filter((item) => {
+      if (item.slug === "bring-snack" && enableSnackSharing === "false")
+        return false;
+      if (item.slug === "money-pack" && enableMoneyPack === "false")
+        return false;
+      return true;
+    });
+  }, [enableSnackSharing, enableMoneyPack]);
+
   return (
     <>
       <h2 className="text-lg font-semibold text-zinc-700">General</h2>
       <div className="border-t space-y-2 " />
-      {PLAYER_ACHIEVEMENT_MAP.map(({ label, slug, key }) => (
+      {filteredAchievements.map(({ label, slug, key }) => (
         <div className="mt-2 italic" key={key}>
           <div className="text-sm mt-1">{label}</div>
           <MultiSelector

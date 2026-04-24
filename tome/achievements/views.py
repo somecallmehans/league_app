@@ -38,6 +38,7 @@ from .models import Achievements, Colors, Restrictions, AchievementType
 from users.models import ParticipantAchievements
 
 from sessions_rounds.models import Pods, Sessions, PodsParticipants, Rounds
+from configs.models import Config
 from .serializers import (
     AchievementsSerializer,
     AchievementSerializerV2,
@@ -296,7 +297,7 @@ def create_scalable_term_type(request):
 
 
 @api_view([GET])
-def get_achievements_with_restrictions_v2(_, **kwargs):
+def get_achievements_with_restrictions_v2(request, **kwargs):
     """Get achievements with their restrictions but do it much cleaner than the original endpoint."""
 
     achievements = (
@@ -341,6 +342,26 @@ def get_achievements_with_restrictions_v2(_, **kwargs):
         )
         .order_by(F("parent_id").desc(nulls_last=None))
     )
+
+    # Optional store-scoped filtering via configs.
+    store_id = getattr(request, "store_id", None)
+    if store_id:
+        cfg = dict(
+            Config.objects.filter(
+                store_id=store_id,
+                key__in=["enable_snack_sharing", "enable_money_pack"],
+            ).values_list("key", "value")
+        )
+
+        exclude_slugs = []
+        if (cfg.get("enable_snack_sharing") or "").lower() == "false":
+            exclude_slugs.extend(["bring-snack", "best-snack"])
+        if (cfg.get("enable_money_pack") or "").lower() == "false":
+            exclude_slugs.append("money-pack")
+
+        if exclude_slugs:
+            achievements = achievements.exclude(slug__in=exclude_slugs)
+
     return Response(AchievementSerializerV2(achievements, many=True).data)
 
 

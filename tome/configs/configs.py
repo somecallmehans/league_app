@@ -87,6 +87,16 @@ CONFIG_REGISTRY: dict[str, dict[str, Any]] = {
         "name": "Round Two Start",
         "description": "The start time for round 2",
     },
+    "enable_snack_sharing": {
+        "type": CONFIG_TYPE_CHECKBOX,
+        "name": "Enable Snack Sharing Achievement",
+        "description": "Show 'Did anyone bring a snack to share?' and snack awards in scorecards and achievements page",
+    },
+    "enable_money_pack": {
+        "type": CONFIG_TYPE_CHECKBOX,
+        "name": "Enable Money Pack Achievement",
+        "description": "Show 'Did anyone participate with a booster pack purchased for more than $10?' in scorecards and achievements page",
+    },
 }
 
 # Default values for non-interactive seeding (create_configs --defaults, sync_configs)
@@ -96,6 +106,8 @@ DEFAULT_VALUES: dict[str, str] = {
     "round_day": "Wednesday",
     "round_one_start": "1:30PM",
     "round_two_start": "3:30PM",
+    "enable_snack_sharing": "true",
+    "enable_money_pack": "true",
 }
 
 # Legacy CONFIG_SPEC for backward compatibility (get_round_caps, etc.)
