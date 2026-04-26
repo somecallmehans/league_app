@@ -47,7 +47,13 @@ const AchievementBarTitle = () => (
   </React.Fragment>
 );
 
-export const MetricBlock = ({ data, mainKey, subtitleKey, suffix = "" }) => {
+export const MetricBlock = ({
+  data,
+  mainKey,
+  subtitleKey,
+  suffix = "",
+  subtitleSuffix = "Points",
+}) => {
   return (
     <React.Fragment>
       <div className="text-3xl md:text-4xl font-extrabold font-extrabold text-center flex flex-grow items-center justify-center">
@@ -56,7 +62,7 @@ export const MetricBlock = ({ data, mainKey, subtitleKey, suffix = "" }) => {
       </div>
       {subtitleKey && (
         <div className="text-slate-500 text-lg md:text-xl font-extrabold font-extrabold text-center flex flex-grow items-center justify-center">
-          {data?.[subtitleKey]} Points
+          {data?.[subtitleKey]} {subtitleSuffix}
         </div>
       )}
     </React.Fragment>

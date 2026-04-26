@@ -47,6 +47,10 @@ const SessionPoints = z.object({
   points: z.number(),
 });
 
+const NemesisPreySchema = z
+  .object({ name: z.string(), count: z.number() })
+  .nullable();
+
 export const IndividualMetricResponseSchema = z.object({
   participant_name: z.string().optional(),
   avg_win_points: z.number().optional(),
@@ -56,6 +60,8 @@ export const IndividualMetricResponseSchema = z.object({
   participant_since: z.string().optional(),
   unique_achievements: z.number().optional(),
   session_points: z.record(z.string(), z.array(SessionPoints)).optional(),
+  nemesis: NemesisPreySchema.optional(),
+  prey: NemesisPreySchema.optional(),
 });
 
 export type IndividualMetricResponse = z.infer<

@@ -71,6 +71,32 @@ export default function IndividualMetrics() {
         <MetricWrapper title="Unique Achievements Earned">
           <MetricBlock data={metrics} mainKey="unique_achievements" />
         </MetricWrapper>
+        {metrics.nemesis && (
+          <MetricWrapper
+            title="Nemesis"
+            leftIcon={<i className="fa-solid fa-skull text-red-500" />}
+          >
+            <MetricBlock
+              data={metrics.nemesis}
+              mainKey="name"
+              subtitleKey="count"
+              subtitleSuffix="losses"
+            />
+          </MetricWrapper>
+        )}
+        {metrics.prey && (
+          <MetricWrapper
+            title="Favorite Prey"
+            leftIcon={<i className="fa-solid fa-crosshairs text-green-500" />}
+          >
+            <MetricBlock
+              data={metrics.prey}
+              mainKey="name"
+              subtitleKey="count"
+              subtitleSuffix="wins"
+            />
+          </MetricWrapper>
+        )}
       </div>
       {pods?.length > 0 && (
         <MetricWrapper title="Recent Pods" classes="my-4">
