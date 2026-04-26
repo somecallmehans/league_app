@@ -1,5 +1,5 @@
 from collections import defaultdict, Counter, OrderedDict
-from django.db.models import Sum, Q, Exists, OuterRef, Value, Case, When, F
+from django.db.models import Count, Sum, Q, Exists, OuterRef, Value, Case, When, F
 from django.db.models.functions import Concat, Coalesce
 
 from django.utils.timezone import now, make_aware
@@ -454,6 +454,52 @@ class IndividualMetricsCalculator:
         }
         return len(unique_keys)
 
+    def calculate_nemesis(self):
+        """Return the participant who has beaten this participant the most.
+
+        Looks at all WinningCommanders rows where someone else won a pod that
+        our participant also sat in, then ranks by frequency."""
+        result = (
+            WinningCommanders.objects.filter(
+                store_id=self.store_id,
+                deleted=False,
+                pods__store_id=self.store_id,
+                pods__deleted=False,
+                pods__podsparticipants__participants_id=self.participant_id,
+            )
+            .exclude(participants_id=self.participant_id)
+            .exclude(participants_id__isnull=True)
+            .values("participants_id", "participants__name")
+            .annotate(times_beaten=Count("pods_id"))
+            .order_by("-times_beaten")
+            .first()
+        )
+        if result is None:
+            return None
+        return {"name": result["participants__name"], "count": result["times_beaten"]}
+
+    def calculate_prey(self):
+        """Return the participant our participant has beaten the most.
+
+        Looks at all PodsParticipants rows for other players in pods where our
+        participant is the recorded winner, then ranks by frequency."""
+        result = (
+            PodsParticipants.objects.filter(
+                pods__store_id=self.store_id,
+                pods__deleted=False,
+                pods__winningcommanders__participants_id=self.participant_id,
+                pods__winningcommanders__deleted=False,
+            )
+            .exclude(participants_id=self.participant_id)
+            .values("participants_id", "participants__name")
+            .annotate(times_lost=Count("pods_id"))
+            .order_by("-times_lost")
+            .first()
+        )
+        if result is None:
+            return None
+        return {"name": result["participants__name"], "count": result["times_lost"]}
+
     def calculate_session_points(self):
         """Sum all of the points for each session, then format them in a way the
         line chart would expect."""
@@ -501,6 +547,8 @@ class IndividualMetricsCalculator:
             "participant_since": self.participant_obj.created_at.strftime("%m/%d/%Y"),
             "unique_achievements": self.calculate_unique_achievements(),
             "session_points": self.calculate_session_points(),
+            "nemesis": self.calculate_nemesis(),
+            "prey": self.calculate_prey(),
         }
 
 
