@@ -20,7 +20,7 @@ export default function IndividualMetrics() {
     useGetIndividualMetricsQuery(participant_id, { skip: !participant_id });
   const { data: pods, isLoading: podsLoading } = useGetParticipantPodsQuery(
     participant_id,
-    { skip: !participant_id }
+    { skip: !participant_id },
   );
 
   if (metricsLoading || podsLoading) {
@@ -62,9 +62,9 @@ export default function IndividualMetrics() {
         <MetricWrapper title="Lifetime Points">
           <MetricBlock data={metrics} mainKey="lifetime_points" />
         </MetricWrapper>
-        <MetricWrapper title="Matches Won">
+        {/* <MetricWrapper title="Matches Won">
           <MetricBlock data={metrics} mainKey="win_number" />
-        </MetricWrapper>
+        </MetricWrapper> */}
         <MetricWrapper title="Matches Played">
           <MetricBlock data={metrics} mainKey="attendance" />
         </MetricWrapper>

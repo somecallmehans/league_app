@@ -268,7 +268,7 @@ function Page() {
           />
         </MetricWrapper>
 
-        <MetricWrapper
+        {/* <MetricWrapper
           title="Top Match Wins"
           leftIcon={<i className="fa-solid fa-medal text-yellow-500" />}
           rightIcon={<i className="fa-solid fa-medal text-yellow-500" />}
@@ -279,7 +279,7 @@ function Page() {
             script="Wins"
             mod={2}
           />
-        </MetricWrapper>
+        </MetricWrapper> */}
 
         <MetricWrapper
           title="Snack Leaders"
@@ -337,7 +337,7 @@ function Page() {
           />
         </MetricWrapper>
 
-        <MetricWrapper
+        {/* <MetricWrapper
           title="Most Wins While Going Last"
           leftIcon={<i className="fa-solid fa-clock text-orange-400" />}
           rightIcon={<i className="fa-solid fa-clock text-orange-400" />}
@@ -347,7 +347,7 @@ function Page() {
             list={Object.keys(most_last_wins)}
             script="Wins"
           />
-        </MetricWrapper>
+        </MetricWrapper> */}
 
         <MetricWrapper
           title="The Gabby Santora 'Biggest Burger' Award"
