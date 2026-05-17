@@ -16,6 +16,7 @@ from django.db.models import (
     When,
     Max,
     Sum,
+    Count,
 )
 
 from django.contrib.postgres.aggregates import ArrayAgg
@@ -296,11 +297,9 @@ def create_scalable_term_type(request):
     return Response({"id": t.id, "name": t.name}, status=status.HTTP_201_CREATED)
 
 
-@api_view([GET])
-def get_achievements_with_restrictions_v2(request, **kwargs):
-    """Get achievements with their restrictions but do it much cleaner than the original endpoint."""
-
-    achievements = (
+def _achievements_v2_base_queryset():
+    """Shared queryset for achievement browse payloads (v2 shape)."""
+    return (
         Achievements.objects.filter(deleted=False)
         .select_related("parent", "type")
         .annotate(
@@ -340,7 +339,15 @@ def get_achievements_with_restrictions_v2(request, **kwargs):
                 ),
             )
         )
-        .order_by(F("parent_id").desc(nulls_last=None))
+    )
+
+
+@api_view([GET])
+def get_achievements_with_restrictions_v2(request, **kwargs):
+    """Get achievements with their restrictions but do it much cleaner than the original endpoint."""
+
+    achievements = _achievements_v2_base_queryset().order_by(
+        F("parent_id").desc(nulls_last=None)
     )
 
     # Optional store-scoped filtering via configs.
@@ -363,6 +370,44 @@ def get_achievements_with_restrictions_v2(request, **kwargs):
             achievements = achievements.exclude(slug__in=exclude_slugs)
 
     return Response(AchievementSerializerV2(achievements, many=True).data)
+
+
+@api_view([GET])
+def get_most_earned_achievements(_, **kwargs):
+    """Top 10 achievements by number of non-deleted participant_achievements rows."""
+    count_rows = list(
+        ParticipantAchievements.objects.filter(
+            deleted=False,
+            achievement__deleted=False,
+        )
+        .filter(
+            Q(achievement__slug__isnull=True) | Q(achievement__slug="precon"),
+        )
+        .values("achievement_id")
+        .annotate(earned_count=Count("id"))
+        .order_by("-earned_count", "achievement_id")[:10]
+    )
+
+    if not count_rows:
+        return Response([])
+
+    id_order = [r["achievement_id"] for r in count_rows]
+    count_map = {r["achievement_id"]: r["earned_count"] for r in count_rows}
+
+    order_case = Case(
+        *[When(pk=aid, then=Value(pos)) for pos, aid in enumerate(id_order)],
+        output_field=IntegerField(),
+    )
+
+    achievements = _achievements_v2_base_queryset().filter(id__in=id_order).order_by(
+        order_case
+    )
+
+    data = AchievementSerializerV2(achievements, many=True).data
+    for row in data:
+        row["earned_count"] = count_map.get(row["id"], 0)
+
+    return Response(data)
 
 
 @api_view([GET])

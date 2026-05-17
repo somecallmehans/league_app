@@ -150,6 +150,7 @@ export const {
   useGetAllRoundsQuery,
   useGetParticipantPodsQuery,
   useGetAchievementsListQuery,
+  useGetMostEarnedAchievementsQuery,
   useGetScorecardAchievementOptionsQuery,
   useGetScalableTermsQuery,
   useGetScalableTermTypesQuery,

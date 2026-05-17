@@ -1,15 +1,43 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { apiSlice, useGetAchievementsListQuery } from "../../api/apiSlice";
+import {
+  apiSlice,
+  useGetAchievementsListQuery,
+  useGetMostEarnedAchievementsQuery,
+} from "../../api/apiSlice";
 import { useAchievementSearch } from "../../hooks";
 import { associateParentsChildren } from "../../helpers/achievementHelpers";
 
-import { Input } from "@headlessui/react";
+import {
+  Input,
+  TabGroup,
+  TabList,
+  Tab,
+  TabPanels,
+  TabPanel,
+} from "@headlessui/react";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import PageTitle from "../../components/PageTitle";
 import CalloutCard from "../../components/CalloutCard";
 import { AchievementCard, TypeInfo } from "./AchievementComponents";
 import { SimpleSelect } from "../crud/CrudComponents";
+
+const tabButtonClass = ({ selected }) =>
+  [
+    "rounded-lg px-4 py-2 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2",
+    selected
+      ? "bg-sky-600 text-white shadow"
+      : "bg-white text-gray-700 border border-zinc-300 hover:bg-gray-50",
+  ].join(" ");
+
+function normalizeAchievementForCard(achievement) {
+  return {
+    ...achievement,
+    children: achievement.children ?? [],
+    restrictions: achievement.restrictions ?? [],
+    point_value: achievement.point_value ?? achievement.points ?? 0,
+  };
+}
 
 const SearchFilter = ({ setSearchTerm, placeholder, classes }) => (
   <Input
@@ -41,6 +69,7 @@ const TypeSelectFilter = ({ typeFilter, setTypeFilter }) => {
 
 const SortPoints = ({ sort, setSort }) => (
   <button
+    type="button"
     className="bg-white border border-zinc-300 rounded text-xs h-9 px-2 flex items-center justify-center sm:w-1/6 text-gray-600"
     onClick={() => setSort(!sort)}
     aria-label={`Sort by points ${sort ? "ascending" : "descending"}`}
@@ -58,6 +87,7 @@ const SortPoints = ({ sort, setSort }) => (
 
 const ShowHideInfo = ({ showInfo, setShowInfo }) => (
   <button
+    type="button"
     className="bg-white sm:w-1/6 border border-zinc-300 rounded text-xs h-9 px-2 flex items-center justify-center text-gray-400"
     onClick={() => setShowInfo(!showInfo)}
     aria-label="Show or hide achievement type info"
@@ -115,8 +145,41 @@ const AchievementFilters = ({
   );
 };
 
-export default function AchievementsPage() {
-  const dispatch = useDispatch();
+function MostEarnedAchievementsPanel() {
+  const { data, isLoading } = useGetMostEarnedAchievementsQuery();
+
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
+
+  if (!data?.length) {
+    return (
+      <p className="text-sm text-gray-600">
+        No matching earned achievements to show yet.
+      </p>
+    );
+  }
+
+  return (
+    <>
+      <p className="text-sm text-gray-600 mb-4">
+        The most frequently earned achievements in commander league.
+      </p>
+      <div className="my-4">
+        <div className="grid md:grid-cols-4 gap-4">
+          {data.map((achievement) => (
+            <AchievementCard
+              key={achievement.id}
+              {...normalizeAchievementForCard(achievement)}
+            />
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
+function AllAchievementsTab() {
   const [sort, setSort] = useState(true);
   const [showInfo, setShowInfo] = useState(() => {
     if (typeof window === "undefined") return true;
@@ -127,10 +190,6 @@ export default function AchievementsPage() {
   const { data: achievements, isLoading: achievementsLoading } =
     useGetAchievementsListQuery();
 
-  useEffect(() => {
-    dispatch(apiSlice.endpoints.getAchievementTypes.initiate(undefined));
-  });
-
   const achievementLookup = useMemo(() => {
     if (!achievements) return {};
 
@@ -140,8 +199,6 @@ export default function AchievementsPage() {
     }, {});
   }, [achievements]);
 
-  // Doing this the un-ideal way to start. Eventually/soon filtering will
-  // be handled by the backend to support more complex filtering.
   const { filteredData, setSearchTerm } = useAchievementSearch(
     achievements,
     achievementLookup,
@@ -149,7 +206,7 @@ export default function AchievementsPage() {
   );
 
   const { groups, orderedKeys } = useMemo(() => {
-    if (!filteredData) return {};
+    if (!filteredData) return { groups: {}, orderedKeys: [] };
 
     const associated = associateParentsChildren(filteredData);
     const sorted = [...associated].sort((a, b) =>
@@ -174,35 +231,7 @@ export default function AchievementsPage() {
   }
 
   return (
-    <div className="p-4 md:p-8">
-      <PageTitle title="Achievements" />
-      <div className="my-2 w-full">
-        <CalloutCard
-          tag="Info"
-          title="How to browse this page"
-          tagClassName="bg-violet-600"
-          items={[
-            "Use the filters below to sort by point value, name, or both.",
-            <>
-              Tiles with a{" "}
-              <i
-                className="fa-solid fa-circle-info text-gray-500"
-                aria-hidden
-              />{" "}
-              icon have special notes. Click the tile to view full details.
-            </>,
-            <>
-              Tiles with nested achievements have a{" "}
-              <i
-                className="fa-solid fa-layer-group text-gray-500"
-                aria-hidden
-              />{" "}
-              icon and can be clicked for full context.
-            </>,
-          ]}
-        />
-      </div>
-
+    <>
       <AchievementFilters
         typeFilter={typeFilter}
         setSearchTerm={setSearchTerm}
@@ -223,6 +252,69 @@ export default function AchievementsPage() {
           <hr className="h-px my-8 bg-gray-300 border-0"></hr>
         </div>
       ))}
+    </>
+  );
+}
+
+export default function AchievementsPage() {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(apiSlice.endpoints.getAchievementTypes.initiate(undefined));
+  }, [dispatch]);
+
+  return (
+    <div className="p-4 md:p-8">
+      <PageTitle title="Achievements" />
+      <div className="my-2 w-full">
+        <CalloutCard
+          tag="Info"
+          title="How to browse this page"
+          tagClassName="bg-violet-600"
+          items={[
+            <>
+              <strong>Commonly Earned</strong> shows the ten achievements
+              players have earned the most often. It's likely a deck you own
+              earns one or more of these.
+            </>,
+            <>
+              <strong>All</strong> lists every achievement. Use the filters to
+              sort by point value, name, or type.
+            </>,
+            <>
+              Tiles with a{" "}
+              <i
+                className="fa-solid fa-circle-info text-gray-500"
+                aria-hidden
+              />{" "}
+              icon have important notes. Click the tile to view full details.
+            </>,
+            <>
+              Tiles with nested achievements have a{" "}
+              <i
+                className="fa-solid fa-layer-group text-gray-500"
+                aria-hidden
+              />{" "}
+              icon and can be clicked for full context.
+            </>,
+          ]}
+        />
+      </div>
+
+      <TabGroup defaultIndex={0}>
+        <TabList className="flex flex-wrap gap-2 mb-4">
+          <Tab className={tabButtonClass}>Commonly Earned</Tab>
+          <Tab className={tabButtonClass}>All</Tab>
+        </TabList>
+        <TabPanels>
+          <TabPanel className="focus:outline-none pb-24 sm:pb-0">
+            <MostEarnedAchievementsPanel />
+          </TabPanel>
+          <TabPanel className="focus:outline-none pb-24 sm:pb-0">
+            <AllAchievementsTab />
+          </TabPanel>
+        </TabPanels>
+      </TabGroup>
     </div>
   );
 }

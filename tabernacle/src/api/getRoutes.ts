@@ -12,8 +12,10 @@ import {
   ScorecardAchievementOptionsResponseSchema,
   ScalableTermsResponseSchema,
   ScalableTermTypeListSchema,
+  MostEarnedAchievementsResponseSchema,
   type AchievementListResponse,
   type AchievementObjectResponse,
+  type MostEarnedAchievementsResponse,
   type EarnedAchievementSubListResponse,
   type AchievementTypeListResponse,
   type ScoresheetFormResponse,
@@ -104,6 +106,12 @@ export default (builder: ApiBuilder) => ({
     providesTags: ["Achievements"],
     transformResponse: (raw: unknown) =>
       safeParseWithFallback(AchievementListResponseSchema, raw, []),
+  }),
+  getMostEarnedAchievements: builder.query<MostEarnedAchievementsResponse, void>({
+    query: () => "most_earned_achievements/",
+    providesTags: ["Achievements"],
+    transformResponse: (raw: unknown) =>
+      safeParseWithFallback(MostEarnedAchievementsResponseSchema, raw, []),
   }),
   getScorecardAchievementOptions: builder.query<
     ScorecardAchievementOptionsResponse,

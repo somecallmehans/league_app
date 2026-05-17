@@ -9,6 +9,7 @@ from .views import (
     fetch_and_insert_commanders,
     upsert_earned_achievements,
     get_achievements_with_restrictions_v2,
+    get_most_earned_achievements,
     get_achievement_types,
     get_league_monthly_winners,
     get_league_monthly_winner_info,
@@ -41,6 +42,11 @@ urlpatterns = [
         "get_achievements/",
         get_achievements_with_restrictions_v2,
         name="get_achievements",
+    ),
+    path(
+        "most_earned_achievements/",
+        get_most_earned_achievements,
+        name="most_earned_achievements",
     ),
     path(
         "scorecard_achievement_options/",

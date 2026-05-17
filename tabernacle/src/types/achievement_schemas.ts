@@ -98,6 +98,31 @@ export const AchievementSchema: z.ZodType<GetAchievement> = z.lazy(() =>
 
 export const AchievementListResponseSchema = z.array(AchievementSchema);
 
+/** Same shape as get_achievements/ plus earned_count from most_earned_achievements/ */
+export const MostEarnedAchievementSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  full_name: z.string(),
+  parent_id: z.number().nullish(),
+  slug: z.string().nullish(),
+  points: z.number().nullish(),
+  point_value: z.number().nullish(),
+  type: AchievementTypeSchema.nullish(),
+  type_id: z.number().nullish(),
+  parent: ParentAchievementSchema.nullish(),
+  restrictions: AchievementRestrictionsSchema.nullish(),
+  deleted: z.boolean().nullish(),
+  earned_count: z.number(),
+});
+
+export const MostEarnedAchievementsResponseSchema = z.array(
+  MostEarnedAchievementSchema,
+);
+
+export type MostEarnedAchievementsResponse = z.infer<
+  typeof MostEarnedAchievementsResponseSchema
+>;
+
 export const AchievementObjectResponseSchema = z.object({
   map: z.record(z.string(), z.array(AchievementSchema)),
   data: z.array(AchievementSchema),
