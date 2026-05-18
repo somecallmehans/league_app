@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useMemo, useRef, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { skipToken } from "@reduxjs/toolkit/query";
 
 import {
+  useDeleteSessionMutation,
   useGetPodsQuery,
   useGetRoundsBySessionQuery,
   useGetSigninsQuery,
@@ -10,6 +11,7 @@ import {
 import LoadingSpinner from "../../components/LoadingSpinner";
 import PageTitle from "../../components/PageTitle";
 import StandardButton from "../../components/Button";
+import ConfirmModal from "../../components/Modals/ConfirmModal";
 import AddParticipantBar from "./sessionLobby/AddParticipantBar";
 import RoundFocusedAdmin from "./sessionLobby/RoundFocusedAdmin";
 import RoundLobbyAdmin from "./sessionLobby/RoundLobbyAdmin";
@@ -18,8 +20,13 @@ type TabKey = "round1" | "round2";
 
 export default function SessionLobbyPage() {
   const { session_id: sessionId } = useParams();
+  const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState<TabKey>(() => "round1");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [lockDelete, setLockDelete] = useState(false);
+  const deleteLockRef = useRef(false);
+  const [deleteSession] = useDeleteSessionMutation();
 
   const token = sessionId ? { session_id: sessionId } : skipToken;
   const { data: roundsById, isLoading } = useGetRoundsBySessionQuery(token);
@@ -55,6 +62,23 @@ export default function SessionLobbyPage() {
   const roundTwoStarted =
     !!podsRoundTwo && Object.keys(podsRoundTwo).length > 0;
 
+  const handleDeleteSession = () => {
+    if (!sessionId || deleteLockRef.current) return;
+    deleteLockRef.current = true;
+    setLockDelete(true);
+    deleteSession({ session_id: Number(sessionId) })
+      .unwrap()
+      .then(() => {
+        setShowDeleteConfirm(false);
+        navigate("/league-session");
+      })
+      .catch((err) => console.error("Failed to delete session: ", err))
+      .finally(() => {
+        deleteLockRef.current = false;
+        setLockDelete(false);
+      });
+  };
+
   if (isLoading || signInsLoading || podsOneLoading || podsTwoLoading) {
     return <LoadingSpinner />;
   }
@@ -73,9 +97,40 @@ export default function SessionLobbyPage() {
   return (
     <div className="bg-white p-4 mb-4 h-full">
       <PageTitle title={`Session ${sessionDate}`} />
-      <Link to="/league-session">
-        <StandardButton title="Back" />
-      </Link>
+      <div className="flex items-center justify-between mb-4">
+        <Link to="/league-session">
+          <StandardButton title="Back" />
+        </Link>
+        <StandardButton
+          title="Delete session"
+          action={() => setShowDeleteConfirm(true)}
+          className="bg-red-600 text-white data-[hover]:bg-red-500 data-[active]:bg-red-700"
+          disabled={lockDelete}
+        />
+      </div>
+
+      <ConfirmModal
+        isOpen={showDeleteConfirm}
+        title="Delete this session?"
+        bodyText={
+          <div className="text-sm text-red-600 leading-relaxed space-y-2">
+            <span className="block font-bold">
+              You are about to permanently delete this session and all its data.
+            </span>
+            <span className="block">
+              This is a destructive action and may not be possible to recover
+              lost data.
+            </span>
+            <span className="block">
+              All rounds, pods, achievements, and results tied to this session
+              will be removed.
+            </span>
+          </div>
+        }
+        confirmAction={handleDeleteSession}
+        closeModal={() => setShowDeleteConfirm(false)}
+        disableSubmit={lockDelete}
+      />
 
       <AddParticipantBar
         roundOneId={roundOneId}

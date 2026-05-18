@@ -189,6 +189,7 @@ export const {
   usePostLobbySignInMutation,
   usePostPodParticipantMutation,
   useDeletePodParticipantMutation,
+  useDeleteSessionMutation,
   useInsertScoresheetMutation,
   useUpdateScoresheetMutation,
   usePostDecklistMutation,

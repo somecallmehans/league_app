@@ -752,3 +752,40 @@ def get_rounds_by_session(request, session_id, **kwargs):
     }
 
     return Response(out)
+
+
+@api_view([DELETE])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+@require_store
+def delete_session(request, session_id, **kwargs):
+    """Soft-delete a session and all related rounds, pods, achievements, and winners."""
+    store_id = request.store_id
+    session = Sessions.objects.filter(
+        id=session_id, store_id=store_id, deleted=False
+    ).first()
+    if not session:
+        return Response(
+            {"message": "Session not found."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    round_ids = list(
+        Rounds.objects.filter(session_id=session_id).values_list("id", flat=True)
+    )
+    pod_ids = list(
+        Pods.objects.filter(rounds_id__in=round_ids).values_list("id", flat=True)
+    )
+
+    Sessions.objects.filter(id=session_id).update(deleted=True)
+    if round_ids:
+        Rounds.objects.filter(id__in=round_ids).update(deleted=True)
+    if pod_ids:
+        Pods.objects.filter(id__in=pod_ids).update(deleted=True)
+        WinningCommanders.objects.filter(pods_id__in=pod_ids).update(deleted=True)
+    if round_ids:
+        ParticipantAchievements.objects.filter(round_id__in=round_ids).update(
+            deleted=True
+        )
+
+    return Response(status=status.HTTP_204_NO_CONTENT)

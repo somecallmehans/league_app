@@ -178,6 +178,13 @@ export default (builder: ApiBuilder) => ({
     }),
     invalidatesTags: ["Pods", "Participants"],
   }),
+  deleteSession: builder.mutation<void, { session_id: number }>({
+    query: ({ session_id }) => ({
+      url: `sessions/${session_id}/delete/`,
+      method: "DELETE",
+    }),
+    invalidatesTags: ["Sessions"],
+  }),
   insertScoresheet: builder.mutation<void, ScoresheetFormRequest>({
     query: ({ round_id, pod_id, ...body }) => ({
       url: `rounds/${round_id}/pods/${pod_id}/scoresheet/`,

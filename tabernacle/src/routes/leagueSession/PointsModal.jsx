@@ -21,14 +21,14 @@ export default function PointsModal({ isOpen, closeModal, selected }) {
       participant_id: selected?.participant_id,
       round_id: selected?.roundId,
     },
-    { skip: !selected }
+    { skip: !selected },
   );
   const { data: decklist, isLoading: decklistLoading } = useGetDecklistQuery(
     {
       participant_id: selected?.participant_id,
       round_id: selected?.roundId,
     },
-    { skip: !selected }
+    { skip: !selected },
   );
 
   if (achievementsLoading || decklistLoading) {
@@ -69,7 +69,7 @@ export default function PointsModal({ isOpen, closeModal, selected }) {
                     <div className="flex flex-col">
                       {selected?.participant}{" "}
                       <span className="text-base">
-                        {selected?.winnerCommander || ""}
+                        {selected?.isWinner ? selected?.winnerCommander : ""}
                       </span>
                     </div>
                     {decklist?.url && (

@@ -1,4 +1,4 @@
-import React, { Fragment } from "react";
+import React, { Fragment, type ReactNode } from "react";
 
 import StandardButton from "../Button";
 import {
@@ -12,7 +12,7 @@ import {
 interface ConfirmModalProps {
   isOpen: boolean;
   title: string;
-  bodyText: string;
+  bodyText?: ReactNode;
   confirmAction: () => void;
   closeModal: () => void;
   disableSubmit?: boolean;
@@ -54,7 +54,9 @@ export default function ({
               <DialogTitle as="h1" className="text-2xl font-semibold">
                 {title}
               </DialogTitle>
-              {bodyText}
+              {bodyText != null && bodyText !== "" && (
+                <div className="mt-3">{bodyText}</div>
+              )}
               <div className="mt-4 flex items-center gap-2  sm:justify-center">
                 <StandardButton
                   title="Confirm"

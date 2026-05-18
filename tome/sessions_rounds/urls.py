@@ -17,6 +17,7 @@ from .views import (
     delete_pod_participant,
     get_pod_participants,
     get_rounds_by_session,
+    delete_session,
 )
 
 urlpatterns = [
@@ -66,6 +67,11 @@ urlpatterns = [
         "get_rounds_by_session/<int:session_id>/",
         get_rounds_by_session,
         name="get_rounds_by_session",
+    ),
+    path(
+        "sessions/<int:session_id>/delete/",
+        delete_session,
+        name="delete_session",
     ),
     re_path(r"^get_all_rounds/$", get_all_rounds, name="get_all_rounds"),
     re_path(
