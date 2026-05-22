@@ -1,6 +1,5 @@
 import pytest
 
-from unittest.mock import patch
 from django.urls import reverse
 from rest_framework import status
 
@@ -142,11 +141,7 @@ def test_get_decklists_by_color(client, build_state) -> None:
     """
 
     url = reverse("decklists")
-    with patch(
-        "users.queries.scryfall_request.get_commander_image_urls",
-        return_value={},
-    ):
-        res = client.get(f"{url}?colors=24")
+    res = client.get(f"{url}?colors=24")
 
     assert res.status_code == status.HTTP_200_OK
 
@@ -212,11 +207,7 @@ def test_get_decklists_by_color(client, build_state) -> None:
 def test_decklists_pagination(client, build_state) -> None:
     """Paginated envelope includes count and obeys page / page_size."""
     url = reverse("decklists")
-    with patch(
-        "users.queries.scryfall_request.get_commander_image_urls",
-        return_value={},
-    ):
-        res = client.get(f"{url}?page=1&page_size=20")
+    res = client.get(f"{url}?page=1&page_size=20")
     assert res.status_code == status.HTTP_200_OK
     body = res.json()
     assert body["count"] == 3
@@ -224,11 +215,7 @@ def test_decklists_pagination(client, build_state) -> None:
     assert body["page_size"] == 20
     assert len(body["results"]) == 3
 
-    with patch(
-        "users.queries.scryfall_request.get_commander_image_urls",
-        return_value={},
-    ):
-        res2 = client.get(f"{url}?page=2&page_size=20")
+    res2 = client.get(f"{url}?page=2&page_size=20")
     body2 = res2.json()
     assert body2["count"] == 3
     assert len(body2["results"]) == 0

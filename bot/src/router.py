@@ -1,4 +1,5 @@
 import os, httpx, time
+from typing import Optional
 
 from .cache import CACHE, cache_key, POS_TTL, NEG_TTL
 from .helpers import (
@@ -6,6 +7,7 @@ from .helpers import (
     confirm_link_prompt,
     select_existing_prompt,
     ephemeral,
+    public,
 )
 
 API_BASE = os.getenv("LEAGUE_API_BASE")
@@ -14,6 +16,19 @@ SERVICE_TOKEN = os.getenv("SERVICE_TOKEN")
 EPHEMERAL = 64
 SELECTIONS = {}
 TTL = 15 * 60
+WEBSITE_COOLDOWN_SEC = 30
+WEBSITE_COOLDOWNS = {}
+
+HELP_TEXT = """**Commander League bot commands**
+
+**/join** — Register for this store or link your Discord to an existing league profile. Run once per store.
+**/mycode** — Show your personal sign-in code for the website.
+**/signin** — Sign up for the current league round(s); pick round(s) and confirm.
+**/drop** — Remove yourself from the current round.
+**/editdecklist** — Get a short-lived code and link to edit your submitted decklists.
+**/website** — Post this store’s Commander League website URL.
+**/help** — Show this command list.
+"""
 
 
 async def validate_channel(guild_id: int, channel_id: int):
@@ -576,3 +591,54 @@ async def handle_join_confirm(uid, pid, guild_id):
     except Exception:
         pass
     return ephemeral(f"❌ {msg}")
+
+
+def _website_cooldown_remaining(guild_id: int, user_id: int) -> Optional[int]:
+    expiry = WEBSITE_COOLDOWNS.get((guild_id, user_id))
+    if expiry is None:
+        return None
+    remaining = int(expiry - time.time())
+    if remaining <= 0:
+        WEBSITE_COOLDOWNS.pop((guild_id, user_id), None)
+        return None
+    return remaining
+
+
+def _set_website_cooldown(guild_id: int, user_id: int) -> None:
+    WEBSITE_COOLDOWNS[(guild_id, user_id)] = time.time() + WEBSITE_COOLDOWN_SEC
+
+
+async def get_store_info(guild_id: int):
+    async with httpx.AsyncClient(timeout=10) as http:
+        res = await http.get(
+            f"{API_BASE}api/discord/store/",
+            headers={
+                "Authorization": f"X-SERVICE-TOKEN {SERVICE_TOKEN}",
+                "X-DISCORD-GUILD-ID": str(guild_id),
+            },
+        )
+        if res.status_code == 200:
+            return res.json()
+    return None
+
+
+async def handle_website(user_id: int, guild_id: int):
+    remaining = _website_cooldown_remaining(guild_id, user_id)
+    if remaining is not None:
+        return ephemeral(
+            f"Please wait **{remaining}** second(s) before using `/website` again."
+        )
+
+    store = await get_store_info(guild_id)
+    if not store or not store.get("slug"):
+        return ephemeral("Could not find this store’s website. Contact a league admin.")
+
+    _set_website_cooldown(guild_id, user_id)
+    slug = store["slug"]
+    store_name = store.get("store_name") or "Commander League"
+    url = f"https://{slug}.commanderleague.xyz"
+    return public(f"**{store_name}** — {url}")
+
+
+async def handle_help():
+    return ephemeral(HELP_TEXT)

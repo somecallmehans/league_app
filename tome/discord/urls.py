@@ -13,6 +13,7 @@ from .views import (
     register_and_join,
     ensure_store_membership,
     validate_channel,
+    store_info,
 )
 
 urlpatterns = [
@@ -24,6 +25,7 @@ urlpatterns = [
     path("drop/", drop_user, name="drop"),
     path("issue_token/", issue_edit_token, name="issue_edit_token"),
     path("validate_channel/", validate_channel, name="validate_channel"),
+    path("store/", store_info, name="store_info"),
     path("join/status/", check_join_status, name="join_status"),
     path("join/find/", find_participants, name="find_join"),
     path("join/register/", register_and_join, name="register_and_join"),

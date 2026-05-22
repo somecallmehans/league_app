@@ -3,6 +3,19 @@ from typing import Optional
 EPHEMERAL = 64
 
 
+def public(
+    content: str,
+    components: Optional[list] = None,
+    embeds: Optional[list] = None,
+):
+    data = {"content": content}
+    if components:
+        data["components"] = components
+    if embeds:
+        data["embeds"] = embeds
+    return {"type": 4, "data": data}
+
+
 def ephemeral(
     content: str,
     components: Optional[list] = None,

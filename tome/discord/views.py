@@ -386,6 +386,19 @@ def validate_channel(request):
 
 @require_service_token
 @require_discord_store
+@api_view([GET])
+def store_info(request):
+    """Return store slug and name for the guild in X-DISCORD-GUILD-ID."""
+    store = Store.objects.filter(id=request.store_id).first()
+    if not store:
+        return Response(
+            {"message": "Store not found."}, status=status.HTTP_404_NOT_FOUND
+        )
+    return Response({"slug": store.slug, "store_name": store.name})
+
+
+@require_service_token
+@require_discord_store
 @api_view([POST])
 def check_join_status(request):
     """Check if a discord user is linked/a member of the store. Returns body like:

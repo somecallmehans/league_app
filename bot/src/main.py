@@ -22,6 +22,8 @@ from .router import (
     handle_join_name_submit,
     handle_join_link_existing,
     handle_join_confirm,
+    handle_website,
+    handle_help,
     validate_channel,
 )
 from .helpers import (
@@ -149,6 +151,13 @@ async def interactions(req: Request):
                     participant_value = first.get("value") or ""
 
             return await handle_join(user_id, participant_value, guild_id)
+
+        if name == "website":
+            logger.info(f"Website request from {user_id} at guild {guild_id}")
+            return await handle_website(user_id, guild_id)
+
+        if name == "help":
+            return await handle_help()
 
     if t == MESSAGE:
         cid = data.get("custom_id")
