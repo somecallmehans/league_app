@@ -1,7 +1,8 @@
-import React, { Fragment, type ReactNode } from "react";
+import React, { Fragment, useEffect, useState, type ReactNode } from "react";
 
 import StandardButton from "../Button";
 import {
+  Checkbox,
   Dialog,
   DialogPanel,
   DialogTitle,
@@ -16,6 +17,7 @@ interface ConfirmModalProps {
   confirmAction: () => void;
   closeModal: () => void;
   disableSubmit?: boolean;
+  enableCheckbox?: boolean;
 }
 
 export default function ({
@@ -25,7 +27,27 @@ export default function ({
   confirmAction,
   closeModal,
   disableSubmit,
+  enableCheckbox,
 }: ConfirmModalProps) {
+  const [isAcknowledged, setIsAcknowledged] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setIsAcknowledged(false);
+    }
+  }, [isOpen]);
+
+  const requiresAcknowledgment = enableCheckbox === true;
+  const isConfirmDisabled =
+    disableSubmit || (requiresAcknowledgment && !isAcknowledged);
+
+  const handleConfirm = () => {
+    if (requiresAcknowledgment && !isAcknowledged) {
+      return;
+    }
+    confirmAction();
+  };
+
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={closeModal}>
@@ -57,11 +79,34 @@ export default function ({
               {bodyText != null && bodyText !== "" && (
                 <div className="mt-3">{bodyText}</div>
               )}
+              {requiresAcknowledgment && (
+                <label className="mt-4 flex items-center justify-center gap-3">
+                  <Checkbox
+                    checked={isAcknowledged}
+                    onChange={setIsAcknowledged}
+                    className="group block size-5 rounded border border-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-sky-400 data-[checked]:bg-sky-500"
+                  >
+                    <svg
+                      className="stroke-white opacity-0 group-data-[checked]:opacity-100"
+                      viewBox="0 0 14 14"
+                      fill="none"
+                    >
+                      <path
+                        d="M3 8L6 11L11 3.5"
+                        strokeWidth={2}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </Checkbox>
+                  <span className="text-sm text-slate-800">I understand</span>
+                </label>
+              )}
               <div className="mt-4 flex items-center gap-2  sm:justify-center">
                 <StandardButton
                   title="Confirm"
-                  action={confirmAction}
-                  disabled={disableSubmit}
+                  action={handleConfirm}
+                  disabled={isConfirmDisabled}
                 />
                 <StandardButton title="Cancel" action={closeModal} />
               </div>

@@ -14,10 +14,12 @@ export default function RoundLobbyAdmin({
   sessionId,
   roundId,
   participants,
+  roundNumber,
 }: {
   sessionId: number;
   roundId: number;
   participants: Array<{ id: number; name: string }>;
+  roundNumber: string;
 }) {
   const [showConfirm, setShowConfirm] = useState(false);
   const [lockSubmit, setLockSubmit] = useState(false);
@@ -68,7 +70,7 @@ export default function RoundLobbyAdmin({
           </div>
         </div>
         <StandardButton
-          title="Begin round"
+          title={`Begin round ${roundNumber}`}
           action={() => setShowConfirm(true)}
           disabled={disableBegin}
           type="button"

@@ -130,6 +130,7 @@ export default function SessionLobbyPage() {
         confirmAction={handleDeleteSession}
         closeModal={() => setShowDeleteConfirm(false)}
         disableSubmit={lockDelete}
+        enableCheckbox
       />
 
       <AddParticipantBar
@@ -176,6 +177,7 @@ export default function SessionLobbyPage() {
           roundId={roundOneId}
           signIns={signIns?.[String(roundOneId)]?.participants ?? []}
           pods={podsRoundOne}
+          roundNumber="1"
         />
       ) : (
         <RoundTab
@@ -183,6 +185,7 @@ export default function SessionLobbyPage() {
           roundId={roundTwoId}
           signIns={signIns?.[String(roundTwoId)]?.participants ?? []}
           pods={podsRoundTwo}
+          roundNumber="2"
         />
       )}
     </div>
@@ -194,11 +197,13 @@ function RoundTab({
   roundId,
   signIns,
   pods,
+  roundNumber,
 }: {
   sessionId: number;
   roundId: number;
   signIns: Array<{ id: number; name: string }>;
   pods?: Record<string, any>;
+  roundNumber: string;
 }) {
   const showFocusedRound = pods && Object.keys(pods).length > 0;
 
@@ -218,6 +223,7 @@ function RoundTab({
       sessionId={sessionId}
       roundId={roundId}
       participants={signIns}
+      roundNumber={roundNumber}
     />
   );
 }
