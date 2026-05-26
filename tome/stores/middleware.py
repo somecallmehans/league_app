@@ -32,8 +32,8 @@ class StoreResolverMiddleware(MiddlewareMixin):
             return
 
         store = (
-            Store.objects.filter(slug=slug, deleted=False, is_active=True)
-            .only("id", "slug", "name")
+            Store.objects.filter(slug=slug, deleted=False)
+            .only("id", "slug", "name", "is_active")
             .first()
         )
 
@@ -118,7 +118,6 @@ class InvalidStoreRedirectMiddleware(MiddlewareMixin):
         exists = Store.objects.filter(
             slug=subdomain,
             deleted=False,
-            is_active=True,
         ).exists()
 
         if not exists:

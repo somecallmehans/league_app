@@ -23,7 +23,9 @@ def get_store(request, **kwargs):
     """If we have a store, get the stores info."""
 
     store = (
-        Store.objects.filter(id=request.store_id).values("name", "external_url").first()
+        Store.objects.filter(id=request.store_id)
+        .values("name", "slug", "external_url", "is_active")
+        .first()
     )
 
     return Response(store)

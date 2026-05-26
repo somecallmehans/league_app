@@ -74,7 +74,9 @@ import {
   type SingleDecklist,
 } from "../types/decklist_schemas";
 import {
+  StoreDetailSchema,
   StoreListResponseSchema,
+  type StoreDetail,
   type StoreListResponse,
 } from "../types/store_schemas";
 import { type DecklistParams } from "../routes/home/Decklists";
@@ -370,8 +372,13 @@ export default (builder: ApiBuilder) => ({
       `admin_decklist_by_id/?decklist_id=${decklist_id}`,
     providesTags: ["AdminDecklists"],
   }),
-  getStore: builder.query<{ name?: string; external_url?: string }, void>({
+  getStore: builder.query<StoreDetail | null, void>({
     query: () => "store/",
+    transformResponse: (raw: unknown) => {
+      if (!raw) return null;
+      const result = StoreDetailSchema.safeParse(raw);
+      return result.success ? result.data : null;
+    },
   }),
   getStores: builder.query<StoreListResponse, void>({
     query: () => "store_list/",

@@ -2,10 +2,11 @@ import React, { useState } from "react";
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import PrivateRoute from "./routes/routeHelper";
 import auth from "./helpers/authHelpers";
-import { useGetAllConfigsQuery } from "./api/apiSlice";
+import { useGetAllConfigsQuery, useGetStoreQuery } from "./api/apiSlice";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import InactiveStoreOverlay from "./components/InactiveStoreOverlay";
 import Home from "./routes/home/Home";
 import Login from "./components/Login";
 import Logout from "./components/Logout";
@@ -25,6 +26,12 @@ import { getStoreSlug } from "./helpers/helpers";
 
 import { usePageTracking } from "./hooks";
 
+function getApexUrl() {
+  const parts = window.location.hostname.split(".");
+  const base = parts.length >= 3 ? parts.slice(1).join(".") : parts.join(".");
+  return `${window.location.protocol}//${base}`;
+}
+
 const NotFoundPage = ({ storeSlug }) => {
   if (!storeSlug) return <Navigate to="/" replace />;
   return (
@@ -36,7 +43,24 @@ const NotFoundPage = ({ storeSlug }) => {
 
 function RequireStore({ storeSlug }) {
   if (!storeSlug) return <Navigate to="/" replace />;
-  return <Outlet />;
+
+  const { data: store, isLoading, isError } = useGetStoreQuery();
+
+  if (isLoading) return null;
+
+  if (isError || store === null || store === undefined) {
+    window.location.replace(getApexUrl());
+    return null;
+  }
+
+  return (
+    <>
+      {store.is_active === false && (
+        <InactiveStoreOverlay storeName={store.name} />
+      )}
+      <Outlet />
+    </>
+  );
 }
 
 function App() {

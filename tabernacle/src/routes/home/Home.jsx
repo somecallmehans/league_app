@@ -2,7 +2,7 @@ import React from "react";
 
 import { useMonthYear } from "../../hooks";
 import { useConfig } from "../../hooks/useConfigs";
-import { useGetAchievementsForMonthQuery } from "../../api/apiSlice";
+import { useGetAchievementsForMonthQuery, useGetStoreQuery } from "../../api/apiSlice";
 import { LeaderboardGrid } from "../leaderboard/Leaderboard";
 import { getStoreSlug } from "../../helpers/helpers";
 import Tooltip from "../../components/Tooltip";
@@ -159,13 +159,16 @@ const HomeLeaderboard = () => {
 };
 
 export default function Home() {
+  const { data: store } = useGetStoreQuery(undefined, { skip: !storeSlug });
+  const isActiveStore = !!storeSlug && store?.is_active !== false;
+
   return (
     <div className="min-h-screen text-black px-4 sm:px-8 py-4">
       <div className="max-w-4xl mx-auto">
         <HomeHeader />
-        <HomeLeaderboard />
+        {isActiveStore && <HomeLeaderboard />}
         <Description />
-        <LeagueSchedule />
+        {isActiveStore && <LeagueSchedule />}
         <CodeOfConduct />
       </div>
     </div>
