@@ -115,8 +115,15 @@ class TestGetStoreView:
         assert data["is_active"] is False
         assert data["slug"] == "inactive-store"
 
-    def test_missing_store_returns_null(self, settings, transactional_db):
+    def test_missing_store_redirects(self, settings, transactional_db):
         client = self._make_client("nope", settings)
         res = client.get("/store/")
+        assert res.status_code == 302
+
+    def test_apex_no_store_returns_null(self, settings, transactional_db):
+        settings.BASE_DOMAINS = {"example.test"}
+        client = APIClient()
+        client.defaults["HTTP_HOST"] = "example.test"
+        res = client.get("/store/")
         assert res.status_code == 200
-        assert res.json() is None
+        assert res.data is None
