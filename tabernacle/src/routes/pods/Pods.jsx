@@ -32,20 +32,20 @@ function dateSort(a, b) {
   return parseDate(b) - parseDate(a);
 }
 
-const roundTimes = {
-  1: "1:30 PM",
-  2: "3:30 PM",
+const getRoundStartTime = (roundNumber, configs) => {
+  if (roundNumber === 1) return configs?.round_one_start?.value ?? "";
+  if (roundNumber === 2) return configs?.round_two_start?.value ?? "";
+  return "";
 };
 
-const roundDisplay = (id) => (id % 2 === 0 ? "3:30PM" : "1:30PM");
-
-const configKeys = {
-  "1:30PM": "round_one_cap",
-  "3:30PM": "round_two_cap",
-};
+const getRoundCapKey = (roundNumber) =>
+  roundNumber === 1 ? "round_one_cap" : "round_two_cap";
 
 const SignInArea = ({ roundInfo }) => {
-  const ids = roundInfo.map(({ id }) => id);
+  const sortedRounds = [...roundInfo].sort(
+    (a, b) => a.round_number - b.round_number,
+  );
+  const ids = sortedRounds.map(({ id }) => id);
   const { data } = useSelector(apiSlice.endpoints.getAllConfigs.select());
 
   const configs = data?.byKey;
@@ -91,18 +91,18 @@ const SignInArea = ({ roundInfo }) => {
         </div>
 
         <div className="flex gap-4 text-center text-xs sm:text-sm drop-shadow-md">
-          {ids.map((id) => {
+          {sortedRounds.map(({ id, round_number }) => {
             const count = signIns[id]["count"];
             const participants = signIns[id]["participants"];
-            const rDisplay = roundDisplay(id);
-            const roundLimit = configs[configKeys[rDisplay]].value;
+            const timeLabel = getRoundStartTime(round_number, configs);
+            const roundLimit = configs[getRoundCapKey(round_number)].value;
             return (
               <div
                 key={id}
                 className="border  hover:border-sky-500 p-2 rounded-lg"
                 onClick={() => setShowParticipants(participants)}
               >
-                {rDisplay} Players:{" "}
+                {timeLabel} Players:{" "}
                 <span className="font-bold">
                   {count}/{roundLimit}
                 </span>
@@ -143,6 +143,9 @@ const SignInArea = ({ roundInfo }) => {
 };
 
 const RoundDisplay = ({ roundInfo, dateKey, renderRoundLink }) => {
+  const { data } = useSelector(apiSlice.endpoints.getAllConfigs.select());
+  const configs = data?.byKey;
+
   const signInOpen = roundInfo.every(
     ({ started, closed }) => !started && !closed,
   );
@@ -198,7 +201,7 @@ const RoundDisplay = ({ roundInfo, dateKey, renderRoundLink }) => {
                 </div>
               </Link>
               <div className="text-center sm:text-xl">
-                {roundTimes[round_number]}
+                {getRoundStartTime(round_number, configs)}
               </div>
             </div>
           );
