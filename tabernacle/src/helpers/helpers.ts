@@ -23,20 +23,10 @@ export const podCalculator = (len: number): string => {
   return `${fivePods} Five Pods, ${fourPods} Four Pods, ${threePods} Three Pods`;
 };
 
-declare global {
-  interface Window {
-    gtag?: (
-      command: "event" | "config" | "consent" | string,
-      nameOrId: string,
-      params?: Record<string, unknown>
-    ) => void;
-  }
-}
+import { trackNavClick } from "./analytics";
 
 export const handleNavClick = (label: string) => {
-  if (typeof window === "undefined" || typeof window.gtag !== "function")
-    return;
-  window.gtag("event", "nav_click", { link_text: label });
+  trackNavClick(label);
 };
 
 export interface RGB {

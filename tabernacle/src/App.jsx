@@ -24,7 +24,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { getStoreSlug } from "./helpers/helpers";
 
-import { usePageTracking } from "./hooks";
+import { usePageTracking, useStatsPageTimeTracking } from "./hooks";
 
 function getApexUrl() {
   const parts = window.location.hostname.split(".");
@@ -68,6 +68,7 @@ function App() {
   const [loggedIn, setLoggedIn] = useState(!!auth.getToken());
   useGetAllConfigsQuery(undefined, { skip: !storeSlug });
   usePageTracking();
+  useStatsPageTimeTracking();
 
   return (
     <div className="min-h-screen flex flex-col">
