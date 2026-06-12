@@ -45,11 +45,18 @@ logger = logging.getLogger(__name__)
 
 
 @api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 def get_all_participants(request, id=None, **kwargs):
     filters = {"deleted": False, "storeparticipant__store_id": request.store_id}
     if id:
         filters["id"] = id
-    data = list(Participants.objects.filter(**filters).values("id", "name"))
+
+    fields = ["id", "name"]
+    if request.user.is_superuser:
+        fields.append("is_patreon")
+
+    data = list(Participants.objects.filter(**filters).values(*fields))
     return Response(data, status=status.HTTP_200_OK)
 
 
@@ -61,6 +68,13 @@ def upsert_participant(request, **kwargs):
     id = body.get("id", None)
     name = body.get("name", None)
     deleted = body.get("deleted", None)
+    is_patreon = body.get("is_patreon", None)
+
+    if is_patreon is not None and not request.user.is_superuser:
+        return Response(
+            {"message": "Superuser access required."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
 
     if not name and not id:
         return Response(
@@ -79,6 +93,8 @@ def upsert_participant(request, **kwargs):
             participant.name = name
         if deleted:
             participant.deleted = True
+        if is_patreon is not None:
+            participant.is_patreon = bool(is_patreon)
         participant.save()
         return Response(
             {"message": "Updated successfully"}, status=status.HTTP_201_CREATED
