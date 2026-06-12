@@ -61,11 +61,16 @@ const SignInArea = ({ roundInfo }) => {
 
   const handleSubmit = async (formVals) => {
     try {
-      const res = await postSignup(formVals);
+      const res = await postSignup(formVals).unwrap();
       setShowModal(false);
-      toast.success(res.data.message);
+      toast.success(res.message ?? "Successfully signed in.");
     } catch (error) {
       setShowModal(false);
+      const message =
+        error?.data?.message ??
+        error?.message ??
+        "Failed to sign in for round.";
+      toast.error(message);
       console.error("Failed to sign in for round.", error);
     }
   };

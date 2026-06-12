@@ -5,6 +5,7 @@ export const ParticipantSchema = z.object({
   name: z.string(),
   total_points: z.number().optional(),
   deleted: z.boolean().optional(),
+  is_patreon: z.boolean().optional(),
 });
 
 export type Participant = z.infer<typeof ParticipantSchema>;
@@ -18,6 +19,7 @@ export const EMPTY_PARTICIPANT: Participant = {
 
 export const ParticipantWithIdSchema = ParticipantSchema.extend({
   id: z.number(),
+  is_patreon: z.boolean().optional(),
 });
 
 export const ParticipantListResponseSchema = z.array(ParticipantWithIdSchema);
@@ -77,7 +79,8 @@ export type WinnerRoundInfoResponse = z.infer<
 export const UpsertParticipantRequestSchema = z.object({
   id: z.number().optional(),
   deleted: z.boolean().optional(),
-  name: z.string(),
+  name: z.string().optional(),
+  is_patreon: z.boolean().optional(),
 });
 export type UpsertParticipantRequest = z.infer<
   typeof UpsertParticipantRequestSchema

@@ -9,18 +9,22 @@ import { TextInput } from "../../components/FormInputs";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import StandardButton from "../../components/Button";
 import { useSearch } from "../../hooks";
+import auth from "../../helpers/authHelpers.ts";
 
 const formName = "participantForm";
 
 const ParticipantRow = ({
   id,
   name,
+  is_patreon: isPatreon = false,
   postUpsertParticipant,
   placeholder = "",
   openEdit,
   createCancel,
+  showPatreonToggle = false,
 }) => {
   const [editing, setEditing] = useState(openEdit);
+  const [patreonSaving, setPatreonSaving] = useState(false);
   const { control, register, handleSubmit } = useForm();
 
   const handleEdit = async (formData) => {
@@ -29,7 +33,6 @@ const ParticipantRow = ({
     setEditing(false);
   };
 
-  // This will do for now but there needs to be a prompty to prevent accidental deletions
   const handleDelete = async () => {
     await postUpsertParticipant({
       id: id,
@@ -38,24 +41,49 @@ const ParticipantRow = ({
     }).unwrap();
   };
 
+  const handlePatreonToggle = async () => {
+    if (!id || patreonSaving) return;
+    setPatreonSaving(true);
+    try {
+      await postUpsertParticipant({
+        id,
+        is_patreon: !isPatreon,
+      }).unwrap();
+    } finally {
+      setPatreonSaving(false);
+    }
+  };
+
   return (
     <form
       onSubmit={handleSubmit(handleEdit)}
       name={formName}
-      className="flex justify-between mb-2 px-4 text-base md:text-lg border-b border-slate-400"
+      className="flex justify-between items-center mb-2 px-4 text-base md:text-lg border-b border-slate-400 gap-4"
     >
       <TextInput
         name="participantName"
         defaultValue={name}
         placeholder={placeholder}
         control={control}
-        classes={`bg-transparent data-[focus]:outline-none ${
+        classes={`bg-transparent data-[focus]:outline-none flex-1 ${
           editing ? "text-sky-600" : ""
         }`}
         disabled={!editing}
         register={{ ...register("participantName") }}
         type="text"
       />
+      {showPatreonToggle && id && (
+        <label className="flex items-center gap-2 text-sm text-slate-600 shrink-0">
+          <input
+            type="checkbox"
+            checked={!!isPatreon}
+            disabled={patreonSaving}
+            onChange={handlePatreonToggle}
+            className="rounded border-slate-400 text-sky-600 focus:ring-sky-400"
+          />
+          Patreon
+        </label>
+      )}
       <EditButtons
         editing={editing}
         setEditing={createCancel || setEditing}
@@ -68,6 +96,7 @@ const ParticipantRow = ({
 
 export default function Page() {
   const [showCreate, setShowCreate] = useState();
+  const isSuperuser = auth.isSuperuser();
   const { data: participants, isLoading: participantsLoading } =
     useGetParticipantsQuery();
 
@@ -102,6 +131,7 @@ export default function Page() {
             placeholder="Add Participant Name"
             createCancel={() => setShowCreate(false)}
             openEdit
+            showPatreonToggle={isSuperuser}
           />
         </div>
       )}
@@ -110,7 +140,10 @@ export default function Page() {
         listKey="id"
         classes="md:px-32"
         Component={ParticipantRow}
-        componentProps={{ postUpsertParticipant }}
+        componentProps={{
+          postUpsertParticipant,
+          showPatreonToggle: isSuperuser,
+        }}
       />
     </div>
   );
