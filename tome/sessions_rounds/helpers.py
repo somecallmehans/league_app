@@ -19,7 +19,7 @@ PATREON_ONLY_HOURS = 24
 OPEN_TO_ALL_BEFORE_ROUND_HOURS = 48
 PATREON_REJECTION_MESSAGE = (
     "Sign-ins are currently limited to Patreon subscribers only. "
-    "General sign-ins will open soon."
+    "Regular sign-ins will open 48 hours before Round 1 begins."
 )
 
 
@@ -70,7 +70,16 @@ def patreon_signin_rejection_message(session: Sessions) -> str:
     patreon_window_end = _as_aware(session.created_at) + timedelta(
         hours=PATREON_ONLY_HOURS
     )
-    remaining = patreon_window_end - now
+    general_open_at = patreon_window_end
+    rounds = Rounds.objects.filter(session=session, deleted=False).order_by("starts_at")
+    earliest_round = rounds.first()
+    if earliest_round and earliest_round.starts_at:
+        open_to_all_time = _as_aware(earliest_round.starts_at) - timedelta(
+            hours=OPEN_TO_ALL_BEFORE_ROUND_HOURS
+        )
+        general_open_at = min(patreon_window_end, open_to_all_time)
+
+    remaining = general_open_at - now
     if remaining.total_seconds() <= 0:
         return PATREON_REJECTION_MESSAGE
 

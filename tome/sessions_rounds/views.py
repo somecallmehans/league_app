@@ -127,6 +127,7 @@ def sessions_and_rounds(request, mm_yy=None, **kwargs):
             "session_date": new_session.session_date.strftime("%A, %B %-d %Y"),
             "slug": store.slug,
             "channel_id": store.discord_channel_id,
+            "patreon_only": is_patreon_only_window(new_session),
         }
         bot_announcement(payload)
 

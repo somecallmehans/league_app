@@ -236,8 +236,8 @@ export default function ({
               </DialogTitle>
               {signIns.patreon_only && (
                 <div className="mb-4 text-left text-xs sm:text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
-                  The first 24 hours of sign-ins are reserved for Patreon
-                  subscribers only. General sign-ins will open soon.
+                  Early sign-ins are reserved for Patreon subscribers. Regular
+                  sign-ins will open 48 hours before Round 1 begins.
                 </div>
               )}
               <SignInForm

@@ -1,10 +1,13 @@
+from unittest.mock import patch
+
 from django.urls import reverse
 from rest_framework import status
 
 from utils.test_helpers import prune_fields
 
 
-def test_post_new_session(client):
+@patch("sessions_rounds.views.bot_announcement")
+def test_post_new_session(mock_announce, client):
     """Post a session. This action also creates 2 rounds
     associated with it."""
 
@@ -29,3 +32,8 @@ def test_post_new_session(client):
         )
         == expected
     )
+
+    mock_announce.assert_called_once()
+    payload = mock_announce.call_args[0][0]
+    assert "patreon_only" in payload
+    assert isinstance(payload["patreon_only"], bool)
