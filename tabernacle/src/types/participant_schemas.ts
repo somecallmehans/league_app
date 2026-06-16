@@ -76,12 +76,16 @@ export type WinnerRoundInfoResponse = z.infer<
 >;
 
 // POST
-export const UpsertParticipantRequestSchema = z.object({
-  id: z.number().optional(),
-  deleted: z.boolean().optional(),
-  name: z.string().optional(),
-  is_patreon: z.boolean().optional(),
-});
+export const UpsertParticipantRequestSchema = z
+  .object({
+    id: z.number().optional(),
+    deleted: z.boolean().optional(),
+    name: z.string().optional(),
+    is_patreon: z.boolean().optional(),
+  })
+  .refine((data) => typeof data.id === "number" || typeof data.name === "string", {
+    message: "Either id or name is required",
+  });
 export type UpsertParticipantRequest = z.infer<
   typeof UpsertParticipantRequestSchema
 >;
