@@ -20,6 +20,7 @@ class Participants(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     discord_user_id = models.PositiveBigIntegerField(null=True, unique=True, blank=True)
     code = models.CharField(max_length=6, unique=True, default=None)
+    is_patreon = models.BooleanField(default=False)
 
     class Meta:
         db_table = "participants"

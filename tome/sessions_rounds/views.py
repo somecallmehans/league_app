@@ -30,6 +30,9 @@ from users.serializers import (
 from .helpers import (
     generate_pods,
     RoundInformationService,
+    is_patreon_only_window,
+    get_session_for_rounds,
+    patreon_signin_rejection_message,
 )
 from configs.configs import get_round_caps
 from services.discord_client import bot_announcement
@@ -124,6 +127,7 @@ def sessions_and_rounds(request, mm_yy=None, **kwargs):
             "session_date": new_session.session_date.strftime("%A, %B %-d %Y"),
             "slug": store.slug,
             "channel_id": store.discord_channel_id,
+            "patreon_only": is_patreon_only_window(new_session),
         }
         bot_announcement(payload)
 
@@ -455,14 +459,33 @@ def signup(request, **kwargs):
     )
 
     if not pid:
-        return Response({"message": "No participant found for the given code."})
+        return Response(
+            {"message": "No participant found for the given code."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    participant = Participants.objects.filter(id=pid, deleted=False).first()
+    session = get_session_for_rounds(rounds, store_id)
+    if (
+        session
+        and is_patreon_only_window(session)
+        and participant
+        and not participant.is_patreon
+    ):
+        return Response(
+            {"message": patreon_signin_rejection_message(session)},
+            status=status.HTTP_403_FORBIDDEN,
+        )
 
     has_signed_in = RoundSignups.objects.filter(
         participant_id=pid, round_id__in=rounds
     ).exists()
 
     if has_signed_in:
-        return Response({"message": "User has already signed in."})
+        return Response(
+            {"message": "User has already signed in."},
+            status=status.HTTP_409_CONFLICT,
+        )
 
     RoundSignups.objects.bulk_create(
         RoundSignups(participant_id=pid, round_id=rid, store_id=store_id)
@@ -499,6 +522,11 @@ def signin_counts(request, **kwargs):
 
     cap1, cap2 = get_round_caps(request.store_id)
 
+    session = None
+    if round_one or round_two:
+        round_ids = [int(r) for r in [round_one, round_two] if r]
+        session = get_session_for_rounds(round_ids, request.store_id)
+
     for q in query:
         if q["round_id"] == int(round_one):
             out[round_one]["participants"].append(
@@ -515,6 +543,11 @@ def signin_counts(request, **kwargs):
             out[round_two]["count"] += 1
             if out[round_two]["count"] >= cap2:
                 out[round_two]["is_full"] = True
+
+    if session:
+        out["patreon_only"] = is_patreon_only_window(session)
+    else:
+        out["patreon_only"] = False
 
     return Response(out)
 

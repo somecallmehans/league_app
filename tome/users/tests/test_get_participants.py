@@ -18,4 +18,14 @@ def test_get_one_participant(client):
     parsed_res = res.json()
 
     assert res.status_code == status.HTTP_200_OK
-    assert parsed_res[0] == {"id": 901, "name": "Charlie Smith"}
+    assert parsed_res[0]["id"] == 901
+    assert parsed_res[0]["name"] == "Charlie Smith"
+    assert parsed_res[0]["is_patreon"] is False
+
+
+def test_upsert_participant_is_patreon_superuser(client):
+    url = reverse("upsert_participant")
+    payload = {"id": 901, "is_patreon": True}
+    response = client.post(url, payload, format="json")
+
+    assert response.status_code == status.HTTP_201_CREATED

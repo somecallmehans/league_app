@@ -50,7 +50,11 @@ const SignInSchema = z.object({
 
 export type SignIn = z.infer<typeof SignInSchema>;
 
-export const SignInResponseSchema = z.record(z.string(), SignInSchema);
+export const SignInResponseSchema = z
+  .object({
+    patreon_only: z.boolean().optional(),
+  })
+  .catchall(SignInSchema);
 export type SignInResponse = z.infer<typeof SignInResponseSchema>;
 
 // POST types

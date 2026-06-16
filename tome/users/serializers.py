@@ -6,7 +6,7 @@ class ParticipantsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Participants
-        fields = ["id", "name"]
+        fields = ["id", "name", "is_patreon"]
 
 
 class ParticipantsAchievementsSerializer(serializers.ModelSerializer):

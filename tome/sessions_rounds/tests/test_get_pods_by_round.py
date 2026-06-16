@@ -231,6 +231,7 @@ def test_get_pods_by_round_with_winner(
                 "name": "Stangg, Echo Warrior",
                 "participants": {
                     "id": 902,
+                    "is_patreon": False,
                     "name": "Trenna Thain",
                 },
                 "pods": {

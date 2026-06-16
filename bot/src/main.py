@@ -227,12 +227,21 @@ async def announcements(req: Request):
 
     url = f"{slug}.commanderleague.xyz/pods"
 
+    patreon_block = ""
+    if data.get("patreon_only"):
+        patreon_block = (
+            "**Patreon early access:** Early sign-ins are reserved for Patreon "
+            "subscribers. Regular sign-ins will open 48 hours before Round 1 begins.\n"
+            "[Click here to subscribe](https://www.patreon.com/cw/CommanderLeague)\n\n"
+        )
+
     message = (
         f"@here\n"
         f"**Commander League!**\n\n"
         f"Sign-ups for **{session_date}** are now open!\n\n"
+        f"{patreon_block}"
         f"**New here (or new to this store)?**\n"
-        f"If you’ve never participated in the league, never registered via Discord, or haven’t played at this store before, run `/join` first.\n\n"
+        f"If you've never participated in the league, never registered via Discord, or haven't played at this store before, run `/join` first.\n\n"
         f"You will only have to run /join once at this store.\n\n"
         f"**Register for this round:**\n"
         f"- Run `/signin` in this channel to sign up.\n"

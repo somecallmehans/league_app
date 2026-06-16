@@ -5,6 +5,7 @@ export const ParticipantSchema = z.object({
   name: z.string(),
   total_points: z.number().optional(),
   deleted: z.boolean().optional(),
+  is_patreon: z.boolean().optional(),
 });
 
 export type Participant = z.infer<typeof ParticipantSchema>;
@@ -18,6 +19,7 @@ export const EMPTY_PARTICIPANT: Participant = {
 
 export const ParticipantWithIdSchema = ParticipantSchema.extend({
   id: z.number(),
+  is_patreon: z.boolean().optional(),
 });
 
 export const ParticipantListResponseSchema = z.array(ParticipantWithIdSchema);
@@ -74,11 +76,16 @@ export type WinnerRoundInfoResponse = z.infer<
 >;
 
 // POST
-export const UpsertParticipantRequestSchema = z.object({
-  id: z.number().optional(),
-  deleted: z.boolean().optional(),
-  name: z.string(),
-});
+export const UpsertParticipantRequestSchema = z
+  .object({
+    id: z.number().optional(),
+    deleted: z.boolean().optional(),
+    name: z.string().optional(),
+    is_patreon: z.boolean().optional(),
+  })
+  .refine((data) => typeof data.id === "number" || typeof data.name === "string", {
+    message: "Either id or name is required",
+  });
 export type UpsertParticipantRequest = z.infer<
   typeof UpsertParticipantRequestSchema
 >;

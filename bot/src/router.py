@@ -175,6 +175,7 @@ async def handle_signin(uid, guild_id):
     async with httpx.AsyncClient(timeout=10) as http:
         r = await http.get(
             f"{API_BASE}api/discord/next_session/",
+            params={"discord_user_id": uid},
             headers={
                 "Authorization": f"X-SERVICE-TOKEN {SERVICE_TOKEN}",
                 "X-DISCORD-GUILD-ID": str(guild_id),
@@ -185,6 +186,12 @@ async def handle_signin(uid, guild_id):
 
         data = r.json()
 
+    if data.get("signin_blocked"):
+        msg = data.get("message") or (
+            "Sign-ins are currently limited to Patreon subscribers only."
+        )
+        return ephemeral(msg)
+
     rounds = [r for r in (data.get("rounds") or [])[:2] if not r.get("is_full")]
     if not rounds:
         return ephemeral("Unfortunately, both rounds are full.")
@@ -192,12 +199,18 @@ async def handle_signin(uid, guild_id):
     _cache_selection(guild_id, uid, [])
 
     formatted_date = data.get("session_date")
+    patreon_only = data.get("patreon_only", False)
+    patreon_note = (
+        "\n\n**Patreon early access is active.**"
+        if patreon_only
+        else ""
+    )
 
     return {
         "type": 4,
         "data": {
             "flags": 64,
-            "content": f"Select round(s) for **{formatted_date}**",
+            "content": f"Select round(s) for **{formatted_date}**{patreon_note}",
             "components": [
                 {
                     "type": 1,

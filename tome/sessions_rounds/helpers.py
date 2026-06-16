@@ -1,7 +1,9 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+from typing import Optional
 
 from django.db.models import Sum, Q
 from django.db.models.functions import Coalesce
+from django.utils import timezone
 
 from users.models import Participants, ParticipantAchievements
 from users.serializers import ParticipantsSerializer
@@ -12,6 +14,90 @@ from users.helpers import generate_code
 
 
 PARTICIPATION_ACHIEVEMENT = "participation"
+
+PATREON_ONLY_HOURS = 24
+OPEN_TO_ALL_BEFORE_ROUND_HOURS = 48
+PATREON_REJECTION_MESSAGE = (
+    "Sign-ins are currently limited to Patreon subscribers only. "
+    "Regular sign-ins will open 48 hours before Round 1 begins."
+)
+
+
+def _as_aware(dt: datetime) -> datetime:
+    if timezone.is_aware(dt):
+        return dt
+    return timezone.make_aware(dt, timezone.get_current_timezone())
+
+
+def is_patreon_only_window(session: Sessions) -> bool:
+    """True when sign-ins should be restricted to Patreon subscribers."""
+    now = timezone.now()
+    patreon_window_end = _as_aware(session.created_at) + timedelta(
+        hours=PATREON_ONLY_HOURS
+    )
+
+    rounds = Rounds.objects.filter(session=session, deleted=False).order_by("starts_at")
+    earliest_round = rounds.first()
+    if earliest_round and earliest_round.starts_at:
+        open_to_all_time = _as_aware(earliest_round.starts_at) - timedelta(
+            hours=OPEN_TO_ALL_BEFORE_ROUND_HOURS
+        )
+        if now >= open_to_all_time:
+            return False
+
+    return now < patreon_window_end
+
+
+def get_session_for_rounds(round_ids: list[int], store_id: int) -> Optional[Sessions]:
+    """Return the session for the given round ids scoped to a store."""
+    session_id = (
+        Rounds.objects.filter(
+            id__in=round_ids, deleted=False, session__store_id=store_id
+        )
+        .values_list("session_id", flat=True)
+        .first()
+    )
+    if not session_id:
+        return None
+    return Sessions.objects.filter(
+        id=session_id, deleted=False, store_id=store_id
+    ).first()
+
+
+def patreon_signin_rejection_message(session: Sessions) -> str:
+    """Return a user-facing message when sign-in is Patreon-only."""
+    now = timezone.now()
+    patreon_window_end = _as_aware(session.created_at) + timedelta(
+        hours=PATREON_ONLY_HOURS
+    )
+    general_open_at = patreon_window_end
+    rounds = Rounds.objects.filter(session=session, deleted=False).order_by("starts_at")
+    earliest_round = rounds.first()
+    if earliest_round and earliest_round.starts_at:
+        open_to_all_time = _as_aware(earliest_round.starts_at) - timedelta(
+            hours=OPEN_TO_ALL_BEFORE_ROUND_HOURS
+        )
+        general_open_at = min(patreon_window_end, open_to_all_time)
+
+    remaining = general_open_at - now
+    if remaining.total_seconds() <= 0:
+        return PATREON_REJECTION_MESSAGE
+
+    hours = int(remaining.total_seconds() // 3600)
+    minutes = int((remaining.total_seconds() % 3600) // 60)
+    if hours > 0:
+        time_left = f"{hours}h"
+        if minutes > 0:
+            time_left = f"{hours}h {minutes}m"
+    elif minutes > 0:
+        time_left = f"{minutes}m"
+    else:
+        time_left = "less than a minute"
+
+    return (
+        "Sign-ins are currently limited to Patreon subscribers only. "
+        f"General sign-ins open in {time_left}."
+    )
 
 
 def make_bridge_records(ids: list, pods: list):

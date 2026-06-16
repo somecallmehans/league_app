@@ -12,6 +12,11 @@ from utils.decorators import require_service_token, require_discord_store
 from users.models import Participants, EditToken, Decklists
 from users.helpers import check_for_bad_words
 from sessions_rounds.models import Sessions, RoundSignups, Rounds, Pods
+from sessions_rounds.helpers import (
+    is_patreon_only_window,
+    get_session_for_rounds,
+    patreon_signin_rejection_message,
+)
 from stores.models import Store, StoreParticipant
 
 from configs.configs import get_round_caps
@@ -136,12 +141,27 @@ def next_session(request):
     if all(r["is_full"] for r in rounds):
         return Response({"message": "Rounds are full"})
 
-    return Response(
-        {
-            "session_date": next_session.session_date.strftime("%Y-%m-%d"),
-            "rounds": rounds,
-        }
-    )
+    patreon_only = is_patreon_only_window(next_session)
+
+    payload = {
+        "session_date": next_session.session_date.strftime("%Y-%m-%d"),
+        "rounds": rounds,
+        "patreon_only": patreon_only,
+    }
+
+    discord_user_id = request.query_params.get("discord_user_id")
+    if patreon_only and discord_user_id:
+        participant = Participants.objects.filter(
+            discord_user_id=int(discord_user_id), deleted=False
+        ).first()
+        if participant and not participant.is_patreon:
+            payload["signin_blocked"] = True
+            payload["message"] = patreon_signin_rejection_message(next_session)
+        elif not participant:
+            payload["signin_blocked"] = True
+            payload["message"] = patreon_signin_rejection_message(next_session)
+
+    return Response(payload)
 
 
 @csrf_exempt
@@ -160,6 +180,12 @@ def signin(request):
         Participants.objects.filter(deleted=False, discord_user_id=duid)
         .values_list("id", flat=True)
         .first()
+    )
+
+    participant = (
+        Participants.objects.filter(deleted=False, discord_user_id=duid).first()
+        if pid
+        else None
     )
 
     round_started = Pods.objects.filter(
@@ -181,6 +207,18 @@ def signin(request):
                 "message": "Participant is currently not linked. Run /join to connect to your league history."
             },
             status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    session = get_session_for_rounds(rounds, request.store_id)
+    if (
+        session
+        and is_patreon_only_window(session)
+        and participant
+        and not participant.is_patreon
+    ):
+        return Response(
+            {"message": patreon_signin_rejection_message(session)},
+            status=status.HTTP_403_FORBIDDEN,
         )
 
     has_signed_in = RoundSignups.objects.filter(
