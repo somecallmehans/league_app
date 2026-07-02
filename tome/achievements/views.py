@@ -279,7 +279,7 @@ def upsert_scalable_term(request, **kwargs):
 @api_view([POST])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsSuperUser])
-def create_scalable_term_type(request):
+def create_scalable_term_type(request, **kwargs):
     """Create a new scalable term type."""
     body = json.loads(request.body.decode("utf-8"))
     name = (body.get("name") or "").strip()
@@ -399,8 +399,8 @@ def get_most_earned_achievements(_, **kwargs):
         output_field=IntegerField(),
     )
 
-    achievements = _achievements_v2_base_queryset().filter(id__in=id_order).order_by(
-        order_case
+    achievements = (
+        _achievements_v2_base_queryset().filter(id__in=id_order).order_by(order_case)
     )
 
     data = AchievementSerializerV2(achievements, many=True).data
