@@ -7,7 +7,7 @@ import {
 } from "../../api/apiSlice";
 import { useAchievementSearch } from "../../hooks";
 import { associateParentsChildren } from "../../helpers/achievementHelpers";
-import { RARITY_ORDER } from "../../types/achievement_schemas";
+import { RARITY_ORDER, getAchievementTypeOrderIndex } from "../../types/achievement_schemas";
 
 import {
   Input,
@@ -266,10 +266,6 @@ function AllAchievementsTab() {
   const { data: achievements, isLoading: achievementsLoading } =
     useGetAchievementsListQuery();
 
-  const { data: types } = useSelector(
-    apiSlice.endpoints.getAchievementTypes.select(undefined),
-  );
-
   const achievementLookup = useMemo(() => {
     if (!achievements) return {};
 
@@ -285,14 +281,6 @@ function AllAchievementsTab() {
     typeFilter,
     rarityFilter,
   );
-
-  const typeOrder = useMemo(() => {
-    const order = (types ?? []).map((t) => t.name);
-    if (!order.includes("Uncategorized")) {
-      order.push("Uncategorized");
-    }
-    return order;
-  }, [types]);
 
   const { groups, orderedKeys } = useMemo(() => {
     if (!filteredData) return { groups: {}, orderedKeys: [] };
@@ -322,10 +310,15 @@ function AllAchievementsTab() {
       obj[typeKey].achievements.push(achievement);
     }
 
-    const keys = typeOrder.filter((key) => obj[key]?.achievements?.length);
-    const extraKeys = Object.keys(obj).filter((key) => !keys.includes(key));
-    return { groups: obj, orderedKeys: [...keys, ...extraKeys] };
-  }, [filteredData, sortMode, sortAsc, typeOrder]);
+    const keys = Object.keys(obj).filter((key) => obj[key]?.achievements?.length);
+    keys.sort((a, b) => {
+      const orderDiff =
+        getAchievementTypeOrderIndex(a) - getAchievementTypeOrderIndex(b);
+      if (orderDiff !== 0) return orderDiff;
+      return a.localeCompare(b);
+    });
+    return { groups: obj, orderedKeys: keys };
+  }, [filteredData, sortMode, sortAsc]);
 
   if (achievementsLoading) {
     return <LoadingSpinner />;

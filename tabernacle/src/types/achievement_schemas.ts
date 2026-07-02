@@ -32,6 +32,29 @@ export const RARITY_ORDER = {
   Mythic: 3,
 } as const;
 
+const normalizeAchievementTypeName = (name: string) =>
+  (name ?? "").trim().toLowerCase().replace(/-/g, " ");
+
+/** Display order for achievement type sections on the public All tab. */
+const ACHIEVEMENT_TYPE_ORDER_ALIASES: readonly (readonly string[])[] = [
+  ["deck foundation"],
+  ["basic check"],
+  ["bonus restriction", "bonus restrictions"],
+  ["scalable terms", "scalable"],
+  ["non deckbuilding", "non deck building"],
+];
+
+const ACHIEVEMENT_TYPE_ORDER_INDEX = new Map<string, number>(
+  ACHIEVEMENT_TYPE_ORDER_ALIASES.flatMap((aliases, index) =>
+    aliases.map((alias) => [alias, index]),
+  ),
+);
+
+export function getAchievementTypeOrderIndex(typeName: string): number {
+  const normalized = normalizeAchievementTypeName(typeName);
+  return ACHIEVEMENT_TYPE_ORDER_INDEX.get(normalized) ?? Number.MAX_SAFE_INTEGER;
+}
+
 export interface ParentAchievement {
   id: number;
   name: string;
