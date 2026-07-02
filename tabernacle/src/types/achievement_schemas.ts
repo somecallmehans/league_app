@@ -8,7 +8,7 @@ import {
 export const AchievementTypeSchema = z.object({
   id: z.number(),
   name: z.string(),
-  description: z.string(),
+  description: z.string().nullable(),
   hex_code: z.string(),
 });
 
@@ -24,6 +24,13 @@ export const AchievementTypeListResponseSchema = z.array(AchievementTypeSchema);
 export type AchievementTypeListResponse = z.infer<
   typeof AchievementTypeListResponseSchema
 >;
+
+export const RARITY_ORDER = {
+  "Most Popular": 0,
+  Uncommon: 1,
+  Rare: 2,
+  Mythic: 3,
+} as const;
 
 export interface ParentAchievement {
   id: number;
@@ -93,6 +100,8 @@ export const AchievementSchema: z.ZodType<GetAchievement> = z.lazy(() =>
     type_id: z.number().nullish(),
     parent: ParentAchievementSchema.nullish(),
     restrictions: AchievementRestrictionsSchema.nullish(),
+    rarity: z.string().nullish(),
+    rarity_hex: z.string().nullish(),
   }),
 );
 
@@ -113,6 +122,8 @@ export const MostEarnedAchievementSchema = z.object({
   restrictions: AchievementRestrictionsSchema.nullish(),
   deleted: z.boolean().nullish(),
   earned_count: z.number(),
+  rarity: z.string().nullish(),
+  rarity_hex: z.string().nullish(),
 });
 
 export const MostEarnedAchievementsResponseSchema = z.array(

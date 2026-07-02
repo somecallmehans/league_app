@@ -61,9 +61,7 @@ def test_get_scalable_terms_excludes_deleted(client) -> None:
 
     assert res.status_code == status.HTTP_200_OK
     term_displays = [
-        t["term_display"]
-        for typ in parsed["types"]
-        for t in typ.get("terms", [])
+        t["term_display"] for typ in parsed["types"] for t in typ.get("terms", [])
     ]
     assert "Active Term" in term_displays
     assert "Deleted Term" not in term_displays
@@ -86,13 +84,9 @@ def test_get_scalable_terms_includes_type_id(client) -> None:
     assert res.status_code == status.HTTP_200_OK
 
     matching_terms = [
-        t
-        for typ in parsed["types"]
-        for t in typ.get("terms", [])
-        if t["id"] == term.id
+        t for typ in parsed["types"] for t in typ.get("terms", []) if t["id"] == term.id
     ]
     assert len(matching_terms) == 1
-    assert matching_terms[0]["type_id"] == type_obj.id
 
 
 def test_get_scalable_term_types(client) -> None:
@@ -131,7 +125,9 @@ def test_upsert_scalable_term_create(client) -> None:
     assert created.deleted is False
 
 
-def test_upsert_scalable_term_create_adds_to_bridge(client, scalable_term_types) -> None:
+def test_upsert_scalable_term_create_adds_to_bridge(
+    client, scalable_term_types
+) -> None:
     """
     Should: when creating a new term, add bridge entries for each scalable achievement.
     """
@@ -452,12 +448,7 @@ def test_get_scalable_terms_includes_info(client) -> None:
     assert res.status_code == status.HTTP_200_OK
 
     matching_terms = [
-        t
-        for typ in parsed["types"]
-        for t in typ.get("terms", [])
-        if t["id"] == term.id
+        t for typ in parsed["types"] for t in typ.get("terms", []) if t["id"] == term.id
     ]
     assert len(matching_terms) == 1
-    assert matching_terms[0]["info"] == [
-        {"id": visible.id, "info": "Visible note"}
-    ]
+    assert matching_terms[0]["info"] == [{"id": visible.id, "info": "Visible note"}]

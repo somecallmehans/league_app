@@ -7,6 +7,7 @@ import {
 } from "../../api/apiSlice";
 import { useAchievementSearch } from "../../hooks";
 import { associateParentsChildren } from "../../helpers/achievementHelpers";
+import { RARITY_ORDER } from "../../types/achievement_schemas";
 
 import {
   Input,
@@ -19,7 +20,7 @@ import {
 import LoadingSpinner from "../../components/LoadingSpinner";
 import PageTitle from "../../components/PageTitle";
 import CalloutCard from "../../components/CalloutCard";
-import { AchievementCard, TypeInfo } from "./AchievementComponents";
+import { AchievementCard } from "./AchievementComponents";
 import { SimpleSelect } from "../crud/CrudComponents";
 
 const tabButtonClass = ({ selected }) =>
@@ -30,6 +31,18 @@ const tabButtonClass = ({ selected }) =>
       : "bg-white text-gray-700 border border-zinc-300 hover:bg-gray-50",
   ].join(" ");
 
+const RARITY_FILTER_OPTIONS = [
+  { label: "Most Popular", value: "Most Popular" },
+  { label: "Uncommon", value: "Uncommon" },
+  { label: "Rare", value: "Rare" },
+  { label: "Mythic", value: "Mythic" },
+];
+
+const SORT_MODES = {
+  RARITY: "rarity",
+  POINTS: "points",
+};
+
 function normalizeAchievementForCard(achievement) {
   return {
     ...achievement,
@@ -37,6 +50,15 @@ function normalizeAchievementForCard(achievement) {
     restrictions: achievement.restrictions ?? [],
     point_value: achievement.point_value ?? achievement.points ?? 0,
   };
+}
+
+function getRaritySortValue(achievement) {
+  if (!achievement?.rarity) return Number.MAX_SAFE_INTEGER;
+  return RARITY_ORDER[achievement.rarity] ?? Number.MAX_SAFE_INTEGER;
+}
+
+function getTypeSortKey(achievement) {
+  return achievement.type?.name ?? "Uncategorized";
 }
 
 const SearchFilter = ({ setSearchTerm, placeholder, classes }) => (
@@ -47,7 +69,7 @@ const SearchFilter = ({ setSearchTerm, placeholder, classes }) => (
   />
 );
 
-const TypeSelectFilter = ({ typeFilter, setTypeFilter }) => {
+function TypeSelectFilter({ typeFilter, setTypeFilter }) {
   const { data: types } = useSelector(
     apiSlice.endpoints.getAchievementTypes.select(undefined),
   );
@@ -65,60 +87,98 @@ const TypeSelectFilter = ({ typeFilter, setTypeFilter }) => {
       menuPlacement="top"
     />
   );
-};
+}
 
-const SortPoints = ({ sort, setSort }) => (
-  <button
-    type="button"
-    className="bg-white border border-zinc-300 rounded text-xs h-9 px-2 flex items-center justify-center sm:w-1/6 text-gray-600"
-    onClick={() => setSort(!sort)}
-    aria-label={`Sort by points ${sort ? "ascending" : "descending"}`}
-  >
-    <span className="mr-1 text-gray-400">Points</span>
-    <span
-      className={`inline-block transition-transform ${
-        sort ? "rotate-180" : ""
-      }`}
-    >
-      <i className="fa-solid fa-sort-up text-gray-400" />
-    </span>
-  </button>
-);
+function RaritySelectFilter({ rarityFilter, setRarityFilter }) {
+  return (
+    <SimpleSelect
+      placeholder="Rarity"
+      options={RARITY_FILTER_OPTIONS}
+      value={
+        rarityFilter
+          ? { label: rarityFilter.label, value: rarityFilter.value }
+          : null
+      }
+      isClearable
+      onChange={(obj) => setRarityFilter(obj || null)}
+      classes="bg-white h-9 text-base [&>div]:h-9 [&>div]:min-h-0 md:w-1/3 text-gray-600"
+      menuPlacement="top"
+    />
+  );
+}
 
-const ShowHideInfo = ({ showInfo, setShowInfo }) => (
-  <button
-    type="button"
-    className="bg-white sm:w-1/6 border border-zinc-300 rounded text-xs h-9 px-2 flex items-center justify-center text-gray-400"
-    onClick={() => setShowInfo(!showInfo)}
-    aria-label="Show or hide achievement type info"
-  >
-    {showInfo ? "Hide Info" : "Show Info"}
-    <i className={`fa-solid ml-1 fa-eye${showInfo ? "-slash" : ""}`} />
-  </button>
-);
+function SortToggle({ sortMode, setSortMode, sortAsc, setSortAsc }) {
+  const isRarity = sortMode === SORT_MODES.RARITY;
+  const label = isRarity ? "Rarity" : "Points";
+
+  return (
+    <div className="flex gap-1">
+      <button
+        type="button"
+        className={`bg-white border border-zinc-300 rounded text-xs h-9 px-2 flex items-center justify-center text-gray-600 ${
+          isRarity ? "ring-1 ring-sky-400" : ""
+        }`}
+        onClick={() => setSortMode(SORT_MODES.RARITY)}
+        aria-label="Sort by rarity"
+      >
+        Rarity
+      </button>
+      <button
+        type="button"
+        className={`bg-white border border-zinc-300 rounded text-xs h-9 px-2 flex items-center justify-center text-gray-600 ${
+          !isRarity ? "ring-1 ring-sky-400" : ""
+        }`}
+        onClick={() => setSortMode(SORT_MODES.POINTS)}
+        aria-label="Sort by points"
+      >
+        Points
+      </button>
+      <button
+        type="button"
+        className="bg-white border border-zinc-300 rounded text-xs h-9 px-3 flex items-center justify-center sm:w-1/5 text-gray-600"
+        onClick={() => setSortAsc(!sortAsc)}
+        aria-label={`Sort ${label} ${sortAsc ? "ascending" : "descending"}`}
+      >
+        <span className="text-[10px] font-medium text-gray-500">
+          {sortAsc ? "ASC" : "DESC"}
+        </span>
+      </button>
+    </div>
+  );
+}
 
 const AchievementFilters = ({
   typeFilter,
+  rarityFilter,
   setSearchTerm,
   setTypeFilter,
-  setSort,
-  sort,
-  showInfo,
-  setShowInfo,
+  setRarityFilter,
+  sortMode,
+  setSortMode,
+  sortAsc,
+  setSortAsc,
 }) => {
   return (
     <>
-      {/* Mobile layout */}
       <div className="fixed sm:hidden bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/70 border-t shadow-lg p-2 pb-[calc(env(safe-area-inset-bottom,0)+0.5rem)]">
-        <div className="grid grid-cols-3 gap-2 items-center">
-          <SortPoints sort={sort} setSort={setSort} />
+        <div className="grid grid-cols-2 gap-2 items-center">
           <TypeSelectFilter
             setTypeFilter={setTypeFilter}
             typeFilter={typeFilter}
           />
-
-          <ShowHideInfo showInfo={showInfo} setShowInfo={setShowInfo} />
-          <div className="col-span-3">
+          <RaritySelectFilter
+            rarityFilter={rarityFilter}
+            setRarityFilter={setRarityFilter}
+          />
+          <div className="col-span-2">
+            <SortToggle
+              sortMode={sortMode}
+              setSortMode={setSortMode}
+              sortAsc={sortAsc}
+              setSortAsc={setSortAsc}
+            />
+          </div>
+          <div className="col-span-2">
             <SearchFilter
               setSearchTerm={setSearchTerm}
               placeholder="Search by name…"
@@ -127,23 +187,42 @@ const AchievementFilters = ({
           </div>
         </div>
       </div>
-      {/* Desktop layout */}
-      <div className="hidden sm:block sm:mb-4 sm:flex sm:gap-2">
+      <div className="hidden sm:block sm:mb-4 sm:flex sm:gap-2 sm:flex-wrap">
         <TypeSelectFilter
           setTypeFilter={setTypeFilter}
           typeFilter={typeFilter}
         />
+        <RaritySelectFilter
+          rarityFilter={rarityFilter}
+          setRarityFilter={setRarityFilter}
+        />
         <SearchFilter
           setSearchTerm={setSearchTerm}
           placeholder="Filter By Name"
-          classes="grow"
+          classes="grow min-w-[12rem]"
         />
-        <SortPoints sort={sort} setSort={setSort} />
-        <ShowHideInfo showInfo={showInfo} setShowInfo={setShowInfo} />
+        <SortToggle
+          sortMode={sortMode}
+          setSortMode={setSortMode}
+          sortAsc={sortAsc}
+          setSortAsc={setSortAsc}
+        />
       </div>
     </>
   );
 };
+
+function TypeGroupHeader({ typeName, hexCode }) {
+  return (
+    <div className="flex items-center gap-3 mb-3">
+      <div
+        className="w-1 h-8 rounded"
+        style={{ backgroundColor: hexCode || "#9CA3AF", opacity: 0.6 }}
+      />
+      <h2 className="text-lg font-semibold text-gray-800">{typeName}</h2>
+    </div>
+  );
+}
 
 function MostEarnedAchievementsPanel() {
   const { data, isLoading } = useGetMostEarnedAchievementsQuery();
@@ -180,15 +259,16 @@ function MostEarnedAchievementsPanel() {
 }
 
 function AllAchievementsTab() {
-  const [sort, setSort] = useState(true);
-  const [showInfo, setShowInfo] = useState(() => {
-    if (typeof window === "undefined") return true;
-    return window.matchMedia("(min-width: 640px)").matches;
-  });
-
+  const [sortMode, setSortMode] = useState(SORT_MODES.RARITY);
+  const [sortAsc, setSortAsc] = useState(true);
   const [typeFilter, setTypeFilter] = useState();
+  const [rarityFilter, setRarityFilter] = useState();
   const { data: achievements, isLoading: achievementsLoading } =
     useGetAchievementsListQuery();
+
+  const { data: types } = useSelector(
+    apiSlice.endpoints.getAchievementTypes.select(undefined),
+  );
 
   const achievementLookup = useMemo(() => {
     if (!achievements) return {};
@@ -203,28 +283,49 @@ function AllAchievementsTab() {
     achievements,
     achievementLookup,
     typeFilter,
+    rarityFilter,
   );
+
+  const typeOrder = useMemo(() => {
+    const order = (types ?? []).map((t) => t.name);
+    if (!order.includes("Uncategorized")) {
+      order.push("Uncategorized");
+    }
+    return order;
+  }, [types]);
 
   const { groups, orderedKeys } = useMemo(() => {
     if (!filteredData) return { groups: {}, orderedKeys: [] };
 
     const associated = associateParentsChildren(filteredData);
-    const sorted = [...associated].sort((a, b) =>
-      sort ? b.point_value - a.point_value : a.point_value - b.point_value,
-    );
+
+    const sorted = [...associated].sort((a, b) => {
+      if (sortMode === SORT_MODES.POINTS) {
+        const diff = (a.point_value ?? 0) - (b.point_value ?? 0);
+        return sortAsc ? diff : -diff;
+      }
+
+      const diff = getRaritySortValue(a) - getRaritySortValue(b);
+      if (diff !== 0) return sortAsc ? diff : -diff;
+      return (a.name ?? "").localeCompare(b.name ?? "");
+    });
 
     const obj = {};
-    const keys = [];
     for (const achievement of sorted) {
-      const points = achievement.point_value;
-      if (!obj[points]) {
-        obj[points] = [];
-        keys.push(points);
+      const typeKey = getTypeSortKey(achievement);
+      if (!obj[typeKey]) {
+        obj[typeKey] = {
+          type: achievement.type,
+          achievements: [],
+        };
       }
-      obj[points].push(achievement);
+      obj[typeKey].achievements.push(achievement);
     }
-    return { groups: obj, orderedKeys: keys };
-  }, [filteredData, sort]);
+
+    const keys = typeOrder.filter((key) => obj[key]?.achievements?.length);
+    const extraKeys = Object.keys(obj).filter((key) => !keys.includes(key));
+    return { groups: obj, orderedKeys: [...keys, ...extraKeys] };
+  }, [filteredData, sortMode, sortAsc, typeOrder]);
 
   if (achievementsLoading) {
     return <LoadingSpinner />;
@@ -234,18 +335,23 @@ function AllAchievementsTab() {
     <>
       <AchievementFilters
         typeFilter={typeFilter}
+        rarityFilter={rarityFilter}
         setSearchTerm={setSearchTerm}
         setTypeFilter={setTypeFilter}
-        sort={sort}
-        setSort={setSort}
-        showInfo={showInfo}
-        setShowInfo={setShowInfo}
+        setRarityFilter={setRarityFilter}
+        sortMode={sortMode}
+        setSortMode={setSortMode}
+        sortAsc={sortAsc}
+        setSortAsc={setSortAsc}
       />
-      <TypeInfo showInfo={showInfo} setShowInfo={setShowInfo} />
       {orderedKeys.map((key) => (
         <div key={key} className="my-4">
+          <TypeGroupHeader
+            typeName={key}
+            hexCode={groups[key].type?.hex_code}
+          />
           <div className="grid md:grid-cols-4 gap-4">
-            {groups[key].map((achievement) => (
+            {groups[key].achievements.map((achievement) => (
               <AchievementCard key={achievement.id} {...achievement} />
             ))}
           </div>
@@ -278,8 +384,9 @@ export default function AchievementsPage() {
               earns one or more of these.
             </>,
             <>
-              <strong>All</strong> lists every achievement. Use the filters to
-              sort by point value, name, or type.
+              <strong>All</strong> lists every achievement grouped by type. Use
+              the filters to sort by rarity or points, filter by type or rarity,
+              and search by name.
             </>,
             <>
               Tiles with a{" "}
@@ -296,6 +403,10 @@ export default function AchievementsPage() {
                 aria-hidden
               />{" "}
               icon and can be clicked for full context.
+            </>,
+            <>
+              The color bar on each tile shows rarity (top) and achievement type
+              (bottom).
             </>,
           ]}
         />

@@ -77,6 +77,8 @@ export const AchievementCard = (props) => {
     children: achievementChildren,
     restrictions,
     type,
+    rarity,
+    rarity_hex,
   } = props;
   const [open, setOpen] = useState(false);
   const hex_code = type?.hex_code;
@@ -85,6 +87,17 @@ export const AchievementCard = (props) => {
   const hasRestristictions = restrictions.length > 0;
 
   const hasAdditionalInformation = hasSubAchievements || hasRestristictions;
+
+  const barStyle =
+    rarity_hex && hex_code
+      ? {
+          background: `linear-gradient(to bottom, ${rarity_hex} 25%, ${hex_code} 25%)`,
+          opacity: "60%",
+        }
+      : {
+          backgroundColor: hex_code || rarity_hex,
+          opacity: "60%",
+        };
 
   return (
     <>
@@ -95,7 +108,17 @@ export const AchievementCard = (props) => {
         } md:min-h-24`}
       >
         <div className="flex justify-between text-sm text-gray-500 mb-1">
-          {point_value} Point{point_value === 1 ? "" : "s"}
+          <span>
+            {point_value} Point{point_value === 1 ? "" : "s"}
+            {rarity && (
+              <span
+                className="ml-2 text-xs font-medium"
+                style={{ color: rarity_hex || undefined }}
+              >
+                {rarity}
+              </span>
+            )}
+          </span>
           <div className="flex gap-1 pt-1">
             {hasSubAchievements && <i className="fa-solid fa-layer-group" />}
             {hasRestristictions && <i className="fa-solid fa-circle-info" />}
@@ -109,7 +132,7 @@ export const AchievementCard = (props) => {
         )}
         <div
           className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l"
-          style={{ backgroundColor: hex_code, opacity: "60%" }}
+          style={barStyle}
         />
       </div>
       <Drawer isOpen={open} onClose={() => setOpen(false)} title={name}>

@@ -8,6 +8,12 @@ from django.utils import timezone
 from users.models import Participants, ParticipantAchievements
 from users.serializers import ParticipantsSerializer
 from achievements.models import Achievements
+from achievements.earned_count_helpers import (
+    decrement_earned_counts,
+    increment_earned_counts,
+    pairs_from_participant_achievements,
+    pairs_from_queryset_values,
+)
 from sessions_rounds.models import Pods, PodsParticipants, Rounds, Sessions
 from stores.models import StoreParticipant
 from users.helpers import generate_code
@@ -263,7 +269,7 @@ class RoundInformationService:
     def create_participation_achievements(self):
         """If someone hasn't gotten the participation achievement, they get one."""
         try:
-            ParticipantAchievements.objects.bulk_create(
+            records = [
                 ParticipantAchievements(
                     participant_id=ep["id"],
                     round_id=self.round_id,
@@ -273,7 +279,9 @@ class RoundInformationService:
                     store_id=self.store_id,
                 )
                 for ep in self.existing_participants
-            )
+            ]
+            ParticipantAchievements.objects.bulk_create(records)
+            increment_earned_counts(pairs_from_participant_achievements(records))
         except Exception as e:
             print(f"Error found while creating participant achievements: {e}")
 

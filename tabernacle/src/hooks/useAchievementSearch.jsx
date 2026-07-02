@@ -1,13 +1,16 @@
 import { useState } from "react";
 
-const useAchievementSearch = (achievements, achievementLookup, typeFilter) => {
-  // This is a special version of the search since we need to search
-  // on a nested list.
+const useAchievementSearch = (
+  achievements,
+  achievementLookup,
+  typeFilter,
+  rarityFilter,
+) => {
   const [searchTerm, setSearchTerm] = useState();
 
   if (!achievements) return { filteredData: [], setSearchTerm };
 
-  if (!searchTerm && !typeFilter) {
+  if (!searchTerm && !typeFilter && !rarityFilter) {
     return { filteredData: achievements, setSearchTerm };
   }
 
@@ -15,6 +18,14 @@ const useAchievementSearch = (achievements, achievementLookup, typeFilter) => {
   const seen = new Set();
 
   const isParent = (achievement) => !achievement.parent_id;
+
+  const getDisplayRarity = (achievement) => {
+    if (achievement.parent_id) {
+      const parent = achievementLookup[achievement.parent_id];
+      return parent?.rarity ?? achievement.rarity;
+    }
+    return achievement.rarity;
+  };
 
   const matchesSearch = (achievement) =>
     !searchTerm ||
@@ -24,6 +35,16 @@ const useAchievementSearch = (achievements, achievementLookup, typeFilter) => {
     !typeFilter?.value ||
     (achievementLookup[achievement.parent_id]?.type_id ??
       achievement.type_id) === typeFilter?.value;
+
+  const matchesRarity = (achievement) => {
+    if (!rarityFilter?.value) return true;
+    const rarity = getDisplayRarity(achievement);
+    if (!isParent(achievement)) {
+      const parent = achievementLookup[achievement.parent_id];
+      return getDisplayRarity(parent ?? achievement) === rarityFilter.value;
+    }
+    return rarity === rarityFilter.value;
+  };
 
   const addAchievement = (achievement) => {
     if (!seen.has(achievement.id)) {
@@ -45,11 +66,10 @@ const useAchievementSearch = (achievements, achievementLookup, typeFilter) => {
       ? achievement
       : achievementLookup[achievement.parent_id];
 
-    // check the parent, since children don't have point_value
-    if (!matchesType(achievement)) return;
+    if (!matchesType(achievement) || !matchesRarity(achievement)) return;
 
     const isSearchMatch = matchesSearch(achievement);
-    if (isParent(achievement) && !searchTerm && typeFilter?.value) {
+    if (isParent(achievement) && !searchTerm && (typeFilter?.value || rarityFilter?.value)) {
       addAchievement(achievement);
       addAllChildren(achievement.id);
       return;

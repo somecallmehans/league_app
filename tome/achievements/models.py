@@ -110,6 +110,31 @@ class AchievementScalableTerms(models.Model):
         ]
 
 
+class AchievementEarnedCount(models.Model):
+    """Tracks how many times an achievement (or achievement+term pair) has been earned."""
+
+    achievement = models.ForeignKey(
+        Achievements, on_delete=models.CASCADE, related_name="earned_counts"
+    )
+    scalable_term = models.ForeignKey(
+        ScalableTerms,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="earned_counts",
+    )
+    count = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        db_table = "achievement_earned_count"
+        constraints = [
+            UniqueConstraint(
+                fields=["achievement", "scalable_term"],
+                name="unique_achievement_scalable_term_count",
+            ),
+        ]
+
+
 class ScalableInfo(models.Model):
     scalable_term = models.ForeignKey(
         ScalableTerms,

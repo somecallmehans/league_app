@@ -6,8 +6,10 @@ import {
   apiSlice,
 } from "../../api/apiSlice";
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
+import { Input } from "@headlessui/react";
 
 import StandardButton from "../../components/Button";
+import { useAchievementSearch } from "../../hooks";
 
 import {
   TextInput,
@@ -18,6 +20,7 @@ import LoadingSpinner from "../../components/LoadingSpinner";
 import { associateParentsChildren } from "../../helpers/achievementHelpers";
 import Drawer from "../../components/Drawer";
 import ConfirmModal from "../../components/Modals/ConfirmModal";
+import { SimpleSelect } from "./CrudComponents";
 
 const formName = "achievementForm";
 
@@ -248,20 +251,38 @@ const AchievementForm = ({
 };
 
 const AchievementCard = (props) => {
-  const { name, point_value, slug } = props;
+  const { name, point_value, slug, type } = props;
   const [open, setOpen] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [postUpsertAchievements] = usePostUpsertAchievementsMutation();
+  const hex_code = type?.hex_code;
+
   return (
     <>
       <div
         onClick={() => setOpen(!open)}
-        className="bg-white rounded border border-solid p-3 shadow-md hover:border-sky-400 md:min-h-24"
+        className="relative bg-white rounded border border-solid p-3 pl-4 shadow-md hover:border-sky-400 md:min-h-24"
       >
-        <div className="text-sm text-gray-500">
-          {point_value} Point{point_value === 1 ? "" : "s"}
+        <div className="flex justify-between gap-2 text-sm text-gray-500 mb-1">
+          <span>
+            {point_value} Point{point_value === 1 ? "" : "s"}
+          </span>
+          {type?.name && (
+            <span
+              className="text-xs font-medium truncate"
+              style={{ color: hex_code || undefined }}
+            >
+              {type.name}
+            </span>
+          )}
         </div>
         <div className="line-clamp-2">{name}</div>
+        {hex_code && (
+          <div
+            className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l"
+            style={{ backgroundColor: hex_code, opacity: "60%" }}
+          />
+        )}
       </div>
       <ConfirmModal
         isOpen={showModal}
@@ -306,19 +327,39 @@ const AchievementCard = (props) => {
 export default function Page() {
   const dispatch = useDispatch();
   const [showCreate, setShowCreate] = useState(false);
-  // TODO: Add search/filtering
+  const [typeFilter, setTypeFilter] = useState();
+
+  const { data: types } = useSelector(
+    apiSlice.endpoints.getAchievementTypes.select(undefined),
+  );
 
   useEffect(() => {
     dispatch(apiSlice.endpoints.getAchievementTypes.initiate(undefined));
-  });
+  }, [dispatch]);
 
   const { data: achievements, isLoading: achievementsLoading } =
     useGetAchievementsListQuery();
 
-  const groupedAchievements = useMemo(() => {
-    if (!achievements) return [];
+  const achievementLookup = useMemo(() => {
+    if (!achievements) return {};
 
-    const associated = associateParentsChildren(achievements);
+    return achievements.reduce((acc, achievement) => {
+      acc[achievement.id] = achievement;
+      return acc;
+    }, {});
+  }, [achievements]);
+
+  const { filteredData, setSearchTerm } = useAchievementSearch(
+    achievements,
+    achievementLookup,
+    typeFilter,
+    null,
+  );
+
+  const groupedAchievements = useMemo(() => {
+    if (!filteredData?.length) return [];
+
+    const associated = associateParentsChildren(filteredData);
     const groups = {};
     for (const achievement of associated) {
       const points = achievement.point_value ?? 0;
@@ -328,7 +369,15 @@ export default function Page() {
       groups[points].push(achievement);
     }
     return groups;
-  }, [achievements]);
+  }, [filteredData]);
+
+  const sortedPointKeys = useMemo(
+    () =>
+      Object.keys(groupedAchievements).sort(
+        (a, b) => Number(b) - Number(a),
+      ),
+    [groupedAchievements],
+  );
 
   if (achievementsLoading) {
     return <LoadingSpinner />;
@@ -348,16 +397,40 @@ export default function Page() {
           action={() => setShowCreate(!showCreate)}
         />
       </div>
-      {Object.keys(groupedAchievements).map((key) => (
-        <div key={key} className="my-4">
-          <div className="grid md:grid-cols-4 gap-4">
-            {groupedAchievements[key].map((achievement) => (
-              <AchievementCard key={achievement.id} {...achievement} />
-            ))}
+      <div className="mb-4 flex flex-col sm:flex-row gap-2">
+        <SimpleSelect
+          placeholder="Type"
+          options={(types ?? []).map((t) => ({ label: t.name, value: t.id }))}
+          value={
+            typeFilter
+              ? { label: typeFilter.label, value: typeFilter.value }
+              : null
+          }
+          isClearable
+          onChange={(obj) => setTypeFilter(obj || null)}
+          classes="bg-white h-9 text-base [&>div]:h-9 [&>div]:min-h-0 md:w-1/3 text-gray-600"
+          menuPlacement="bottom"
+        />
+        <Input
+          placeholder="Filter by name"
+          className="text-gray-600 bg-white py-1.5 grow px-2 rounded border border-zinc-300 h-9"
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+      {sortedPointKeys.length === 0 ? (
+        <p className="text-sm text-gray-600">No achievements match your filters.</p>
+      ) : (
+        sortedPointKeys.map((key) => (
+          <div key={key} className="my-4">
+            <div className="grid md:grid-cols-4 gap-4">
+              {groupedAchievements[key].map((achievement) => (
+                <AchievementCard key={achievement.id} {...achievement} />
+              ))}
+            </div>
+            <hr className="h-px my-8 bg-gray-300 border-0"></hr>
           </div>
-          <hr className="h-px my-8 bg-gray-300 border-0"></hr>
-        </div>
-      ))}
+        ))
+      )}
       <Drawer
         isOpen={showCreate}
         onClose={() => setShowCreate(false)}

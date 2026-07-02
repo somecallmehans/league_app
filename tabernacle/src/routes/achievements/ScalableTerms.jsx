@@ -31,7 +31,7 @@ const SearchFilter = ({ value, onChange, placeholder, classes }) => (
 
 function TypeSection({ typeGroup, isExpanded, colorIndex, onTermClick }) {
   const terms = typeGroup.terms;
-  const barColor = TYPE_COLORS[colorIndex % TYPE_COLORS.length];
+  const typeColor = TYPE_COLORS[colorIndex % TYPE_COLORS.length];
 
   return (
     <section
@@ -41,7 +41,7 @@ function TypeSection({ typeGroup, isExpanded, colorIndex, onTermClick }) {
     >
       <div
         className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l"
-        style={{ backgroundColor: barColor, opacity: "0.6" }}
+        style={{ backgroundColor: typeColor, opacity: "0.6" }}
       />
       <div className="px-4 py-3 bg-slate-50 border-b border-zinc-200 shrink-0">
         <h2 className="text-base md:text-lg font-semibold text-slate-800">

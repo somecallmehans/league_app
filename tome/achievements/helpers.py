@@ -18,6 +18,7 @@ from achievements.models import (
     Colors,
 )
 from users.models import ParticipantAchievements
+from achievements.earned_count_helpers import ensure_earned_count_rows_for_achievement
 
 
 def group_parents_by_point_value(parent_dict):
@@ -211,7 +212,9 @@ def handle_upsert_child_achievements(achievements, parent):
             update.append(achievement)
 
     if new:
-        Achievements.objects.bulk_create(new)
+        created = Achievements.objects.bulk_create(new)
+        for child in created:
+            ensure_earned_count_rows_for_achievement(child.id)
 
     for achievement in update:
         Achievements.objects.filter(id=achievement["id"]).update(

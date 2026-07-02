@@ -20,6 +20,11 @@ from django.utils import timezone
 from .models import Sessions, Rounds, Pods, PodsParticipants, RoundSignups
 from users.models import ParticipantAchievements, Participants
 from achievements.models import WinningCommanders, Achievements
+from achievements.earned_count_helpers import (
+    decrement_earned_counts,
+    increment_earned_counts,
+    pairs_from_queryset_values,
+)
 from stores.models import StoreParticipant, Store
 
 from .serializers import SessionSerializer, PodsParticipantsSerializer
@@ -689,6 +694,7 @@ def update_pod_participants(request, **kwargs):
             earned_points=part.point_value,
             store_id=store_id,
         )
+        increment_earned_counts([(part.id, None)])
 
     PodsParticipants.objects.create(participants_id=pid, pods_id=pod_id)
 
@@ -729,13 +735,17 @@ def delete_pod_participant(request, **kwargs):
         .first()
     )
 
-    ParticipantAchievements.objects.filter(
+    participation_qs = ParticipantAchievements.objects.filter(
         participant_id=pid,
         round_id=session_round["rounds_id"],
         session_id=session_round["rounds__session_id"],
         achievement__slug="participation",
         store_id=store_id,
-    ).update(deleted=True)
+        deleted=False,
+    )
+    deleted_pairs = list(participation_qs.values("achievement_id", "scalable_term_id"))
+    participation_qs.update(deleted=True)
+    decrement_earned_counts(pairs_from_queryset_values(deleted_pairs))
 
     return Response(
         {"message": "Successfully removed"}, status=status.HTTP_202_ACCEPTED
@@ -817,8 +827,14 @@ def delete_session(request, session_id, **kwargs):
         Pods.objects.filter(id__in=pod_ids).update(deleted=True)
         WinningCommanders.objects.filter(pods_id__in=pod_ids).update(deleted=True)
     if round_ids:
-        ParticipantAchievements.objects.filter(round_id__in=round_ids).update(
-            deleted=True
+        session_achievements_qs = ParticipantAchievements.objects.filter(
+            round_id__in=round_ids,
+            deleted=False,
         )
+        deleted_pairs = list(
+            session_achievements_qs.values("achievement_id", "scalable_term_id")
+        )
+        session_achievements_qs.update(deleted=True)
+        decrement_earned_counts(pairs_from_queryset_values(deleted_pairs))
 
     return Response(status=status.HTTP_204_NO_CONTENT)

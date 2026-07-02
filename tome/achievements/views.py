@@ -72,6 +72,18 @@ from achievements.helpers import (
     calculate_monthly_winners,
 )
 from achievements.scoresheet_helpers import POSTScoresheetHelper, GETScoresheetHelper
+from achievements.earned_count_helpers import (
+    decrement_earned_counts,
+    ensure_earned_count_rows_for_achievement,
+    ensure_earned_count_rows_for_bridge,
+    increment_earned_counts,
+    pairs_from_participant_achievements,
+    pairs_from_queryset_values,
+)
+from achievements.rarity import (
+    attach_rarity_to_achievement_payloads,
+    compute_achievement_rarity_map,
+)
 from sessions_rounds.helpers import handle_close_round
 from services.scryfall_client import ScryfallClientRequest
 from services.redis_keepalive import redis_keepalive
@@ -325,15 +337,16 @@ def upsert_scalable_term(request, **kwargs):
                 deleted=False,
             )
             scalable_achievement_ids = _get_scalable_achievement_ids()
-            AchievementScalableTerms.objects.bulk_create(
-                [
-                    AchievementScalableTerms(
-                        achievement_id=ach_id,
-                        scalable_term_id=term.id,
-                    )
-                    for ach_id in scalable_achievement_ids
-                ]
-            )
+            bridge_rows = [
+                AchievementScalableTerms(
+                    achievement_id=ach_id,
+                    scalable_term_id=term.id,
+                )
+                for ach_id in scalable_achievement_ids
+            ]
+            AchievementScalableTerms.objects.bulk_create(bridge_rows)
+            for ach_id in scalable_achievement_ids:
+                ensure_earned_count_rows_for_bridge(ach_id, term.id)
 
     if "info" in body:
         info_error = _process_scalable_info_entries(term, body.get("info"))
@@ -447,7 +460,12 @@ def get_achievements_with_restrictions_v2(request, **kwargs):
         if exclude_slugs:
             achievements = achievements.exclude(slug__in=exclude_slugs)
 
-    return Response(AchievementSerializerV2(achievements, many=True).data)
+    data = AchievementSerializerV2(achievements, many=True).data
+    attach_rarity_to_achievement_payloads(
+        data,
+        rarity_by_achievement=compute_achievement_rarity_map(),
+    )
+    return Response(data)
 
 
 @api_view([GET])
@@ -484,6 +502,11 @@ def get_most_earned_achievements(_, **kwargs):
     data = AchievementSerializerV2(achievements, many=True).data
     for row in data:
         row["earned_count"] = count_map.get(row["id"], 0)
+
+    attach_rarity_to_achievement_payloads(
+        data,
+        rarity_by_achievement=compute_achievement_rarity_map(),
+    )
 
     return Response(data)
 
@@ -755,6 +778,7 @@ def upsert_achievements(request, **kwargs):
         )
         handle_upsert_restrictions(restrictions, achievement)
         handle_upsert_child_achievements(children, achievement)
+        ensure_earned_count_rows_for_achievement(achievement.id)
 
     serialized = AchievementsSerializer(achievement).data
     return Response(serialized, status=status.HTTP_201_CREATED)
@@ -889,6 +913,10 @@ def upsert_earned_achievements(request, **kwargs):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         if "deleted" in body:
+            if body["deleted"]:
+                decrement_earned_counts(
+                    [(achievement.achievement_id, achievement.scalable_term_id)]
+                )
             achievement.deleted = body["deleted"]
             achievement.save()
 
@@ -944,6 +972,7 @@ def upsert_earned_achievements(request, **kwargs):
         earned_points=point_value,
         store_id=request.store_id,
     )
+    increment_earned_counts([(achievement_id, scalable_term_id)])
     return Response(status=status.HTTP_201_CREATED)
 
 
@@ -979,22 +1008,24 @@ def scoresheet(request, round_id: int, pod_id: int, **kwargs):
                     {"message": "Pod not submitted, use POST to insert."},
                     status=status.HTTP_409_CONFLICT,
                 )
-            ParticipantAchievements.objects.filter(
+            soft_delete_qs = ParticipantAchievements.objects.filter(
                 participant_id__in=result.pods_participants,
                 round_id=round_id,
                 session_id=result.session_id,
                 deleted=False,
                 store_id=store_id,
-            ).select_related("achievement").exclude(
-                achievement__slug="participation"
-            ).update(
-                deleted=True
+            ).exclude(achievement__slug="participation")
+            deleted_pairs = list(
+                soft_delete_qs.values("achievement_id", "scalable_term_id")
             )
+            soft_delete_qs.update(deleted=True)
+            decrement_earned_counts(pairs_from_queryset_values(deleted_pairs))
             WinningCommanders.objects.filter(
                 pods_id=pod_id, store_id=store_id, deleted=False
             ).update(deleted=True)
 
         ParticipantAchievements.objects.bulk_create(result.records)
+        increment_earned_counts(pairs_from_participant_achievements(result.records))
 
         if result.commander_name is not None:
             WinningCommanders.objects.create(
