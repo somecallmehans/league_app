@@ -54,6 +54,7 @@ from achievements.models import (
     AchievementScalableTerms,
     ScalableTerms,
     ScalableTermType,
+    ScalableInfo,
 )
 from achievements.participant_achievement_helpers import (
     resolve_participant_achievement_display,
@@ -153,21 +154,85 @@ def get_scorecard_achievement_options(_, **kwargs):
     return Response({"legacy": legacy_options, "scalable": scalable_options})
 
 
+def _get_scalable_term_info(term_id):
+    return list(
+        ScalableInfo.objects.filter(scalable_term_id=term_id, deleted=False).values(
+            "id", "info"
+        )
+    )
+
+
+def _get_scalable_info_by_term(term_ids):
+    info_by_term = defaultdict(list)
+    if not term_ids:
+        return info_by_term
+    for info in ScalableInfo.objects.filter(
+        scalable_term_id__in=term_ids, deleted=False
+    ).values("id", "info", "scalable_term_id"):
+        info_by_term[info["scalable_term_id"]].append(
+            {"id": info["id"], "info": info["info"]}
+        )
+    return info_by_term
+
+
+def _process_scalable_info_entries(term, info_entries):
+    if info_entries is None:
+        return None
+
+    if not isinstance(info_entries, list):
+        return "info must be an array."
+
+    for entry in info_entries:
+        if not isinstance(entry, dict):
+            return "Each info entry must be an object."
+
+        entry_id = entry.get("id")
+        if entry_id:
+            info_obj = ScalableInfo.objects.filter(
+                id=entry_id, scalable_term_id=term.id
+            ).first()
+            if not info_obj:
+                return f"Info entry {entry_id} not found for this term."
+            if entry.get("deleted"):
+                info_obj.deleted = True
+                info_obj.save()
+            elif "info" in entry:
+                info_obj.info = entry["info"]
+                info_obj.deleted = False
+                info_obj.save()
+        elif "info" in entry:
+            ScalableInfo.objects.create(
+                scalable_term=term,
+                info=entry["info"],
+            )
+        else:
+            return "Each new info entry must include info text."
+
+    return None
+
+
 @api_view([GET])
 def get_scalable_terms(_, **kwargs):
     """Return all scalable terms grouped by type, for the Scalable Terms browse page."""
-    terms = (
+    terms = list(
         ScalableTerms.objects.filter(deleted=False)
         .select_related("type")
         .order_by("type__name", "term_display")
         .values("id", "term_display", "type_id", "type__name")
     )
 
+    info_by_term = _get_scalable_info_by_term([t["id"] for t in terms])
+
     grouped = defaultdict(lambda: {"id": None, "name": "", "terms": []})
     untyped = []
 
     for t in terms:
-        term_data = {"id": t["id"], "term_display": t["term_display"]}
+        term_data = {
+            "id": t["id"],
+            "term_display": t["term_display"],
+            "type_id": t["type_id"],
+            "info": info_by_term.get(t["id"], []),
+        }
         if t["type_id"] and t["type__name"]:
             key = t["type__name"]
             grouped[key]["id"] = t["type_id"]
@@ -270,8 +335,21 @@ def upsert_scalable_term(request, **kwargs):
                 ]
             )
 
+    if "info" in body:
+        info_error = _process_scalable_info_entries(term, body.get("info"))
+        if info_error:
+            return Response(
+                {"message": info_error},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
     return Response(
-        {"id": term.id, "term_display": term.term_display, "type_id": term.type_id},
+        {
+            "id": term.id,
+            "term_display": term.term_display,
+            "type_id": term.type_id,
+            "info": _get_scalable_term_info(term.id),
+        },
         status=status.HTTP_201_CREATED,
     )
 

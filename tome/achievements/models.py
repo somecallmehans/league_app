@@ -110,6 +110,19 @@ class AchievementScalableTerms(models.Model):
         ]
 
 
+class ScalableInfo(models.Model):
+    scalable_term = models.ForeignKey(
+        ScalableTerms,
+        on_delete=models.CASCADE,
+        related_name="info_entries",
+    )
+    info = models.TextField()
+    deleted = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = "scalable_info"
+
+
 class Colors(models.Model):
     symbol = models.CharField(max_length=5)
     slug = models.CharField(max_length=26)

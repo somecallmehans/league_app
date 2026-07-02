@@ -6,53 +6,101 @@ import {
   useUpsertScalableTermMutation,
   useCreateScalableTermTypeMutation,
 } from "../../api/apiSlice";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import StandardButton from "../../components/Button";
-import { TextInput, Selector } from "../../components/FormInputs";
+import {
+  TextInput,
+  TextAreaField,
+  Selector,
+} from "../../components/FormInputs";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import Drawer from "../../components/Drawer";
 import ConfirmModal from "../../components/Modals/ConfirmModal";
 
+const buildInfoPayload = (entries) =>
+  entries
+    ?.filter((entry) => !entry.deleted || entry.id != null)
+    ?.map((entry) => {
+      if (entry.deleted && entry.id) {
+        return { id: entry.id, deleted: true };
+      }
+      if (entry.id) {
+        return { id: entry.id, info: entry.info };
+      }
+      if (entry.info?.trim()) {
+        return { info: entry.info.trim() };
+      }
+      return null;
+    })
+    .filter(Boolean);
+
 const TermForm = ({ term, setOpen, onSuccess }) => {
   const [upsertTerm] = useUpsertScalableTermMutation();
   const { data: types } = useGetScalableTermTypesQuery();
-
   const {
     control,
     register,
     handleSubmit,
     formState: { isDirty, errors },
-    setValue,
+    reset,
   } = useForm({
     defaultValues: {
       term_display: term?.term_display ?? "",
-      type: term?.type_id
-        ? (types?.find((t) => t.id === term.type_id) ?? null)
-        : null,
+      type: null,
+      info: term?.info ?? [],
     },
   });
 
+  const {
+    fields: infoFields,
+    append: appendInfo,
+    update: updateInfo,
+  } = useFieldArray({
+    control,
+    name: "info",
+  });
+
+  const watchedInfo = useWatch({
+    control,
+    name: "info",
+  });
+
   useEffect(() => {
-    if (types && term) {
-      const typeOpt = types.find((t) => t.id === term.type_id);
-      setValue("type", typeOpt ?? null);
-    }
-  }, [types, term, setValue]);
+    if (!types) return;
+
+    const typeOpt = term?.type_id
+      ? (types.find((t) => t.id === term.type_id) ?? null)
+      : null;
+
+    reset({
+      term_display: term?.term_display ?? "",
+      type: typeOpt,
+      info: term?.info ?? [],
+    });
+  }, [types, term, reset]);
 
   return (
     <form
       onSubmit={handleSubmit(async (values) => {
         const type_id = values.type?.id ?? null;
+        const info = buildInfoPayload(values.info);
+        const payload = {
+          id: term?.id,
+          term_display: values.term_display,
+          type_id,
+        };
+        if (info?.length) {
+          payload.info = info;
+        }
+
         try {
-          await upsertTerm({
-            id: term?.id,
-            term_display: values.term_display,
-            type_id,
-          }).unwrap();
+          await upsertTerm(payload).unwrap();
           setOpen(false);
           onSuccess?.();
         } catch (err) {
-          toast.error(err?.data?.detail ?? "Failed to save term");
+          toast.error(
+            err?.data?.message ?? err?.data?.detail ?? "Failed to save term",
+          );
         }
       })}
     >
@@ -82,6 +130,47 @@ const TermForm = ({ term, setOpen, onSuccess }) => {
             validate: (v) => (!v ? "Type is required" : undefined),
           }}
         />
+        <div>
+          <label className="font-bold text-lg">Info</label>
+          <div className="flex flex-col mb-2">
+            {infoFields.map((field, index) => {
+              const isDeleted = watchedInfo?.[index]?.deleted;
+              if (isDeleted) return null;
+
+              return (
+                <div key={field.id} className="flex gap-2 mt-2">
+                  <TextAreaField
+                    name={`info[${index}].info`}
+                    control={control}
+                    register={register(`info.${index}.info`)}
+                    placeholder="Add scalable info"
+                    classes="p-2 text-sm border rounded-lg grow bg-white"
+                    rows={3}
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      updateInfo(index, {
+                        ...watchedInfo[index],
+                        deleted: true,
+                      })
+                    }
+                    className="text-red-500 hover:text-red-300 self-start pt-2"
+                  >
+                    <i className="fa fa-trash" />
+                  </button>
+                </div>
+              );
+            })}
+            <button
+              type="button"
+              onClick={() => appendInfo({ info: "" })}
+              className="text-sm text-blue-600 mt-1 text-left"
+            >
+              Add New
+            </button>
+          </div>
+        </div>
       </div>
       <div className="sticky bottom-0 z-10">
         <button
@@ -159,12 +248,17 @@ const TermCard = ({ term, typeName, onSuccess }) => {
     <>
       <div
         onClick={() => setOpen(true)}
-        className="bg-white rounded border border-solid p-3 shadow-md hover:border-sky-400 cursor-pointer"
+        className="bg-white rounded border border-solid p-3 shadow-md hover:border-sky-400 cursor-pointer relative"
       >
         <div className="text-sm text-gray-500">
           {typeName || "Uncategorized"}
         </div>
         <div>{term.term_display}</div>
+        {(term.info?.length ?? 0) > 0 && (
+          <div className="absolute top-2 right-2 text-sky-400">
+            <i className="fa-solid fa-circle-info text-xs" />
+          </div>
+        )}
       </div>
       <ConfirmModal
         isOpen={showModal}
@@ -194,7 +288,14 @@ const TermCard = ({ term, typeName, onSuccess }) => {
           </span>
         }
       >
-        <TermForm term={term} setOpen={setOpen} onSuccess={onSuccess} />
+        {open && (
+          <TermForm
+            key={term.id}
+            term={term}
+            setOpen={setOpen}
+            onSuccess={onSuccess}
+          />
+        )}
       </Drawer>
     </>
   );
@@ -257,11 +358,14 @@ export default function ScalableTermsManagement() {
         onClose={() => setShowCreateTerm(false)}
         title="New Scalable Term"
       >
-        <TermForm
-          term={null}
-          setOpen={setShowCreateTerm}
-          onSuccess={onSuccess}
-        />
+        {showCreateTerm && (
+          <TermForm
+            key="new"
+            term={null}
+            setOpen={setShowCreateTerm}
+            onSuccess={onSuccess}
+          />
+        )}
       </Drawer>
 
       <Drawer

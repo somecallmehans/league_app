@@ -236,8 +236,19 @@ export default (builder: ApiBuilder) => ({
     invalidatesTags: ["AdminDecklists", "Decklists", "PersonalDecklists"],
   }),
   upsertScalableTerm: builder.mutation<
-    { id: number; term_display: string; type_id: number | null },
-    { id?: number; term_display: string; type_id?: number | null; deleted?: boolean }
+    {
+      id: number;
+      term_display: string;
+      type_id: number | null;
+      info: { id: number; info: string }[];
+    },
+    {
+      id?: number;
+      term_display: string;
+      type_id?: number | null;
+      deleted?: boolean;
+      info?: Array<{ id?: number; info?: string; deleted?: boolean }>;
+    }
   >({
     query: (body) => ({
       url: "scalable_terms/upsert/",

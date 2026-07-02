@@ -339,9 +339,16 @@ export type ScorecardAchievementOptionsResponse = z.infer<
   typeof ScorecardAchievementOptionsResponseSchema
 >;
 
+const ScalableTermInfoSchema = z.object({
+  id: z.number(),
+  info: z.string(),
+});
+
 export const ScalableTermItemSchema = z.object({
   id: z.number(),
   term_display: z.string(),
+  type_id: z.number().nullable().optional(),
+  info: z.array(ScalableTermInfoSchema).optional().default([]),
 });
 export const ScalableTermsTypeGroupSchema = z.object({
   id: z.number().nullable(),

@@ -8,6 +8,7 @@ from achievements.models import (
     ScalableTermType,
     AchievementScalableTerms,
     Achievements,
+    ScalableInfo,
 )
 from utils.test_helpers import get_ids
 
@@ -66,6 +67,32 @@ def test_get_scalable_terms_excludes_deleted(client) -> None:
     ]
     assert "Active Term" in term_displays
     assert "Deleted Term" not in term_displays
+
+
+def test_get_scalable_terms_includes_type_id(client) -> None:
+    """
+    Should: include type_id on each term in the response.
+    """
+    type_obj = ScalableTermType.objects.first()
+    term = ScalableTerms.objects.create(
+        term_display="Typed Term",
+        type=type_obj,
+    )
+
+    url = reverse("get_scalable_terms")
+    res = client.get(url)
+    parsed = res.json()
+
+    assert res.status_code == status.HTTP_200_OK
+
+    matching_terms = [
+        t
+        for typ in parsed["types"]
+        for t in typ.get("terms", [])
+        if t["id"] == term.id
+    ]
+    assert len(matching_terms) == 1
+    assert matching_terms[0]["type_id"] == type_obj.id
 
 
 def test_get_scalable_term_types(client) -> None:
@@ -284,3 +311,153 @@ def test_create_scalable_term_type_requires_auth(api_client) -> None:
 
     res = api_client.post(url, body, format="json")
     assert res.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+def test_upsert_scalable_term_create_with_info(client) -> None:
+    """
+    Should: create a new scalable term with inline info entries.
+    """
+    type_obj = ScalableTermType.objects.first()
+    url = reverse("upsert_scalable_term")
+    body = {
+        "term_display": "Info Term",
+        "type_id": type_obj.id if type_obj else None,
+        "info": [{"info": "First note"}, {"info": "Second note"}],
+    }
+
+    res = client.post(url, body, format="json")
+    parsed = res.json()
+
+    assert res.status_code == status.HTTP_201_CREATED
+    assert len(parsed["info"]) == 2
+    assert parsed["info"][0]["info"] == "First note"
+    assert parsed["info"][1]["info"] == "Second note"
+
+    term = ScalableTerms.objects.get(term_display="Info Term")
+    assert ScalableInfo.objects.filter(scalable_term=term, deleted=False).count() == 2
+
+
+def test_upsert_scalable_term_add_info_to_existing(client) -> None:
+    """
+    Should: add info entries when updating an existing term.
+    """
+    type_obj = ScalableTermType.objects.first()
+    term = ScalableTerms.objects.create(
+        term_display="Existing Info Term",
+        type=type_obj,
+    )
+
+    url = reverse("upsert_scalable_term")
+    body = {
+        "id": term.id,
+        "term_display": term.term_display,
+        "info": [{"info": "Added note"}],
+    }
+
+    res = client.post(url, body, format="json")
+    parsed = res.json()
+
+    assert res.status_code == status.HTTP_201_CREATED
+    assert len(parsed["info"]) == 1
+    assert parsed["info"][0]["info"] == "Added note"
+
+
+def test_upsert_scalable_term_update_info(client) -> None:
+    """
+    Should: update an existing info entry.
+    """
+    type_obj = ScalableTermType.objects.first()
+    term = ScalableTerms.objects.create(
+        term_display="Update Info Term",
+        type=type_obj,
+    )
+    info_entry = ScalableInfo.objects.create(
+        scalable_term=term,
+        info="Original note",
+    )
+
+    url = reverse("upsert_scalable_term")
+    body = {
+        "id": term.id,
+        "term_display": term.term_display,
+        "info": [{"id": info_entry.id, "info": "Updated note"}],
+    }
+
+    res = client.post(url, body, format="json")
+    parsed = res.json()
+
+    assert res.status_code == status.HTTP_201_CREATED
+    assert len(parsed["info"]) == 1
+    assert parsed["info"][0]["info"] == "Updated note"
+
+    info_entry.refresh_from_db()
+    assert info_entry.info == "Updated note"
+    assert info_entry.deleted is False
+
+
+def test_upsert_scalable_term_soft_delete_info(client) -> None:
+    """
+    Should: soft-delete an existing info entry.
+    """
+    type_obj = ScalableTermType.objects.first()
+    term = ScalableTerms.objects.create(
+        term_display="Delete Info Term",
+        type=type_obj,
+    )
+    info_entry = ScalableInfo.objects.create(
+        scalable_term=term,
+        info="To delete",
+    )
+
+    url = reverse("upsert_scalable_term")
+    body = {
+        "id": term.id,
+        "term_display": term.term_display,
+        "info": [{"id": info_entry.id, "deleted": True}],
+    }
+
+    res = client.post(url, body, format="json")
+    parsed = res.json()
+
+    assert res.status_code == status.HTTP_201_CREATED
+    assert parsed["info"] == []
+
+    info_entry.refresh_from_db()
+    assert info_entry.deleted is True
+
+
+def test_get_scalable_terms_includes_info(client) -> None:
+    """
+    Should: include non-deleted info entries in the GET response.
+    """
+    type_obj = ScalableTermType.objects.first()
+    term = ScalableTerms.objects.create(
+        term_display="GET Info Term",
+        type=type_obj,
+    )
+    visible = ScalableInfo.objects.create(
+        scalable_term=term,
+        info="Visible note",
+    )
+    ScalableInfo.objects.create(
+        scalable_term=term,
+        info="Hidden note",
+        deleted=True,
+    )
+
+    url = reverse("get_scalable_terms")
+    res = client.get(url)
+    parsed = res.json()
+
+    assert res.status_code == status.HTTP_200_OK
+
+    matching_terms = [
+        t
+        for typ in parsed["types"]
+        for t in typ.get("terms", [])
+        if t["id"] == term.id
+    ]
+    assert len(matching_terms) == 1
+    assert matching_terms[0]["info"] == [
+        {"id": visible.id, "info": "Visible note"}
+    ]

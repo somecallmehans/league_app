@@ -4,6 +4,7 @@ import { Input } from "@headlessui/react";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import PageTitle from "../../components/PageTitle";
 import CalloutCard from "../../components/CalloutCard";
+import Drawer from "../../components/Drawer";
 import { SimpleSelect } from "../crud/CrudComponents";
 
 const TYPE_COLORS = [
@@ -28,7 +29,7 @@ const SearchFilter = ({ value, onChange, placeholder, classes }) => (
   />
 );
 
-function TypeSection({ typeGroup, isExpanded, colorIndex }) {
+function TypeSection({ typeGroup, isExpanded, colorIndex, onTermClick }) {
   const terms = typeGroup.terms;
   const barColor = TYPE_COLORS[colorIndex % TYPE_COLORS.length];
 
@@ -55,16 +56,31 @@ function TypeSection({ typeGroup, isExpanded, colorIndex }) {
           isExpanded ? "overflow-visible" : "overflow-y-auto max-h-[20rem]"
         }`}
       >
-        {terms.map((term, idx) => (
-          <div
-            key={term.id}
-            className={`px-4 py-2.5 text-sm md:text-base text-slate-800 ${
-              idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"
-            }`}
-          >
-            {term.term_display}
-          </div>
-        ))}
+        {terms.map((term, idx) => {
+          const hasInfo = (term.info?.length ?? 0) > 0;
+
+          return (
+            <div
+              key={term.id}
+              onClick={() => (hasInfo ? onTermClick(term) : undefined)}
+              className={`px-4 py-2.5 text-sm md:text-base text-slate-800 relative ${
+                idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"
+              } ${hasInfo ? "cursor-pointer hover:border-sky-400" : ""}`}
+            >
+              {term.term_display}
+              {hasInfo && (
+                <>
+                  <div className="absolute top-2 right-2 text-sky-400">
+                    <i className="fa-solid fa-circle-info text-xs" />
+                  </div>
+                  <div className="absolute bottom-2 right-2">
+                    <i className="fa-solid fa-angle-right text-sky-400 text-xs" />
+                  </div>
+                </>
+              )}
+            </div>
+          );
+        })}
       </div>
     </section>
   );
@@ -74,6 +90,7 @@ export default function ScalableTermsPage() {
   const { data, isLoading } = useGetScalableTermsQuery();
   const [typeFilter, setTypeFilter] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTerm, setSelectedTerm] = useState(null);
 
   const typeOptions = useMemo(() => {
     if (!data?.types) return [];
@@ -175,10 +192,30 @@ export default function ScalableTermsPage() {
               typeGroup={typeGroup}
               isExpanded={filteredTypes.length === 1}
               colorIndex={idx}
+              onTermClick={setSelectedTerm}
             />
           ))
         )}
       </div>
+
+      <Drawer
+        isOpen={!!selectedTerm}
+        onClose={() => setSelectedTerm(null)}
+        title={selectedTerm?.term_display ?? ""}
+      >
+        {selectedTerm?.info?.length ? (
+          <div className="divide-y divide-slate-200 p-4">
+            {selectedTerm.info.map((entry) => (
+              <p
+                key={entry.id}
+                className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap py-4 first:pt-0 last:pb-0"
+              >
+                {entry.info}
+              </p>
+            ))}
+          </div>
+        ) : null}
+      </Drawer>
     </div>
   );
 }
