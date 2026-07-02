@@ -11,26 +11,26 @@ const PLAYER_WIN_MAP = [
     label: "Win while going last in turn order",
     slug: "last-in-order",
   },
-  {
-    key: 2,
-    label: "Win while dealing lethal commander damage",
-    slug: "commander-damage",
-  },
-  {
-    key: 3,
-    label: "Win via a lose the game effect",
-    slug: "lose-the-game-effect",
-  },
-  {
-    key: 4,
-    label: "Win via a win the game effect",
-    slug: "win-the-game-effect",
-  },
-  {
-    key: 5,
-    label: "Win while being at zero or less life",
-    slug: "zero-or-less-life",
-  },
+  // {
+  //   key: 2,
+  //   label: "Win while dealing lethal commander damage",
+  //   slug: "commander-damage",
+  // },
+  // {
+  //   key: 3,
+  //   label: "Win via a lose the game effect",
+  //   slug: "lose-the-game-effect",
+  // },
+  // {
+  //   key: 4,
+  //   label: "Win via a win the game effect",
+  //   slug: "win-the-game-effect",
+  // },
+  // {
+  //   key: 5,
+  //   label: "Win while being at zero or less life",
+  //   slug: "zero-or-less-life",
+  // },
 ];
 
 export default function WinnerFields() {
