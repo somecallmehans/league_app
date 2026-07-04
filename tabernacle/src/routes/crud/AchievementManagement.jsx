@@ -31,11 +31,17 @@ const AchievementForm = ({
   children: achievementChildren,
   restrictions,
   type,
+  rarity,
+  rarity_id,
+  rarity_hex,
   setOpen,
 }) => {
   const [postUpsertAchievements] = usePostUpsertAchievementsMutation();
   const { data: types } = useSelector(
     apiSlice.endpoints.getAchievementTypes.select(undefined)
+  );
+  const { data: rarities } = useSelector(
+    apiSlice.endpoints.getAchievementRarities.select(undefined)
   );
 
   const {
@@ -50,6 +56,9 @@ const AchievementForm = ({
       restrictions: restrictions || [],
       achievements: achievementChildren || [],
       type: type || [],
+      rarity: rarity_id
+        ? { id: rarity_id, name: rarity, hex_code: rarity_hex }
+        : null,
     },
   });
 
@@ -88,6 +97,7 @@ const AchievementForm = ({
         const cleaned = {
           ...values,
           type_id: values.type.id,
+          rarity_id: values.rarity?.id ?? null,
           restrictions: values.restrictions?.filter(
             (r) => !r.deleted || r.id != null
           ),
@@ -127,7 +137,7 @@ const AchievementForm = ({
                 +value < 0 ? "Point value must be 0 or greater" : undefined,
             }}
             errors={errors}
-            containerClasses="basis-1/2"
+            containerClasses="sm:basis-1/5"
           />
           <Selector
             name="type"
@@ -138,7 +148,19 @@ const AchievementForm = ({
             classes="text-sm w-full sm:flex-1 mb-2 sm:mb-0"
             getOptionLabel={(option) => option.name}
             getOptionValue={(option) => option.id}
-            containerClasses="basis-1/2"
+            containerClasses="sm:basis-2/5"
+          />
+          <Selector
+            name="rarity"
+            title="Rarity"
+            options={rarities ?? []}
+            control={control}
+            placeholder="Achievement Rarity"
+            classes="text-sm w-full sm:flex-1 mb-2 sm:mb-0"
+            isClearable
+            getOptionLabel={(option) => option.name}
+            getOptionValue={(option) => option.id}
+            containerClasses="sm:basis-2/5"
           />
         </div>
         <label className="font-bold text-lg">Info</label>
@@ -335,6 +357,7 @@ export default function Page() {
 
   useEffect(() => {
     dispatch(apiSlice.endpoints.getAchievementTypes.initiate(undefined));
+    dispatch(apiSlice.endpoints.getAchievementRarities.initiate(undefined));
   }, [dispatch]);
 
   const { data: achievements, isLoading: achievementsLoading } =

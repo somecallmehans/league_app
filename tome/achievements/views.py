@@ -46,11 +46,13 @@ from .serializers import (
     ColorsSerializer,
     CommandersSerializer,
     AchievementTypeSerializer,
+    AchievementRaritySerializer,
 )
 from achievements.models import (
     Achievements,
     WinningCommanders,
     Commanders,
+    AchievementRarity,
     AchievementScalableTerms,
     ScalableTerms,
     ScalableTermType,
@@ -79,10 +81,6 @@ from achievements.earned_count_helpers import (
     increment_earned_counts,
     pairs_from_participant_achievements,
     pairs_from_queryset_values,
-)
-from achievements.rarity import (
-    attach_rarity_to_achievement_payloads,
-    compute_achievement_rarity_map,
 )
 from sessions_rounds.helpers import handle_close_round
 from services.scryfall_client import ScryfallClientRequest
@@ -392,7 +390,7 @@ def _achievements_v2_base_queryset():
     """Shared queryset for achievement browse payloads (v2 shape)."""
     return (
         Achievements.objects.filter(deleted=False)
-        .select_related("parent", "type")
+        .select_related("parent", "type", "rarity")
         .annotate(
             points_anno=Coalesce(
                 F("parent__point_value"), F("point_value"), output_field=IntegerField()
@@ -414,6 +412,7 @@ def _achievements_v2_base_queryset():
             "parent_id",
             "deleted",
             "type_id",
+            "rarity_id",
             "parent__id",
             "parent__name",
             "parent__point_value",
@@ -421,6 +420,9 @@ def _achievements_v2_base_queryset():
             "type__name",
             "type__hex_code",
             "type__description",
+            "rarity__id",
+            "rarity__name",
+            "rarity__hex_code",
         )
         .prefetch_related(
             Prefetch(
@@ -461,10 +463,6 @@ def get_achievements_with_restrictions_v2(request, **kwargs):
             achievements = achievements.exclude(slug__in=exclude_slugs)
 
     data = AchievementSerializerV2(achievements, many=True).data
-    attach_rarity_to_achievement_payloads(
-        data,
-        rarity_by_achievement=compute_achievement_rarity_map(),
-    )
     return Response(data)
 
 
@@ -503,11 +501,6 @@ def get_most_earned_achievements(_, **kwargs):
     for row in data:
         row["earned_count"] = count_map.get(row["id"], 0)
 
-    attach_rarity_to_achievement_payloads(
-        data,
-        rarity_by_achievement=compute_achievement_rarity_map(),
-    )
-
     return Response(data)
 
 
@@ -517,6 +510,14 @@ def get_achievement_types(_, **kwargs):
 
     types = AchievementType.objects.all()
     return Response(AchievementTypeSerializer(types, many=True).data)
+
+
+@api_view([GET])
+def get_achievement_rarities(_, **kwargs):
+    """Get all configured achievement rarity options."""
+
+    rarities = AchievementRarity.objects.all().order_by("id")
+    return Response(AchievementRaritySerializer(rarities, many=True).data)
 
 
 @api_view([GET])
@@ -761,6 +762,8 @@ def upsert_achievements(request, **kwargs):
             achievement.point_value = body["point_value"]
         if "type_id" in body:
             achievement.type_id = body["type_id"]
+        if "rarity_id" in body:
+            achievement.rarity_id = body["rarity_id"]
         if "restrictions" in body:
             handle_upsert_restrictions(body["restrictions"], achievement)
         if "achievements" in body:
@@ -775,6 +778,7 @@ def upsert_achievements(request, **kwargs):
             deleted=body.get("deleted", False),
             point_value=body.get("point_value"),
             type_id=body.get("type_id"),
+            rarity_id=body.get("rarity_id"),
         )
         handle_upsert_restrictions(restrictions, achievement)
         handle_upsert_child_achievements(children, achievement)

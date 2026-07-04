@@ -25,6 +25,19 @@ export type AchievementTypeListResponse = z.infer<
   typeof AchievementTypeListResponseSchema
 >;
 
+export const AchievementRaritySchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  hex_code: z.string(),
+});
+
+export const AchievementRarityListResponseSchema = z.array(
+  AchievementRaritySchema,
+);
+export type AchievementRarityListResponse = z.infer<
+  typeof AchievementRarityListResponseSchema
+>;
+
 export const RARITY_ORDER = {
   "Most Popular": 0,
   Uncommon: 1,
@@ -91,6 +104,9 @@ export interface Achievement {
   point_value?: number | null;
   type?: z.infer<typeof AchievementTypeSchema> | null;
   type_id?: number | null;
+  rarity?: string | null;
+  rarity_id?: number | null;
+  rarity_hex?: string | null;
   parent?: z.infer<typeof ParentAchievementSchema> | null;
   parent_id?: number | null;
   restrictions?: z.infer<typeof AchievementRestrictionsSchema> | null;
@@ -105,6 +121,9 @@ export interface GetAchievement {
   point_value?: number | null;
   type?: z.infer<typeof AchievementTypeSchema> | null;
   type_id?: number | null;
+  rarity?: string | null;
+  rarity_id?: number | null;
+  rarity_hex?: string | null;
   parent?: z.infer<typeof ParentAchievementSchema> | null;
   parent_id?: number | null;
   restrictions?: z.infer<typeof AchievementRestrictionsSchema> | null;
@@ -121,10 +140,11 @@ export const AchievementSchema: z.ZodType<GetAchievement> = z.lazy(() =>
     point_value: z.number().nullish(),
     type: AchievementTypeSchema.nullish(),
     type_id: z.number().nullish(),
+    rarity: z.string().nullish(),
+    rarity_id: z.number().nullish(),
+    rarity_hex: z.string().nullish(),
     parent: ParentAchievementSchema.nullish(),
     restrictions: AchievementRestrictionsSchema.nullish(),
-    rarity: z.string().nullish(),
-    rarity_hex: z.string().nullish(),
   }),
 );
 
@@ -141,6 +161,7 @@ export const MostEarnedAchievementSchema = z.object({
   point_value: z.number().nullish(),
   type: AchievementTypeSchema.nullish(),
   type_id: z.number().nullish(),
+  rarity_id: z.number().nullish(),
   parent: ParentAchievementSchema.nullish(),
   restrictions: AchievementRestrictionsSchema.nullish(),
   deleted: z.boolean().nullish(),
@@ -205,8 +226,11 @@ export const UpsertAchievementResponseSchema = z.object({
   point_value: z.number(),
   restrictions: z.array(RestrictionsSchema),
   achievements: z.array(z.object({ name: z.string() })),
-  type: AchievementTypeSchema,
-  type_id: z.number().optional(),
+  type: AchievementTypeSchema.nullish(),
+  type_id: z.number().nullish(),
+  rarity: z.string().nullish(),
+  rarity_id: z.number().nullish(),
+  rarity_hex: z.string().nullish(),
 });
 export type UpsertAchievementResponse = z.infer<
   typeof UpsertAchievementResponseSchema
@@ -217,7 +241,10 @@ export const EMPTY_ACHIEVEMENT_RESPONSE: UpsertAchievementResponse = {
   restrictions: [],
   achievements: [],
   type: EMPTY_TYPE,
-  type_id: undefined,
+  type_id: null,
+  rarity: null,
+  rarity_id: null,
+  rarity_hex: null,
 };
 export type UpsertAchievementRequest = Achievement;
 

@@ -9,6 +9,11 @@ from utils.test_helpers import get_ids
 ids = get_ids()
 
 NAME = "Brand new achievement"
+RARITY_NULL_FIELDS = {
+    "rarity": None,
+    "rarity_id": None,
+    "rarity_hex": None,
+}
 
 
 def test_post_insert_achievement(client) -> None:
@@ -36,6 +41,7 @@ def test_post_insert_achievement(client) -> None:
         "deleted": False,
         "type": None,
         "type_id": None,
+        **RARITY_NULL_FIELDS,
     }
 
     assert res.status_code == status.HTTP_201_CREATED
@@ -70,6 +76,7 @@ def test_post_update_achievement(client) -> None:
         "deleted": True,
         "type": None,
         "type_id": None,
+        **RARITY_NULL_FIELDS,
     }
     assert res.status_code == status.HTTP_201_CREATED
     assert updated.deleted == True
@@ -139,6 +146,7 @@ def test_post_insert_with_children(client) -> None:
         "deleted": False,
         "type": None,
         "type_id": None,
+        **RARITY_NULL_FIELDS,
     }
 
     assert res.status_code == status.HTTP_201_CREATED
@@ -190,6 +198,7 @@ def test_post_update_with_children(client, build_children) -> None:
         "deleted": True,
         "type": None,
         "type_id": None,
+        **RARITY_NULL_FIELDS,
     }
     assert res.status_code == status.HTTP_201_CREATED
     assert parsed_res == expected
@@ -241,6 +250,7 @@ def test_post_insert_with_restrictions(client) -> None:
         "deleted": False,
         "type": None,
         "type_id": None,
+        **RARITY_NULL_FIELDS,
     }
 
     assert res.status_code == status.HTTP_201_CREATED
@@ -304,6 +314,7 @@ def test_post_update_with_restrictions(client, build_restrictions) -> None:
         "deleted": False,
         "type": None,
         "type_id": None,
+        **RARITY_NULL_FIELDS,
     }
 
     assert res.status_code == status.HTTP_201_CREATED

@@ -21,6 +21,14 @@ class AchievementType(models.Model):
         db_table = "achievement_type"
 
 
+class AchievementRarity(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    hex_code = models.CharField(max_length=7)
+
+    class Meta:
+        db_table = "achievement_rarity"
+
+
 class Achievements(models.Model):
     name = models.CharField(max_length=255)
     point_value = models.IntegerField(null=True, blank=True)
@@ -29,6 +37,13 @@ class Achievements(models.Model):
     parent = models.ForeignKey("self", on_delete=models.CASCADE, null=True, blank=True)
     type = models.ForeignKey(
         AchievementType,
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="achievements",
+    )
+    rarity = models.ForeignKey(
+        AchievementRarity,
         null=True,
         blank=True,
         on_delete=models.PROTECT,

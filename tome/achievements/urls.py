@@ -11,6 +11,7 @@ from .views import (
     get_achievements_with_restrictions_v2,
     get_most_earned_achievements,
     get_achievement_types,
+    get_achievement_rarities,
     get_league_monthly_winners,
     get_league_monthly_winner_info,
     scoresheet,
@@ -86,6 +87,11 @@ urlpatterns = [
         name="upsert_earned_achievements",
     ),
     path("get_achievement_types/", get_achievement_types, name="get_achievement_types"),
+    path(
+        "get_achievement_rarities/",
+        get_achievement_rarities,
+        name="get_achievement_rarities",
+    ),
     path("get_league_winners/", get_league_monthly_winners, name="get_league_winners"),
     path(
         "get_league_winner/<str:mm_yy>/<int:participant_id>/",

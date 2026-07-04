@@ -6,6 +6,7 @@ from .models import (
     WinningCommanders,
     Commanders,
     AchievementType,
+    AchievementRarity,
 )
 from sessions_rounds.serializers import PodsSerializer
 from users.serializers import ParticipantsSerializer
@@ -21,6 +22,12 @@ class AchievementTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = AchievementType
         fields = ["id", "name", "hex_code", "description"]
+
+
+class AchievementRaritySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AchievementRarity
+        fields = ["id", "name", "hex_code"]
 
 
 class ParentMiniSerializer(serializers.ModelSerializer):
@@ -47,6 +54,9 @@ class AchievementSerializerV2(serializers.ModelSerializer):
     parent_id = serializers.IntegerField(read_only=True)
     type = AchievementTypeMiniSerializer(read_only=True)
     type_id = serializers.IntegerField(read_only=True)
+    rarity = serializers.SerializerMethodField()
+    rarity_id = serializers.IntegerField(read_only=True)
+    rarity_hex = serializers.SerializerMethodField()
     points = serializers.IntegerField(source="points_anno", read_only=True)
     full_name = serializers.CharField(source="full_name_anno", read_only=True)
 
@@ -65,7 +75,20 @@ class AchievementSerializerV2(serializers.ModelSerializer):
             "deleted",
             "type",
             "type_id",
+            "rarity",
+            "rarity_id",
+            "rarity_hex",
         ]
+
+    def get_rarity(self, obj):
+        if obj.rarity:
+            return obj.rarity.name
+        return None
+
+    def get_rarity_hex(self, obj):
+        if obj.rarity:
+            return obj.rarity.hex_code
+        return None
 
 
 class AchievementsSerializer(serializers.ModelSerializer):
@@ -74,6 +97,9 @@ class AchievementsSerializer(serializers.ModelSerializer):
     parent_id = serializers.IntegerField(read_only=True)
     type = serializers.SerializerMethodField()
     type_id = serializers.IntegerField(read_only=True)
+    rarity = serializers.SerializerMethodField()
+    rarity_id = serializers.IntegerField(read_only=True)
+    rarity_hex = serializers.SerializerMethodField()
     points = serializers.IntegerField(read_only=True)
     full_name = serializers.CharField(read_only=True)
     deleted = serializers.BooleanField(read_only=True)
@@ -94,6 +120,9 @@ class AchievementsSerializer(serializers.ModelSerializer):
             "deleted",
             "type",
             "type_id",
+            "rarity",
+            "rarity_id",
+            "rarity_hex",
         ]
 
     def get_parent(self, obj):
@@ -107,6 +136,16 @@ class AchievementsSerializer(serializers.ModelSerializer):
     def get_type(self, obj):
         if obj.type:
             return AchievementTypeSerializer(obj.type).data
+        return None
+
+    def get_rarity(self, obj):
+        if obj.rarity:
+            return obj.rarity.name
+        return None
+
+    def get_rarity_hex(self, obj):
+        if obj.rarity:
+            return obj.rarity.hex_code
         return None
 
 
