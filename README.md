@@ -6,7 +6,7 @@ Commander League is a unique play environment for Magic: The Gathering's Command
 
 Each month, players build new decks and compete to earn points based on a league-defined scoring system that rewards creative, strategic, and thematic play. The player with the highest point total at the end of the month is crowned the league champion.
 
-[Click here to view the Commander League Web App](https://mtg-commander-league.xyz/)
+[Click here to view the Commander League Web App](https://commanderleague.xyz/)
 
 
 This application was developed so that:
