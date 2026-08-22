@@ -65,7 +65,61 @@ const ACHIEVEMENT_TYPE_ORDER_INDEX = new Map<string, number>(
 
 export function getAchievementTypeOrderIndex(typeName: string): number {
   const normalized = normalizeAchievementTypeName(typeName);
-  return ACHIEVEMENT_TYPE_ORDER_INDEX.get(normalized) ?? Number.MAX_SAFE_INTEGER;
+  return (
+    ACHIEVEMENT_TYPE_ORDER_INDEX.get(normalized) ?? Number.MAX_SAFE_INTEGER
+  );
+}
+
+export interface AchievementEarningRule {
+  key: string;
+  name: string;
+  hex_code: string;
+  rule: string;
+}
+
+const ACHIEVEMENT_EARNING_RULE_DEFINITIONS = [
+  {
+    key: "non-deckbuilding",
+    aliases: ["non deckbuilding", "non deck building"],
+    displayName: "Non-Deckbuilding",
+    rule: "These may be earned any number of times during each monthly league.",
+  },
+  {
+    key: "deckbuilding",
+    aliases: ["deckbuilding", "basic check"],
+    displayName: "Deckbuilding",
+    rule: "When earned, these may not be earned again by the same player using the same color identity, until the following week.",
+  },
+  {
+    key: "foundation",
+    aliases: ["deck foundation", "foundation"],
+    displayName: "Foundation",
+    rule: "No more than one foundation achievement may be earned per win. For all format-related foundation achievements, only the commander banned list applies (i.e. don't worry about banned lists for modern, pioneer, pauper, etc).",
+  },
+  {
+    key: "scalable",
+    aliases: ["scalable terms", "scalable"],
+    displayName: "Scalable",
+    rule: "Individual cards may not qualify for multiple scalable achievements in a single deck. The same tier of scalable achievement may be earned multiple times within the same deck however, if each instance is for a different scalable quality.",
+  },
+] as const;
+
+export function buildAchievementEarningRules(
+  types: AchievementTypeListResponse | undefined,
+): AchievementEarningRule[] {
+  return ACHIEVEMENT_EARNING_RULE_DEFINITIONS.map((entry) => {
+    const match = types?.find((type) => {
+      const normalizedName = normalizeAchievementTypeName(type.name);
+      return entry.aliases.some((alias) => alias === normalizedName);
+    });
+
+    return {
+      key: entry.key,
+      name: entry.displayName,
+      hex_code: match?.hex_code ?? "#9CA3AF",
+      rule: entry.rule,
+    };
+  });
 }
 
 export interface ParentAchievement {
@@ -419,9 +473,7 @@ export const ScalableTermsTypeGroupSchema = z.object({
 export const ScalableTermsResponseSchema = z.object({
   types: z.array(ScalableTermsTypeGroupSchema),
 });
-export type ScalableTermsResponse = z.infer<
-  typeof ScalableTermsResponseSchema
->;
+export type ScalableTermsResponse = z.infer<typeof ScalableTermsResponseSchema>;
 
 export const ScalableTermTypeItemSchema = z.object({
   id: z.number(),

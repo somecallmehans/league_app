@@ -7,7 +7,10 @@ import {
 } from "../../api/apiSlice";
 import { useAchievementSearch } from "../../hooks";
 import { associateParentsChildren } from "../../helpers/achievementHelpers";
-import { RARITY_ORDER, getAchievementTypeOrderIndex } from "../../types/achievement_schemas";
+import {
+  RARITY_ORDER,
+  getAchievementTypeOrderIndex,
+} from "../../types/achievement_schemas";
 
 import {
   Input,
@@ -20,7 +23,10 @@ import {
 import LoadingSpinner from "../../components/LoadingSpinner";
 import PageTitle from "../../components/PageTitle";
 import CalloutCard from "../../components/CalloutCard";
-import { AchievementCard } from "./AchievementComponents";
+import {
+  AchievementCard,
+  AchievementEarningRules,
+} from "./AchievementComponents";
 import { SimpleSelect } from "../crud/CrudComponents";
 
 const tabButtonClass = ({ selected }) =>
@@ -310,7 +316,9 @@ function AllAchievementsTab() {
       obj[typeKey].achievements.push(achievement);
     }
 
-    const keys = Object.keys(obj).filter((key) => obj[key]?.achievements?.length);
+    const keys = Object.keys(obj).filter(
+      (key) => obj[key]?.achievements?.length,
+    );
     keys.sort((a, b) => {
       const orderDiff =
         getAchievementTypeOrderIndex(a) - getAchievementTypeOrderIndex(b);
@@ -355,8 +363,27 @@ function AllAchievementsTab() {
   );
 }
 
+function EarningRulesToggle({ showRules, setShowRules }) {
+  return (
+    <button
+      type="button"
+      className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 sm:text-sm"
+      onClick={() => setShowRules(!showRules)}
+      aria-expanded={showRules}
+      aria-controls="achievement-earning-rules"
+    >
+      {showRules ? "Hide rules" : "Show rules"}
+      <i
+        className={`fa-solid fa-eye${showRules ? "-slash" : ""}`}
+        aria-hidden
+      />
+    </button>
+  );
+}
+
 export default function AchievementsPage() {
   const dispatch = useDispatch();
+  const [showEarningRules, setShowEarningRules] = useState(true);
 
   useEffect(() => {
     dispatch(apiSlice.endpoints.getAchievementTypes.initiate(undefined));
@@ -403,6 +430,16 @@ export default function AchievementsPage() {
             </>,
           ]}
         />
+      </div>
+
+      <div className="mb-3 flex flex-wrap items-center justify-end gap-2">
+        <EarningRulesToggle
+          showRules={showEarningRules}
+          setShowRules={setShowEarningRules}
+        />
+      </div>
+      <div id="achievement-earning-rules">
+        <AchievementEarningRules showRules={showEarningRules} />
       </div>
 
       <TabGroup defaultIndex={0}>

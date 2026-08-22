@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 import { apiSlice } from "../../api/apiSlice";
 
 import { hexToRgb } from "../../helpers/helpers";
+import { buildAchievementEarningRules } from "../../types/achievement_schemas";
 
 import Drawer from "../../components/Drawer";
 
@@ -142,117 +143,69 @@ export const AchievementCard = (props) => {
   );
 };
 
-export const TypeInfo = ({ showInfo, setShowInfo }) => {
-  const { data: types } = useSelector(
-    apiSlice.endpoints.getAchievementTypes.select(undefined)
-  );
-  if (!types || types.length === 0) return null;
+function EarningRuleCard({ name, hex_code, rule }) {
+  const rgbVal = hex_code ? hexToRgb(hex_code) : null;
+  const headerBg = rgbVal
+    ? `rgba(${rgbVal.r}, ${rgbVal.g}, ${rgbVal.b}, 0.35)`
+    : undefined;
+  const borderColor = rgbVal
+    ? `rgba(${rgbVal.r}, ${rgbVal.g}, ${rgbVal.b}, 0.55)`
+    : undefined;
 
-  const mobileDrawer = (
-    <div className="sm:hidden">
+  return (
+    <div
+      className="flex min-w-0 flex-col overflow-hidden rounded-lg border bg-white"
+      style={{ borderColor }}
+    >
       <div
-        className={[
-          "fixed inset-x-0 bottom-0 z-50",
-          "transform transition-transform duration-200 ease-out",
-          showInfo ? "translate-y-0" : "translate-y-full",
-        ].join(" ")}
-        role="dialog"
-        aria-modal="true"
+        className="px-3 py-2 text-sm font-semibold text-gray-900"
+        style={{ backgroundColor: headerBg }}
       >
-        <div
-          onClick={() => setShowInfo(false)}
-          className="mx-auto max-w-lg rounded-t-2xl bg-white shadow-2xl border-t"
-        >
-          <div className="px-4 pt-3 pb-2">
-            <div className="mx-auto h-1.5 w-10 rounded-full bg-gray-300 mb-3" />
-            <div className="flex items-center justify-between">
-              <div className="text-sm font-semibold text-gray-900">
-                Achievement Types
-              </div>
-              <div className="text-xs text-gray-500">Tap to close</div>
-            </div>
+        {name}
+      </div>
+      <div className="px-3 py-2.5 text-xs sm:text-sm text-gray-700 leading-relaxed">
+        {rule}
+      </div>
+    </div>
+  );
+}
+
+export const AchievementEarningRules = ({ showRules }) => {
+  const { data: types } = useSelector(
+    apiSlice.endpoints.getAchievementTypes.select(undefined),
+  );
+
+  const rules = useMemo(() => buildAchievementEarningRules(types), [types]);
+
+  if (!rules.length) return null;
+
+  return (
+    <div
+      className={[
+        "grid transition-all duration-200 ease-in-out overflow-hidden",
+        showRules
+          ? "mb-4 grid-rows-[1fr] opacity-100"
+          : "mb-0 grid-rows-[0fr] opacity-0",
+      ].join(" ")}
+      aria-hidden={!showRules}
+    >
+      <div className="min-h-0">
+        <div className="rounded-lg border border-zinc-200 bg-zinc-50/80 p-3 sm:p-4 shadow-sm">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {rules.map((entry) => (
+              <EarningRuleCard key={entry.key} {...entry} />
+            ))}
           </div>
-
-          <div className="max-h-[75vh] flex flex-col">
-            <div className="px-4 overflow-y-auto flex-1 min-h-0">
-              <div className="space-y-3">
-                {types.map(({ id, name, hex_code, description }) => {
-                  const rgbVal = hex_code ? hexToRgb(hex_code) : null;
-                  const rgbString = rgbVal
-                    ? `rgba(${rgbVal.r}, ${rgbVal.g}, ${rgbVal.b}, 0.4)`
-                    : undefined;
-
-                  return (
-                    <div key={id} className="rounded-md border p-3">
-                      <div
-                        className="text-center rounded mb-2 py-1 text-sm font-medium"
-                        style={{ backgroundColor: rgbString }}
-                      >
-                        {name}
-                      </div>
-                      <div className="text-xs text-gray-700 leading-relaxed">
-                        {description}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-            <div className="px-4 py-4 pb-[calc(env(safe-area-inset-bottom,0)+1rem)] shrink-0 border-t border-slate-100">
-              <Link
-                to="/achievements/scalable-terms"
-                className="text-sm font-medium text-sky-600 hover:text-sky-500 block text-center"
-              >
-                View complete list of scalable terms
-              </Link>
-            </div>
+          <div className="mt-3 flex justify-end pt-3">
+            <Link
+              to="/achievements/scalable-terms"
+              className="text-xs sm:text-sm font-medium text-sky-600 hover:text-sky-500"
+            >
+              View complete list of scalable terms
+            </Link>
           </div>
         </div>
       </div>
     </div>
-  );
-
-  const desktopInline = (
-    <div
-      className={`hidden sm:flex transition-all ease-in-out duration-200 overflow-hidden ${
-        showInfo
-          ? "opacity-100 max-h-50 bg-white border shadow-md flex-col p-3 gap-3"
-          : "opacity-0 max-h-0"
-      }`}
-    >
-      <div className="flex flex-col md:flex-row justify-between gap-4">
-        {types.map(({ id, name, hex_code, description }) => {
-          const rgbVal = hex_code ? hexToRgb(hex_code) : null;
-          const rgbString = rgbVal
-            ? `rgba(${rgbVal.r}, ${rgbVal.g}, ${rgbVal.b}, 0.4)`
-            : undefined;
-
-          return (
-            <div key={id} className="flex-1 min-w-0">
-              <div
-                className="text-center rounded mb-1"
-                style={{ backgroundColor: rgbString }}
-              >
-                {name}
-              </div>
-              <div className="text-xs">{description}</div>
-            </div>
-          );
-        })}
-      </div>
-      <Link
-        to="/achievements/scalable-terms"
-        className="text-sm font-medium text-sky-600 hover:text-sky-500 self-end"
-      >
-        View complete list of scalable terms
-      </Link>
-    </div>
-  );
-
-  return (
-    <>
-      {mobileDrawer}
-      {desktopInline}
-    </>
   );
 };
