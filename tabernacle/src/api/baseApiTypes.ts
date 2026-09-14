@@ -10,6 +10,7 @@ export type Tag =
   | "Sessions"
   | "Pods"
   | "Participants"
+  | "Aversions"
   | "Achievements"
   | "Earned"
   | "PodsAchievements"

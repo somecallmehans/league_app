@@ -35,9 +35,11 @@ import {
   ParticipantListResponseSchema,
   LeagueWinnerListSchema,
   WinnerRoundInfoResponseSchema,
+  AversionListResponseSchema,
   type ParticipantListResponse,
   type LeagueWinnerList,
   type WinnerRoundInfoResponse,
+  type AversionListResponse,
 } from "../types/participant_schemas";
 import {
   PodObjectResponseSchema,
@@ -167,6 +169,14 @@ export default (builder: ApiBuilder) => ({
     providesTags: ["Participants"],
     transformResponse: (raw: unknown) =>
       safeParseWithFallback(ParticipantListResponseSchema, raw, []),
+  }),
+  getParticipantAversions: builder.query<AversionListResponse, number>({
+    query: (participantId) => `participants/${participantId}/aversions/`,
+    providesTags: (_result, _error, participantId) => [
+      { type: "Aversions", id: participantId },
+    ],
+    transformResponse: (raw: unknown) =>
+      safeParseWithFallback(AversionListResponseSchema, raw, []),
   }),
   getPods: builder.query<PodObjectResponse, Id>({
     query: (roundId) => `pods/${roundId}/`,

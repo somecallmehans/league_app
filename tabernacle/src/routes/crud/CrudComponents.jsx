@@ -64,6 +64,7 @@ export function SimpleSelect({
         value={value}
         onChange={onChange}
         isMulti={isMulti}
+        isClearable={isClearable}
         classNamePrefix="rs"
         menuPortalTarget={isMobile ? undefined : document.body}
         menuPosition={isMobile ? "absolute" : "fixed"}

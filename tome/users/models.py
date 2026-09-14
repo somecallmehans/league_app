@@ -67,6 +67,58 @@ class Participants(models.Model):
         return total_points if total_points is not None else 0
 
 
+class Aversions(models.Model):
+    """Undirected global pair of participants who should not share a pod."""
+
+    participant_low = models.ForeignKey(
+        Participants,
+        on_delete=models.CASCADE,
+        related_name="aversions_as_low",
+    )
+    participant_high = models.ForeignKey(
+        Participants,
+        on_delete=models.CASCADE,
+        related_name="aversions_as_high",
+    )
+    declared_by = models.ForeignKey(
+        Participants,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="aversions_declared",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "aversions"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["participant_low", "participant_high"],
+                name="unique_aversion_pair",
+            ),
+            models.CheckConstraint(
+                check=models.Q(participant_low_id__lt=models.F("participant_high_id")),
+                name="aversion_low_lt_high",
+            ),
+        ]
+
+    @staticmethod
+    def normalize_pair(participant_a_id: int, participant_b_id: int):
+        if participant_a_id == participant_b_id:
+            raise ValueError("Cannot create an aversion with the same participant")
+        low_id, high_id = sorted((participant_a_id, participant_b_id))
+        return low_id, high_id
+
+    def save(self, *args, **kwargs):
+        if self.participant_low_id and self.participant_high_id:
+            low_id, high_id = self.normalize_pair(
+                self.participant_low_id, self.participant_high_id
+            )
+            self.participant_low_id = low_id
+            self.participant_high_id = high_id
+        super().save(*args, **kwargs)
+
+
 class ParticipantAchievements(models.Model):
     participant = models.ForeignKey(Participants, on_delete=models.CASCADE)
     achievement = models.ForeignKey(Achievements, on_delete=models.CASCADE)

@@ -19,8 +19,10 @@ import {
   ParticipantSchema,
   UpsertParticipantRequestSchema,
   EMPTY_PARTICIPANT,
+  AversionSchema,
   type UpsertParticipantRequest,
   type UpsertParticipantResponse,
+  type Aversion,
 } from "../types/participant_schemas";
 import {
   UpsertAchievementResponseSchema,
@@ -86,6 +88,38 @@ export default (builder: ApiBuilder) => ({
     transformResponse: (raw: unknown) =>
       safeParseWithFallback(ParticipantSchema, raw, EMPTY_PARTICIPANT),
     invalidatesTags: ["Participants"],
+  }),
+  postParticipantAversion: builder.mutation<
+    Aversion,
+    { participantId: number; other_participant_id: number }
+  >({
+    query: ({ participantId, other_participant_id }) => ({
+      url: `participants/${participantId}/aversions/`,
+      method: "POST",
+      body: { other_participant_id },
+    }),
+    transformResponse: (raw: unknown) =>
+      safeParseWithFallback(AversionSchema, raw, {
+        id: -1,
+        other_participant: { id: -1, name: "" },
+        declared_by_id: null,
+      }),
+    invalidatesTags: (_result, _error, { participantId, other_participant_id }) => [
+      { type: "Aversions", id: participantId },
+      { type: "Aversions", id: other_participant_id },
+    ],
+  }),
+  deleteAversion: builder.mutation<
+    void,
+    { aversionId: number; participantId: number }
+  >({
+    query: ({ aversionId }) => ({
+      url: `aversions/${aversionId}/`,
+      method: "DELETE",
+    }),
+    invalidatesTags: (_result, _error, { participantId }) => [
+      { type: "Aversions", id: participantId },
+    ],
   }),
   postUpsertAchievements: builder.mutation<
     UpsertAchievementResponse,

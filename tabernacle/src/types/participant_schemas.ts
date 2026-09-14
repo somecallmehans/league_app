@@ -90,3 +90,16 @@ export type UpsertParticipantRequest = z.infer<
   typeof UpsertParticipantRequestSchema
 >;
 export type UpsertParticipantResponse = z.infer<typeof ParticipantSchema>;
+
+export const AversionSchema = z.object({
+  id: z.number(),
+  other_participant: z.object({
+    id: z.number(),
+    name: z.string(),
+  }),
+  declared_by_id: z.number().nullable().optional(),
+});
+export type Aversion = z.infer<typeof AversionSchema>;
+
+export const AversionListResponseSchema = z.array(AversionSchema);
+export type AversionListResponse = z.infer<typeof AversionListResponseSchema>;

@@ -14,6 +14,8 @@ from .views import (
     admin_get_decklists,
     admin_decklist_by_id,
     admin_update_decklist,
+    participant_aversions,
+    delete_aversion,
 )
 
 urlpatterns = [
@@ -21,6 +23,12 @@ urlpatterns = [
     path("change_password/", change_password, name="change_password"),
     path("upsert_participant/", upsert_participant, name="upsert_participant"),
     path("participants/", get_all_participants, name="participant_list"),
+    path(
+        "participants/<int:participant_id>/aversions/",
+        participant_aversions,
+        name="participant_aversions",
+    ),
+    path("aversions/<int:aversion_id>/", delete_aversion, name="delete_aversion"),
     path("decklist/", decklist, name="decklist"),
     path("decklists/", decklists, name="decklists"),
     path("decklist_by_id/", decklist_by_id, name="decklist_by_id"),
