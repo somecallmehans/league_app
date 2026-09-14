@@ -85,7 +85,8 @@ def seed_db(transactional_db):
             participant_achievements,
             winning_commanders,
             pods,
-            commanders
+            commanders,
+            aversions
             RESTART IDENTITY CASCADE;
             """
         )

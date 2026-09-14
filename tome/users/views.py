@@ -7,6 +7,7 @@ from django.core.exceptions import (
     ValidationError as DjangoValidationError,
 )
 from django.db import transaction
+from django.db.models import Q
 from rest_framework.exceptions import ValidationError, AuthenticationFailed, ParseError
 
 from rest_framework.response import Response
@@ -25,7 +26,13 @@ from django.contrib.auth.password_validation import validate_password
 
 from utils.decorators import require_user_code
 from utils.permissions import IsSuperUser
-from .models import Participants, SessionToken, Decklists, DecklistsAchievements
+from .models import (
+    Participants,
+    SessionToken,
+    Decklists,
+    DecklistsAchievements,
+    Aversions,
+)
 from stores.models import StoreParticipant
 from .serializers import ParticipantsSerializer
 from .queries import (
@@ -93,6 +100,10 @@ def upsert_participant(request, **kwargs):
             participant.name = name
         if deleted:
             participant.deleted = True
+            Aversions.objects.filter(
+                Q(participant_low_id=participant.id)
+                | Q(participant_high_id=participant.id)
+            ).delete()
         if is_patreon is not None:
             participant.is_patreon = bool(is_patreon)
         participant.save()
@@ -553,4 +564,109 @@ def admin_update_decklist(request, **kwargs):
             )
 
     logger.info("Admin decklist update successful for decklist %s", decklist_id)
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+def _serialize_aversion(aversion: Aversions, viewer_id: int) -> dict:
+    if aversion.participant_low_id == viewer_id:
+        other = aversion.participant_high
+    else:
+        other = aversion.participant_low
+    return {
+        "id": aversion.id,
+        "other_participant": {"id": other.id, "name": other.name},
+        "declared_by_id": aversion.declared_by_id,
+    }
+
+
+@api_view(["GET", "POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsSuperUser])
+def participant_aversions(request, participant_id, **kwargs):
+    try:
+        participant = Participants.objects.get(id=participant_id, deleted=False)
+    except ObjectDoesNotExist:
+        return Response(
+            {"message": "Participant not found"}, status=status.HTTP_404_NOT_FOUND
+        )
+
+    if request.method == "GET":
+        aversions = (
+            Aversions.objects.filter(
+                Q(participant_low_id=participant_id)
+                | Q(participant_high_id=participant_id)
+            )
+            .select_related("participant_low", "participant_high")
+            .order_by("id")
+        )
+        return Response(
+            [_serialize_aversion(a, participant_id) for a in aversions],
+            status=status.HTTP_200_OK,
+        )
+
+    other_id = request.data.get("other_participant_id")
+    if other_id is None:
+        return Response(
+            {"message": "other_participant_id is required"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        other_id = int(other_id)
+    except (TypeError, ValueError):
+        return Response(
+            {"message": "other_participant_id must be an integer"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if other_id == participant_id:
+        return Response(
+            {"message": "Cannot create an aversion with the same participant"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        other = Participants.objects.get(id=other_id, deleted=False)
+    except ObjectDoesNotExist:
+        return Response(
+            {"message": "Other participant not found"},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    try:
+        low_id, high_id = Aversions.normalize_pair(participant_id, other_id)
+    except ValueError as e:
+        return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    if Aversions.objects.filter(
+        participant_low_id=low_id, participant_high_id=high_id
+    ).exists():
+        return Response(
+            {"message": "Aversion already exists"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    aversion = Aversions.objects.create(
+        participant_low_id=low_id,
+        participant_high_id=high_id,
+        declared_by=participant,
+    )
+    aversion = Aversions.objects.select_related(
+        "participant_low", "participant_high"
+    ).get(id=aversion.id)
+    return Response(
+        _serialize_aversion(aversion, participant_id),
+        status=status.HTTP_201_CREATED,
+    )
+
+
+@api_view(["DELETE"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsSuperUser])
+def delete_aversion(request, aversion_id, **kwargs):
+    deleted_count, _ = Aversions.objects.filter(id=aversion_id).delete()
+    if not deleted_count:
+        return Response(
+            {"message": "Aversion not found"}, status=status.HTTP_404_NOT_FOUND
+        )
     return Response(status=status.HTTP_204_NO_CONTENT)
