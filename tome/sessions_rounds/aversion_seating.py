@@ -7,53 +7,20 @@ import random
 from typing import Iterable, Sequence
 
 from users.models import Aversions
+from sessions_rounds.pod_sizing import partition_into_pods
 
 logger = logging.getLogger(__name__)
 
 RETRY_ATTEMPTS = 5
 
-
-def partition_into_pods(ordered_ids: Sequence[int]) -> list[list[int]]:
-    """Mirror sessions_rounds.helpers.make_bridge_records chunking without DB."""
-    ids = list(ordered_ids)
-    length = len(ids)
-    if length == 0:
-        return []
-
-    pod_mod = length % 4
-    if pod_mod == 1:
-        pods_needed = ((length - 5) // 4) + 1
-    elif pod_mod == 2:
-        pods_needed = ((length - 6) // 4) + 2
-    elif pod_mod == 3:
-        pods_needed = ((length - 3) // 4) + 1
-    else:
-        pods_needed = length // 4
-
-    groups: list[list[int] | None] = [None] * pods_needed
-
-    if pod_mod == 1:
-        groups[-1] = ids[-5:]
-        ids = ids[:-5]
-        fill_indexes = range(pods_needed - 1)
-    elif pod_mod == 2:
-        groups[-1] = ids[-3:]
-        ids = ids[:-3]
-        groups[-2] = ids[-3:]
-        ids = ids[:-3]
-        fill_indexes = range(pods_needed - 2)
-    elif pod_mod == 3:
-        groups[-1] = ids[-3:]
-        ids = ids[:-3]
-        fill_indexes = range(pods_needed - 1)
-    else:
-        fill_indexes = range(pods_needed)
-
-    for i in fill_indexes:
-        groups[i] = ids[:4]
-        ids = ids[4:]
-
-    return [g for g in groups if g is not None]
+# Re-export for existing imports
+__all__ = [
+    "partition_into_pods",
+    "count_violations",
+    "repair_adjacent_pods",
+    "order_participants_for_round_one",
+    "load_aversion_pairs",
+]
 
 
 def _pod_index_by_participant(pods: Sequence[Sequence[int]]) -> dict[int, int]:
@@ -61,9 +28,11 @@ def _pod_index_by_participant(pods: Sequence[Sequence[int]]) -> dict[int, int]:
 
 
 def count_violations(
-    ordered_ids: Sequence[int], aversion_pairs: Sequence[tuple[int, int]]
+    ordered_ids: Sequence[int],
+    aversion_pairs: Sequence[tuple[int, int]],
+    prefer_5_pod: bool = True,
 ) -> int:
-    pods = partition_into_pods(ordered_ids)
+    pods = partition_into_pods(ordered_ids, prefer_5_pod=prefer_5_pod)
     pod_of = _pod_index_by_participant(pods)
     violations = 0
     for low_id, high_id in aversion_pairs:
@@ -75,9 +44,11 @@ def count_violations(
 
 
 def _violating_pairs(
-    ordered_ids: Sequence[int], aversion_pairs: Sequence[tuple[int, int]]
+    ordered_ids: Sequence[int],
+    aversion_pairs: Sequence[tuple[int, int]],
+    prefer_5_pod: bool = True,
 ) -> list[tuple[int, int]]:
-    pods = partition_into_pods(ordered_ids)
+    pods = partition_into_pods(ordered_ids, prefer_5_pod=prefer_5_pod)
     pod_of = _pod_index_by_participant(pods)
     return [
         (low_id, high_id)
@@ -96,12 +67,14 @@ def _swap_ids(ordered_ids: list[int], a: int, b: int) -> list[int]:
 
 
 def repair_adjacent_pods(
-    ordered_ids: Sequence[int], aversion_pairs: Sequence[tuple[int, int]]
+    ordered_ids: Sequence[int],
+    aversion_pairs: Sequence[tuple[int, int]],
+    prefer_5_pod: bool = True,
 ) -> list[int]:
     """Break co-podded aversions by swapping with adjacent-pod players (oldest first)."""
     current = list(ordered_ids)
     for low_id, high_id in aversion_pairs:
-        pods = partition_into_pods(current)
+        pods = partition_into_pods(current, prefer_5_pod=prefer_5_pod)
         pod_of = _pod_index_by_participant(pods)
         if low_id not in pod_of or high_id not in pod_of:
             continue
@@ -109,7 +82,9 @@ def repair_adjacent_pods(
             continue
 
         pod_idx = pod_of[low_id]
-        current_violations = count_violations(current, aversion_pairs)
+        current_violations = count_violations(
+            current, aversion_pairs, prefer_5_pod=prefer_5_pod
+        )
         best = None
         best_score = current_violations
 
@@ -120,11 +95,15 @@ def repair_adjacent_pods(
                 for candidate in pods[adj]:
                     candidate_order = _swap_ids(current, member, candidate)
                     # Must separate this pair
-                    cand_pods = partition_into_pods(candidate_order)
+                    cand_pods = partition_into_pods(
+                        candidate_order, prefer_5_pod=prefer_5_pod
+                    )
                     cand_pod_of = _pod_index_by_participant(cand_pods)
                     if cand_pod_of[low_id] == cand_pod_of[high_id]:
                         continue
-                    score = count_violations(candidate_order, aversion_pairs)
+                    score = count_violations(
+                        candidate_order, aversion_pairs, prefer_5_pod=prefer_5_pod
+                    )
                     if score < best_score:
                         best_score = score
                         best = candidate_order
@@ -152,7 +131,10 @@ def load_aversion_pairs(participant_ids: Iterable[int]) -> list[tuple[int, int]]
 
 
 def order_participants_for_round_one(
-    participants: list, retries: int = RETRY_ATTEMPTS, rng=None
+    participants: list,
+    retries: int = RETRY_ATTEMPTS,
+    rng=None,
+    prefer_5_pod: bool = True,
 ) -> list:
     """
     Shuffle with retries, then adjacent-pod repair. Logs any remaining violations.
@@ -173,7 +155,9 @@ def order_participants_for_round_one(
     for _ in range(retries):
         candidate = list(ordered_ids)
         rng.shuffle(candidate)
-        score = count_violations(candidate, aversion_pairs)
+        score = count_violations(
+            candidate, aversion_pairs, prefer_5_pod=prefer_5_pod
+        )
         if best_score is None or score < best_score:
             best_score = score
             best_ids = candidate
@@ -182,9 +166,11 @@ def order_participants_for_round_one(
 
     assert best_ids is not None
     if best_score and best_score > 0:
-        best_ids = repair_adjacent_pods(best_ids, aversion_pairs)
+        best_ids = repair_adjacent_pods(
+            best_ids, aversion_pairs, prefer_5_pod=prefer_5_pod
+        )
 
-    remaining = _violating_pairs(best_ids, aversion_pairs)
+    remaining = _violating_pairs(best_ids, aversion_pairs, prefer_5_pod=prefer_5_pod)
     for low_id, high_id in remaining:
         logger.warning(
             "Unsatisfied aversion after Round 1 seating: participants %s and %s",

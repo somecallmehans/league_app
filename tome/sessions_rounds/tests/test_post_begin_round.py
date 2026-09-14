@@ -65,6 +65,43 @@ def test_post_begin_round_one(client, base_participants_list):
     assert len(set(new_participation)) == 1
 
 
+def test_begin_round_prefers_three_threes_when_prefer_5_off(
+    client, base_participants_list, db
+):
+    from configs.models import Config
+
+    Config.objects.create(
+        key="prefer_5_pod",
+        value="false",
+        name="Prefer 5-player pods",
+        description="When applicable, generate a pod of 5 instead of three 3 pods",
+        scope_kind=Config.Scope.SHOP,
+        store_id=ids.MIMICS_ID,
+    )
+
+    url = reverse("begin_round")
+    res = client.post(
+        url,
+        {
+            "participants": base_participants_list[:9],
+            "round": ids.R1_SESSION_THIS_MONTH_OPEN,
+            "session": ids.SESSION_THIS_MONTH_OPEN,
+        },
+        format="json",
+    )
+
+    assert res.status_code == status.HTTP_201_CREATED
+    new_pods = Pods.objects.filter(rounds_id=ids.R1_SESSION_THIS_MONTH_OPEN)
+    counts = sorted(
+        PodsParticipants.objects.filter(pods__in=new_pods)
+        .values("pods_id")
+        .annotate(count=Count("participants_id"))
+        .values_list("count", flat=True)
+    )
+    assert len(new_pods) == 3
+    assert counts == [3, 3, 3]
+
+
 @pytest.mark.parametrize(
     "populate_other_achievements",
     [round_2_ids],

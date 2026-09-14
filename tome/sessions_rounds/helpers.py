@@ -15,6 +15,7 @@ from achievements.earned_count_helpers import (
     pairs_from_queryset_values,
 )
 from sessions_rounds.models import Pods, PodsParticipants, Rounds, Sessions
+from sessions_rounds.pod_sizing import partition_into_pods
 from stores.models import StoreParticipant
 from users.helpers import generate_code
 
@@ -106,78 +107,30 @@ def patreon_signin_rejection_message(session: Sessions) -> str:
     )
 
 
-def make_bridge_records(ids: list, pods: list):
-    """
-    Generate bridge records for PodsParticipants based on number of players.
-
-    X mod 4 = Y, based on val we can sort pods accordingly
-    8 mod 4 = 0, all 4 pods
-    9 mod 4 = 1, which means all 4 pods and 1 5 pod
-    10 mod 4 = 2, which means all 4 pods and 2 3 pods
-    11 mod 4 = 3, which means all 4 pods and 1 3 pod
-    etc etc
-    """
-    pod_mod = len(ids) % 4
-    records = []
-
-    if pod_mod == 1:
-        ids_for_last = ids[-5:]
-        ids = ids[:-5]
-        last_pod = pods.pop()
-        records.extend(
-            [PodsParticipants(pods=last_pod, participants_id=p) for p in ids_for_last]
-        )
-    elif pod_mod == 2:
-        for pod in reversed(pods[-2:]):
-            group = ids[-3:]
-            ids = ids[:-3]
-            records.extend(
-                [PodsParticipants(pods=pod, participants_id=p) for p in group]
-            )
-    elif pod_mod == 3:
-        ids_for_last = ids[-3:]
-        ids = ids[:-3]
-        last_pod = pods.pop()
-        records.extend(
-            [PodsParticipants(pods=last_pod, participants_id=p) for p in ids_for_last]
-        )
-
-    for pod in pods:
-        group = ids[:4]
-        ids = ids[4:]
-        records.extend([PodsParticipants(pods=pod, participants_id=p) for p in group])
-
-    return records
-
-
-def generate_pods(participants, round_id, store_id):
+def generate_pods(participants, round_id, store_id, prefer_5_pod: bool = True):
     """
     Generate pods with the following rules:
     - Prefer pods of 4
-    - Only use pods of 3 or 5 at the end
-    - Never create more than two pods of 3
+    - Use pods of 3 or 5 only for remainders (5 only when prefer_5_pod)
+    - At most three pods of 3 when avoiding 5s; otherwise at most two
     - No leftover participants
     """
     try:
-        length = len(participants)
-
-        pod_mod = length % 4
         ids = [p.id for p in participants]
-
-        if pod_mod == 1:
-            pods_needed = ((length - 5) // 4) + 1
-        elif pod_mod == 2:
-            pods_needed = ((length - 6) // 4) + 2
-        elif pod_mod == 3:
-            pods_needed = ((length - 3) // 4) + 1
-        else:
-            pods_needed = length // 4
+        groups = partition_into_pods(ids, prefer_5_pod=prefer_5_pod)
 
         new_pods = Pods.objects.bulk_create(
-            [Pods(rounds_id=round_id, store_id=store_id) for _ in range(pods_needed)]
+            [
+                Pods(rounds_id=round_id, store_id=store_id)
+                for _ in range(len(groups))
+            ]
         )
 
-        records = make_bridge_records(ids, new_pods)
+        records = []
+        for pod, group in zip(new_pods, groups):
+            records.extend(
+                [PodsParticipants(pods=pod, participants_id=p) for p in group]
+            )
 
         return PodsParticipants.objects.bulk_create(records)
     except Exception as e:

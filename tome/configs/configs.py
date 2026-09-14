@@ -97,6 +97,11 @@ CONFIG_REGISTRY: dict[str, dict[str, Any]] = {
         "name": "Enable Money Pack Achievement",
         "description": "Show 'Did anyone participate with a booster pack purchased for more than $10?' in scorecards and achievements page",
     },
+    "prefer_5_pod": {
+        "type": CONFIG_TYPE_CHECKBOX,
+        "name": "Prefer 5-player pods",
+        "description": "When applicable, generate a pod of 5 instead of three 3 pods",
+    },
 }
 
 # Default values for non-interactive seeding (create_configs --defaults, sync_configs)
@@ -108,6 +113,7 @@ DEFAULT_VALUES: dict[str, str] = {
     "round_two_start": "3:30PM",
     "enable_snack_sharing": "true",
     "enable_money_pack": "true",
+    "prefer_5_pod": "true",
 }
 
 # Legacy CONFIG_SPEC for backward compatibility (get_round_caps, etc.)
@@ -141,3 +147,15 @@ def get_round_caps(store_id: int) -> tuple[int, int]:
         r1_cast(caps.get("round_one_cap", 24)),
         r2_cast(caps.get("round_two_cap", 24)),
     )
+
+
+def get_prefer_5_pod(store_id: int) -> bool:
+    """Shop preference for trailing 5-pods vs three 3-pods. Defaults to True."""
+    value = (
+        Config.objects.filter(key="prefer_5_pod", store_id=store_id)
+        .values_list("value", flat=True)
+        .first()
+    )
+    if value is None:
+        return True
+    return str(value).strip().lower() in ("true", "1", "yes", "y")

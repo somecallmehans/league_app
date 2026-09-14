@@ -39,7 +39,7 @@ from .helpers import (
     patreon_signin_rejection_message,
 )
 from .aversion_seating import order_participants_for_round_one
-from configs.configs import get_round_caps
+from configs.configs import get_prefer_5_pod, get_round_caps
 from services.discord_client import bot_announcement
 from utils.decorators import require_store
 
@@ -185,16 +185,22 @@ def begin_round(request, **kwargs):
     )
 
     all_participants = list(round_service.build_participants_and_achievements())
+    prefer_5_pod = get_prefer_5_pod(request.store_id)
 
     # Round 1 is always odd id, round 2 is always even
     if round_id % 2 != 0:
-        all_participants = order_participants_for_round_one(all_participants)
+        all_participants = order_participants_for_round_one(
+            all_participants, prefer_5_pod=prefer_5_pod
+        )
     else:
         all_participants.sort(key=lambda x: x.total_points, reverse=True)
 
     pods = PodsParticipantsSerializer(
         generate_pods(
-            participants=all_participants, round_id=round_id, store_id=request.store_id
+            participants=all_participants,
+            round_id=round_id,
+            store_id=request.store_id,
+            prefer_5_pod=prefer_5_pod,
         ),
         many=True,
         context={"store_id": request.store_id},
