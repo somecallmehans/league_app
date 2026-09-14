@@ -4,8 +4,6 @@ import { useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
 import { apiSlice, useUpdateConfigMutation } from "../../api/apiSlice";
 
-import { Input } from "@headlessui/react";
-
 const numberValidation = (val, name) => {
   const casted = +val;
   if (casted >= 99) {
@@ -15,6 +13,10 @@ const numberValidation = (val, name) => {
   }
   return undefined;
 };
+
+/** Map checkbox form state to the string values the config API stores. */
+export const checkboxToConfigValue = (val) =>
+  val === true || val === "true" ? "true" : "false";
 
 const ConfigRow = ({
   name,
@@ -31,16 +33,18 @@ const ConfigRow = ({
     handleSubmit,
     formState: { isSubmitting, errors },
   } = useForm({
-    defaultValues: { [configKey]: value },
+    defaultValues: {
+      [configKey]: configType === "checkbox" ? value === "true" : value,
+    },
   });
 
   const submit = async (formVals) => {
     try {
       let next = formVals[configKey];
       if (configType === "checkbox") {
-        next = next ? "true" : "false";
+        next = checkboxToConfigValue(next);
       }
-      await updateConfig({ value: next, key: configKey });
+      await updateConfig({ value: next, key: configKey }).unwrap();
       toast.success("Saved Successfully");
     } catch (error) {
       console.error(error);
@@ -74,7 +78,6 @@ const ConfigRow = ({
           type="checkbox"
           {...register(configKey)}
           disabled={isGlobal}
-          defaultChecked={value === "true"}
           className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
         />
       );
@@ -131,7 +134,7 @@ const ConfigRow = ({
             bg-sky-500 hover:bg-sky-400 text-white
             disabled:bg-slate-400
           "
-            disabled={isGlobal}
+            disabled={isGlobal || isSubmitting}
           >
             Save
           </button>

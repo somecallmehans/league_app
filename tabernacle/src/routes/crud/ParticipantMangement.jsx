@@ -21,7 +21,7 @@ const formName = "participantForm";
 function AversionsDrawer({ participant, participants, isOpen, onClose }) {
   const { data: aversions = [], isLoading } = useGetParticipantAversionsQuery(
     participant.id,
-    { skip: !isOpen || !participant?.id }
+    { skip: !isOpen || !participant?.id },
   );
   const [postAversion] = usePostParticipantAversionMutation();
   const [deleteAversion] = useDeleteAversionMutation();
@@ -29,21 +29,18 @@ function AversionsDrawer({ participant, participants, isOpen, onClose }) {
 
   const existingOtherIds = useMemo(
     () => new Set(aversions.map((a) => a.other_participant.id)),
-    [aversions]
+    [aversions],
   );
 
   const selectOptions = useMemo(
     () =>
       (participants || [])
         .filter(
-          (p) =>
-            p.id &&
-            p.id !== participant.id &&
-            !existingOtherIds.has(p.id)
+          (p) => p.id && p.id !== participant.id && !existingOtherIds.has(p.id),
         )
         .map((p) => ({ value: p.id, label: p.name }))
         .sort((a, b) => a.label.localeCompare(b.label)),
-    [participants, participant.id, existingOtherIds]
+    [participants, participant.id, existingOtherIds],
   );
 
   const handleAdd = async (option) => {
@@ -66,7 +63,7 @@ function AversionsDrawer({ participant, participants, isOpen, onClose }) {
       participantId: participant.id,
     }).unwrap();
     toast.success(
-      otherName ? `Aversion removed for ${otherName}` : "Aversion removed"
+      otherName ? `Aversion removed for ${otherName}` : "Aversion removed",
     );
   };
 
@@ -77,8 +74,13 @@ function AversionsDrawer({ participant, participants, isOpen, onClose }) {
       title={`Aversions — ${participant.name}`}
     >
       <div className="p-4 flex flex-col gap-4">
+        <p className="text-sm text-slate-600">
+          Players listed here will be kept out of the same Round 1 pod when
+          possible. Pods are still generated even if some aversions cannot be
+          honored.
+        </p>
         <SimpleSelect
-          placeholder="Add participant to avoid…"
+          placeholder="Add participant to avoid pairing together"
           options={selectOptions}
           value={null}
           onChange={handleAdd}
@@ -100,10 +102,7 @@ function AversionsDrawer({ participant, participants, isOpen, onClose }) {
                 <button
                   type="button"
                   onClick={() =>
-                    handleRemove(
-                      aversion.id,
-                      aversion.other_participant.name
-                    )
+                    handleRemove(aversion.id, aversion.other_participant.name)
                   }
                   className="text-slate-500 hover:text-red-500"
                   aria-label={`Remove aversion to ${aversion.other_participant.name}`}
@@ -221,12 +220,12 @@ export default function Page() {
 
   const [filteredData, Component, FilterList] = useSearch(
     participants || [],
-    "Filter by Name"
+    "Filter by Name",
   );
   const [postUpsertParticipant] = usePostUpsertParticipantMutation();
 
   const sortedData = [...filteredData].sort((a, b) =>
-    a.name.localeCompare(b.name)
+    a.name.localeCompare(b.name),
   );
 
   if (participantsLoading) {
