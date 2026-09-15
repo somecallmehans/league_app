@@ -1,3 +1,4 @@
+import asyncio
 import os, json, httpx
 import logging
 
@@ -9,6 +10,7 @@ load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / ".env", overrid
 
 from fastapi import FastAPI, Request, HTTPException
 from .verify import verify_signature
+from .analytics import track_bot_interaction
 from .router import (
     handle_getcode,
     handle_link,
@@ -25,6 +27,7 @@ from .router import (
     handle_website,
     handle_help,
     validate_channel,
+    get_store_info,
 )
 from .helpers import (
     get_modal_value,
@@ -50,6 +53,32 @@ logger = logging.getLogger(__name__)
 
 
 app = FastAPI()
+
+
+async def _record_bot_interaction(user_id, interaction_name, interaction_kind, guild_id):
+    try:
+        store = await get_store_info(int(guild_id))
+        slug = store.get("slug") if store else None
+        await track_bot_interaction(
+            discord_user_id=int(user_id),
+            interaction_name=interaction_name or "unknown",
+            interaction_kind=interaction_kind,
+            store_slug=slug,
+        )
+    except Exception:
+        logger.exception("bot analytics failed")
+
+
+def _schedule_bot_interaction(user_id, interaction_name, interaction_kind, guild_id):
+    try:
+        asyncio.create_task(
+            _record_bot_interaction(
+                user_id, interaction_name, interaction_kind, guild_id
+            )
+        )
+    except Exception:
+        logger.exception("bot analytics schedule failed")
+
 
 SIGNATURE = "X-Signature-Ed25519"
 TIMESTAMP = "X-Signature-Timestamp"
@@ -116,7 +145,9 @@ async def interactions(req: Request):
 
         if name == "mycode":
             logger.info(f"Getting code for {user_id} at guild {guild_id}")
-            return await handle_getcode(user_id, guild_id)
+            result = await handle_getcode(user_id, guild_id)
+            _schedule_bot_interaction(user_id, name, "command", guild_id)
+            return result
 
         if name == "link":
             options = data.get("options") or []
@@ -127,18 +158,26 @@ async def interactions(req: Request):
                     q = first.get("value") or ""
 
             logger.info(f"Handling linking for {user_id} with value {q}")
-            return await handle_link(user_id, q, guild_id)
+            result = await handle_link(user_id, q, guild_id)
+            _schedule_bot_interaction(user_id, name, "command", guild_id)
+            return result
 
         if name == "signin":
             logger.info(f"Attempting sign in for {user_id}")
-            return await handle_signin(user_id, guild_id)
+            result = await handle_signin(user_id, guild_id)
+            _schedule_bot_interaction(user_id, name, "command", guild_id)
+            return result
 
         if name == "drop":
-            return await handle_drop(user_id, guild_id)
+            result = await handle_drop(user_id, guild_id)
+            _schedule_bot_interaction(user_id, name, "command", guild_id)
+            return result
 
         if name == "editdecklist":
             logger.info(f"Attempting edit decklist request for {user_id}")
-            return await handle_edit_decklist_url(user_id, guild_id)
+            result = await handle_edit_decklist_url(user_id, guild_id)
+            _schedule_bot_interaction(user_id, name, "command", guild_id)
+            return result
 
         if name == "join":
             options = data.get("options") or []
@@ -150,14 +189,20 @@ async def interactions(req: Request):
                 if isinstance(first, dict):
                     participant_value = first.get("value") or ""
 
-            return await handle_join(user_id, participant_value, guild_id)
+            result = await handle_join(user_id, participant_value, guild_id)
+            _schedule_bot_interaction(user_id, name, "command", guild_id)
+            return result
 
         if name == "website":
             logger.info(f"Website request from {user_id} at guild {guild_id}")
-            return await handle_website(user_id, guild_id)
+            result = await handle_website(user_id, guild_id)
+            _schedule_bot_interaction(user_id, name, "command", guild_id)
+            return result
 
         if name == "help":
-            return await handle_help()
+            result = await handle_help()
+            _schedule_bot_interaction(user_id, name, "command", guild_id)
+            return result
 
     if t == MESSAGE:
         cid = data.get("custom_id")
@@ -167,10 +212,14 @@ async def interactions(req: Request):
 
         if cid == "signin_select":
             values = data.get("values", [])
-            return await handle_signin_select(uid, guild_id, values)
+            result = await handle_signin_select(uid, guild_id, values)
+            _schedule_bot_interaction(uid, cid, "component", guild_id)
+            return result
 
         if cid == "signin_confirm":
-            return await handle_signin_confirm(uid, guild_id)
+            result = await handle_signin_confirm(uid, guild_id)
+            _schedule_bot_interaction(uid, cid, "component", guild_id)
+            return result
 
         if cid == "join:pick":
             values = data.get("values", []) or []
@@ -181,14 +230,20 @@ async def interactions(req: Request):
             first = values[0]
             if not looks_like_selection(first):
                 return ephemeral("That selection didn’t look right. Try /join again.")
-            return await handle_join_link_existing(uid, first, guild_id)
+            result = await handle_join_link_existing(uid, first, guild_id)
+            _schedule_bot_interaction(uid, cid, "component", guild_id)
+            return result
 
         pid = parse_join_confirm(cid)
         if pid is not None:
-            return await handle_join_confirm(uid, pid, guild_id)
+            result = await handle_join_confirm(uid, pid, guild_id)
+            _schedule_bot_interaction(uid, cid, "component", guild_id)
+            return result
 
         if cid == "join:new":
-            return join_name_modal()
+            result = join_name_modal()
+            _schedule_bot_interaction(uid, cid, "component", guild_id)
+            return result
 
     if t == MODAL_SUBMIT:
         cid = data.get("custom_id")
@@ -197,7 +252,9 @@ async def interactions(req: Request):
             user = (payload.get("member") or {}).get("user") or payload.get("user")
             user_id = int(user["id"])
             entered_name = get_modal_value(data, "name")
-            return await handle_join_name_submit(user_id, entered_name, guild_id)
+            result = await handle_join_name_submit(user_id, entered_name, guild_id)
+            _schedule_bot_interaction(user_id, cid, "modal", guild_id)
+            return result
 
     return {
         "type": 4,

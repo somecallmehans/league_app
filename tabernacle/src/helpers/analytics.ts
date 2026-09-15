@@ -4,7 +4,7 @@ export const GA_MEASUREMENT_ID =
 export const ANALYTICS_EVENTS = {
   PAGE_VIEW: "page_view",
   NAV_CLICK: "nav_click",
-  STATS_PAGE_TIME: "stats_page_time",
+  PAGE_TIME: "page_time",
 } as const;
 
 declare global {
@@ -41,6 +41,15 @@ export function trackEvent(name: string, params?: EventParams): void {
   window.gtag!("event", name, cleanParams(params));
 }
 
+export function getRoutePattern(pathname: string): string {
+  const pathOnly = pathname.split("?")[0] || "/";
+  if (pathOnly === "/") return "/";
+  return pathOnly
+    .split("/")
+    .map((segment) => (segment && /^\d+$/.test(segment) ? ":id" : segment))
+    .join("/");
+}
+
 export function getStatsPathType(pathname: string): string {
   if (!pathname.startsWith("/metrics")) return "not_stats";
   const rest = pathname.replace(/^\/metrics\/?/, "");
@@ -70,12 +79,14 @@ export function trackPageView({
   title = typeof document !== "undefined" ? document.title : "",
   storeSlug,
 }: TrackPageViewParams): void {
+  const pathOnly = path.split("?")[0] ?? path;
   trackEvent(ANALYTICS_EVENTS.PAGE_VIEW, {
     page_path: path,
     page_location: typeof window !== "undefined" ? window.location.href : path,
     page_title: title,
     store_slug: storeSlug ?? undefined,
-    route_type: getRouteType(path.split("?")[0] ?? path),
+    route_type: getRouteType(pathOnly),
+    route_pattern: getRoutePattern(path),
   });
 }
 
@@ -83,27 +94,21 @@ export function trackNavClick(label: string): void {
   trackEvent(ANALYTICS_EVENTS.NAV_CLICK, { link_text: label });
 }
 
-export interface TrackStatsPageTimeParams {
+export interface TrackPageTimeParams {
   pagePath: string;
   durationMs: number;
-  statsPathType: string;
   storeSlug?: string | null;
 }
 
-export function trackStatsPageTime({
+export function trackPageTime({
   pagePath,
   durationMs,
-  statsPathType,
   storeSlug,
-}: TrackStatsPageTimeParams): void {
-  trackEvent(ANALYTICS_EVENTS.STATS_PAGE_TIME, {
+}: TrackPageTimeParams): void {
+  trackEvent(ANALYTICS_EVENTS.PAGE_TIME, {
     page_path: pagePath,
     duration_ms: Math.round(durationMs),
-    stats_path_type: statsPathType,
+    route_pattern: getRoutePattern(pagePath),
     store_slug: storeSlug ?? undefined,
   });
-}
-
-export function isMetricsPath(pathname: string): boolean {
-  return pathname === "/metrics" || pathname.startsWith("/metrics/");
 }

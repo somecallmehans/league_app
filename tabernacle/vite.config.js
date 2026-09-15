@@ -25,5 +25,9 @@ export default defineConfig(({ mode }) => {
         plugins: [tailwindcss()],
       },
     },
+    test: {
+      environment: "happy-dom",
+      include: ["src/**/*.test.ts"],
+    },
   };
 });

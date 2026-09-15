@@ -1,13 +1,9 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
-import {
-  getStatsPathType,
-  isMetricsPath,
-  trackStatsPageTime,
-} from "../helpers/analytics";
+import { trackPageTime } from "../helpers/analytics";
 import { getStoreSlug } from "../helpers/helpers";
 
-const useStatsPageTimeTracking = () => {
+const usePageTimeTracking = () => {
   const location = useLocation();
   const startTimeRef = useRef<number | null>(null);
   const pathRef = useRef<string | null>(null);
@@ -18,10 +14,9 @@ const useStatsPageTimeTracking = () => {
     const durationMs = Date.now() - startTimeRef.current;
     const pagePath = pathRef.current;
 
-    trackStatsPageTime({
+    trackPageTime({
       pagePath,
       durationMs,
-      statsPathType: getStatsPathType(pagePath.split("?")[0] ?? pagePath),
       storeSlug: getStoreSlug(),
     });
 
@@ -31,12 +26,6 @@ const useStatsPageTimeTracking = () => {
 
   useEffect(() => {
     const path = location.pathname + location.search;
-    const onMetrics = isMetricsPath(location.pathname);
-
-    if (!onMetrics) {
-      flush();
-      return;
-    }
 
     if (pathRef.current !== null && pathRef.current !== path) {
       flush();
@@ -55,8 +44,6 @@ const useStatsPageTimeTracking = () => {
         return;
       }
 
-      if (!isMetricsPath(location.pathname)) return;
-
       const path = location.pathname + location.search;
       startTimeRef.current = Date.now();
       pathRef.current = path;
@@ -74,4 +61,4 @@ const useStatsPageTimeTracking = () => {
   }, [location, flush]);
 };
 
-export default useStatsPageTimeTracking;
+export default usePageTimeTracking;
