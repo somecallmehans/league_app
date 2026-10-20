@@ -18,6 +18,20 @@ import RoundLobbyAdmin from "./sessionLobby/RoundLobbyAdmin";
 
 type TabKey = "round1" | "round2";
 
+function roundHeadcount(
+  pods: { participants?: { participant_id: number }[] }[] | undefined,
+  signInCount: number,
+) {
+  if (!pods || pods.length === 0) return signInCount;
+  const seated = new Set<number>();
+  for (const pod of pods) {
+    for (const person of pod.participants ?? []) {
+      seated.add(person.participant_id);
+    }
+  }
+  return seated.size;
+}
+
 export default function SessionLobbyPage() {
   const { session_id: sessionId } = useParams();
   const navigate = useNavigate();
@@ -152,7 +166,12 @@ export default function SessionLobbyPage() {
         >
           Round 1{" "}
           <span className="text-xs font-semibold text-slate-500">
-            ({signIns?.[String(roundOneId)]?.count ?? 0})
+            (
+            {roundHeadcount(
+              podsRoundOne ? Object.values(podsRoundOne) : undefined,
+              signIns?.[String(roundOneId)]?.count ?? 0,
+            )}
+            )
           </span>
         </button>
         <button
@@ -166,7 +185,12 @@ export default function SessionLobbyPage() {
         >
           Round 2{" "}
           <span className="text-xs font-semibold text-slate-500">
-            ({signIns?.[String(roundTwoId)]?.count ?? 0})
+            (
+            {roundHeadcount(
+              podsRoundTwo ? Object.values(podsRoundTwo) : undefined,
+              signIns?.[String(roundTwoId)]?.count ?? 0,
+            )}
+            )
           </span>
         </button>
       </div>

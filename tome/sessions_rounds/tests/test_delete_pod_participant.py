@@ -35,7 +35,7 @@ def build_base_state() -> None:
 
 def test_delete_participant(client, build_base_state) -> None:
     """
-    should: delete a player from an existing pod, as well as their participation points
+    should: delete a player from an existing pod and leave Participation in place
     """
     url = reverse("delete_pod_participant")
     body = {
@@ -56,6 +56,7 @@ def test_delete_participant(client, build_base_state) -> None:
         "participants_id", flat=True
     )
 
-    assert res.status_code == status.HTTP_202_ACCEPTED
-    assert cheev.deleted == True
-    assert ids.P4 not in participants
+    assert res.status_code == status.HTTP_400_BAD_REQUEST
+    assert res.data["message"] == "Change seating in the pod editor."
+    assert cheev.deleted is False
+    assert ids.P4 in participants

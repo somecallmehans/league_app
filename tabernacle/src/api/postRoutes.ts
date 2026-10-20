@@ -33,7 +33,9 @@ import {
   type ScoresheetFormRequest,
 } from "../types/achievement_schemas";
 import {
+  SavePodEditorRequestSchema,
   type DeletePodParticipantRequest,
+  type SavePodEditorRequest,
   type UpdatePodParticipantRequest,
 } from "../types/pod_schemas";
 import { type ConfigRequest } from "../types/config_schemas";
@@ -200,6 +202,20 @@ export default (builder: ApiBuilder) => ({
       body: body,
     }),
     invalidatesTags: ["Pods", "Participants"],
+  }),
+  savePodEditor: builder.mutation<{ message: string }, SavePodEditorRequest>({
+    query: (body) => {
+      const parsed = SavePodEditorRequestSchema.parse(body);
+      return {
+        url: `rounds/${parsed.round_id}/pod_editor/`,
+        method: "POST",
+        body: {
+          pods: parsed.pods,
+          unassigned: parsed.unassigned,
+        },
+      };
+    },
+    invalidatesTags: ["Pods"],
   }),
   deletePodParticipant: builder.mutation<
     { message: string },

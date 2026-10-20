@@ -5,22 +5,13 @@ from django.db.models import Sum, Q
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
-from users.models import Participants, ParticipantAchievements
+from users.models import Participants
 from users.serializers import ParticipantsSerializer
-from achievements.models import Achievements
-from achievements.earned_count_helpers import (
-    decrement_earned_counts,
-    increment_earned_counts,
-    pairs_from_participant_achievements,
-    pairs_from_queryset_values,
-)
 from sessions_rounds.models import Pods, PodsParticipants, Rounds, Sessions
 from sessions_rounds.pod_sizing import partition_into_pods
 from stores.models import StoreParticipant
 from users.helpers import generate_code
 
-
-PARTICIPATION_ACHIEVEMENT = "participation"
 
 PATREON_ONLY_HOURS = 24
 OPEN_TO_ALL_BEFORE_ROUND_HOURS = 48
@@ -120,10 +111,7 @@ def generate_pods(participants, round_id, store_id, prefer_5_pod: bool = True):
         groups = partition_into_pods(ids, prefer_5_pod=prefer_5_pod)
 
         new_pods = Pods.objects.bulk_create(
-            [
-                Pods(rounds_id=round_id, store_id=store_id)
-                for _ in range(len(groups))
-            ]
+            [Pods(rounds_id=round_id, store_id=store_id) for _ in range(len(groups))]
         )
 
         records = []
@@ -145,7 +133,7 @@ def handle_close_round(round_id):
     """
     round = Rounds.objects.filter(id=round_id).first()
 
-    if not Pods.objects.filter(rounds=round, submitted=False).exists():
+    if not Pods.objects.filter(rounds=round, submitted=False, deleted=False).exists():
         round.completed = True
         round.save()
 
@@ -161,9 +149,6 @@ class RoundInformationService:
         self.session_id = session_id
         self.round_id = round_id
         self.store_id = store_id
-        self.participation_achievement = Achievements.objects.get(
-            slug=PARTICIPATION_ACHIEVEMENT, deleted=False
-        )
         self.participant_data = []
         self.existing_participants = []
         self.new_participants = []
@@ -219,31 +204,11 @@ class RoundInformationService:
         except Exception as e:
             print(f"Error found while fetching participant data in round service: {e}")
 
-    def create_participation_achievements(self):
-        """If someone hasn't gotten the participation achievement, they get one."""
-        try:
-            records = [
-                ParticipantAchievements(
-                    participant_id=ep["id"],
-                    round_id=self.round_id,
-                    session_id=self.session_id,
-                    achievement_id=self.participation_achievement.id,
-                    earned_points=self.participation_achievement.points,
-                    store_id=self.store_id,
-                )
-                for ep in self.existing_participants
-            ]
-            ParticipantAchievements.objects.bulk_create(records)
-            increment_earned_counts(pairs_from_participant_achievements(records))
-        except Exception as e:
-            print(f"Error found while creating participant achievements: {e}")
-
     def build_participants_and_achievements(self):
-        """Full process to get our stuff."""
+        """Resolve participants for seating. Participation is awarded on score submit."""
 
         self.categorize_participants()
         self.create_new_participants()
         self.get_participants()
-        self.create_participation_achievements()
 
         return self.participant_data

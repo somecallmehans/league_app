@@ -4,6 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from achievements.models import WinningCommanders, Commanders, Colors, Achievements
+from users.models import ParticipantAchievements
 from utils.test_helpers import get_ids
 
 ids = get_ids()
@@ -116,6 +117,7 @@ def test_insert_scoresheet(client, get_slug, get_achievements, build_state) -> N
     assert res.status_code == status.HTTP_201_CREATED
 
     assert get_achievements(winner_id) == [
+        ids.PARTICIPATION,
         ids.NO_INSTANTS_SORCERIES,
         ids.NO_CREATURES,
         ids.WIN_TWO_COLORS,
@@ -139,6 +141,39 @@ def test_insert_scoresheet(client, get_slug, get_achievements, build_state) -> N
 
     assert winning_commander["name"] == f"{COMMANDER}+{PARTNER}"
     assert winning_commander["color_id"] == ids.GRUUL
+
+
+def test_first_submit_awards_participation_to_seated_players(
+    client, build_state
+) -> None:
+    """First scoresheet submit awards Participation to the pod's roster."""
+
+    url = reverse(
+        "scoresheet",
+        kwargs={"round_id": ids.R1_SESSION_THIS_MONTH_OPEN, "pod_id": POD_ID},
+    )
+    res = client.post(
+        url,
+        {
+            "end-draw": True,
+            "winner": None,
+            "winner-commander": None,
+            "winner-achievements": None,
+        },
+        format="json",
+    )
+    assert res.status_code == status.HTTP_201_CREATED
+
+    seated = [ids.P1, ids.P3, ids.P5, ids.P8]
+    rows = ParticipantAchievements.objects.filter(
+        round_id=ids.R1_SESSION_THIS_MONTH_OPEN,
+        achievement_id=ids.PARTICIPATION,
+        deleted=False,
+        store_id=ids.MIMICS_ID,
+    )
+    assert sorted(rows.values_list("participant_id", flat=True)) == sorted(seated)
+    assert set(rows.values_list("earned_points", flat=True)) == {3}
+    assert not rows.filter(participant_id=ids.P2).exists()
 
 
 def test_insert_scoresheet_draw(
@@ -177,7 +212,23 @@ def test_insert_scoresheet_draw(
     res = client.post(url, body, format="json")
     assert res.status_code == status.HTTP_201_CREATED
 
-    assert get_achievements(ids.P1) == [ids.DRAW, ids.SNACK, ids.KNOCK_OUT, AID2]
-    assert get_achievements(ids.P3) == [ids.DRAW, ids.SNACK, AID2]
-    assert get_achievements(ids.P5) == [ids.DRAW, AID3, AID4]
-    assert get_achievements(ids.P8) == [ids.DRAW]
+    assert get_achievements(ids.P1) == [
+        ids.PARTICIPATION,
+        ids.DRAW,
+        ids.SNACK,
+        ids.KNOCK_OUT,
+        AID2,
+    ]
+    assert get_achievements(ids.P3) == [
+        ids.PARTICIPATION,
+        ids.DRAW,
+        ids.SNACK,
+        AID2,
+    ]
+    assert get_achievements(ids.P5) == [
+        ids.PARTICIPATION,
+        ids.DRAW,
+        AID3,
+        AID4,
+    ]
+    assert get_achievements(ids.P8) == [ids.PARTICIPATION, ids.DRAW]

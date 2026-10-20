@@ -77,3 +77,16 @@ export type DeletePodParticipantRequest = z.infer<
 export type UpdatePodParticipantRequest = z.infer<
   typeof UpdatePodParticipantRequestSchema
 >;
+
+export const SavePodEditorRequestSchema = z.object({
+  round_id: z.number(),
+  pods: z.array(
+    z.object({
+      id: z.number().nullable(),
+      participant_ids: z.array(z.number()),
+    }),
+  ),
+  unassigned: z.array(z.number()),
+});
+
+export type SavePodEditorRequest = z.infer<typeof SavePodEditorRequestSchema>;

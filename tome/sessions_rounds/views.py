@@ -18,13 +18,12 @@ from django.utils import timezone
 
 from .models import Sessions, Rounds, Pods, PodsParticipants, RoundSignups
 from users.models import ParticipantAchievements, Participants
-from achievements.models import WinningCommanders, Achievements
+from achievements.models import WinningCommanders
 from achievements.earned_count_helpers import (
     decrement_earned_counts,
-    increment_earned_counts,
     pairs_from_queryset_values,
 )
-from stores.models import StoreParticipant, Store
+from stores.models import Store
 
 from .serializers import SessionSerializer, PodsParticipantsSerializer
 from achievements.serializers import WinningCommandersSerializer
@@ -38,6 +37,7 @@ from .helpers import (
     get_session_for_rounds,
     patreon_signin_rejection_message,
 )
+from .pod_editor import save_pod_editor
 from .aversion_seating import order_participants_for_round_one
 from configs.configs import get_prefer_5_pod, get_round_caps
 from services.discord_client import bot_announcement
@@ -207,6 +207,24 @@ def begin_round(request, **kwargs):
     ).data
 
     return Response(pods, status=status.HTTP_201_CREATED)
+
+
+@api_view([POST])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+@require_store
+def save_pod_editor_view(request, round_id, **kwargs):
+    """Save an admin's pod editor draft for one round."""
+    body = request.data if isinstance(request.data, dict) else {}
+    problems = save_pod_editor(
+        round_id,
+        request.store_id,
+        body.get("pods") or [],
+        body.get("unassigned") or [],
+    )
+    if problems:
+        return Response({"problems": problems}, status=status.HTTP_400_BAD_REQUEST)
+    return Response({"message": "Pods saved."}, status=status.HTTP_200_OK)
 
 
 @api_view([GET])
@@ -631,129 +649,21 @@ def delete_signin(request, **kwargs):
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def update_pod_participants(request, **kwargs):
-    """Take in a participant and a pod, and if there's space/user is not in another pod already
-    then add said participant to that pod."""
-
-    body = json.loads(request.body.decode("utf-8"))
-    pod_id = body.get("pod_id")
-    pid = body.get("participant_id")
-    rid = body.get("round_id")
-    store_id = request.store_id
-
-    if not pod_id or not rid:
-        return Response(
-            {"message": "Missing pod id or round id"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    if not pid:
-        name = body.get("name")
-        if not name:
-            return Response(
-                {"message": "Participant info not provided"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        new = Participants.objects.create(name=name)
-        StoreParticipant.objects.create(store_id=store_id, participant_id=new.id)
-        pid = new.id
-
-    pod_count = PodsParticipants.objects.filter(pods_id=pod_id).count()
-
-    if pod_count >= 5:
-        return Response(
-            {"message": "Pod already full"}, status=status.HTTP_400_BAD_REQUEST
-        )
-
-    in_target = PodsParticipants.objects.filter(
-        pods_id=pod_id, participants_id=pid, pods__store_id=store_id
-    ).exists()
-    in_round = PodsParticipants.objects.filter(
-        pods__rounds_id=rid, participants_id=pid, pods__store_id=store_id
-    ).exists()
-
-    if in_target or in_round:
-        return Response(
-            {"message": "Participant already in pod"}, status=status.HTTP_204_NO_CONTENT
-        )
-
-    part = Achievements.objects.get(slug="participation")
-    has_participation = (
-        ParticipantAchievements.objects.filter(
-            participant_id=pid,
-            round_id=rid,
-            achievement_id=part.id,
-            deleted=False,
-            store_id=store_id,
-        )
-        .select_related("achievements")
-        .exists()
+    """Seating changes go through the pod editor."""
+    return Response(
+        {"message": "Change seating in the pod editor."},
+        status=status.HTTP_400_BAD_REQUEST,
     )
-
-    if not has_participation:
-        [sid] = Rounds.objects.filter(id=rid).values_list("session_id", flat=True)
-        ParticipantAchievements.objects.create(
-            participant_id=pid,
-            round_id=rid,
-            achievement_id=part.id,
-            session_id=sid,
-            earned_points=part.point_value,
-            store_id=store_id,
-        )
-        increment_earned_counts([(part.id, None)])
-
-    PodsParticipants.objects.create(participants_id=pid, pods_id=pod_id)
-
-    return Response({"message": "Successfully added"}, status=status.HTTP_201_CREATED)
 
 
 @api_view([DELETE])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def delete_pod_participant(request, **kwargs):
-    """Take in a participant and a pod and delete that combo from the podsparticipants table."""
-    body = json.loads(request.body.decode("utf-8"))
-    pod_id = body.get("pod_id")
-    pid = body.get("participant_id")
-    store_id = request.store_id
-
-    if not pod_id or not pid:
-        return Response(
-            {"message": "Missing pod id, participant id, or round id"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    target_pod = PodsParticipants.objects.filter(
-        pods_id=pod_id, pods__store_id=store_id
-    )
-
-    if len(target_pod) <= 3:
-        return Response(
-            {"message": "There must be at least 3 players in a pod"},
-            status=status.HTTP_204_NO_CONTENT,
-        )
-
-    PodsParticipants.objects.filter(participants_id=pid, pods_id=pod_id).delete()
-
-    session_round = (
-        Pods.objects.filter(id=pod_id, store_id=store_id)
-        .values("rounds_id", "rounds__session_id")
-        .first()
-    )
-
-    participation_qs = ParticipantAchievements.objects.filter(
-        participant_id=pid,
-        round_id=session_round["rounds_id"],
-        session_id=session_round["rounds__session_id"],
-        achievement__slug="participation",
-        store_id=store_id,
-        deleted=False,
-    )
-    deleted_pairs = list(participation_qs.values("achievement_id", "scalable_term_id"))
-    participation_qs.update(deleted=True)
-    decrement_earned_counts(pairs_from_queryset_values(deleted_pairs))
-
+    """Seating changes go through the pod editor."""
     return Response(
-        {"message": "Successfully removed"}, status=status.HTTP_202_ACCEPTED
+        {"message": "Change seating in the pod editor."},
+        status=status.HTTP_400_BAD_REQUEST,
     )
 
 

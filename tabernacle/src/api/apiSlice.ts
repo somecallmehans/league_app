@@ -49,6 +49,9 @@ export function getErrorMessage(err: MaybeRTKQError): string {
     if (typeof data === "string") return data;
 
     if (data?.detail) return data.detail;
+    if (Array.isArray(data?.problems) && data.problems.length > 0) {
+      return data.problems.join(" ");
+    }
     if (data?.message) return data.message;
 
     if (data?.errors) {
@@ -193,6 +196,7 @@ export const {
   useDeleteLobbySignInMutation,
   usePostLobbySignInMutation,
   usePostPodParticipantMutation,
+  useSavePodEditorMutation,
   useDeletePodParticipantMutation,
   useDeleteSessionMutation,
   useInsertScoresheetMutation,

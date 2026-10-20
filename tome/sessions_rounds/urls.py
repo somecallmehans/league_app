@@ -2,6 +2,7 @@ from django.urls import path, re_path
 from .views import (
     sessions_and_rounds,
     begin_round,
+    save_pod_editor_view,
     all_sessions,
     get_pods,
     get_unique_session_months,
@@ -44,6 +45,11 @@ urlpatterns = [
         name="make_sessions_and_rounds",
     ),
     path("begin_round/", begin_round, name="begin_round"),
+    path(
+        "rounds/<int:round_id>/pod_editor/",
+        save_pod_editor_view,
+        name="save_pod_editor",
+    ),
     path("unique_months/", get_unique_session_months, name="unique_months"),
     path("rounds_by_month/<str:mm_yy>/", get_rounds_by_month, name="rounds_by_month"),
     path("signup/", signup, name="signup"),

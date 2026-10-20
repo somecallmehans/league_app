@@ -61,8 +61,7 @@ def test_post_begin_round_one(client, base_participants_list):
     assert pods_counts[2] == 4
     assert pods_counts[3] == 5
 
-    assert len(new_participation) == 13
-    assert len(set(new_participation)) == 1
+    assert new_participation == []
 
 
 def test_begin_round_prefers_three_threes_when_prefer_5_off(
@@ -120,8 +119,7 @@ def test_post_begin_round_two(
     Uses all of this to make and return pods.
 
     Round 2- sorted pairings based on total points. Success is
-    new folks get created w/ points and everyone gets
-    created in the right order.
+    pods get created. Participation waits until scores are submitted.
     """
 
     new_participants = [
@@ -147,7 +145,7 @@ def test_post_begin_round_two(
         store_id=ids.MIMICS_ID,
     ).count()
 
-    assert earned == 12
+    assert earned == 0
 
     rows = (
         PodsParticipants.objects.filter(pods__rounds_id=ids.R2_SESSION_THIS_MONTH_OPEN)
