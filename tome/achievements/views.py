@@ -73,7 +73,11 @@ from achievements.helpers import (
     cascade_soft_delete,
     calculate_monthly_winners,
 )
-from achievements.scoresheet_helpers import POSTScoresheetHelper, GETScoresheetHelper
+from achievements.scoresheet_helpers import (
+    POSTScoresheetHelper,
+    GETScoresheetHelper,
+    award_participation,
+)
 from achievements.earned_count_helpers import (
     decrement_earned_counts,
     ensure_earned_count_rows_for_achievement,
@@ -1004,6 +1008,19 @@ def scoresheet(request, round_id: int, pod_id: int, **kwargs):
             return Response(
                 {"message": "Pod already submitted. Use PUT to update."},
                 status=status.HTTP_409_CONFLICT,
+            )
+
+        if request.method == POST:
+            seated_now = list(
+                PodsParticipants.objects.filter(
+                    pods_id=pod_id, pods__store_id=store_id
+                ).values_list("participants_id", flat=True)
+            )
+            award_participation(
+                round_id,
+                result.session_id,
+                store_id,
+                seated_now,
             )
 
         if request.method == PUT:

@@ -236,6 +236,50 @@ def build_inserted_state(client, build_state) -> dict:
     Pods.objects.filter(id=POD_ID).update(submitted=True)
 
 
+def test_score_correction_does_not_change_participation(client, build_state) -> None:
+    """A scoresheet correction leaves the Participation awarded on first submit."""
+
+    url = reverse(
+        "scoresheet",
+        kwargs={"round_id": ids.R1_SESSION_THIS_MONTH_OPEN, "pod_id": POD_ID},
+    )
+    seated = [ids.P1, ids.P3, ids.P5, ids.P8]
+    posted = client.post(
+        url,
+        {
+            "end-draw": True,
+            "winner": None,
+            "winner-commander": None,
+            "winner-achievements": None,
+        },
+        format="json",
+    )
+    assert posted.status_code == status.HTTP_201_CREATED
+
+    corrected = client.put(
+        url,
+        {
+            "end-draw": False,
+            "winner": ids.P3,
+            "winner-commander": CID,
+            "partner-commander": PID,
+            "winner-achievements": [],
+        },
+        format="json",
+    )
+    assert corrected.status_code == status.HTTP_201_CREATED
+
+    rows = ParticipantAchievements.objects.filter(
+        round_id=ids.R1_SESSION_THIS_MONTH_OPEN,
+        achievement_id=ids.PARTICIPATION,
+        deleted=False,
+        store_id=ids.MIMICS_ID,
+    )
+    assert rows.count() == len(seated)
+    assert sorted(rows.values_list("participant_id", flat=True)) == sorted(seated)
+    assert set(rows.values_list("earned_points", flat=True)) == {3}
+
+
 def test_update_scoresheet(
     client,
     get_achievements,

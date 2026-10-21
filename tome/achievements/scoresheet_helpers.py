@@ -7,10 +7,16 @@ from achievements.models import Achievements, Commanders, WinningCommanders
 from users.models import ParticipantAchievements, Decklists
 from users.queries import StubCommander
 
+from achievements.earned_count_helpers import (
+    increment_earned_counts,
+    pairs_from_participant_achievements,
+)
 from achievements.helpers import calculate_color_mask
 from achievements.participant_achievement_helpers import (
     resolve_participant_achievement_display,
 )
+
+PARTICIPATION_SLUG = "participation"
 
 pod_slugs = {
     "bring-snack",
@@ -29,6 +35,37 @@ winner_slugs = {
 }
 
 DRAW_NAME = "END IN DRAW"
+
+
+def award_participation(round_id, session_id, store_id, participant_ids):
+    """Award Participation once to each seated participant for this round."""
+    achievement = Achievements.objects.get(slug=PARTICIPATION_SLUG, deleted=False)
+    participant_ids = list(participant_ids)
+    already = set(
+        ParticipantAchievements.objects.filter(
+            participant_id__in=participant_ids,
+            round_id=round_id,
+            achievement_id=achievement.id,
+            deleted=False,
+            store_id=store_id,
+        ).values_list("participant_id", flat=True)
+    )
+    records = [
+        ParticipantAchievements(
+            participant_id=pid,
+            round_id=round_id,
+            session_id=session_id,
+            achievement_id=achievement.id,
+            earned_points=achievement.points,
+            store_id=store_id,
+        )
+        for pid in participant_ids
+        if pid not in already
+    ]
+    if not records:
+        return
+    ParticipantAchievements.objects.bulk_create(records)
+    increment_earned_counts(pairs_from_participant_achievements(records))
 
 
 class ScoresheetBuildResult(NamedTuple):

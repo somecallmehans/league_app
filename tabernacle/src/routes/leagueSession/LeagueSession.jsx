@@ -7,6 +7,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import RoundPage from "./RoundPage";
 import SessionLobbyPage from "./SessionLobbyPage";
 import ScorecardPage from "./ScorecardPage";
+import PodEditorPage from "./PodEditorPage";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import StandardButton from "../../components/Button";
 import { useConfig } from "../../hooks/useConfigs";
@@ -170,6 +171,10 @@ export default function LeagueRouter() {
       <Route path="/" element={<LeagueManagementPage />} />
       <Route path="/:session_id" element={<SessionLobbyPage />} />
       <Route path="/:session_id/:round_id" element={<RoundPage />} />
+      <Route
+        path="/:session_id/:round_id/pods"
+        element={<PodEditorPage />}
+      />
       <Route
         path="/:session_id/:round_id/scorecard/:pod_id"
         element={<ScorecardPage />}

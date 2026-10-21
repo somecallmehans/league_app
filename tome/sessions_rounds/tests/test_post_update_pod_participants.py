@@ -28,7 +28,7 @@ def build_base_state() -> None:
 
 def test_post_add_participant_to_pod_with_achievement(client, build_base_state) -> None:
     """
-    should: add a player to an existing pod + give them participation points
+    should: add a player to an existing pod without awarding Participation
     """
 
     url = reverse("update_pod_participants")
@@ -46,13 +46,15 @@ def test_post_add_participant_to_pod_with_achievement(client, build_base_state) 
 
     res = client.post(url, body, format="json")
 
-    assert res.status_code == status.HTTP_201_CREATED
-    assert len(list(PodsParticipants.objects.filter(pods_id=POD_ID))) == 4
-    assert ParticipantAchievements.objects.filter(
+    assert res.status_code == status.HTTP_400_BAD_REQUEST
+    assert res.data["message"] == "Change seating in the pod editor."
+    assert len(list(PodsParticipants.objects.filter(pods_id=POD_ID))) == 3
+    assert not ParticipantAchievements.objects.filter(
         participant_id=ids.P4,
         round_id=ids.R1_SESSION_THIS_MONTH_OPEN,
         achievement_id=ids.PARTICIPATION,
         store_id=ids.MIMICS_ID,
+        deleted=False,
     ).exists()
 
 
@@ -82,8 +84,9 @@ def test_post_add_participant_to_pod_without_achievement(
     }
     res = client.post(url, body, format="json")
 
-    assert res.status_code == status.HTTP_201_CREATED
-    assert len(list(PodsParticipants.objects.filter(pods_id=POD_ID))) == 4
+    assert res.status_code == status.HTTP_400_BAD_REQUEST
+    assert res.data["message"] == "Change seating in the pod editor."
+    assert len(list(PodsParticipants.objects.filter(pods_id=POD_ID))) == 3
 
 
 def test_post_fail_missing_id(client) -> None:
@@ -99,7 +102,7 @@ def test_post_fail_missing_id(client) -> None:
     res = client.post(url, body, format="json")
 
     assert res.status_code == status.HTTP_400_BAD_REQUEST
-    assert res.data["message"] == "Missing pod id or round id"
+    assert res.data["message"] == "Change seating in the pod editor."
 
 
 @pytest.fixture(scope="function")
@@ -132,7 +135,7 @@ def test_post_fail_full_pod(client, build_full_state) -> None:
     res = client.post(url, body, format="json")
 
     assert res.status_code == status.HTTP_400_BAD_REQUEST
-    assert res.data["message"] == "Pod already full"
+    assert res.data["message"] == "Change seating in the pod editor."
 
 
 @pytest.fixture(scope="function")
@@ -161,8 +164,8 @@ def test_post_fail_participant_in_round(
     }
     res = client.post(url, body, format="json")
 
-    assert res.status_code == status.HTTP_204_NO_CONTENT
-    assert res.data["message"] == "Participant already in pod"
+    assert res.status_code == status.HTTP_400_BAD_REQUEST
+    assert res.data["message"] == "Change seating in the pod editor."
 
 
 def test_post_new_participant(client, build_base_state) -> None:
@@ -180,11 +183,7 @@ def test_post_new_participant(client, build_base_state) -> None:
 
     new = Participants.objects.filter(name="TEST TESTERSON").first()
 
-    assert res.status_code == status.HTTP_201_CREATED
-    assert len(list(PodsParticipants.objects.filter(pods_id=POD_ID))) == 4
-    assert ParticipantAchievements.objects.filter(
-        participant_id=new.id,
-        round_id=ids.R1_SESSION_THIS_MONTH_OPEN,
-        achievement_id=ids.PARTICIPATION,
-        store_id=ids.MIMICS_ID,
-    ).exists()
+    assert res.status_code == status.HTTP_400_BAD_REQUEST
+    assert res.data["message"] == "Change seating in the pod editor."
+    assert len(list(PodsParticipants.objects.filter(pods_id=POD_ID))) == 3
+    assert new is None

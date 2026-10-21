@@ -1,7 +1,7 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 
-import UpdatePodsModal from "../../../components/Modals/UpdatePodsModal";
+import StandardButton from "../../../components/Button";
 import RoundParticipantModal, {
   RoundParticipantSummary,
 } from "./RoundParticipantModal";
@@ -34,46 +34,27 @@ export default function RoundFocusedAdmin({
   sessionId: number;
   roundId: number;
 }) {
-  const [updatePodModalOpen, setUpdatePodModalOpen] = useState(false);
-  const [selectedPod, setSelectedPod] = useState<{
-    participants: { id: number; name: string }[];
-    podId: number;
-    roundId: number;
-  }>({ participants: [], podId: -1, roundId: -1 });
-
   const [participantModalOpen, setParticipantModalOpen] = useState(false);
   const [selectedParticipant, setSelectedParticipant] =
     useState<RoundParticipantSummary>();
 
-  const somePodsSubmitted = useMemo(
-    () => Object.values(pods)?.some(({ submitted }) => submitted),
-    [pods],
-  );
+  const anyOpen = Object.values(pods).some((pod) => !pod.submitted);
 
   const openParticipantModal = (p: RoundParticipantSummary) => {
     setSelectedParticipant(p);
     setParticipantModalOpen(true);
   };
 
-  const handleUpdatePodModal = (
-    participants: FocusedPod["participants"],
-    podId: string,
-  ) => {
-    if (somePodsSubmitted) return;
-
-    setSelectedPod({
-      participants: participants.map((p) => ({
-        id: p.participant_id,
-        name: p.name,
-      })),
-      podId: Number(podId),
-      roundId,
-    });
-    setUpdatePodModalOpen(true);
-  };
-
   return (
-    <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+    <div className="mt-4">
+      {anyOpen && (
+        <div className="mb-4">
+          <Link to={`/league-session/${sessionId}/${roundId}/pods`}>
+            <StandardButton title="Edit pods" />
+          </Link>
+        </div>
+      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
       {podKeys.map((podId, index) => {
         const pod = pods[podId];
         if (!pod) return null;
@@ -85,7 +66,7 @@ export default function RoundFocusedAdmin({
             <div className="flex items-center justify-between gap-4">
               <div className="flex flex-col gap-1">
                 <div className="text-sm font-semibold text-slate-900">
-                  Table {index + 1}
+                  Pod {index + 1}
                 </div>
                 <div
                   className={`text-xs font-semibold ${
@@ -106,20 +87,6 @@ export default function RoundFocusedAdmin({
                     } text-sky-600 hover:text-sky-500`}
                   />
                 </Link>
-                <button
-                  type="button"
-                  onClick={() =>
-                    handleUpdatePodModal(pod?.participants ?? [], podId)
-                  }
-                  disabled={somePodsSubmitted}
-                  className={`${
-                    somePodsSubmitted
-                      ? "text-slate-400 cursor-not-allowed"
-                      : "text-sky-600 hover:text-sky-500"
-                  }`}
-                >
-                  <i className="fa-solid fa-user-plus" />
-                </button>
               </div>
             </div>
 
@@ -159,15 +126,7 @@ export default function RoundFocusedAdmin({
           </div>
         );
       })}
-
-      <UpdatePodsModal
-        isOpen={updatePodModalOpen}
-        closeModal={() => {
-          setUpdatePodModalOpen(false);
-          setSelectedPod({ participants: [], podId: -1, roundId: -1 });
-        }}
-        modalProps={selectedPod}
-      />
+      </div>
 
       <RoundParticipantModal
         isOpen={participantModalOpen}
