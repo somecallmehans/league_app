@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Route, Routes, Link } from "react-router-dom";
+import { useCallback, useState, type SetStateAction } from "react";
+import { Route, Routes, Link, useSearchParams } from "react-router-dom";
 
 import { type SimpleColor } from "../../types/color_schemas";
 import { useGetDecklistsQuery } from "../../api/apiSlice";
@@ -13,6 +13,11 @@ import ColorGrid from "../../components/ColorGrid";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import CalloutCard from "../../components/CalloutCard";
 import DecklistFilters from "./DecklistFiltering";
+import {
+  decklistParamsFromSearch,
+  decklistSearchParams,
+  type DecklistParams,
+} from "./decklistParams";
 import Gatekeeper from "./DecklistEditGatekeeper";
 import EditDecklists, { EditDecklistFormWrapper } from "./EditDecklists";
 import AchievementModal, { type Achievement } from "./AchievementModal";
@@ -42,7 +47,7 @@ const Callout = () => (
       title="Using this page"
       tagClassName="bg-violet-600"
       items={[
-        "Use the toggles below to sort or filter by color identity.",
+        "Search by deck or commander, then filter by color identity or submitter.",
         "Each card image opens the decklist on Moxfield or Archidekt.",
         "Select card pips to view achievements earnable with that deck.",
         <>
@@ -160,13 +165,6 @@ export const DecklistCard = ({
   );
 };
 
-export type DecklistParams = {
-  colors?: number | null;
-  sort_order?: string | null;
-  page?: number;
-  page_size?: number;
-};
-
 function paginationRange(
   current: number,
   total: number,
@@ -281,24 +279,23 @@ function DeckPagination({
 }
 
 function DecklistContainer() {
-  const [params, setParams] = useState<DecklistParams>({
-    page: 1,
-    page_size: 20,
-  });
+  const [searchParams, setSearchParams] = useSearchParams();
+  const params = decklistParamsFromSearch(searchParams);
+  const setParams = useCallback(
+    (action: SetStateAction<DecklistParams>) => {
+      setSearchParams(
+        (prev) => {
+          const current = decklistParamsFromSearch(prev);
+          const next = typeof action === "function" ? action(current) : action;
+          return decklistSearchParams(next);
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
+  );
 
-  const queryParams: DecklistParams = {
-    page: params.page ?? 1,
-    page_size: params.page_size ?? 20,
-  };
-  if (params.colors !== undefined && params.colors !== null) {
-    queryParams.colors = params.colors;
-  }
-  if (params.sort_order) {
-    queryParams.sort_order = params.sort_order;
-  }
-
-  const { data, isLoading: decklistsLoading } =
-    useGetDecklistsQuery(queryParams);
+  const { data, isLoading: decklistsLoading } = useGetDecklistsQuery(params);
 
   const decklists = data?.results ?? [];
   const totalCount = data?.count ?? 0;
@@ -310,10 +307,6 @@ function DecklistContainer() {
     const next = Math.min(Math.max(1, p), totalPages);
     setParams((prev) => ({ ...prev, page: next }));
   };
-
-  if (decklistsLoading) {
-    return <LoadingSpinner />;
-  }
 
   return (
     <div className="px-4 py-3 md:p-8 min-w-0">
@@ -346,6 +339,10 @@ function DecklistContainer() {
       </div>
       <Callout />
       <DecklistFilters params={params} setParams={setParams} />
+      {decklistsLoading ? (
+        <LoadingSpinner />
+      ) : (
+        <>
       <p className="text-xs text-stone-600 mb-2">
         Showing {decklists.length} of {totalCount} decklist
         {totalCount === 1 ? "" : "s"}
@@ -387,6 +384,8 @@ function DecklistContainer() {
         totalPages={totalPages}
         onPageChange={setPage}
       />
+        </>
+      )}
     </div>
   );
 }

@@ -1,10 +1,13 @@
+from datetime import datetime, timezone
+
 import pytest
 
 from django.urls import reverse
 from rest_framework import status
 
 from users.models import Decklists, DecklistsAchievements
-from achievements.models import Commanders, Colors
+from achievements.models import Commanders, Colors, WinningCommanders
+from sessions_rounds.models import Pods
 from utils.test_helpers import get_ids
 
 ids = get_ids()
@@ -26,7 +29,11 @@ def build_state() -> None:
     )
 
     Colors.objects.create(
-        symbol="wubg", slug="i do not care", name="whiteblueblackgreen", mask=23
+        id=99,
+        symbol="wubg",
+        slug="i do not care",
+        name="whiteblueblackgreen",
+        mask=23,
     )
 
     Decklists.objects.bulk_create(
@@ -136,9 +143,7 @@ def strip_imgs(deck):
 
 
 def test_get_decklists_by_color(client, build_state) -> None:
-    """
-    should: just return decklist info for the provided color
-    """
+    """Exactly these colors is the default: red-green is only red-green."""
 
     url = reverse("decklists")
     res = client.get(f"{url}?colors=24")
@@ -168,40 +173,118 @@ def test_get_decklists_by_color(client, build_state) -> None:
                 },
             ],
         },
-        {
-            "achievements": [
-                {
-                    "id": 26,
-                    "name": "Win with a deck that has no instants or sorceries",
-                    "points": 5,
-                },
-                {
-                    "id": 27,
-                    "name": "Win with no creatures except your commander",
-                    "points": 4,
-                },
-                {
-                    "id": 30,
-                    "name": "Win via commander damage",
-                    "points": 1,
-                },
-            ],
-            "code": "DL-A1B2",
-            "color": {
-                "name": "green",
-                "points": 4,
-                "symbol": "g",
-            },
-            "commander_name": "Fynn, the Fangbearer",
-            "companion_name": None,
-            "id": 1,
-            "name": "Beep",
-            "participant_name": None,
-            "partner_name": None,
-            "points": 14,
-            "url": "www.moxfield.com/beep",
-        },
     ]
+
+
+def test_colorless_filter_matches_only_colorless_identity(client, build_state) -> None:
+    """Colorless means a colorless identity in both match modes."""
+
+    colorless = Commanders.objects.create(
+        name="Hope of Ghirapur", color_id=ids.COLORLESS
+    )
+    Decklists.objects.create(
+        name="No Colors",
+        url="www.moxfield.com/none",
+        commander=colorless,
+    )
+
+    url = reverse("decklists")
+    for match in ("exact", "any"):
+        res = client.get(f"{url}?colors=0&color_match={match}")
+        assert res.status_code == status.HTTP_200_OK
+        assert [deck["name"] for deck in res.json()["results"]] == ["No Colors"]
+
+
+def test_search_decklists_by_name_commander_or_partner(client, build_state) -> None:
+    """Search matches decklist name, commander, and partner, not companion or participant."""
+
+    url = reverse("decklists")
+
+    def names_for(term: str) -> set[str]:
+        res = client.get(f"{url}?search={term}")
+        assert res.status_code == status.HTTP_200_OK
+        return {deck["name"] for deck in res.json()["results"]}
+
+    assert names_for("beep") == {"Beep"}
+    assert names_for("yarus") == {"Boop"}
+    assert names_for("master chef") == {"Blop"}
+    assert names_for("umori") == set()
+    assert names_for("Trenna") == set()
+
+
+def test_admin_search_matches_participant_name(client, build_state) -> None:
+    """Admin search still finds a decklist by its participant's name."""
+
+    url = reverse("admin_get_decklists")
+    res = client.get(f"{url}?search=Trenna")
+
+    assert res.status_code == status.HTTP_200_OK
+    assert {deck["name"] for deck in res.json()} == {"Beep"}
+
+
+def test_submitted_by_returns_only_named_credit_decklists(client, build_state) -> None:
+    """Submitted by keeps that participant's named-credit decklists."""
+
+    Decklists.objects.filter(id=D1).update(give_credit=True)
+    Decklists.objects.create(
+        name="Secret",
+        url="www.moxfield.com/secret",
+        commander_id=ids.FYNN,
+        participant_id=ids.P2,
+        give_credit=False,
+    )
+
+    url = reverse("decklists")
+    res = client.get(f"{url}?submitted_by={ids.P2}")
+
+    assert res.status_code == status.HTTP_200_OK
+    body = res.json()
+    assert [deck["name"] for deck in body["results"]] == ["Beep"]
+    assert body["results"][0]["participant_name"] == "Trenna Thain"
+
+    hidden = client.get(f"{url}?submitted_by={ids.P5}")
+    assert hidden.status_code == status.HTTP_200_OK
+    assert hidden.json()["results"] == []
+
+
+def test_decklist_submitters_lists_named_credit_participants(
+    client, build_state
+) -> None:
+    """The submitter list includes only participants with named credit."""
+
+    Decklists.objects.filter(id=D1).update(give_credit=True)
+
+    res = client.get(reverse("decklist_submitters"))
+
+    assert res.status_code == status.HTTP_200_OK
+    assert res.json() == [{"id": ids.P2, "name": "Trenna Thain"}]
+
+
+def test_get_decklists_matching_any_selected_color(client, build_state) -> None:
+    """Any of these colors keeps decklists that include every selected color."""
+
+    naya = Colors.objects.create(
+        id=98,
+        symbol="rgw",
+        slug="red-green-white",
+        name="red green white",
+        mask=25,
+    )
+    commander = Commanders.objects.create(
+        name="Hazezon, Shaper of Sand", color=naya
+    )
+    Decklists.objects.create(
+        name="Naya",
+        url="www.moxfield.com/naya",
+        commander=commander,
+    )
+
+    url = reverse("decklists")
+    res = client.get(f"{url}?colors=24&color_match=any")
+
+    assert res.status_code == status.HTTP_200_OK
+    names = {deck["name"] for deck in res.json()["results"]}
+    assert names == {"Boop", "Naya"}
 
 
 def test_decklists_pagination(client, build_state) -> None:
@@ -219,6 +302,78 @@ def test_decklists_pagination(client, build_state) -> None:
     body2 = res2.json()
     assert body2["count"] == 3
     assert len(body2["results"]) == 0
+
+
+def test_sort_decklists_by_wins(client, build_state) -> None:
+    """Winningest counts linked wins and breaks ties by newest."""
+
+    Decklists.objects.filter(id=D2).update(
+        created_at=datetime(2024, 1, 1, tzinfo=timezone.utc)
+    )
+    Decklists.objects.filter(id=D3).update(
+        created_at=datetime(2024, 6, 1, tzinfo=timezone.utc)
+    )
+    Decklists.objects.filter(id=D1).update(
+        created_at=datetime(2024, 3, 1, tzinfo=timezone.utc)
+    )
+
+    def record_win(decklist_id, *, deleted=False):
+        pod = Pods.objects.create(
+            rounds_id=ids.R1_SESSION_THIS_MONTH_OPEN,
+            store_id=ids.MIMICS_ID,
+        )
+        WinningCommanders.objects.create(
+            name="winner",
+            pods=pod,
+            participants_id=ids.P1,
+            color_id=ids.GRUUL,
+            commander_id=ids.YARUS,
+            decklist_id=decklist_id,
+            store_id=ids.MIMICS_ID,
+            deleted=deleted,
+        )
+
+    record_win(D2)
+    record_win(D2)
+    record_win(D3)
+    record_win(D1)
+    record_win(D1, deleted=True)
+    unlinked = Pods.objects.create(
+        rounds_id=ids.R1_SESSION_THIS_MONTH_OPEN,
+        store_id=ids.MIMICS_ID,
+    )
+    WinningCommanders.objects.create(
+        name="unlinked",
+        pods=unlinked,
+        participants_id=ids.P1,
+        color_id=ids.GREEN,
+        commander_id=ids.FYNN,
+        store_id=ids.MIMICS_ID,
+    )
+
+    res = client.get(f"{reverse('decklists')}?sort_order=wins_desc")
+
+    assert res.status_code == status.HTTP_200_OK
+    assert [deck["name"] for deck in res.json()["results"]] == ["Boop", "Blop", "Beep"]
+
+
+def test_sort_decklists_by_deckbuilding_achievements(client, build_state) -> None:
+    """Most achievements counts attached deckbuilding achievements, newest on a tie."""
+
+    Decklists.objects.filter(id=D1).update(
+        created_at=datetime(2024, 1, 1, tzinfo=timezone.utc)
+    )
+    Decklists.objects.filter(id=D2).update(
+        created_at=datetime(2024, 6, 1, tzinfo=timezone.utc)
+    )
+    Decklists.objects.filter(id=D3).update(
+        created_at=datetime(2024, 3, 1, tzinfo=timezone.utc)
+    )
+
+    res = client.get(f"{reverse('decklists')}?sort_order=achievements_desc")
+
+    assert res.status_code == status.HTTP_200_OK
+    assert [deck["name"] for deck in res.json()["results"]] == ["Beep", "Boop", "Blop"]
 
 
 def test_get_decklists_by_name_desc(client, build_state) -> None:

@@ -37,6 +37,7 @@ from stores.models import StoreParticipant
 from .serializers import ParticipantsSerializer
 from .queries import (
     get_decklists,
+    get_decklist_submitters,
     post_decklists,
     get_single_decklist_by_code,
     get_decklist_by_participant_round,
@@ -177,6 +178,12 @@ def change_password(request, **kwargs):
         {"message": "Password updated successfully"},
         status=status.HTTP_200_OK,
     )
+
+
+@api_view(["GET"])
+def decklist_submitters(request, **kwargs):
+    """Participants with at least one named-credit decklist."""
+    return Response(get_decklist_submitters())
 
 
 @api_view(["GET", "POST"])
@@ -458,7 +465,12 @@ def update_decklist(request, **kwargs):
 def admin_get_decklists(request, **kwargs):
     """List all non-deleted decklists for superuser management (JWT)."""
     params = dict(request.query_params)
-    decklists = get_decklists(params=params, owner_id=None, paginate=False)
+    decklists = get_decklists(
+        params=params,
+        owner_id=None,
+        paginate=False,
+        match_participant_name=True,
+    )
     return Response(decklists)
 
 

@@ -12,7 +12,7 @@ from better_profanity import profanity
 from rest_framework.exceptions import ValidationError
 
 from django.db import transaction
-from django.db.models import Func, F, IntegerField, Q, Value, Sum
+from django.db.models import Count, Func, F, IntegerField, Q, Value, Sum
 from django.db.models.functions import Coalesce
 from django.http import HttpRequest
 
@@ -231,10 +231,41 @@ def _ordered_ids_by_points(qs, descending: bool) -> list[int]:
     return [s[1] for s in scored]
 
 
-def _decklists_filtered_queryset(params: dict, owner_id: Optional[int]):
+def _created_at_by_decklist_id(qs) -> dict[int, Any]:
+    created: dict[int, Any] = {}
+    for row in qs.values("id", "created_at"):
+        created[row["id"]] = row["created_at"]
+    return created
+
+
+def _ordered_ids_by_related_count(qs, related, **filters) -> list[int]:
+    created = _created_at_by_decklist_id(qs)
+    scores: dict[int, int] = {}
+    if created:
+        rows = (
+            related.objects.filter(decklist_id__in=list(created), **filters)
+            .values("decklist_id")
+            .annotate(total=Count("id"))
+        )
+        scores = {row["decklist_id"]: row["total"] for row in rows}
+    ranked = [
+        (scores.get(deck_id, 0), created_at, deck_id)
+        for deck_id, created_at in created.items()
+    ]
+    ranked.sort(key=lambda row: (-row[0], -row[1].timestamp(), row[2]))
+    return [row[2] for row in ranked]
+
+
+def _decklists_filtered_queryset(
+    params: dict,
+    owner_id: Optional[int],
+    *,
+    match_participant_name: bool = False,
+):
     """Build filtered decklist queryset (not ordered for points sorts)."""
     sort_order = params.get("sort_order")
     color_mask = params.get("colors")
+    color_match = (params.get("color_match") or "exact").strip().lower()
     query = (
         Decklists.objects.filter(deleted=False)
         .select_related(
@@ -273,22 +304,39 @@ def _decklists_filtered_queryset(params: dict, owner_id: Optional[int]):
 
         if mask_int == 0:
             query = query.filter(combined_mask=0)
-        else:
+        elif color_match == "any":
             query = query.annotate(
-                subset_mask=BitAnd(F("combined_mask"), Value(mask_int))
-            ).filter(
-                subset_mask=F("combined_mask"),
-                combined_mask__gt=0,
-            )
+                overlap_mask=BitAnd(F("combined_mask"), Value(mask_int))
+            ).filter(overlap_mask=Value(mask_int))
+        else:
+            query = query.filter(combined_mask=mask_int)
 
     if owner_id is not None:
         query = query.filter(participant_id=owner_id)
 
-    search = (params.get("search") or "").strip()
+    submitted_by = params.get("submitted_by")
+    if submitted_by not in (None, ""):
+        try:
+            submitted_id = int(submitted_by)
+        except (TypeError, ValueError):
+            raise ValidationError(
+                {"submitted_by": "submitted_by must be an integer"}
+            )
+        query = query.filter(participant_id=submitted_id, give_credit=True)
+
+    search = params.get("search") or ""
+    if not isinstance(search, str):
+        search = search[0] if search else ""
+    search = search.strip()
     if search:
-        query = query.filter(
-            Q(name__icontains=search) | Q(participant__name__icontains=search)
+        matched = (
+            Q(name__icontains=search)
+            | Q(commander__name__icontains=search)
+            | Q(partner__name__icontains=search)
         )
+        if match_participant_name:
+            matched |= Q(participant__name__icontains=search)
+        query = query.filter(matched)
 
     return query, sort_order
 
@@ -300,6 +348,7 @@ def get_decklists(
     paginate: bool = False,
     page: int = 1,
     page_size: int = 20,
+    match_participant_name: bool = False,
 ) -> Union[list, dict[str, Any]]:
     """Return decklists based on params.
 
@@ -308,10 +357,24 @@ def get_decklists(
     Otherwise returns a plain list (participant / admin flows).
     """
     params = params or {}
-    query, sort_order = _decklists_filtered_queryset(params, owner_id)
+    query, sort_order = _decklists_filtered_queryset(
+        params, owner_id, match_participant_name=match_participant_name
+    )
 
-    if sort_order in ("points_desc", "points_asc"):
-        ordered_ids = _ordered_ids_by_points(query, sort_order == "points_desc")
+    if sort_order in (
+        "points_desc",
+        "points_asc",
+        "wins_desc",
+        "achievements_desc",
+    ):
+        if sort_order == "wins_desc":
+            ordered_ids = _ordered_ids_by_related_count(
+                query, WinningCommanders, deleted=False
+            )
+        elif sort_order == "achievements_desc":
+            ordered_ids = _ordered_ids_by_related_count(query, DecklistsAchievements)
+        else:
+            ordered_ids = _ordered_ids_by_points(query, sort_order == "points_desc")
         total_count = len(ordered_ids)
         if paginate:
             offset = max(0, (page - 1) * page_size)
@@ -344,6 +407,20 @@ def get_decklists(
         "page": page,
         "page_size": page_size,
     }
+
+
+def get_decklist_submitters() -> list[dict]:
+    """Participants who have at least one named-credit decklist."""
+    return list(
+        Participants.objects.filter(
+            deleted=False,
+            decklists__deleted=False,
+            decklists__give_credit=True,
+        )
+        .distinct()
+        .order_by("name", "id")
+        .values("id", "name")
+    )
 
 
 class StubCommander(dict):

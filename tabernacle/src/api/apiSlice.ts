@@ -171,6 +171,7 @@ export const {
   useGetPodParticipantsQuery,
   useGetScoresheetsQuery,
   useGetRoundsBySessionQuery,
+  useGetDecklistSubmittersQuery,
   useGetDecklistsQuery,
   useGetDecklistQuery,
   useLazyGetDecklistQuery,

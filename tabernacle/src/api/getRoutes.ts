@@ -71,7 +71,9 @@ import {
 } from "../types/commander_schemas";
 import { type ConfigsTransformed } from "../types/config_schemas";
 import {
+  DecklistSubmittersSchema,
   PaginatedDecklistsResponseSchema,
+  type DecklistSubmitter,
   type GetDecklistsResponse,
   type GetDecklistResponse,
   type PaginatedDecklistsResponse,
@@ -83,7 +85,10 @@ import {
   type StoreDetail,
   type StoreListResponse,
 } from "../types/store_schemas";
-import { type DecklistParams } from "../routes/home/Decklists";
+import {
+  decklistQueryString,
+  type DecklistParams,
+} from "../routes/home/decklistParams";
 
 const EMPTY_PAGINATED_DECKLISTS: PaginatedDecklistsResponse = {
   results: [],
@@ -316,25 +321,16 @@ export default (builder: ApiBuilder) => ({
   >({
     query: ({ session_id }) => `get_rounds_by_session/${session_id}/`,
   }),
+  getDecklistSubmitters: builder.query<DecklistSubmitter[], void>({
+    query: () => "decklist_submitters/",
+    transformResponse: (raw: unknown) =>
+      safeParseWithFallback(DecklistSubmittersSchema, raw, []),
+  }),
   getDecklists: builder.query<
     PaginatedDecklistsResponse,
     void | DecklistParams
   >({
-    query: (params) => {
-      const paramList: string[] = [];
-      if (params?.colors || params?.colors === 0) {
-        paramList.push(`colors=${params?.colors}`);
-      }
-      if (params?.sort_order) {
-        paramList.push(`sort_order=${params.sort_order}`);
-      }
-      const page = params?.page ?? 1;
-      const page_size = params?.page_size ?? 20;
-      paramList.push(`page=${page}`);
-      paramList.push(`page_size=${page_size}`);
-      const qParams = `?${paramList.join("&")}`;
-      return `decklists/${qParams}`;
-    },
+    query: (params) => `decklists/${decklistQueryString(params)}`,
     providesTags: ["Decklists"],
     transformResponse: (raw: unknown) =>
       safeParseWithFallback(

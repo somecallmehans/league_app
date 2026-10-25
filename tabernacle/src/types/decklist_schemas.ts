@@ -55,6 +55,13 @@ export type DecklistSummary = z.infer<typeof DecklistSummarySchema>;
 export const GetDecklistsResponseSchema = z.array(DecklistSummarySchema);
 export type GetDecklistsResponse = z.infer<typeof GetDecklistsResponseSchema>;
 
+export const DecklistSubmitterSchema = z.object({
+  id: IdSchema,
+  name: z.string(),
+});
+export const DecklistSubmittersSchema = z.array(DecklistSubmitterSchema);
+export type DecklistSubmitter = z.infer<typeof DecklistSubmitterSchema>;
+
 export const PaginatedDecklistsResponseSchema = z.object({
   results: GetDecklistsResponseSchema,
   count: z.number().int().nonnegative(),
