@@ -53,6 +53,10 @@ def test_post_retrieve_token(client, add_participant_with_code) -> None:
 
     assert res.status_code == status.HTTP_201_CREATED
 
+    code = res.json()["code"]
+    assert len(code) == 6
+    assert code.isalpha() and code.isupper()
+
     assert EditToken.objects.filter(owner_id=PID, revoked_at=None).exists()
 
 

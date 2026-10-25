@@ -261,15 +261,22 @@ class EditToken(models.Model):
                 expires_at__gt=timezone.now(),
             ).update(revoked_at=timezone.now())
 
-        raw = secrets.token_urlsafe(16)
+        for _ in range(6):
+            raw = generate_code()
+            if not raw:
+                continue
+            try:
+                with transaction.atomic():
+                    EditToken.objects.create(
+                        owner=owner,
+                        code_hash=hash_code(raw),
+                        expires_at=timezone.now() + timedelta(minutes=ttl_minutes),
+                    )
+                return raw
+            except IntegrityError:
+                continue
 
-        EditToken.objects.create(
-            owner=owner,
-            code_hash=hash_code(raw),
-            expires_at=timezone.now() + timedelta(minutes=ttl_minutes),
-        )
-
-        return raw
+        raise IntegrityError("Failed to generate unique edit code after 6 attempts")
 
     class Meta:
         db_table = "edit_tokens"

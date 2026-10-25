@@ -64,7 +64,7 @@ const CodeEntry = () => {
           value={code}
           onChange={(e) => setCode(e.target.value)}
           className="w-full rounded-md border border-zinc-300 px-3 py-2"
-          placeholder="e.g. aBcdE123423"
+          placeholder="e.g. ABCDEF"
           autoComplete="one-time-code"
         />
 
