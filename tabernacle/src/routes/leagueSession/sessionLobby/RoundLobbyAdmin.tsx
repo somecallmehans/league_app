@@ -60,7 +60,7 @@ export default function RoundLobbyAdmin({
   if (!participants) return <LoadingSpinner />;
 
   return (
-    <div className="mt-4 rounded-lg border border-slate-200 p-4">
+    <div className="rounded-lg border border-slate-200 p-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="text-slate-700">
           <div className="text-sm font-semibold">Checked in</div>

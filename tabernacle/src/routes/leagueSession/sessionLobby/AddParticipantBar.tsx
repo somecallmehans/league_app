@@ -9,24 +9,79 @@ import {
   usePostLobbySignInMutation,
   usePostUpsertParticipantMutation,
 } from "../../../api/apiSlice";
+import type { SessionRoundTab } from "../sessionRoundTab";
 
-type RoundTarget = "round1" | "round2" | "both";
+type RoundTarget = SessionRoundTab | "both";
 
 type SelectOption = { value: number; label: string };
+
+function RoundTargetButton({
+  label,
+  time,
+  selected,
+  disabled,
+  onSelect,
+}: {
+  label: string;
+  time?: string;
+  selected: boolean;
+  disabled: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      disabled={disabled}
+      aria-pressed={selected}
+      className={`rounded-md border px-3 py-2 text-left text-sm font-semibold ${
+        disabled
+          ? "cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400"
+          : selected
+            ? "border-sky-700 bg-sky-600 text-white"
+            : "border-sky-300 bg-sky-50 text-sky-950 hover:bg-sky-100"
+      }`}
+    >
+      <span className="block">{label}</span>
+      {time ? (
+        <span
+          className={`block text-xs font-medium ${
+            disabled ? "text-slate-400" : selected ? "text-white/80" : ""
+          }`}
+        >
+          {time}
+        </span>
+      ) : null}
+    </button>
+  );
+}
 
 export default function AddParticipantBar({
   roundOneId,
   roundTwoId,
   roundOneStarted,
   roundTwoStarted,
+  viewing,
+  roundOneStart,
+  roundTwoStart,
+  onViewRound,
 }: {
   roundOneId: number;
   roundTwoId: number;
   roundOneStarted: boolean;
   roundTwoStarted: boolean;
+  viewing: SessionRoundTab;
+  roundOneStart: string;
+  roundTwoStart: string;
+  onViewRound: (round: SessionRoundTab) => void;
 }) {
-  const [target, setTarget] = useState<RoundTarget>("round1");
+  const [target, setTarget] = useState<RoundTarget>(viewing);
+  const [trackedView, setTrackedView] = useState(viewing);
   const [selected, setSelected] = useState<SelectOption | null>(null);
+  if (viewing !== trackedView) {
+    setTrackedView(viewing);
+    setTarget(viewing);
+  }
   const { data: participants, isLoading } = useGetParticipantsQuery();
 
   const [postLobbySignIn] = usePostLobbySignInMutation();
@@ -129,49 +184,33 @@ export default function AddParticipantBar({
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <div className="text-sm font-semibold text-slate-700">Add to</div>
-          <div className="flex rounded-md border border-slate-200 overflow-hidden">
-            <button
-              type="button"
-              onClick={() => setTarget("round1")}
+          <div className="flex flex-wrap gap-2">
+            <RoundTargetButton
+              label="Round 1"
+              time={roundOneStart}
+              selected={target === "round1"}
               disabled={!canAddRoundOne}
-              className={`px-3 py-2 text-sm font-semibold ${
-                target === "round1"
-                  ? "bg-sky-600 text-white"
-                  : !canAddRoundOne
-                    ? "bg-slate-50 text-slate-400 cursor-not-allowed"
-                    : "bg-white text-slate-700"
-              }`}
-            >
-              Round 1
-            </button>
-            <button
-              type="button"
-              onClick={() => setTarget("round2")}
+              onSelect={() => {
+                setTarget("round1");
+                onViewRound("round1");
+              }}
+            />
+            <RoundTargetButton
+              label="Round 2"
+              time={roundTwoStart}
+              selected={target === "round2"}
               disabled={!canAddRoundTwo}
-              className={`px-3 py-2 text-sm font-semibold border-l border-slate-200 ${
-                target === "round2"
-                  ? "bg-sky-600 text-white"
-                  : !canAddRoundTwo
-                    ? "bg-slate-50 text-slate-400 cursor-not-allowed"
-                    : "bg-white text-slate-700"
-              }`}
-            >
-              Round 2
-            </button>
-            <button
-              type="button"
-              onClick={() => setTarget("both")}
+              onSelect={() => {
+                setTarget("round2");
+                onViewRound("round2");
+              }}
+            />
+            <RoundTargetButton
+              label="Both"
+              selected={target === "both"}
               disabled={!canAddBoth}
-              className={`px-3 py-2 text-sm font-semibold border-l border-slate-200 ${
-                target === "both"
-                  ? "bg-sky-600 text-white"
-                  : !canAddBoth
-                    ? "bg-slate-50 text-slate-400 cursor-not-allowed"
-                    : "bg-white text-slate-700"
-              }`}
-            >
-              Both
-            </button>
+              onSelect={() => setTarget("both")}
+            />
           </div>
         </div>
 

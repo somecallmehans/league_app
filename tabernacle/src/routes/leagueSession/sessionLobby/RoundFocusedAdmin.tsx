@@ -46,7 +46,7 @@ export default function RoundFocusedAdmin({
   };
 
   return (
-    <div className="mt-4">
+    <div>
       {anyOpen && (
         <div className="mb-4">
           <Link to={`/league-session/${sessionId}/${roundId}/pods`}>

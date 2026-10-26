@@ -15,6 +15,8 @@ import StandardButton from "../../components/Button";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import ConfirmModal from "../../components/Modals/ConfirmModal";
 import PageTitle from "../../components/PageTitle";
+import { useSessionRoundInfo } from "../../hooks";
+import { sessionLobbyPath } from "./sessionRoundTab";
 
 type DraftPod = {
   key: string;
@@ -57,6 +59,10 @@ export default function PodEditorPage() {
   const { session_id: sessionId, round_id: roundIdParam } = useParams();
   const roundId = roundIdParam ? Number(roundIdParam) : null;
   const navigate = useNavigate();
+  const roundInfo = useSessionRoundInfo();
+  const lobbyPath = sessionId
+    ? sessionLobbyPath(sessionId, roundInfo?.roundNumber)
+    : "/league-session";
 
   const { data: pods, isLoading: podsLoading } = useGetPodsQuery(
     roundId ?? skipToken,
@@ -227,7 +233,7 @@ export default function PodEditorPage() {
         unassigned: [],
       }).unwrap();
       toast.success("Pods saved");
-      navigate(`/league-session/${sessionId}`);
+      navigate(lobbyPath);
     } catch (err) {
       const data = (err as { data?: { problems?: string[] } }).data;
       setProblems(data?.problems ?? ["Save failed."]);
@@ -252,7 +258,7 @@ export default function PodEditorPage() {
     <div className="bg-white p-4 mb-4">
       <PageTitle title="Pod editor" />
       <div className="flex items-center justify-between mb-4">
-        <Link to={`/league-session/${sessionId}`}>
+        <Link to={lobbyPath}>
           <StandardButton title="Back" />
         </Link>
         <StandardButton
