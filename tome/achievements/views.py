@@ -109,7 +109,14 @@ def get_scorecard_achievement_options(_, **kwargs):
         AchievementScalableTerms.objects.values_list("achievement_id", flat=True)
     )
 
-    slug_ok = Q(slug__isnull=True) | Q(slug="precon") | Q(slug="best-snack")
+    slug_ok = (
+        Q(slug__isnull=True)
+        | Q(slug="precon")
+        | Q(slug="best-snack")
+        | Q(slug="cosplay")
+        | Q(slug="money-pack")
+        | Q(slug="bring-snack")
+    )
 
     child_achievements = list(
         Achievements.objects.filter(deleted=False, parent__isnull=False)
